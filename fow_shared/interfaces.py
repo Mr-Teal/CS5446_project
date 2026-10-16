@@ -1,6 +1,6 @@
 """Swappable boundaries: both paper agents use the same inputs and rules adapter."""
 
-from typing import Protocol
+from typing import Mapping, Protocol, Sequence
 
 from .contracts import AgentInput, Belief, Decision, Observation
 
@@ -46,3 +46,25 @@ class Referee(Protocol):
 
     def apply(self, move: str) -> None:
         """Reject a move absent from the current player's observation.legal_moves."""
+
+
+class LeafEvaluator(Protocol):
+    """Scores positions at the edge of the search tree, where searching stops.
+
+    The plug for the leaf: Stockfish at depth 1 (Obscuro's own leaf), Stockfish at depth 11,
+    or Pair B's network all answer the same two calls, so a match changes only which
+    evaluator the agent is given. Scores are in [-1, 1] from the acting player's view, and
+    positions decided by a rule are scored with fow_shared.values.rule_score.
+    """
+
+    name: str  # recorded as MatchConfig.engine_id, e.g. "stockfish-19-d1"
+
+    def evaluate_children(self, fen: str) -> Mapping[str, float]:
+        """Score of every legal move at this node, from the moving player's view.
+
+        One call per expanded node, as Obscuro does with one MultiPV Stockfish call
+        ([1] App. C.5). A finished game has no children: return {}.
+        """
+
+    def evaluate_boards(self, fens: Sequence[str], player: str) -> Sequence[float]:
+        """One score per board, in the same order, from `player`'s view ("white" or "black")."""
