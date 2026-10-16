@@ -1,8 +1,10 @@
-"""Candidate v1 belief encoder: N x 26 x 8 x 8 float32.
+"""Candidate v2 belief encoder: N x 32 x 8 x 8 float32.
 
-The proposal's numbered planes 0..25 total 26: 17 hypothesis-specific and 9
-shared. The slide's phrase "17 + 8" is a counting error. Keep this versioned;
-Pair A and Pair B should jointly sign off before generating a label dataset.
+Planes 0..25 are the proposal's numbered list: 17 hypothesis-specific and 9
+shared (the slide's phrase "17 + 8" is a counting error). Planes 26..31 add the
+rule state a FEN carries and the rules depend on: castling rights, the en
+passant square and the halfmove clock. Keep this versioned; Pair A and Pair B
+should jointly sign off before generating a label dataset.
 """
 
 from __future__ import annotations
@@ -24,16 +26,21 @@ PLANE_NAMES = (
     "enemy_rook_probability", "enemy_queen_probability", "enemy_king_probability",
     "log2_population_over_15", "their_visible_squares", "our_pieces_visible_to_them",
     "capture_recency", "ply_over_200", "search_depth_over_4",
+    "own_kingside_castling", "own_queenside_castling",
+    "enemy_kingside_castling", "enemy_queenside_castling",
+    "en_passant_square", "halfmove_clock_over_100",
 )
 
 
 def _index(square: str, player: str) -> Tuple[int, int]:
-    """Own home rank is always row 7; a Black position is rotated 180 degrees."""
+    """Own home rank is always row 7. A Black position is mirrored top to bottom,
+    with files unchanged, so a position and its colour-swapped twin encode
+    identically and the network learns each pattern once for both colours."""
     sq = chess.parse_square(square)
     file_index = chess.square_file(sq)
     rank_index = chess.square_rank(sq)
     return ((7 - rank_index, file_index) if player == "white"
-            else (rank_index, 7 - file_index))
+            else (rank_index, file_index))
 
 
 def encode_belief(
@@ -92,6 +99,16 @@ def encode_belief(
     for square, value in capture_recency.items():
         row, col = _index(square, obs.player)
         planes[:, 23, row, col] = value
+    own_colour = chess.WHITE if player_white else chess.BLACK
+    for i, board in enumerate(boards):
+        planes[i, 26] = board.has_kingside_castling_rights(own_colour)
+        planes[i, 27] = board.has_queenside_castling_rights(own_colour)
+        planes[i, 28] = board.has_kingside_castling_rights(not own_colour)
+        planes[i, 29] = board.has_queenside_castling_rights(not own_colour)
+        if board.ep_square is not None:
+            row, col = _index(chess.square_name(board.ep_square), obs.player)
+            planes[i, 30, row, col] = 1
+    planes[:, 31] = min(obs.halfmove_clock / 100, 1.0)
     population = belief.population_size or len(boards)
     planes[:, 20] = min(math.log2(population) / 15, 1.0)
     planes[:, 24] = min(obs.ply / 200, 1.0)
