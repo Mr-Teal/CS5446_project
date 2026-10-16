@@ -179,6 +179,9 @@ class TrainingRecord:
     seed: int
     agent_name: str
     config_id: str
+    # Identifies the game this decision came from, so training, validation and test
+    # data can be split by whole game. Set it in label runs; "" in older files.
+    game_id: str = ""
 
     def __post_init__(self) -> None:
         self.decision.validate_for(self.agent_input.observation)
