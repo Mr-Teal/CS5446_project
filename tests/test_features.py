@@ -43,7 +43,13 @@ def test_en_passant_square_is_marked_where_the_player_sees_it():
     assert ep[2, 5] == 1 and ep.sum() == 1
 
 
-def test_halfmove_plane_is_the_observed_clock_over_one_hundred():
-    planes, _ = encode_belief(turn_for("8/8/8/4k3/8/8/3Q4/4K3 w - - 50 80", "white", halfmove=50),
-                              lambda board: ())
-    assert np.allclose(planes[0, plane("halfmove_clock_over_100")], 0.5)
+def test_halfmove_plane_comes_from_each_hypothesis_not_the_observation():
+    # Under the paper's rules the player may not know the true clock (the pair_a_prep fixtures list
+    # it as hidden), so each board's own FEN clock is used and the observation's value is ignored.
+    boards = ("8/8/8/4k3/8/8/3Q4/4K3 w - - 10 80", "8/8/8/4k3/8/8/3Q4/4K3 w - - 30 80")
+    obs = Observation(player="white", ply=4, visible_squares=(), visible_pieces={},
+                      legal_moves=(), halfmove_clock=0)
+    belief = Belief("white", 4, tuple(Hypothesis(fen, 0.5) for fen in boards), population_size=2)
+    planes, _ = encode_belief(AgentInput(obs, belief, 1000), lambda board: ())
+    assert np.allclose(planes[0, plane("halfmove_clock_over_100")], 0.1)
+    assert np.allclose(planes[1, plane("halfmove_clock_over_100")], 0.3)

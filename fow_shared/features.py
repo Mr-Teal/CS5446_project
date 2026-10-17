@@ -3,8 +3,9 @@
 Planes 0..25 are the proposal's numbered list: 17 hypothesis-specific and 9
 shared (the slide's phrase "17 + 8" is a counting error). Planes 26..31 add the
 rule state a FEN carries and the rules depend on: castling rights, the en
-passant square and the halfmove clock. Keep this versioned; Pair A and Pair B
-should jointly sign off before generating a label dataset.
+passant square and the halfmove clock, each read from the hypothesis itself.
+Keep this versioned; Pair A and Pair B should jointly sign off before
+generating a label dataset.
 """
 
 from __future__ import annotations
@@ -108,7 +109,8 @@ def encode_belief(
         if board.ep_square is not None:
             row, col = _index(chess.square_name(board.ep_square), obs.player)
             planes[i, 30, row, col] = 1
-    planes[:, 31] = min(obs.halfmove_clock / 100, 1.0)
+        # Each hypothesis's own clock: under the paper's rules the player may not know the true one.
+        planes[i, 31] = min(board.halfmove_clock / 100, 1.0)
     population = belief.population_size or len(boards)
     planes[:, 20] = min(math.log2(population) / 15, 1.0)
     planes[:, 24] = min(obs.ply / 200, 1.0)
