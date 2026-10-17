@@ -1,0 +1,105 @@
+{
+  "profile": "paper_fow_v1_proposed",
+  "status": "Hand-derived acceptance fixtures; review before freezing. No FoW adapter is implemented here.",
+  "sources": {
+    "obscuro_A": "https://arxiv.org/pdf/2506.01242v2#page=13",
+    "zs21_B1": "https://arxiv.org/pdf/2106.06068v2#page=14",
+    "chesscom": "https://support.chess.com/en/articles/8708650-what-is-fog-of-war-chess"
+  },
+  "cases": [
+    {
+      "id": "initial_white", "source": "obscuro_A", "player": "white",
+      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      "expect": {"terminal": false, "legal_count": 20, "legal_contains": ["e2e4", "g1f3"], "visible_contains": ["a1", "e1", "a2", "e2", "e3", "e4"], "visible_excludes": ["e7", "e8"], "hidden_fields": ["halfmove_clock", "repetitions"]}
+    },
+    {
+      "id": "blocked_pawn_hides_blocker", "source": "obscuro_A", "player": "white",
+      "fen": "7k/8/8/8/8/4n3/4P3/K7 w - - 0 1",
+      "expect": {"terminal": false, "legal_excludes": ["e2e3", "e2e4"], "visible_contains": ["e2"], "visible_excludes": ["e3"]}
+    },
+    {
+      "id": "pawn_capture_reveals_target", "source": "obscuro_A", "player": "white",
+      "fen": "7k/8/8/5n2/4P3/8/8/K7 w - - 0 1",
+      "expect": {"terminal": false, "legal_contains": ["e4f5"], "visible_contains": ["f5", "e5"], "visible_excludes": ["d5"], "visible_pieces": {"f5": "n", "e5": null}}
+    },
+    {
+      "id": "slider_stops_at_capture", "source": "obscuro_A", "player": "white",
+      "fen": "7k/8/8/8/b7/8/8/R6K w - - 0 1",
+      "expect": {"terminal": false, "legal_contains": ["a1a4"], "visible_contains": ["a2", "a3", "a4"], "visible_excludes": ["a5"], "visible_pieces": {"a4": "b"}}
+    },
+    {
+      "id": "expose_own_king_is_legal", "source": "obscuro_A", "player": "white",
+      "fen": "k3r3/8/8/8/8/8/4R3/4K3 w - - 0 1",
+      "expect": {"terminal": false, "legal_contains": ["e2f2"]},
+      "orthodox": {"illegal_moves": ["e2f2"]}
+    },
+    {
+      "id": "king_capture_available_is_not_terminal_yet", "source": "obscuro_A", "player": "white",
+      "fen": "4k3/8/8/8/8/8/4R3/4K3 w - - 0 1",
+      "expect": {"terminal": false, "legal_contains": ["e2e8"], "visible_contains": ["e8"], "visible_pieces": {"e8": "k"}},
+      "note": "Not safe for an orthodox Stockfish call. A winning move still has to be selected and played."
+    },
+    {
+      "id": "captured_king_ends_game", "source": "obscuro_A", "player": "black",
+      "fen": "4R3/8/8/8/8/8/8/4K3 b - - 0 1",
+      "expect": {"terminal": true, "winner": "white", "legal_count": 0}
+    },
+    {
+      "id": "castle_through_attacked_square", "source": "obscuro_A", "player": "white",
+      "fen": "k4r2/8/8/8/8/8/8/4K2R w K - 0 1",
+      "expect": {"terminal": false, "legal_contains": ["e1g1"]},
+      "orthodox": {"illegal_moves": ["e1g1"]}
+    },
+    {
+      "id": "castle_escapes_orthodox_checkmate", "source": "obscuro_A", "player": "white",
+      "fen": "8/8/8/8/8/4k3/4q3/4K2R w K - 0 1",
+      "expect": {"terminal": false, "legal_contains": ["e1g1"]},
+      "orthodox": {"checkmate": true, "illegal_moves": ["e1g1"]}
+    },
+    {
+      "id": "castling_requires_rights", "source": "obscuro_A", "player": "white",
+      "fen": "k4r2/8/8/8/8/8/8/4K2R w - - 0 1",
+      "expect": {"terminal": false, "legal_excludes": ["e1g1"]}
+    },
+    {
+      "id": "en_passant_reveals_pawn_and_target", "source": "chesscom", "player": "white",
+      "fen": "7k/8/8/4Pp2/8/8/8/K7 w - f6 0 2",
+      "expect": {"terminal": false, "legal_contains": ["e5f6"], "visible_contains": ["f5", "f6"], "visible_pieces": {"f5": "p", "f6": null}}
+    },
+    {
+      "id": "expired_en_passant_loses_visibility", "source": "chesscom", "player": "white",
+      "fen": "7k/8/8/4Pp2/8/8/8/K7 w - - 0 2",
+      "expect": {"terminal": false, "legal_excludes": ["e5f6"], "visible_excludes": ["f5", "f6"]}
+    },
+    {
+      "id": "all_underpromotions", "source": "obscuro_A", "player": "white",
+      "fen": "7k/P7/8/8/8/8/8/7K w - - 0 1",
+      "expect": {"terminal": false, "legal_contains": ["a7a8q", "a7a8r", "a7a8b", "a7a8n"]}
+    },
+    {
+      "id": "bare_kings_are_not_automatic_draw", "source": "obscuro_A", "player": "white",
+      "fen": "7k/8/8/8/8/8/8/K7 w - - 0 1",
+      "expect": {"terminal": false}, "orthodox": {"insufficient_material": true}
+    },
+    {
+      "id": "orthodox_stalemate_has_fog_moves", "source": "obscuro_A", "player": "black",
+      "fen": "7k/5Q2/6K1/8/8/8/8/8 b - - 0 1",
+      "expect": {"terminal": false, "legal_contains": ["h8h7", "h8g7", "h8g8"]},
+      "orthodox": {"stalemate": true},
+      "note": "The paper calls this a forced win for the stalemating side, not a captured king already. Keep heuristic solved values separate from referee termination."
+    },
+    {
+      "id": "fifty_move_draw", "source": "obscuro_A", "player": "white",
+      "fen": "8/8/8/4k3/8/8/3Q4/4K3 w - - 100 80",
+      "expect": {"terminal": true, "winner": "draw", "legal_count": 0}
+    },
+    {
+      "id": "threefold_needs_history", "source": "obscuro_A", "player": "white",
+      "initial_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      "moves_uci": ["g1f3", "g8f6", "f3g1", "f6g8", "g1f3", "g8f6", "f3g1", "f6g8"],
+      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 8 5",
+      "expect": {"terminal": true, "winner": "draw", "legal_count": 0},
+      "note": "Replay moves from initial_fen; the final FEN alone does not contain repetition history."
+    }
+  ]
+}

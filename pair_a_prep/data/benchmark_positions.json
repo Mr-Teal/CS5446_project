@@ -1,0 +1,11 @@
+{
+  "description": "Small fixed orthodox-valid smoke corpus. Not a representative strength dataset.",
+  "positions": [
+    {"id": "initial", "category": "opening", "moves_uci": []},
+    {"id": "open_game", "category": "opening", "moves_uci": ["e2e4", "e7e5", "g1f3", "b8c6"]},
+    {"id": "ruy_castled", "category": "opening", "moves_uci": ["e2e4", "e7e5", "g1f3", "b8c6", "f1b5", "a7a6", "b5a4", "g8f6", "e1g1"]},
+    {"id": "queens_gambit", "category": "opening", "moves_uci": ["d2d4", "d7d5", "c2c4", "e7e6", "b1c3", "g8f6", "c1g5", "f8e7", "e2e3", "e8g8"]},
+    {"id": "rook_endgame", "category": "endgame", "fen": "8/5pk1/6p1/3R4/6P1/6KP/8/8 w - - 0 45"},
+    {"id": "pawn_endgame", "category": "endgame", "fen": "8/8/4k3/8/4P3/4K3/8/8 w - - 0 40"}
+  ]
+}
