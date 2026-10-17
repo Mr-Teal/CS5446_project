@@ -1,0 +1,1347 @@
+{
+  "scope": "small-game reference only; no chess agent or KLSS implemented",
+  "solver": "scipy.optimize.linprog(method='highs'), full normal form",
+  "numpy_version": "1.26.3",
+  "scipy_version": "1.10.0",
+  "payoff_perspective": "player_0",
+  "gap_convention": "unhalved best-response gap",
+  "games": {
+    "matching_pennies_hidden": {
+      "shape": [
+        2,
+        2
+      ],
+      "expected_value": 0.0,
+      "row_strategy": [
+        0.5,
+        0.5
+      ],
+      "column_strategy": [
+        0.5,
+        0.5
+      ],
+      "lower": 0.0,
+      "upper": 0.0,
+      "nash_gap": 0.0,
+      "profile_value": 0.0,
+      "row_pure_policies": [
+        {
+          "p0": "H"
+        },
+        {
+          "p0": "T"
+        }
+      ],
+      "column_pure_policies": [
+        {
+          "p1_hidden": "H"
+        },
+        {
+          "p1_hidden": "T"
+        }
+      ]
+    },
+    "matching_pennies_revealed": {
+      "shape": [
+        2,
+        4
+      ],
+      "expected_value": -1.0,
+      "row_strategy": [
+        1.0,
+        0.0
+      ],
+      "column_strategy": [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      "lower": -1.0,
+      "upper": -1.0,
+      "nash_gap": 0.0,
+      "profile_value": -1.0,
+      "row_pure_policies": [
+        {
+          "p0": "H"
+        },
+        {
+          "p0": "T"
+        }
+      ],
+      "column_pure_policies": [
+        {
+          "p1_after_H": "H",
+          "p1_after_T": "H"
+        },
+        {
+          "p1_after_H": "H",
+          "p1_after_T": "T"
+        },
+        {
+          "p1_after_H": "T",
+          "p1_after_T": "H"
+        },
+        {
+          "p1_after_H": "T",
+          "p1_after_T": "T"
+        }
+      ]
+    },
+    "coin_hidden": {
+      "shape": [
+        2,
+        1
+      ],
+      "expected_value": 0.5,
+      "row_strategy": [
+        1.0,
+        0.0
+      ],
+      "column_strategy": [
+        1.0
+      ],
+      "lower": 0.5,
+      "upper": 0.5,
+      "nash_gap": 0.0,
+      "profile_value": 0.5,
+      "row_pure_policies": [
+        {
+          "guess_hidden": "H"
+        },
+        {
+          "guess_hidden": "T"
+        }
+      ],
+      "column_pure_policies": [
+        {}
+      ]
+    },
+    "coin_revealed": {
+      "shape": [
+        4,
+        1
+      ],
+      "expected_value": 1.0,
+      "row_strategy": [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "column_strategy": [
+        1.0
+      ],
+      "lower": 1.0,
+      "upper": 1.0,
+      "nash_gap": 0.0,
+      "profile_value": 1.0,
+      "row_pure_policies": [
+        {
+          "guess_H": "H",
+          "guess_T": "H"
+        },
+        {
+          "guess_H": "H",
+          "guess_T": "T"
+        },
+        {
+          "guess_H": "T",
+          "guess_T": "H"
+        },
+        {
+          "guess_H": "T",
+          "guess_T": "T"
+        }
+      ],
+      "column_pure_policies": [
+        {}
+      ]
+    },
+    "kuhn_poker": {
+      "shape": [
+        64,
+        64
+      ],
+      "expected_value": -0.05555555555555555,
+      "row_strategy": [
+        0.0,
+        0.0,
+        0.1666666666666667,
+        0.0,
+        0.0,
+        0.0,
+        0.5833333333333333,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.25000000000000006,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "column_strategy": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.3333333333333333,
+        0.0,
+        0.3333333333333334,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.3333333333333332,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "lower": -0.05555555555555561,
+      "upper": -0.05555555555555547,
+      "nash_gap": 1.3877787807814457e-16,
+      "profile_value": -0.05555555555555558,
+      "row_pure_policies": [
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "check",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "fold",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "check",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "fold",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "check",
+          "p0:2:check_bet": "call"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "fold"
+        },
+        {
+          "p0:0:start": "bet",
+          "p0:0:check_bet": "call",
+          "p0:1:start": "bet",
+          "p0:1:check_bet": "call",
+          "p0:2:start": "bet",
+          "p0:2:check_bet": "call"
+        }
+      ],
+      "column_pure_policies": [
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "fold",
+          "p1:2:check": "check",
+          "p1:2:bet": "fold",
+          "p1:0:check": "check",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "fold",
+          "p1:2:check": "check",
+          "p1:2:bet": "fold",
+          "p1:0:check": "check",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "fold",
+          "p1:2:check": "check",
+          "p1:2:bet": "fold",
+          "p1:0:check": "bet",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "fold",
+          "p1:2:check": "check",
+          "p1:2:bet": "fold",
+          "p1:0:check": "bet",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "fold",
+          "p1:2:check": "check",
+          "p1:2:bet": "call",
+          "p1:0:check": "check",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "fold",
+          "p1:2:check": "check",
+          "p1:2:bet": "call",
+          "p1:0:check": "check",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "fold",
+          "p1:2:check": "check",
+          "p1:2:bet": "call",
+          "p1:0:check": "bet",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "fold",
+          "p1:2:check": "check",
+          "p1:2:bet": "call",
+          "p1:0:check": "bet",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "fold",
+          "p1:2:check": "bet",
+          "p1:2:bet": "fold",
+          "p1:0:check": "check",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "fold",
+          "p1:2:check": "bet",
+          "p1:2:bet": "fold",
+          "p1:0:check": "check",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "fold",
+          "p1:2:check": "bet",
+          "p1:2:bet": "fold",
+          "p1:0:check": "bet",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "fold",
+          "p1:2:check": "bet",
+          "p1:2:bet": "fold",
+          "p1:0:check": "bet",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "fold",
+          "p1:2:check": "bet",
+          "p1:2:bet": "call",
+          "p1:0:check": "check",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "fold",
+          "p1:2:check": "bet",
+          "p1:2:bet": "call",
+          "p1:0:check": "check",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "fold",
+          "p1:2:check": "bet",
+          "p1:2:bet": "call",
+          "p1:0:check": "bet",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "fold",
+          "p1:2:check": "bet",
+          "p1:2:bet": "call",
+          "p1:0:check": "bet",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "call",
+          "p1:2:check": "check",
+          "p1:2:bet": "fold",
+          "p1:0:check": "check",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "call",
+          "p1:2:check": "check",
+          "p1:2:bet": "fold",
+          "p1:0:check": "check",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "call",
+          "p1:2:check": "check",
+          "p1:2:bet": "fold",
+          "p1:0:check": "bet",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "call",
+          "p1:2:check": "check",
+          "p1:2:bet": "fold",
+          "p1:0:check": "bet",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "call",
+          "p1:2:check": "check",
+          "p1:2:bet": "call",
+          "p1:0:check": "check",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "call",
+          "p1:2:check": "check",
+          "p1:2:bet": "call",
+          "p1:0:check": "check",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "call",
+          "p1:2:check": "check",
+          "p1:2:bet": "call",
+          "p1:0:check": "bet",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "call",
+          "p1:2:check": "check",
+          "p1:2:bet": "call",
+          "p1:0:check": "bet",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "call",
+          "p1:2:check": "bet",
+          "p1:2:bet": "fold",
+          "p1:0:check": "check",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "call",
+          "p1:2:check": "bet",
+          "p1:2:bet": "fold",
+          "p1:0:check": "check",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "call",
+          "p1:2:check": "bet",
+          "p1:2:bet": "fold",
+          "p1:0:check": "bet",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "call",
+          "p1:2:check": "bet",
+          "p1:2:bet": "fold",
+          "p1:0:check": "bet",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "call",
+          "p1:2:check": "bet",
+          "p1:2:bet": "call",
+          "p1:0:check": "check",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "call",
+          "p1:2:check": "bet",
+          "p1:2:bet": "call",
+          "p1:0:check": "check",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "call",
+          "p1:2:check": "bet",
+          "p1:2:bet": "call",
+          "p1:0:check": "bet",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "check",
+          "p1:1:bet": "call",
+          "p1:2:check": "bet",
+          "p1:2:bet": "call",
+          "p1:0:check": "bet",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "fold",
+          "p1:2:check": "check",
+          "p1:2:bet": "fold",
+          "p1:0:check": "check",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "fold",
+          "p1:2:check": "check",
+          "p1:2:bet": "fold",
+          "p1:0:check": "check",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "fold",
+          "p1:2:check": "check",
+          "p1:2:bet": "fold",
+          "p1:0:check": "bet",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "fold",
+          "p1:2:check": "check",
+          "p1:2:bet": "fold",
+          "p1:0:check": "bet",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "fold",
+          "p1:2:check": "check",
+          "p1:2:bet": "call",
+          "p1:0:check": "check",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "fold",
+          "p1:2:check": "check",
+          "p1:2:bet": "call",
+          "p1:0:check": "check",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "fold",
+          "p1:2:check": "check",
+          "p1:2:bet": "call",
+          "p1:0:check": "bet",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "fold",
+          "p1:2:check": "check",
+          "p1:2:bet": "call",
+          "p1:0:check": "bet",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "fold",
+          "p1:2:check": "bet",
+          "p1:2:bet": "fold",
+          "p1:0:check": "check",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "fold",
+          "p1:2:check": "bet",
+          "p1:2:bet": "fold",
+          "p1:0:check": "check",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "fold",
+          "p1:2:check": "bet",
+          "p1:2:bet": "fold",
+          "p1:0:check": "bet",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "fold",
+          "p1:2:check": "bet",
+          "p1:2:bet": "fold",
+          "p1:0:check": "bet",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "fold",
+          "p1:2:check": "bet",
+          "p1:2:bet": "call",
+          "p1:0:check": "check",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "fold",
+          "p1:2:check": "bet",
+          "p1:2:bet": "call",
+          "p1:0:check": "check",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "fold",
+          "p1:2:check": "bet",
+          "p1:2:bet": "call",
+          "p1:0:check": "bet",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "fold",
+          "p1:2:check": "bet",
+          "p1:2:bet": "call",
+          "p1:0:check": "bet",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "call",
+          "p1:2:check": "check",
+          "p1:2:bet": "fold",
+          "p1:0:check": "check",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "call",
+          "p1:2:check": "check",
+          "p1:2:bet": "fold",
+          "p1:0:check": "check",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "call",
+          "p1:2:check": "check",
+          "p1:2:bet": "fold",
+          "p1:0:check": "bet",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "call",
+          "p1:2:check": "check",
+          "p1:2:bet": "fold",
+          "p1:0:check": "bet",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "call",
+          "p1:2:check": "check",
+          "p1:2:bet": "call",
+          "p1:0:check": "check",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "call",
+          "p1:2:check": "check",
+          "p1:2:bet": "call",
+          "p1:0:check": "check",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "call",
+          "p1:2:check": "check",
+          "p1:2:bet": "call",
+          "p1:0:check": "bet",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "call",
+          "p1:2:check": "check",
+          "p1:2:bet": "call",
+          "p1:0:check": "bet",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "call",
+          "p1:2:check": "bet",
+          "p1:2:bet": "fold",
+          "p1:0:check": "check",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "call",
+          "p1:2:check": "bet",
+          "p1:2:bet": "fold",
+          "p1:0:check": "check",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "call",
+          "p1:2:check": "bet",
+          "p1:2:bet": "fold",
+          "p1:0:check": "bet",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "call",
+          "p1:2:check": "bet",
+          "p1:2:bet": "fold",
+          "p1:0:check": "bet",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "call",
+          "p1:2:check": "bet",
+          "p1:2:bet": "call",
+          "p1:0:check": "check",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "call",
+          "p1:2:check": "bet",
+          "p1:2:bet": "call",
+          "p1:0:check": "check",
+          "p1:0:bet": "call"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "call",
+          "p1:2:check": "bet",
+          "p1:2:bet": "call",
+          "p1:0:check": "bet",
+          "p1:0:bet": "fold"
+        },
+        {
+          "p1:1:check": "bet",
+          "p1:1:bet": "call",
+          "p1:2:check": "bet",
+          "p1:2:bet": "call",
+          "p1:0:check": "bet",
+          "p1:0:bet": "call"
+        }
+      ]
+    },
+    "biased_matrix": {
+      "row_strategy": [
+        0.625,
+        0.375
+      ],
+      "column_strategy": [
+        0.5,
+        0.5
+      ],
+      "lower": 0.5,
+      "upper": 0.5,
+      "nash_gap": 0.0,
+      "profile_value": 0.5
+    }
+  }
+}

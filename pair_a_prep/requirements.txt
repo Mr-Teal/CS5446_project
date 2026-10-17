@@ -1,0 +1,5 @@
+# Separate environment for preparation tools; root pyproject.toml is unchanged.
+numpy>=1.21
+scipy>=1.7
+python-chess==1.999
+pytest>=7
