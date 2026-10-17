@@ -2,7 +2,7 @@
 
 from typing import Mapping, Protocol, Sequence
 
-from .contracts import AgentInput, Belief, Decision, Observation
+from .contracts import AgentInput, Belief, Decision, LeafValues, Observation
 
 
 class Agent(Protocol):
@@ -52,9 +52,10 @@ class LeafEvaluator(Protocol):
     """Scores positions at the edge of the search tree, where searching stops.
 
     The plug for the leaf: Stockfish at depth 1 (Obscuro's own leaf), Stockfish at depth 11,
-    or Pair B's network all answer the same two calls, so a match changes only which
+    or Pair B's networks all answer the same three calls, so a match changes only which
     evaluator the agent is given. Scores are in [-1, 1] from the acting player's view, and
-    positions decided by a rule are scored with fow_shared.values.rule_score.
+    positions decided by a rule are scored with fow_shared.values.rule_score. A first search
+    may send one node or belief per call; the calls take batches so it can send more later.
     """
 
     name: str  # recorded as MatchConfig.engine_id, e.g. "stockfish-19-d1"
@@ -68,3 +69,11 @@ class LeafEvaluator(Protocol):
 
     def evaluate_boards(self, fens: Sequence[str], player: str) -> Sequence[float]:
         """One score per board, in the same order, from `player`'s view ("white" or "black")."""
+
+    def evaluate_beliefs(self, turns: Sequence[AgentInput]) -> Sequence[LeafValues]:
+        """One LeafValues per belief, in order, each valid for its own turn.
+
+        Each answer keeps its own hypotheses in order, so a batch never mixes boards from
+        different beliefs. Weights, observations and legal moves travel with each belief,
+        as a belief-pooling network needs them; board-only evaluators may ignore them.
+        """

@@ -191,3 +191,30 @@ class TrainingRecord:
             raise ValueError("values must be finite and in [-1, 1]")
         if not self.agent_name or not self.config_id:
             raise ValueError("agent_name and config_id are required")
+
+
+@dataclass(frozen=True)
+class LeafValues:
+    """A leaf evaluator's answer for one belief (LeafEvaluator.evaluate_beliefs).
+
+    One score per hypothesis, in the belief's order, from the acting player's view in
+    [-1, 1]. An evaluator with a policy head may add move probabilities over the
+    observation's legal moves.
+    """
+
+    hypothesis_values: Tuple[float, ...]
+    policy: Optional[Mapping[str, float]] = None
+
+    def validate_for(self, turn: AgentInput) -> None:
+        if len(self.hypothesis_values) != len(turn.belief.hypotheses):
+            raise ValueError("one value is required per hypothesis")
+        if any(not isfinite(v) or not -1 <= v <= 1 for v in self.hypothesis_values):
+            raise ValueError("values must be finite and in [-1, 1]")
+        if self.policy is None:
+            return
+        if set(self.policy) != set(turn.observation.legal_moves):
+            raise ValueError("policy must cover exactly the legal moves")
+        if any(not isfinite(p) or p < 0 for p in self.policy.values()):
+            raise ValueError("invalid policy probability")
+        if abs(sum(self.policy.values()) - 1.0) > 1e-6:
+            raise ValueError("policy probabilities must sum to one")
