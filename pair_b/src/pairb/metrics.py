@@ -33,12 +33,22 @@ def choice_metrics(parents, pred, y) -> dict:
     return {"top1": float(np.mean(regret <= 1e-9)), "regret": float(np.mean(regret)), "parents": int(len(regret))}
 
 
-def paired_regret_difference(parents, pred, base, y, n_boot: int = 2000, seed: int = 0) -> dict:
+def paired_regret_difference(parents, pred, base, y, games=None, n_boot: int = 2000, seed: int = 0) -> dict:
     """Mean regret of `pred` minus that of `base` on the same parents, with a 95% bootstrap
-    interval over parents. Negative means `pred` chooses better."""
+    interval. Negative means `pred` chooses better.
+
+    With `games` (the game of each row) the interval resamples whole games: parents from one
+    game are correlated, so resampling them one by one makes the interval too narrow. Without
+    it, each parent is resampled on its own."""
     group, pred, base, y = _arrays(parents, pred, base, y)
     diff = _per_parent_regret(group, pred, y) - _per_parent_regret(group, base, y)
-    rng = np.random.default_rng(seed)
-    boots = diff[rng.integers(0, len(diff), size=(n_boot, len(diff)))].mean(axis=1)
+    if games is None:
+        game = np.arange(len(diff))
+    else:
+        first_row = np.unique(group, return_index=True)[1]  # one row per parent, in group order
+        game = np.unique(np.asarray(games)[first_row], return_inverse=True)[1]
+    sums, counts = np.bincount(game, weights=diff), np.bincount(game)
+    pick = np.random.default_rng(seed).integers(0, len(sums), size=(n_boot, len(sums)))
+    boots = sums[pick].sum(axis=1) / counts[pick].sum(axis=1)
     return {"mean": float(diff.mean()), "ci95": [float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))],
-            "parents": int(len(diff))}
+            "parents": int(len(diff)), "games": int(len(sums)), "resampled": "parents" if games is None else "games"}

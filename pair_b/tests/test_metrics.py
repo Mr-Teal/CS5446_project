@@ -59,3 +59,20 @@ def test_paired_regret_difference_interval_straddles_zero_when_they_tie_on_avera
     d = paired_regret_difference(parents, net, base, y, n_boot=500, seed=0)
     assert d["mean"] == pytest.approx(0.0)
     assert d["ci95"][0] < 0 < d["ci95"][1]
+
+
+# Catches: an interval that treats decisions from one game as independent, so it comes out too
+# narrow when they are correlated (review of #4; Teal on #6).
+def test_paired_regret_difference_can_resample_whole_games():
+    from pairb.metrics import paired_regret_difference
+    parents = np.repeat(np.arange(100), 2).astype(str)                    # 100 parents, 2 children each
+    in_a = np.repeat(np.arange(100) < 50, 2)
+    games = np.where(in_a, "gA", "gB")
+    y = np.tile([0.0, 1.0], 100)                                           # child 0 is always best
+    net = np.where(in_a, np.tile([1.0, -1.0], 100), np.tile([-1.0, 1.0], 100))  # wrong in game A only
+    base = np.tile([-1.0, 1.0], 100)                                       # always right
+    by_game = paired_regret_difference(parents, net, base, y, games=games, n_boot=2000, seed=0)
+    by_parent = paired_regret_difference(parents, net, base, y, n_boot=2000, seed=0)
+    assert by_game["mean"] == by_parent["mean"] == pytest.approx(0.5)
+    assert by_game["games"] == 2 and by_game["ci95"][1] - by_game["ci95"][0] > 0.8   # mean can be 0, 0.5 or 1
+    assert by_parent["ci95"][1] - by_parent["ci95"][0] < 0.4

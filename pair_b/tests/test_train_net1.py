@@ -19,8 +19,8 @@ ROOT = Path(__file__).resolve().parents[1]
 def run(tmp_path_factory):
     tmp = tmp_path_factory.mktemp("net1")
     data, out = tmp / "d2", tmp / "run"
-    # 6 games: g-000002 and g-000005 fall in the validation split, none in test.
-    subprocess.run([sys.executable, str(ROOT / "scripts" / "make_d2.py"), "--games", "6", "--parents-per-game", "1",
+    # 14 games: g-000002 and g-000005 fall in the validation split, g-000013 in the test split.
+    subprocess.run([sys.executable, str(ROOT / "scripts" / "make_d2.py"), "--games", "14", "--parents-per-game", "1",
                     "--max-plies", "30", "--label-depth", "3", "--workers", "2", "--out", str(data)],
                    check=True, capture_output=True, text=True)
     subprocess.run([sys.executable, str(ROOT / "scripts" / "train_net1.py"), "--data", str(data), "--out", str(out),
@@ -30,11 +30,15 @@ def run(tmp_path_factory):
     return data, out
 
 
-# Catches: test-split games used for training, or training rows silently dropped.
+# Catches: test-split games used for training or model selection, or training rows silently dropped.
 def test_trains_on_exactly_the_train_and_validation_games(run):
     data, out = run
     summary = json.loads((out / "summary.json").read_text())
     usable = [r for r in read_records(data) if r["rule"] is None]
+    games = {split: {r["game_id"] for r in usable if split_of(r["game_id"]) == split} for split in ("train", "val", "test")}
+    assert games["test"], "the tiny dataset must contain a test game for this check to mean anything"
+    used = json.loads((out / "splits.json").read_text())
+    assert set(used["train"]) == games["train"] and set(used["val"]) == games["val"]
     assert summary["n"]["train"] == sum(split_of(r["game_id"]) == "train" for r in usable)
     assert summary["n"]["val"] == sum(split_of(r["game_id"]) == "val" for r in usable)
 
@@ -67,7 +71,9 @@ def evaluate(run, split, *extra):
 def test_eval_compares_the_network_with_the_depth1_baseline_on_the_same_parents(run):
     _, out = run
     assert evaluate(run, "val").returncode == 0
-    report = json.loads((out / "eval-val.json").read_text())
+    report = json.loads((out / "eval-d2-val.json").read_text())
+    assert report["material"]["choice"]["parents"] == report["network"]["choice"]["parents"]
+    assert report["regret_difference"]["games"] >= 1
     assert set(report) >= {"network", "baseline", "regret_difference", "split"}
     assert report["split"] == "val" and len(report["regret_difference"]["ci95"]) == 2
     assert report["network"]["choice"]["parents"] == report["baseline"]["choice"]["parents"]
@@ -77,3 +83,15 @@ def test_eval_compares_the_network_with_the_depth1_baseline_on_the_same_parents(
 def test_eval_refuses_the_test_split_without_final(run):
     result = evaluate(run, "test")
     assert result.returncode != 0 and "--final" in result.stderr
+
+
+# Catches: a network trained on different input planes being evaluated and silently misread.
+def test_eval_refuses_a_checkpoint_for_other_input_planes(run):
+    data, out = run
+    other = out.parent / "other-run"
+    other.mkdir(exist_ok=True)
+    ckpt = torch.load(out / "best.pt", map_location="cpu")
+    torch.save({**ckpt, "encoding": "other-planes"}, other / "best.pt")
+    result = subprocess.run([sys.executable, str(ROOT / "scripts" / "eval_net1.py"), "--run", str(other), "--data", str(data),
+                             "--split", "val", "--cache-dir", str(out.parent / "cache")], capture_output=True, text=True)
+    assert result.returncode != 0 and "planes" in result.stderr
