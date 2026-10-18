@@ -32,7 +32,8 @@ def pick_device(device: str | None = None) -> str:
 class NetworkEvaluator:
     def __init__(self, net: Network1, label: str = "network", *, name: str | None = None,
                  stockfish_path: str = "stockfish", device: str | None = None, new_game_each_call: bool = True):
-        """new_game_each_call: as for StockfishEvaluator; inside a search, False is about 6x faster."""
+        """new_game_each_call: as for StockfishEvaluator; inside a search, False makes Network 1
+        about 1.7x faster (4.6 against 7.9 ms per expanded node)."""
         self.device = pick_device(device)
         self.net = net.to(self.device).eval()
         self.stockfish = StockfishEvaluator(depth=1, path=stockfish_path, new_game_each_call=new_game_each_call)

@@ -12,6 +12,17 @@ def as_float(planes_u8: torch.Tensor) -> torch.Tensor:
     return x
 
 
+PIECE_CP = torch.tensor([100.0, 300.0, 300.0, 500.0, 900.0, 0.0])  # pawn, knight, bishop, rook, queen, king
+
+
+def material_pred(planes_u8: torch.Tensor) -> torch.Tensor:
+    """The piece-value baseline (pairb.material) read from packed planes: tanh(balance / 600) for
+    the side to move, whose pieces are planes 0-5 and the opponent's 6-11."""
+    counts = planes_u8[:, :12].float().sum(dim=(2, 3))
+    balance = (counts[:, :6] - counts[:, 6:]) @ PIECE_CP.to(counts.device)
+    return torch.tanh(balance / 600)
+
+
 @torch.no_grad()
 def predict(net, planes: torch.Tensor, d1: torch.Tensor, batch: int = 4096) -> torch.Tensor:
     net.eval()

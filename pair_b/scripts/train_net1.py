@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def device_of(name: str) -> torch.device:
     if name == "auto":
-        name = "mps" if torch.backends.mps.is_available() else "cpu"
+        name = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
     return torch.device(name)
 
 
@@ -59,7 +59,7 @@ def main():
     ap.add_argument("--lr", type=float, default=2e-3)
     ap.add_argument("--weight-decay", type=float, default=1e-4)
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--device", default="auto", help="auto, mps or cpu")
+    ap.add_argument("--device", default="auto", help="auto, cuda, mps or cpu")
     ap.add_argument("--cache-dir", default=str(ROOT / "data" / "cache"))
     args = ap.parse_args()
 
@@ -71,10 +71,14 @@ def main():
 
     arrays = load_arrays(args.data, args.cache_dir)
     split = np.array([split_of(g) for g in arrays["game_id"]])
-    tensors = {}
+    tensors, used = {}, {}
     for name in ("train", "val"):
         m = split == name
         tensors[name] = [torch.from_numpy(arrays[k][m]).to(device) for k in ("planes", "d1", "y")]
+        used[name] = sorted(set(arrays["game_id"][m].tolist()))
+    # The games each split actually used, so a check can confirm no test game was trained or
+    # selected on.
+    (out / "splits.json").write_text(json.dumps({**used, "test_held_out_games": len(set(arrays["game_id"][split == "test"]))}) + "\n")
     n = {"train": len(tensors["train"][2]), "val": len(tensors["val"][2]), "test_held_out": int((split == "test").sum())}
     if n["val"] == 0:
         raise SystemExit("the dataset has no validation games")
