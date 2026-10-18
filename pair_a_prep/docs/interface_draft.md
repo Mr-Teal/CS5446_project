@@ -1,7 +1,9 @@
 # Pair A minimum interface draft
 
-Status: proposed for teammate review. No rules engine, tracker, shared schema
-change, agent assignment or Pair B integration is implemented by this draft.
+Status: proposed for teammate review. A state/move prototype now lives in
+[rules_adapter.py](../rules_adapter.py), reusing the merged shared rule helpers.
+Observation generation, tracker, shared schema changes and agent assignments
+remain outside this implementation.
 Signatures are in [interface_draft.py](../interface_draft.py).
 
 ## Proposed responsibilities
@@ -17,11 +19,36 @@ Signatures are in [interface_draft.py](../interface_draft.py).
 
 ## State and observation conventions
 
-The concrete state representation is left to the adapter implementer. A likely
-implementation wraps a chess board with its move stack, an elapsed-ply counter
-starting at zero, and any metadata needed to report captures. A successor must
-preserve repetition history and must not mutate its parent or sibling branches.
+`RuleState` wraps a private chess board with its full move stack, an elapsed-ply
+counter starting at zero, and the immediately preceding capture's player/square.
+`board_copy()` returns an independent copy including history. Direct access to
+the private `_board` is unsupported. Successors preserve repetition history
+and do not mutate their parent or sibling branches.
 FEN alone is insufficient to reconstruct repetition or private histories.
+
+`RulesAdapter` implements `initial_state`, `current_player`, `legal_moves`,
+`apply_move` and `terminal`. It is not yet a full `RulesAdapterDraft` because
+`observe` is not implemented. Move generation and actual terminal checks reuse
+`fow_shared.values.fog_legal_moves` and `terminal_score`; `forced_score` is not
+used to end games. Custom FEN starts with ply zero and no earlier move history.
+FEN parsing is not a complete reachability validator; ordinary chess validity
+checks are deliberately not imposed on fog-of-war positions.
+
+```python
+from pair_a_prep.rules_adapter import RulesAdapter
+
+rules = RulesAdapter()
+start = rules.initial_state()
+after_e4 = rules.apply_move(start, "e2e4")
+after_d4 = rules.apply_move(start, "d2d4")
+assert start.ply == 0
+assert after_e4.ply == after_d4.ply == 1
+assert rules.current_player(after_e4) == "black"
+```
+
+Capture metadata is internal, not an observation. It records the captured pawn's
+actual square for en passant, and resets on the next non-capture. Deciding what
+to reveal to a player belongs to the later observation implementation.
 
 Moves use UCI strings, squares use algebraic names, pieces use FEN letters,
 and colors use `white`/`black`. Do not equate ordinary chess legal moves or
@@ -83,9 +110,11 @@ failure instead of reading the referee's state or silently rebuilding guesses.
    precedence using the existing fixtures, including history-dependent cases.
 3. Pair A: choose exact versus sampled tracking, history identity, weighting,
    and how surviving internal states map to shared `Hypothesis` entries.
-4. Pair B: coordinate adding `side_to_move`, allowing an unknown halfmove clock,
-   passing `own_move` through the runner, and serialization/feature compatibility.
-   The shared `Observation`, protocols and runner are unchanged for now.
+4. Already merged from Pair B: shared `Observation.halfmove_clock` defaults to
+   `None`, and the encoder reads each hypothesis's own clock. No duplicate fix
+   is needed. Still coordinate `side_to_move`, passing `own_move` through the
+   runner, and serialization/feature compatibility. This prototype makes no
+   changes to shared contracts, protocols or the runner.
 5. Before integration: demonstrate an initial/own/opponent update, independent
    successor branches, repetition-history retention, and observation privacy.
 

@@ -1,7 +1,8 @@
 # Independent Pair A preparation
 
-This directory contains preparation tools that run independently of
-`fow_shared` and Pair B's PR. The preparation work added files only under
+This directory contains preparation tools and a rules adapter prototype.
+The standalone preparation tools run independently of `fow_shared`; the new
+adapter reuses the rule helpers merged from Pair B's PR. Changes remain under
 `pair_a_prep/`; it did not change the existing shared interfaces, encoder,
 root README or dependencies. Neither ZS21 nor Obscuro is implemented here,
 and agent ownership, team settings and delivery dates remain to be agreed.
@@ -9,6 +10,7 @@ and agent ownership, team settings and delivery dates remain to be agreed.
 | Work | File | Contents |
 |---|---|---|
 | Pair A interface draft | [interface_draft.py](interface_draft.py), [interface_draft.md](docs/interface_draft.md) | Proposed rules/tracker signatures, private observation fields and update sequence; pending review |
+| State and move prototype | [rules_adapter.py](rules_adapter.py) | History-preserving states, independent successors, legal moves and actual terminal outcomes; no observation generator yet |
 | Paper implementation specifications | [paper_specs.md](docs/paper_specs.md) | Pinned v2 sources, parameters, section references, implementation checks and open questions |
 | Small-game validation | [toy_games.py](toy_games.py) | Information sets, chance nodes, LP reference solutions and behavioral best-response/Nash-gap checks |
 | Stockfish measurements | [benchmark_stockfish.py](benchmark_stockfish.py) | Fixed positions, depths 1 and 11, best-move/all-move MultiPV, raw scores and timings |
@@ -22,7 +24,7 @@ in English so teammates can read and maintain them.
 ## Setup and execution
 
 From the project root, create a separate virtual environment. These commands
-do not require Pair B's PR to be merged:
+require the merged shared rule helpers for the adapter tests:
 
 ```powershell
 python -m venv pair_a_prep/.venv

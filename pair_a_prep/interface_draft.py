@@ -1,4 +1,4 @@
-"""Pair A discussion draft only; no rules or tracker are implemented here.
+"""Pair A interface proposal; state/move prototype lives in rules_adapter.py.
 
 These types are deliberately separate from fow_shared. See
 docs/interface_draft.md for the update sequence and integration decisions.
@@ -25,6 +25,8 @@ class ObservationDraft:
     """Private view, never a complete hidden board or opponent move log.
 
     This is a field proposal, not a replacement for the shared Observation.
+    The shared type already supports halfmove_clock=None; side_to_move remains
+    a proposed addition. This draft does not implement observation generation.
     Mapping contents must be copied when constructing each snapshot.
     """
 
