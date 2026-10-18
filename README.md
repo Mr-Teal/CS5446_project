@@ -8,8 +8,11 @@ R1–R3 work, but no such source files were present in this directory.
 
 - `fow_shared/contracts.py`: `Observation` contains what the acting player can
   actually see, including visibly empty squares and the legal UCI moves. It
-  never contains a referee board. `HistoryEvent` records each player's own
-  observation after every ply and their own move when applicable. `Belief`
+  never contains a referee board. Every snapshot names `side_to_move`, even on
+  the opponent's turn or after a custom start; only the side to move has legal
+  moves, and an agent is never handed a snapshot from the opponent's turn.
+  `HistoryEvent` records each player's own observation after every ply and
+  their own move when applicable: the move made AFTER that snapshot. `Belief`
   contains sampled complete FENs and optional `history_id`/hypothetical move
   paths, so two candidate histories can reach the same FEN without being
   merged. These are inferred possibilities, never the referee's private game
@@ -18,7 +21,9 @@ R1–R3 work, but no such source files were present in this directory.
   budget. `Decision.root_policy` is the **unpurified** strategy and covers all
   legal moves; `Decision.move` is the move actually played.
 - `fow_shared/interfaces.py`: both agents implement `Agent.reset/act`. A belief
-  tracker implements `BeliefTracker.reset/update`. The match runner alone owns
+  tracker implements `BeliefTracker.reset/update`; `update(observation,
+  own_move)` is told the player's own move that led to the new snapshot, and
+  `None` at the start and after an opponent's move. The match runner alone owns
   `Referee` and passes only `AgentInput` to the agent. A `LeafEvaluator` scores
   positions where the search stops: `evaluate_children(fen)` once per expanded
   node (Obscuro's one MultiPV Stockfish call), `evaluate_boards(fens, player)`
@@ -39,14 +44,21 @@ R1–R3 work, but no such source files were present in this directory.
   one move ahead that are not over yet (king capture available, or every move
   either ends the game in a draw or leaves the king capturable). Stockfish 19
   crashes on a position where the side to move can capture the king, so check
-  `rule_score` first.
+  `rule_score` first. `standard_fen` is the FEN every boundary uses
+  (hypotheses, records, evaluator calls): it names the en passant square after
+  every two-square pawn move, as the rules adapter does. python-chess's default
+  FEN drops en passant captures that only fog rules allow.
 - `fow_shared/features.py`: candidate network input `(N, 32, 8, 8)` plus
   `(N,)` normalized hypothesis weights. Plane names and orientation are in
   `PLANE_NAMES`. It requires a rules-specific opponent-visibility callback.
+  The en passant plane marks the square only when the player can capture there,
+  so both FEN styles encode alike.
 - `fow_shared/evaluation.py`: one common `MatchConfig` and `play_game` loop,
   with per-ply move, runtime, budget-overrun flag and search-node records. A
   ply cap is recorded as a separate draw condition. Both players' trackers
-  receive observations after every ply. The loop measures an
+  receive observations after every ply, the one that ends the game included,
+  and the mover's tracker also gets the move just made; the loop rejects a
+  snapshot that names the wrong side to move. The loop measures an
   overrun but does not interrupt an agent mid-call; process-level time limits
   belong in the eventual match runner.
 

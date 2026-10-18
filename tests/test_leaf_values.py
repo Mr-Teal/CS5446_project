@@ -9,7 +9,7 @@ def two_board_turn():
     first = chess.Board()
     second = first.copy()
     second.remove_piece_at(chess.D8)
-    obs = Observation(player="white", ply=0, visible_squares=(), visible_pieces={},
+    obs = Observation(player="white", side_to_move="white", ply=0, visible_squares=(), visible_pieces={},
                       legal_moves=("a2a3", "a2a4"), halfmove_clock=0)
     belief = Belief("white", 0, (Hypothesis(first.fen(), 0.5), Hypothesis(second.fen(), 0.5)))
     return AgentInput(obs, belief, 1000)
