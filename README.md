@@ -19,11 +19,28 @@ R1–R3 work, but no such source files were present in this directory.
   legal moves; `Decision.move` is the move actually played.
 - `fow_shared/interfaces.py`: both agents implement `Agent.reset/act`. A belief
   tracker implements `BeliefTracker.reset/update`. The match runner alone owns
-  `Referee` and passes only `AgentInput` to the agent.
+  `Referee` and passes only `AgentInput` to the agent. A `LeafEvaluator` scores
+  positions where the search stops: `evaluate_children(fen)` once per expanded
+  node (Obscuro's one MultiPV Stockfish call), `evaluate_boards(fens, player)`
+  for batches, and `evaluate_beliefs(turns)` for whole beliefs (weighted
+  hypotheses, observation, legal moves), returning one `LeafValues` per belief.
+  Stockfish at depth 1 and 11 and Pair B's networks implement it.
 - `fow_shared/recording.py`: `TrainingRecord` JSONL is the handoff to Pair B.
   Values are from the acting player's perspective in `[-1, 1]`; metadata includes
-  seed, agent name, and a configuration ID.
-- `fow_shared/features.py`: candidate network input `(N, 26, 8, 8)` plus
+  seed, agent name, a configuration ID and a `game_id` (set it in label runs, so
+  data can be split by whole game).
+- `fow_shared/values.py`: the one conversion from Stockfish to a score,
+  `tanh(cp / 600)` with forced mates at exactly +1/-1, and the rule checks run
+  before any engine call. `fog_legal_moves` adds castling into, out of or
+  through check to python-chess's pseudo-legal moves and passes the legal-move
+  and game-over expectations of the `pair_a_prep` rules fixtures.
+  `terminal_score` reports finished games (king captured, fifty moves,
+  threefold repetition with history); `forced_score` reports positions decided
+  one move ahead that are not over yet (king capture available, or every move
+  either ends the game in a draw or leaves the king capturable). Stockfish 19
+  crashes on a position where the side to move can capture the king, so check
+  `rule_score` first.
+- `fow_shared/features.py`: candidate network input `(N, 32, 8, 8)` plus
   `(N,)` normalized hypothesis weights. Plane names and orientation are in
   `PLANE_NAMES`. It requires a rules-specific opponent-visibility callback.
 - `fow_shared/evaluation.py`: one common `MatchConfig` and `play_game` loop,
@@ -49,8 +66,11 @@ R1–R3 work, but no such source files were present in this directory.
 3. **Feature count:** the pitch numbers planes `0..25`, which is 26 planes.
    Its “17 per-board + 8 shared” phrase totals 25. The numbered list actually
    contains 17 per-board and 9 shared planes. This encoder follows the
-   numbered list, uses `log2(population_size)/15`, and rotates Black positions
-   180 degrees. Pair B should approve or change it before label collection.
+   numbered list, uses `log2(population_size)/15`, and adds planes `26..31` for
+   castling rights, the en passant square and the halfmove clock (Pair B's
+   proposal), each read from the hypothesis itself because the player may not
+   know the true clock. Black positions are mirrored top to bottom with files
+   unchanged, so a position and its colour-swapped twin encode identically.
 4. **Hidden information:** visibility passed to `encode_belief` must be computed
    from each hypothesis, not the true board. Observations and hypotheses are
    checked against each other on visible squares. The belief tracker must
@@ -68,5 +88,6 @@ R1–R3 work, but no such source files were present in this directory.
 ## Run the checks
 
 Install dependencies from `pyproject.toml`, then run `python -m pytest -q`.
-The checks cover legal-action rejection, weight normalization, feature layout,
-visible-state consistency, and JSONL round trips.
+The checks cover legal-action rejection, weight normalization, feature layout
+and orientation, visible-state consistency, JSONL round trips, the score
+conversion and the fog-of-war rule checks.

@@ -38,8 +38,8 @@ def test_contract_rejects_illegal_action_and_wrong_weights():
 def test_feature_planes_are_perspective_consistent_and_no_referee_board():
     turn = sample_turn()
     planes, weights = encode_belief(turn, lambda board: ("a2",))
-    assert planes.shape == (2, 26, 8, 8)
-    assert len(PLANE_NAMES) == 26
+    assert planes.shape == (2, 32, 8, 8)
+    assert len(PLANE_NAMES) == 32
     np.testing.assert_allclose(weights, [0.5, 0.5])
     assert planes[0, 0, 6, 0] == 1  # Our pawn on a2.
     assert planes[0, 13].sum() == 0  # No observed enemy piece.

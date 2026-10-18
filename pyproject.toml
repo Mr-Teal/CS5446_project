@@ -10,3 +10,7 @@ test = ["pytest>=7"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.setuptools]
+# Ship only the shared package; pair_a_prep and tests are not installed.
+packages = ["fow_shared"]

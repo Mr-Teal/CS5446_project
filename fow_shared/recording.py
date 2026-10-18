@@ -40,6 +40,7 @@ def read_records(path: Path) -> Iterator[TrainingRecord]:
                 decision = Decision(**obj["decision"])
                 yield TrainingRecord(turn, decision, obj["root_value"],
                                      tuple(obj["hypothesis_values"]), obj["seed"],
-                                     obj["agent_name"], obj["config_id"])
+                                     obj["agent_name"], obj["config_id"],
+                                     obj.get("game_id", ""))
             except (KeyError, TypeError, ValueError) as exc:
                 raise ValueError(f"invalid record on line {line_no}") from exc
