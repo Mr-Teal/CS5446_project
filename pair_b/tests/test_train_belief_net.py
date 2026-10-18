@@ -68,9 +68,13 @@ def run(request, tmp_path_factory):
     return tmp / "d6", out, records
 
 
-# Catches: test games used for training, or beliefs and boards silently dropped.
+# Catches: test games used for training or model selection, or beliefs and boards silently dropped.
 def test_trains_on_exactly_the_train_and_validation_beliefs(run):
     _, out, records = run
+    used = json.loads((out / "splits.json").read_text())
+    for split in ("train", "val"):
+        assert set(used[split]) == {r.game_id for r in records if split_of(r.game_id) == split}
+    assert any(split_of(r.game_id) == "test" for r in records)  # so the check means something
     n = json.loads((out / "summary.json").read_text())["n"]
     for split in ("train", "val"):
         mine = [r for r in records if split_of(r.game_id) == split]
@@ -140,3 +144,11 @@ def test_evaluating_a_d1_network_refuses_beliefs_without_quick_stockfish_values(
                              "--data", str(tmp_path / "gappy"), "--split", "val", "--device", "cpu", "--workers", "1",
                              "--cache-dir", str(tmp_path / "cache")], capture_output=True, text=True)
     assert result.returncode != 0 and "d1" in result.stderr
+
+
+# Catches: training that only works with every plane on the GPU, or steps that ignore the board cap.
+def test_trains_with_planes_kept_on_the_host_and_steps_capped_by_boards(tmp_path):
+    tiny_dataset(tmp_path / "d6")
+    result = train(tmp_path / "d6", tmp_path / "run", "--planes-on", "host", "--max-boards", "6")
+    assert result.returncode == 0, result.stderr[-500:]
+    assert (tmp_path / "run" / "best.pt").exists()

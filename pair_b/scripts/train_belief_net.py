@@ -2,10 +2,13 @@
 
     .venv/bin/python scripts/train_belief_net.py --data data/d6-v1 --out runs/belief-v1
 
---data is a folder of fow_shared TrainingRecord part files with a manifest.json: Pair B's practice
-beliefs now, Pair A's solver labels later. Trains on the training games, keeps the epoch with the
-lowest board error on the validation games, and never reads the test games. Writes best.pt,
-metrics.jsonl and summary.json into --out, which must not exist yet.
+--data is a folder of fow_shared TrainingRecord JSONL files (--pattern; manifest.json optional):
+Pair B's practice beliefs now, Pair A's solver labels later. Trains on the training games, keeps
+the epoch with the lowest board error on the validation games, and never reads the test games.
+A step holds whole beliefs, at most --batch of them and --max-boards boards, so large beliefs
+(Pair A plans 256 or more boards) keep steps bounded; --planes-on host keeps the encoded planes
+in main memory when they would not fit on the GPU. Writes best.pt, metrics.jsonl, splits.json
+(the games used) and summary.json into --out, which must not exist yet.
 """
 import argparse
 import datetime
@@ -16,7 +19,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from pairb.belief_data import ENCODING, load_arrays, rows_of
+from pairb.belief_data import ENCODING, belief_batches, load_arrays, rows_of
 from pairb.belief_eval import baseline_pred, errors, predict, require_d1
 from pairb.belief_net import BeliefNetwork
 from pairb.data import split_of
@@ -66,7 +69,11 @@ def main():
     ap.add_argument("--no-context", action="store_true", help="ablation: ignore the rest of the belief")
     ap.add_argument("--epochs", type=int, default=30)
     ap.add_argument("--patience", type=int, default=5, help="stop after this many epochs without a better validation score")
-    ap.add_argument("--batch", type=int, default=64, help="beliefs per step")
+    ap.add_argument("--batch", type=int, default=64, help="at most this many beliefs per step")
+    ap.add_argument("--max-boards", type=int, default=4096, help="at most this many boards per step")
+    ap.add_argument("--planes-on", choices=["auto", "device", "host"], default="auto",
+                    help="where the encoded planes live; auto puts them on the device up to 2 GiB")
+    ap.add_argument("--pattern", default="part-*.jsonl", help="the record files to read in --data")
     ap.add_argument("--lr", type=float, default=2e-3)
     ap.add_argument("--weight-decay", type=float, default=1e-4)
     ap.add_argument("--seed", type=int, default=0)
@@ -81,7 +88,7 @@ def main():
     torch.manual_seed(args.seed)
     started = time.time()
 
-    arrays = load_arrays(args.data, args.cache_dir, args.workers)
+    arrays = load_arrays(args.data, args.cache_dir, args.workers, args.pattern)
     split = np.array([split_of(g) for g in arrays["game_id"]])
     ids = {name: np.flatnonzero(split == name) for name in ("train", "val", "test")}
     n = {name: {"beliefs": int(len(ids[name])), "boards": int(len(rows_of(arrays, ids[name])[0]))}
@@ -91,7 +98,8 @@ def main():
         raise SystemExit("the dataset has no validation games")
     print(f"beliefs: {n}  device: {device}", flush=True)
 
-    planes = torch.from_numpy(arrays["planes"]).to(device)  # float16 on the device; float32 per batch
+    on_device = args.planes_on == "device" or (args.planes_on == "auto" and arrays["planes"].nbytes <= 2 * 2 ** 30)
+    planes = torch.from_numpy(arrays["planes"]).to(device) if on_device else None  # float16; float32 per batch
     d1 = baseline_pred(arrays, ids["val"])
     baseline = errors(d1, arrays, ids["val"])[0] if d1 is not None else None
     if args.use_d1:
@@ -105,9 +113,18 @@ def main():
                         use_context=not args.no_context).to(device)
     params = sum(p.numel() for p in net.parameters())
     opt = torch.optim.AdamW(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-    steps = (len(ids["train"]) + args.batch - 1) // args.batch
-    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=args.epochs * steps)
     rng = np.random.default_rng(args.seed)
+    sizes = np.bincount(arrays["belief"])
+    epochs = [belief_batches(sizes, rng.permutation(ids["train"]), args.max_boards, args.batch)
+              for _ in range(args.epochs)]
+    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=sum(len(e) for e in epochs))
+    # The games actually in the training batches and the validation set, so a check can confirm
+    # no test game was trained or selected on.
+    trained = np.unique(np.concatenate([np.concatenate(e) for e in epochs]))
+    (out / "splits.json").write_text(json.dumps({
+        "train": sorted(set(arrays["game_id"][trained].tolist())),
+        "val": sorted(set(arrays["game_id"][ids["val"]].tolist())),
+        "test_held_out_games": len(set(arrays["game_id"][ids["test"]].tolist()))}) + "\n")
     y_all, w_all = torch.from_numpy(arrays["y"]).to(device), torch.from_numpy(arrays["weight"]).to(device)
     keep_all = torch.from_numpy(~arrays["rule"]).to(device).float()
     d1_all = torch.from_numpy(np.nan_to_num(arrays["d1"])).to(device)
@@ -116,11 +133,12 @@ def main():
     with open(out / "metrics.jsonl", "w") as log:
         for epoch in range(1, args.epochs + 1):
             net.train()
-            order, total, weight_seen = rng.permutation(ids["train"]), 0.0, 0.0
-            for i in range(steps):
-                rows, local = rows_of(arrays, order[i * args.batch:(i + 1) * args.batch])
+            total, weight_seen = 0.0, 0.0
+            for chunk in epochs[epoch - 1]:
+                rows, local = rows_of(arrays, chunk)
                 r = torch.from_numpy(rows).to(device)
-                pred = net(planes[r].float(), w_all[r], torch.from_numpy(local).to(device), int(local.max()) + 1,
+                x = planes[r] if planes is not None else torch.from_numpy(arrays["planes"][rows]).to(device)
+                pred = net(x.float(), w_all[r], torch.from_numpy(local).to(device), len(chunk),
                            d1_all[r] if args.use_d1 else None)
                 w = w_all[r] * keep_all[r]  # boards the rules decide are not learned
                 loss = (w * (pred - y_all[r]) ** 2).sum() / w.sum().clamp_min(1e-12)
@@ -130,7 +148,7 @@ def main():
                 sched.step()
                 total += loss.item() * float(w.sum())
                 weight_seen += float(w.sum())
-            val = errors(predict(net, arrays, ids["val"], device, planes=planes), arrays, ids["val"])[0]
+            val = errors(predict(net, arrays, ids["val"], device, args.max_boards, planes), arrays, ids["val"])[0]
             row = {"epoch": epoch, "train_mse": round(total / max(weight_seen, 1e-12), 6), "val": val,
                    "seconds": round(time.time() - started, 1)}
             log.write(json.dumps(row) + "\n")
@@ -154,7 +172,8 @@ def main():
         speed["cpu_1_belief"] = ms_per_belief(net, torch.device("cpu"), 1)
     summary = {
         "dataset": Path(args.data).name, "encoding": ENCODING, "config": ckpt["config"], "params": params,
-        "device": device.type, "n": n, "baseline": baseline, "val": best, "best_epoch": best_epoch,
+        "device": device.type, "planes_on": "device" if on_device else "host", "n": n, "baseline": baseline,
+        "val": best, "best_epoch": best_epoch,
         "epochs_run": epoch, "ms_per_belief_of_8_boards": speed, "seconds": round(time.time() - started, 1),
         "created": datetime.datetime.now().astimezone().isoformat(timespec="seconds"), "args": vars(args),
     }

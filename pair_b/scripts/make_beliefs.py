@@ -62,7 +62,8 @@ def run_worker(task):
                                       diagnostics={f"d1:{i}": v for i, v in enumerate(d1)}))
             sizes[len(fens)] += 1
         engine_name = quick.engine.id.get("name", "unknown")
-    write_records(Path(cfg["out"]) / f"part-{worker:02d}.jsonl", records)
+    if records:  # a worker whose points the rules all decide writes no file
+        write_records(Path(cfg["out"]) / f"part-{worker:02d}.jsonl", records)
     return len(records), sizes, skipped, engine_name
 
 
