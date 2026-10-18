@@ -1,0 +1,40 @@
+{
+  "run": "net1-v2",
+  "data": "d2-check",
+  "split": "train",
+  "n": 94963,
+  "checkpoint_epoch": 1,
+  "network": {
+    "mse": 0.018349,
+    "mae": 0.075671,
+    "mae_close": 0.107148,
+    "mae_decided": 0.037054,
+    "mae_close_by_d1": 0.128581,
+    "choice": {
+      "top1": 0.424306,
+      "regret": 0.035205,
+      "parents": 3818
+    }
+  },
+  "baseline": {
+    "mse": 0.02309,
+    "mae": 0.094885,
+    "mae_close": 0.09067,
+    "mae_decided": 0.076441,
+    "mae_close_by_d1": 0.126243,
+    "choice": {
+      "top1": 0.428759,
+      "regret": 0.035481,
+      "parents": 3818
+    }
+  },
+  "regret_difference": {
+    "mean": -0.00027609850327431134,
+    "ci95": [
+      -0.0015373256561207495,
+      0.0009740898636517749
+    ],
+    "parents": 3818
+  },
+  "created": "2026-10-16T21:28:47+08:00"
+}
