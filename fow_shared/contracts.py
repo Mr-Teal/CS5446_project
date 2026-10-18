@@ -34,6 +34,9 @@ def _colour(value: str) -> bool:
 @dataclass(frozen=True)
 class Observation:
     player: str
+    # Whose turn it is. Both players always know it, and it is stated even for a custom start,
+    # where Black may move first. Only the side to move has legal moves.
+    side_to_move: str
     ply: int
     visible_squares: Tuple[str, ...]
     # Every visible square is present; None means visibly empty.
@@ -51,6 +54,10 @@ class Observation:
     def __post_init__(self) -> None:
         if self.schema_version != SCHEMA_VERSION or not _colour(self.player):
             raise ValueError("unsupported observation version or player")
+        if not _colour(self.side_to_move):
+            raise ValueError("side_to_move must be 'white' or 'black'")
+        if self.legal_moves and self.side_to_move != self.player:
+            raise ValueError("only the side to move has legal moves")
         if self.ply < 0 or (self.halfmove_clock is not None and self.halfmove_clock < 0):
             raise ValueError("negative move counter")
         if len(set(self.visible_squares)) != len(self.visible_squares) or not all(map(_square, self.visible_squares)):
@@ -73,7 +80,8 @@ class Observation:
 
 @dataclass(frozen=True)
 class Hypothesis:
-    # Complete FEN, including side to move, castling rights and en-passant square.
+    # Complete FEN, including side to move, castling rights and en-passant square. Write it with
+    # fow_shared.values.standard_fen, so en passant captures that only fog rules allow survive.
     fen: str
     weight: float
     # Distinguishes candidate histories that reach the same FEN. Assigned by the
@@ -141,6 +149,8 @@ class AgentInput:
     def __post_init__(self) -> None:
         if (self.observation.player, self.observation.ply) != (self.belief.player, self.belief.ply):
             raise ValueError("observation and belief must refer to the same turn")
+        if self.observation.side_to_move != self.observation.player:
+            raise ValueError("an agent acts only on its own turn")
         if self.time_budget_ms <= 0:
             raise ValueError("time budget must be positive")
         if any(event.observation.player != self.observation.player for event in self.history):

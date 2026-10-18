@@ -1,6 +1,6 @@
 """Swappable boundaries: both paper agents use the same inputs and rules adapter."""
 
-from typing import Mapping, Protocol, Sequence
+from typing import Mapping, Optional, Protocol, Sequence
 
 from .contracts import AgentInput, Belief, Decision, LeafValues, Observation
 
@@ -19,10 +19,14 @@ class BeliefTracker(Protocol):
     def reset(self, player: str, seed: int) -> None:
         ...
 
-    def update(self, observation: Observation) -> Belief:
-        """Called after every ply for this player, including opponent turns.
+    def update(self, observation: Observation, own_move: Optional[str] = None) -> Belief:
+        """Called after every ply for this player, including opponent turns and the ply that ends
+        the game, whose snapshot is terminal.
 
-        Use only observations and prior internal state; never inspect the true board.
+        own_move is this player's move that led to this observation. It is given right after
+        the player moves, and is None at the start and after an opponent's move, which stays
+        unknown. HistoryEvent.own_move instead pins a move to the snapshot BEFORE it.
+        Use only observations, own moves and prior internal state; never inspect the true board.
         """
 
 

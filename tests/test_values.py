@@ -8,7 +8,7 @@ import chess.engine
 import pytest
 
 from fow_shared.values import (cp_to_score, engine_score, fog_legal_moves, forced_score, rule_score,
-                               score_from_pov, terminal_score)
+                               score_from_pov, standard_fen, terminal_score)
 from pair_a_prep.fixtures import board_for_case, compare_result, load_suite
 
 Cp, Mate, PovScore = chess.engine.Cp, chess.engine.Mate, chess.engine.PovScore
@@ -131,3 +131,20 @@ def test_fog_legal_moves_pass_the_rules_fixtures(case):
     # Only the legal-move and game-over expectations; visibility belongs to the rules adapter.
     expect = {k: v for k, v in case["expect"].items() if k.startswith("legal") or k in ("terminal", "winner")}
     assert compare_result({**case, "expect": expect}, result) == []
+
+
+def test_standard_fen_names_the_en_passant_square_after_every_two_square_pawn_move():
+    board = chess.Board()
+    board.push_uci("e2e4")
+    assert standard_fen(board) == "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
+
+
+def test_an_en_passant_capture_only_fog_rules_allow_survives_a_standard_fen():
+    # Black has just played c7c5 beside White's b5 pawn. b5xc6 would expose White's king on a5 to
+    # the rook on h5: ordinary chess forbids it, fog-of-war chess allows it.
+    board = chess.Board("7k/2p5/8/KP5r/8/8/8/8 b - - 0 1")
+    board.push_uci("c7c5")
+    assert standard_fen(board) == "7k/8/8/KPp4r/8/8/8/8 w - c6 0 2"
+    assert "b5c6" in [m.uci() for m in fog_legal_moves(chess.Board(standard_fen(board)))]
+    # Why the helper exists: python-chess's default FEN drops the square, and the capture with it.
+    assert "b5c6" not in [m.uci() for m in fog_legal_moves(chess.Board(board.fen()))]

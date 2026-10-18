@@ -106,7 +106,9 @@ def encode_belief(
         planes[i, 27] = board.has_queenside_castling_rights(own_colour)
         planes[i, 28] = board.has_kingside_castling_rights(not own_colour)
         planes[i, 29] = board.has_queenside_castling_rights(not own_colour)
-        if board.ep_square is not None:
+        # Marked only if the player can capture there, so a standard FEN's square after every
+        # two-square pawn move encodes like python-chess's default FEN, which leaves it out.
+        if board.has_pseudo_legal_en_passant():
             row, col = _index(chess.square_name(board.ep_square), obs.player)
             planes[i, 30, row, col] = 1
         # Each hypothesis's own clock: under the paper's rules the player may not know the true one.
