@@ -49,6 +49,17 @@ def score_from_pov(pov: chess.engine.PovScore, player: str) -> float:
     return cp_to_score(score.score())
 
 
+def standard_fen(board: chess.Board) -> str:
+    """The FEN every boundary uses: hypotheses, records and evaluator calls.
+
+    It names the en passant square after every two-square pawn move, as the FEN standard does
+    (python-chess en_passant="fen"). python-chess's default names it only when ordinary chess
+    allows the capture, so it drops captures that only fog rules allow, such as one that
+    exposes the capturer's own king; a board rebuilt from that FEN loses the move.
+    """
+    return board.fen(en_passant="fen")
+
+
 def fog_legal_moves(board: chess.Board) -> List[chess.Move]:
     """Every move allowed under fog-of-war rules; none once the game is over.
 

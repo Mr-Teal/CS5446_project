@@ -53,3 +53,26 @@ def test_halfmove_plane_comes_from_each_hypothesis_not_the_observation():
     planes, _ = encode_belief(AgentInput(obs, belief, 1000), lambda board: ())
     assert np.allclose(planes[0, plane("halfmove_clock_over_100")], 0.1)
     assert np.allclose(planes[1, plane("halfmove_clock_over_100")], 0.3)
+
+
+@pytest.mark.parametrize("fen, player, marked", [
+    # After 1.e4 a standard FEN names e3, but no Black pawn can capture there: nothing to mark.
+    ("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1", "black", None),
+    # b5xc6 exposes White's king on a5 to the rook: only fog rules allow it, and it is marked.
+    ("7k/8/8/KPp4r/8/8/8/8 w - c6 0 2", "white", (2, 2)),
+])
+def test_the_en_passant_plane_marks_only_a_square_the_player_can_capture_on(fen, player, marked):
+    planes, _ = encode_belief(turn_for(fen, player), lambda board: ())
+    ep = planes[0, plane("en_passant_square")]
+    assert ep.sum() == (0 if marked is None else 1)
+    if marked is not None:
+        assert ep[marked] == 1
+
+
+def test_a_dead_en_passant_square_encodes_like_none_at_all():
+    # Pair A's states write standard FEN; python-chess's default leaves the square out.
+    standard = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
+    default = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+    with_square, _ = encode_belief(turn_for(standard, "black"), lambda board: ())
+    without, _ = encode_belief(turn_for(default, "black"), lambda board: ())
+    np.testing.assert_array_equal(with_square, without)

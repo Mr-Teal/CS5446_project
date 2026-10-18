@@ -80,7 +80,8 @@ class Observation:
 
 @dataclass(frozen=True)
 class Hypothesis:
-    # Complete FEN, including side to move, castling rights and en-passant square.
+    # Complete FEN, including side to move, castling rights and en-passant square. Write it with
+    # fow_shared.values.standard_fen, so en passant captures that only fog rules allow survive.
     fen: str
     weight: float
     # Distinguishes candidate histories that reach the same FEN. Assigned by the
