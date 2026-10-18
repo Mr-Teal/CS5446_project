@@ -20,7 +20,8 @@ class BeliefTracker(Protocol):
         ...
 
     def update(self, observation: Observation, own_move: Optional[str] = None) -> Belief:
-        """Called after every ply for this player, including opponent turns.
+        """Called after every ply for this player, including opponent turns and the ply that ends
+        the game, whose snapshot is terminal.
 
         own_move is this player's move that led to this observation. It is given right after
         the player moves, and is None at the start and after an opponent's move, which stays

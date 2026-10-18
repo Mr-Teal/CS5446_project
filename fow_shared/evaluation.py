@@ -88,13 +88,13 @@ def play_game(referee: Referee, agents: Mapping[str, Agent],
             private_history[viewer].append(HistoryEvent(
                 observations[viewer], decision.move if viewer == player else None))
         referee.apply(decision.move)
-        if not referee.is_terminal():
-            observations = {viewer: referee.observe(viewer) for viewer in ("white", "black")}
-            _check_side_to_move(observations, referee)
-            # Each tracker learns its own player's move, never the opponent's.
-            beliefs = {viewer: trackers[viewer].update(
-                           observations[viewer], own_move=decision.move if viewer == player else None)
-                       for viewer in ("white", "black")}
+        # Both trackers see every ply, including the one that ends the game; each learns its
+        # own player's move, never the opponent's.
+        observations = {viewer: referee.observe(viewer) for viewer in ("white", "black")}
+        _check_side_to_move(observations, referee)
+        beliefs = {viewer: trackers[viewer].update(
+                       observations[viewer], own_move=decision.move if viewer == player else None)
+                   for viewer in ("white", "black")}
     capped = not referee.is_terminal()
     winner = "draw" if capped else referee.winner()
     if winner not in ("white", "black", "draw"):

@@ -56,9 +56,9 @@ R1–R3 work, but no such source files were present in this directory.
 - `fow_shared/evaluation.py`: one common `MatchConfig` and `play_game` loop,
   with per-ply move, runtime, budget-overrun flag and search-node records. A
   ply cap is recorded as a separate draw condition. Both players' trackers
-  receive observations after every ply, and the mover's tracker also gets the
-  move just made; the loop rejects a snapshot that names the wrong side to
-  move. The loop measures an
+  receive observations after every ply, the one that ends the game included,
+  and the mover's tracker also gets the move just made; the loop rejects a
+  snapshot that names the wrong side to move. The loop measures an
   overrun but does not interrupt an agent mid-call; process-level time limits
   belong in the eventual match runner.
 

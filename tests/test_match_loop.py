@@ -28,9 +28,10 @@ class ScriptedReferee:
         to_move = self.current_player()
         if self.ply == self.wrong_side_at_ply and player != to_move:
             to_move = player  # a referee bug: the waiting player is told it is their turn
-        moves = (MOVES[self.ply],) if player == to_move and not self.is_terminal() else ()
+        over = self.is_terminal()
+        moves = (MOVES[self.ply],) if player == to_move and not over else ()
         return Observation(player=player, side_to_move=to_move, ply=self.ply, visible_squares=(),
-                           visible_pieces={}, legal_moves=moves)
+                           visible_pieces={}, legal_moves=moves, terminal=over, outcome=0.0 if over else None)
 
     def apply(self, move):
         assert move == MOVES[self.ply]
@@ -42,7 +43,7 @@ class RecordingTracker:
         self.player, self.calls = player, []
 
     def update(self, observation, own_move=None):
-        self.calls.append((observation.ply, own_move))
+        self.calls.append((observation.ply, own_move, observation.terminal))
         return Belief(self.player, observation.ply, (Hypothesis(chess.STARTING_FEN, 1.0),))
 
 
@@ -67,9 +68,10 @@ def play(referee):
 
 def test_each_tracker_is_told_its_own_last_move_and_never_the_opponents():
     agents, trackers = play(ScriptedReferee())
-    # (ply of the new snapshot, own move that led to it). No update after the final ply.
-    assert trackers["white"].calls == [(0, None), (1, "e2e4"), (2, None)]
-    assert trackers["black"].calls == [(0, None), (1, None), (2, "e7e5")]
+    # (ply of the new snapshot, own move that led to it, game over). The move that ends the
+    # game still reaches both trackers, with the final snapshot.
+    assert trackers["white"].calls == [(0, None, False), (1, "e2e4", False), (2, None, False), (3, "g1f3", True)]
+    assert trackers["black"].calls == [(0, None, False), (1, None, False), (2, "e7e5", False), (3, None, True)]
     # The history pins the same move to the snapshot BEFORE it: White's ply-0 view, then e2e4.
     history = agents["white"].histories[-1]
     assert [(e.observation.ply, e.own_move) for e in history] == [(0, "e2e4"), (1, None)]
