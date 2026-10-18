@@ -1,4 +1,4 @@
-"""State and move prototype; private observation generation is not implemented."""
+"""History-preserving FoW rules and a private-observation referee."""
 
 from dataclasses import dataclass, field
 from typing import Optional, Tuple
@@ -6,6 +6,7 @@ from typing import Optional, Tuple
 import chess
 
 from fow_shared.values import fog_legal_moves, terminal_score
+from fow_shared.contracts import Observation
 from .interface_draft import Outcome, Player
 
 
@@ -38,7 +39,51 @@ class RuleState:
 
 
 class RulesAdapter:
-    """Implements the state/move subset of RulesAdapterDraft, not observe()."""
+    """Shared rules for the referee and hypothetical tracker branches."""
+
+    @staticmethod
+    def _color(player: Player) -> bool:
+        if player not in ("white", "black"):
+            raise ValueError("player must be white or black")
+        return player == "white"
+
+    def visible_squares(self, state: RuleState, player: Player) -> Tuple[str, ...]:
+        """Own occupied squares plus reachable destinations, ignoring check.
+
+        Pawn diagonals reveal occupied capturable targets only; blocked forward
+        squares stay hidden unless another own piece sees them. Views remain
+        available off-turn and after termination. En passant belongs only to the
+        actual side to move and reveals both target and capturable pawn.
+        """
+        color = self._color(player)
+        board = state.board_copy()
+        if board.turn != color:
+            board.ep_square = None
+        board.turn = color
+        visible = set(chess.scan_forward(board.occupied_co[color]))
+        for move in board.generate_pseudo_legal_moves():
+            visible.add(move.to_square)
+            if board.is_en_passant(move):
+                visible.add(move.to_square + (-8 if color else 8))
+        return tuple(sorted(chess.square_name(square) for square in visible))
+
+    def observe(self, state: RuleState, player: Player) -> Observation:
+        self._color(player)
+        squares = self.visible_squares(state, player)
+        pieces = {square: (piece.symbol() if piece else None)
+                  for square in squares
+                  for piece in [state._board.piece_at(chess.parse_square(square))]}
+        ended = self.terminal(state)
+        outcome = None if ended is None else (
+            0.0 if ended.winner == "draw" else 1.0 if ended.winner == player else -1.0)
+        return Observation(
+            player=player, side_to_move=self.current_player(state), ply=state.ply,
+            visible_squares=squares, visible_pieces=pieces,
+            legal_moves=self.legal_moves(state) if player == self.current_player(state) else (),
+            halfmove_clock=None,
+            captured_own_piece_at=state.captured_square if state.captured_player == player else None,
+            terminal=ended is not None, outcome=outcome,
+        )
 
     def initial_state(self, fen: Optional[str] = None) -> RuleState:
         # Do not use Board.is_valid(): ordinary check restrictions reject FoW states.
@@ -87,3 +132,52 @@ class RulesAdapter:
             board, ply=state.ply + 1, captured_player=captured_player,
             captured_square=chess.square_name(captured_square) if captured else None,
         )
+
+
+class RulesReferee:
+    """Mutable runner boundary; agents receive only observe() snapshots.
+
+    A custom starting FEN must also be configured publicly in both trackers.
+    This constructor does not change the shared reset protocols.
+    """
+
+    def __init__(self, initial_fen: Optional[str] = None):
+        self._rules = RulesAdapter()
+        self._initial_fen = initial_fen
+        self.reset(seed=0)
+
+    def reset(self, seed: int) -> None:
+        # Rules are deterministic; the seed is accepted for Referee compatibility.
+        self._state = self._rules.initial_state(self._initial_fen)
+
+    def current_player(self) -> Player:
+        return self._rules.current_player(self._state)
+
+    def is_terminal(self) -> bool:
+        return self._rules.terminal(self._state) is not None
+
+    def winner(self) -> str:
+        ended = self._rules.terminal(self._state)
+        if ended is None:
+            raise ValueError("game has not ended")
+        return ended.winner
+
+    def observe(self, player: Player) -> Observation:
+        return self._rules.observe(self._state, player)
+
+    def apply(self, move: str) -> None:
+        self._state = self._rules.apply_move(self._state, move)
+
+
+def fixture_result(case: dict) -> dict:
+    """Bridge for: python -m pair_a_prep.fixtures --adapter ...:fixture_result."""
+    from dataclasses import asdict
+
+    rules = RulesAdapter()
+    state = rules.initial_state(case.get("initial_fen", case["fen"]))
+    for move in case.get("moves_uci", []):
+        state = rules.apply_move(state, move)
+    result = asdict(rules.observe(state, case["player"]))
+    ended = rules.terminal(state)
+    result["winner"] = ended.winner if ended else None
+    return result

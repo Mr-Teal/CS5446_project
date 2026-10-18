@@ -2,8 +2,8 @@
 
 Status: proposed for teammate review. A state/move prototype now lives in
 [rules_adapter.py](../rules_adapter.py), reusing the merged shared rule helpers.
-Observation generation, tracker, shared schema changes and agent assignments
-remain outside this implementation.
+Private observation generation and a shared-protocol referee are now implemented;
+see [rules_adapter.md](rules_adapter.md). Belief tracking remains separate.
 Signatures are in [interface_draft.py](../interface_draft.py).
 
 ## Proposed responsibilities
@@ -27,8 +27,7 @@ and do not mutate their parent or sibling branches.
 FEN alone is insufficient to reconstruct repetition or private histories.
 
 `RulesAdapter` implements `initial_state`, `current_player`, `legal_moves`,
-`apply_move` and `terminal`. It is not yet a full `RulesAdapterDraft` because
-`observe` is not implemented. Move generation and actual terminal checks reuse
+`apply_move` and `terminal`. It also implements `observe` using the shared `Observation` type. Move generation and actual terminal checks reuse
 `fow_shared.values.fog_legal_moves` and `terminal_score`; `forced_score` is not
 used to end games. Custom FEN starts with ply zero and no earlier move history.
 FEN parsing is not a complete reachability validator; ordinary chess validity
@@ -46,9 +45,9 @@ assert after_e4.ply == after_d4.ply == 1
 assert rules.current_player(after_e4) == "black"
 ```
 
-Capture metadata is internal, not an observation. It records the captured pawn's
-actual square for en passant, and resets on the next non-capture. Deciding what
-to reveal to a player belongs to the later observation implementation.
+Capture metadata is internal. The observation reveals the captured square only
+to the player who lost the piece; it expires at the next ply. En passant uses
+the captured pawn's actual square.
 
 Moves use UCI strings, squares use algebraic names, pieces use FEN letters,
 and colors use `white`/`black`. Do not equate ordinary chess legal moves or
@@ -112,8 +111,9 @@ failure instead of reading the referee's state or silently rebuilding guesses.
    and how surviving internal states map to shared `Hypothesis` entries.
 4. Already merged from Pair B: shared `Observation.halfmove_clock` defaults to
    `None`, and the encoder reads each hypothesis's own clock. No duplicate fix
-   is needed. Still coordinate `side_to_move`, passing `own_move` through the
-   runner, and serialization/feature compatibility. This prototype makes no
+   is needed. PR #2 also merged required `side_to_move`, own-action delivery
+   and terminal tracker updates. `ObservationDraft` now aliases the shared type.
+   Custom-start propagation and label definitions still need coordination. This prototype makes no
    changes to shared contracts, protocols or the runner.
 5. Before integration: demonstrate an initial/own/opponent update, independent
    successor branches, repetition-history retention, and observation privacy.

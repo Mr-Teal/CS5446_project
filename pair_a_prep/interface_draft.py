@@ -5,9 +5,9 @@ docs/interface_draft.md for the update sequence and integration decisions.
 """
 
 from dataclasses import dataclass
-from typing import Literal, Mapping, Optional, Protocol, Tuple, TypeVar
+from typing import Literal, Optional, Protocol, Tuple, TypeVar
 
-from fow_shared.contracts import Belief
+from fow_shared.contracts import Belief, Observation
 
 
 Player = Literal["white", "black"]
@@ -20,26 +20,8 @@ class Outcome:
     reason: Literal["king_capture", "threefold_repetition", "fifty_move"]
 
 
-@dataclass(frozen=True)
-class ObservationDraft:
-    """Private view, never a complete hidden board or opponent move log.
-
-    This is a field proposal, not a replacement for the shared Observation.
-    The shared type already supports halfmove_clock=None; side_to_move remains
-    a proposed addition. This draft does not implement observation generation.
-    Mapping contents must be copied when constructing each snapshot.
-    """
-
-    player: Player
-    side_to_move: Player
-    ply: int
-    visible_squares: Tuple[str, ...]
-    visible_pieces: Mapping[str, Optional[str]]
-    legal_moves: Tuple[str, ...]
-    captured_own_piece_at: Optional[str] = None
-    halfmove_clock: Optional[int] = None
-    terminal: bool = False
-    outcome: Optional[float] = None
+# Compatibility name for early draft consumers; no second observation schema.
+ObservationDraft = Observation
 
 
 class RulesAdapterDraft(Protocol[StateT]):
