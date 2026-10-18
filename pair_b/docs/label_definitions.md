@@ -40,6 +40,13 @@ DeepStack and ReBeL learn the values of a subgame's root states under the solved
   position after the opening: that would reveal hidden information.
 - Every decision of both players after the opening is recorded.
 
+## Files
+
+One folder per label run, holding JSONL files written with `fow_shared.recording.write_records`
+(Pair B's reader takes `part-*.jsonl` by default and other names with `--pattern`), and a
+`manifest.json` recording at least `created`, `records` and `config_id`. Empty files are fine.
+Every record carries its `game_id`, so training, validation and test data split by whole game.
+
 ## Settings
 
 A versioned config file, named by `config_id` (the file's name plus a short hash of it), records:
