@@ -118,9 +118,10 @@ All 11 preparation tests pass against main and separately against PR #2's actual
 contract compatibility, including Black at an even ply; it is not a full branch,
 runner, engine or trained-model integration test. No shared files are changed.
 
-When Colin's artifacts arrive: implement the adapter, record provenance, run and
-investigate the checks, finish manual validation, and benchmark real evaluators
-outside results/demo. Hand Pair A the evaluator, checkpoint/config and real report.
+Colin's evaluator code and checkpoint are available in PR #4. See
+`VALIDATION_PR4.txt` for independent results and limitations, and use
+`real_adapter:build` for the real evaluators. Complete manual validation and
+Network 1 execution before handing Pair A a final validated model report.
 Ask Pair A for a small genuine TrainingRecord, exact target semantics, and a date
 for a full game accepting an evaluator. No message has been sent.
 
@@ -129,3 +130,33 @@ to include pair_b_prep without changing project-wide configuration. Generated
 results are ignored within this folder.
 
 Prepared with Codex assistance; real-model integration remains pending.
+
+## Run the real evaluators (requires PR #4's pair_b package)
+
+Install the evaluator dependencies using `pair_b/README.md`. From the repository
+root, create `material.json` containing:
+
+```json
+{"kind": "material", "source_commit": "YOUR_VERIFIED_EVALUATOR_COMMIT"}
+```
+
+```sh
+python -m pair_b_prep.harness --adapter pair_b_prep.real_adapter:build --config material.json --out pair_b_prep/results/material
+```
+
+For Stockfish use `"kind": "stockfish", "depth": 1` (or 11). Stockfish defaults
+to `stockfish` on PATH; optionally set `"stockfish_path"` to its executable.
+For Network 1 use `"kind": "network", "checkpoint": "pair_b/checkpoints/net1-v2/best.pt"`
+and optionally `"device": "cpu"` (the default), `"mps"` or `"cuda"`. Include the
+verified `source_commit` in every config. Do not reuse the historical validation
+SHA for a different checkout. The adapter records engine/checkpoint hashes and
+uses cleared engine state; GPU synchronization is included in timed calls.
+
+Run the history regression separately; it exits 1 when the bug reproduces:
+
+```sh
+python -m pair_b_prep.check_repetition --source-commit YOUR_VERIFIED_EVALUATOR_COMMIT
+```
+
+An optional `--stockfish-path` accepts a local executable path. This command uses
+a Board with actual move history; the FEN-only harness cannot test this case.

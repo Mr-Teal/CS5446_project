@@ -1,0 +1,64 @@
+PR #4 independent local validation — 18 October 2026 (Asia/Singapore)
+
+Snapshot: 4d939fce38b659a40abb0847d2dc0b74fe666a80
+Source: https://github.com/Mr-Teal/CS5446_project/pull/4
+Archive commit was verified from the downloaded GitHub ZIP comment.
+All archive source files were compared byte-for-byte after testing: zero changes.
+Validation only added local pair_b_prep files/environment/results.
+This handoff publishes the adapter, reproducer and summary; no PR was merged.
+
+RESULTS
+MaterialEvaluator: 16/16 automated harness checks pass, 2 manual items remain.
+Stockfish 19 depth 1: 16/16 pass, 2 manual items remain.
+Stockfish 19 depth 11: 16/16 pass, 2 manual items remain.
+149 selected shared/prep/evaluator tests pass, plus 2 unittest subtests.
+This is not the entire PR4 suite: torch-dependent tests were not run.
+The initial combined test attempt had missing scipy in Pair A's toy suite and a
+same-name test import collision. Final scope excludes that unrelated toy suite
+and uses pytest's importlib mode. Source imports are enabled by a local venv .pth.
+
+Network 1: BLOCKED, not validated. This machine is macOS x86_64 with Python 3.14.
+PyPI could not resolve the declared torch>=2.14.1 dependency for this platform.
+A direct attempt to load the evaluator stops at ModuleNotFoundError: torch.
+No dependency requirements were relaxed and no checkpoint was executed.
+Checkpoint SHA256 matches Colin's stated hash:
+ab470346acb5eb37947e3ab0eb43c005894ae72569ca016d7635fc2be6f9171f
+Hash matching establishes artifact identity, not model correctness.
+
+CONFIRMED BUG
+StockfishEvaluator.children_values receives a Board containing seven prior moves.
+For candidate h8g8, preserving the move stack yields a threefold repetition draw.
+Expected White-view score: 0. Actual score: +1, marked as rule-decided.
+Cause: child = board.copy(stack=False) discards history before rule_value(child).
+See repetition.json and check_repetition.py for the complete reproducer.
+This is the existing issue reported by Teal, independently reproduced here.
+MaterialEvaluator's public method accepts only FEN; it returns -1 for the same
+move from Black's perspective because FEN cannot represent repetition history.
+That API limitation is distinct from dropping a history already supplied as Board.
+Search integration must evaluate history-dependent terminal rules before FEN-only
+leaf calls. Colin should fix the internal Board path and add regression coverage.
+
+TIMINGS
+Local runs produced summary.csv and raw samples.jsonl (10 repetitions, 2 warmups).
+These generated outputs remain local; this report is the shareable summary.
+These are tiny contract fixtures, with Stockfish cleared before each engine call;
+they are not representative full-game or search-mode performance measurements.
+Example king_capture_available median milliseconds:
+  material 0.675; depth 1 106.466; depth 11 165.736.
+This case scores multiple non-capture moves individually. Do not compare these
+figures directly with Colin's search-mode benchmark or claim model speedups.
+
+NEXT
+Run the ready real_adapter network configuration on an environment that supports
+the declared PyTorch dependency (e.g. Colin's Apple Silicon environment), then
+complete the encoder/data-flow checks and repeat the history check after his fix.
+The local real_adapter includes synchronization hooks and provenance collection.
+No full hidden-state audit, playing-strength test or accuracy replication done.
+
+REPRODUCE
+See README.md for portable real_adapter and check_repetition commands. Use the
+verified source revision under test; set Stockfish on PATH or pass its path.
+The adapter requires PR4's pairb package and dependencies. Network 1 remains
+blocked on the validation machine; the adapter's network path is not validated.
+No binary, environment, dataset, raw machine-specific config or source copy is
+included in this handoff. This report records historical results for the SHA above.
