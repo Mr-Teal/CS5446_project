@@ -59,6 +59,6 @@
     "weight_decay": 0.0001,
     "seed": 0,
     "device": "auto",
-    "cache_dir": "/Users/bytedance/Desktop/NUS/AY2627S1/CS5446/Project/Pair B/code/data/cache"
+    "cache_dir": "data/cache"
   }
 }
