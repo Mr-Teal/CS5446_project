@@ -39,7 +39,9 @@ class Observation:
     # Every visible square is present; None means visibly empty.
     visible_pieces: Mapping[str, Optional[str]]
     legal_moves: Tuple[str, ...]
-    halfmove_clock: int
+    # None when the rules do not show the clock to the player (paper_fow_v1_proposed lists it
+    # as hidden); the referee and each hypothesis FEN keep their own counters.
+    halfmove_clock: Optional[int] = None
     # A captured own piece is observable. Do not encode an unseen opponent move here.
     captured_own_piece_at: Optional[str] = None
     terminal: bool = False
@@ -49,7 +51,7 @@ class Observation:
     def __post_init__(self) -> None:
         if self.schema_version != SCHEMA_VERSION or not _colour(self.player):
             raise ValueError("unsupported observation version or player")
-        if self.ply < 0 or self.halfmove_clock < 0:
+        if self.ply < 0 or (self.halfmove_clock is not None and self.halfmove_clock < 0):
             raise ValueError("negative move counter")
         if len(set(self.visible_squares)) != len(self.visible_squares) or not all(map(_square, self.visible_squares)):
             raise ValueError("visible_squares must be unique board squares")
@@ -179,6 +181,9 @@ class TrainingRecord:
     seed: int
     agent_name: str
     config_id: str
+    # Identifies the game this decision came from, so training, validation and test
+    # data can be split by whole game. Set it in label runs; "" in older files.
+    game_id: str = ""
 
     def __post_init__(self) -> None:
         self.decision.validate_for(self.agent_input.observation)
@@ -188,3 +193,30 @@ class TrainingRecord:
             raise ValueError("values must be finite and in [-1, 1]")
         if not self.agent_name or not self.config_id:
             raise ValueError("agent_name and config_id are required")
+
+
+@dataclass(frozen=True)
+class LeafValues:
+    """A leaf evaluator's answer for one belief (LeafEvaluator.evaluate_beliefs).
+
+    One score per hypothesis, in the belief's order, from the acting player's view in
+    [-1, 1]. An evaluator with a policy head may add move probabilities over the
+    observation's legal moves.
+    """
+
+    hypothesis_values: Tuple[float, ...]
+    policy: Optional[Mapping[str, float]] = None
+
+    def validate_for(self, turn: AgentInput) -> None:
+        if len(self.hypothesis_values) != len(turn.belief.hypotheses):
+            raise ValueError("one value is required per hypothesis")
+        if any(not isfinite(v) or not -1 <= v <= 1 for v in self.hypothesis_values):
+            raise ValueError("values must be finite and in [-1, 1]")
+        if self.policy is None:
+            return
+        if set(self.policy) != set(turn.observation.legal_moves):
+            raise ValueError("policy must cover exactly the legal moves")
+        if any(not isfinite(p) or p < 0 for p in self.policy.values()):
+            raise ValueError("invalid policy probability")
+        if abs(sum(self.policy.values()) - 1.0) > 1e-6:
+            raise ValueError("policy probabilities must sum to one")
