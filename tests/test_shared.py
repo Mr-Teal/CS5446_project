@@ -15,7 +15,7 @@ def sample_turn():
     second = first.copy()
     second.remove_piece_at(chess.D8)  # Different hidden state; same selected observations.
     obs = Observation(
-        player="white", ply=0, visible_squares=("e1", "a2", "b3"),
+        player="white", side_to_move="white", ply=0, visible_squares=("e1", "a2", "b3"),
         visible_pieces={"e1": "K", "a2": "P", "b3": None},
         legal_moves=("a2a3", "a2a4"), halfmove_clock=0,
     )
@@ -80,7 +80,8 @@ def test_common_match_loop_passes_only_agent_input_and_records_move():
         def observe(self, player):
             moves = (("a2a3", "a2a4") if self.ply == 0 and player == "white"
                      else ("a7a6",) if self.ply == 1 and player == "black" else ())
-            return replace(turn.observation, player=player, ply=self.ply, legal_moves=moves)
+            return replace(turn.observation, player=player, side_to_move=self.current_player(),
+                           ply=self.ply, legal_moves=moves)
 
         def apply(self, move):
             assert move == ("a2a3" if self.ply == 0 else "a7a6")

@@ -9,7 +9,7 @@ from fow_shared.features import PLANE_NAMES, encode_belief
 
 def turn_for(fen, player, halfmove=0, ply=4):
     """One-hypothesis turn with nothing visible, enough to exercise the encoder."""
-    obs = Observation(player=player, ply=ply, visible_squares=(), visible_pieces={},
+    obs = Observation(player=player, side_to_move=player, ply=ply, visible_squares=(), visible_pieces={},
                       legal_moves=(), halfmove_clock=halfmove)
     return AgentInput(obs, Belief(player, ply, (Hypothesis(fen, 1.0),), population_size=1), 1000)
 
@@ -47,7 +47,7 @@ def test_halfmove_plane_comes_from_each_hypothesis_not_the_observation():
     # Under the paper's rules the player may not know the true clock (the pair_a_prep fixtures list
     # it as hidden), so each board's own FEN clock is used and the observation's value is ignored.
     boards = ("8/8/8/4k3/8/8/3Q4/4K3 w - - 10 80", "8/8/8/4k3/8/8/3Q4/4K3 w - - 30 80")
-    obs = Observation(player="white", ply=4, visible_squares=(), visible_pieces={},
+    obs = Observation(player="white", side_to_move="white", ply=4, visible_squares=(), visible_pieces={},
                       legal_moves=(), halfmove_clock=0)
     belief = Belief("white", 4, tuple(Hypothesis(fen, 0.5) for fen in boards), population_size=2)
     planes, _ = encode_belief(AgentInput(obs, belief, 1000), lambda board: ())
