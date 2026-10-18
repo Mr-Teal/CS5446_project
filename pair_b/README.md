@@ -18,7 +18,7 @@ swaps one evaluator for another by changing one argument.
 an M5 Pro Mac, with `new_game_each_call=False` as inside a search. Careful Stockfish's time is
 from the practice-data runs.
 
-All four:
+All five:
 
 - answer `evaluate_children(fen)`, `evaluate_boards(fens, player)` and `evaluate_beliefs(turns)`;
 - return values in [-1, 1] from the acting player's view, with Stockfish scores converted by
@@ -103,7 +103,10 @@ but too little to call from one run each; Pair A's labels are the real test.
 
 `checkpoints/belief-v1-d1/` is the kept network. A belief of 8 boards takes 3.7 ms on an Apple
 GPU when 200 are scored in one call, and 6.8 ms one at a time; building the 32 planes in Python
-is most of it. The `--use-d1` network also makes one quick Stockfish call per board.
+is most of it. The `--use-d1` network also makes one quick Stockfish call per board, a node's
+children included: it trained on each board's own depth-1 value, and a parent's MultiPV score of a
+child differs from that by 0.07 on average. A rule-decided board with no recorded quick-Stockfish
+value takes its rule value, in training as in the evaluator.
 
 ```python
 from pairb.belief_evaluator import BeliefNetworkEvaluator
@@ -132,7 +135,7 @@ pip install -e . -e pair_b pytest
 cd pair_b; python -m pytest -q
 ```
 
-The 157 tests run Stockfish itself where they need it; those are skipped when it is not on `PATH`.
+The 161 tests run Stockfish itself where they need it; those are skipped when it is not on `PATH`.
 
 ## Rebuild Network 1, or retrain it on new labels
 
@@ -159,6 +162,14 @@ positions from one game never sit on both sides. `data/` and `runs/` stay out of
    `--data` at a folder of Pair A's labels to retrain on them. `--use-d1` needs quick Stockfish's
    values as `d1:<i>` diagnostics in the records; train without it otherwise.
 3. Evaluation: `python scripts/eval_belief_net.py --run runs/belief-v1-d1 --data data/d6-check --split train`.
+
+A label folder holds JSONL files written with `fow_shared.recording.write_records` (`part-*.jsonl` by
+default; `--pattern` reads others) and, optionally, `manifest.json`. Empty files are skipped. Every
+run writes `splits.json`, the games it trained and selected on. A step holds whole beliefs, at most
+`--batch` of them and `--max-boards` boards (4,096 by default), and `--planes-on host` keeps the
+encoded planes in main memory. One limit remains for Pair A's planned scale: every board is
+encoded once and cached, about 10 GiB for 10,000 beliefs of 256 boards, so such a run will need
+fewer boards per belief per epoch or encoding on the fly.
 
 ## Files
 
