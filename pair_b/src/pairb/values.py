@@ -31,7 +31,7 @@ def rule_value(board: chess.Board) -> tuple[str, float] | None:
 
     None means no rule applies. See fow_shared.values.rule_score: finished games
     ("king-captured", "fifty-move", "repetition") and positions decided one move ahead
-    ("king-capture", "forced-loss"). Boards with a rule must never reach Stockfish.
+    ("king-capture", "forced-loss", "forced-draw"). Boards with a rule must never reach Stockfish.
     """
     rule = rule_score(board)
     if rule is None:

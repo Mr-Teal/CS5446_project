@@ -25,7 +25,8 @@ All four:
 - generate moves with `fow_shared.values.fog_legal_moves`, so moves into check and castling into,
   out of or through check are included;
 - score positions the fog rules decide (`rule_score`) exactly, before any engine or network call;
-- run Stockfish with 1 thread and 16 MB of hash, and close it when used in a `with` block.
+- where they use Stockfish, run it with 1 thread and 16 MB of hash, and close it when used in a
+  `with` block.
 
 The Stockfish and piece-value evaluators also take a `chess.Board` directly (`board_value`,
 `children_values`, values from White's view). Children keep that board's move history for the
@@ -33,17 +34,19 @@ rule checks, so a threefold-repetition draw is seen; Stockfish always gets the p
 
 ## How good they are
 
-On 1,200 fresh games (`d2-check`: the 119,132 positions that the moves at 4,766 decision points
-lead to), measured against careful Stockfish:
+On fresh games (`d2-check`: the 959 games of its training bucket, 94,963 positions after 3,818
+decisions), measured against careful Stockfish by `scripts/eval_net1.py`
+(`checkpoints/net1-v2/eval-d2-check-train.json`):
 
 | Evaluator | Value error | Picks careful Stockfish's move | Average value lost by its pick |
 |---|---|---|---|
-| Piece values | 0.333 | 27% | 0.211 |
-| Quick Stockfish | 0.095 | 43% | 0.037 |
-| Network 1 | 0.076 | 42% | 0.036 |
+| Piece values | 0.336 | 28% | 0.2108 |
+| Quick Stockfish | 0.095 | 43% | 0.0355 |
+| Network 1 | 0.076 | 42% | 0.0352 |
 
 Network 1's values are 20% more accurate than quick Stockfish's, but it picks moves no better: a
-tie (the paired difference in value lost is -0.0002, 95% CI -0.0014 to +0.0008). It needs the
+tie (the paired difference in value lost is -0.0003, 95% CI -0.0017 to +0.0011, resampling the
+959 games whole, since decisions from one game are correlated). It needs the
 depth-1 call as input, so it is always slower than quick Stockfish. It is the warm-up; the
 belief network that scores a whole belief at once is next.
 
@@ -81,7 +84,7 @@ pip install -e . -e pair_b pytest
 cd pair_b; python -m pytest -q
 ```
 
-The 89 tests run Stockfish itself; those that need it are skipped when it is not on `PATH`.
+The 99 tests run Stockfish itself where they need it; those are skipped when it is not on `PATH`.
 
 ## Rebuild Network 1, or retrain it on new labels
 
@@ -91,7 +94,8 @@ The 89 tests run Stockfish itself; those that need it are skipped when it is not
    one move at depth 1 and depth 11 from a single MultiPV call at its parent, as Obscuro does.
 2. Training, about 3 minutes on an Apple GPU: `python scripts/train_net1.py --data data/d2-v2 --out runs/net1-v2`.
    This is also the retrain command: point `--data` at any folder of records in the same format.
-3. Evaluation: `python scripts/eval_net1.py --run runs/net1-v2 --data data/d2-check`. The test
+3. Evaluation: `python scripts/eval_net1.py --run runs/net1-v2 --data data/d2-check --split train`,
+   which writes `eval-d2-check-train.json`. The test
    split needs `--final`, for the final report only.
 
 Data is split by whole game (sha1 of `game_id` modulo 10: 0–7 train, 8 validation, 9 test), so
