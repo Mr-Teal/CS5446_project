@@ -54,3 +54,42 @@ def test_only_the_side_to_move_has_legal_moves():
     assert observe(board, "black").legal_moves == ()
     assert observe(board, "black").side_to_move == "white"
     assert len(observe(board, "white").legal_moves) == 20
+
+
+# Catches: a finished game hiding what the player's own pieces still see. Pair A's rules adapter
+# keeps computing views from each side's pieces after termination (Teal on #6), and so must we.
+def test_after_a_king_is_captured_each_side_still_sees_from_its_own_pieces():
+    board = chess.Board("4k3/8/8/8/8/8/4R3/4K3 w - - 0 1")
+    board.push(chess.Move.from_uci("e2e8"))  # the rook takes Black's only piece, the king
+    white = observe(board, "white")
+    assert {"a8", "h8", "e2", "f1", "e8", "e1"} <= set(white.visible_squares)
+    assert (white.terminal, white.outcome, white.legal_moves) == (True, 1.0, ())
+    assert visible_squares(board, chess.BLACK) == frozenset()
+
+
+def _pair_a_rules():
+    try:
+        from pair_a_prep.rules_adapter import RulesAdapter
+    except ImportError:
+        return None
+    return RulesAdapter() if hasattr(RulesAdapter, "observe") else None
+
+
+# Catches: any drift between this stand-in and Pair A's observe(), once that is on main.
+@pytest.mark.skipif(_pair_a_rules() is None, reason="needs pair_a_prep.rules_adapter with observe()")
+def test_matches_pair_as_observe_on_fixtures_and_finished_games():
+    import random
+    rules, boards = _pair_a_rules(), [board_for_case(c).fen(en_passant="fen") for c in load_suite()["cases"]]
+    rng = random.Random(0)
+    for _ in range(50):  # random play until a king falls: views after the game ends too
+        b = chess.Board()
+        while b.king(chess.WHITE) and b.king(chess.BLACK) and b.ply() < 150:
+            b.push(rng.choice(list(b.generate_pseudo_legal_moves())))
+        boards.append(b.fen(en_passant="fen"))
+    for fen in boards:
+        state = rules.initial_state(fen)
+        for player in ("white", "black"):
+            ours, theirs = observe(chess.Board(fen), player), rules.observe(state, player)
+            assert (ours.side_to_move, ours.visible_squares, ours.visible_pieces, ours.legal_moves, ours.terminal,
+                    ours.outcome) == (theirs.side_to_move, theirs.visible_squares, theirs.visible_pieces,
+                                      theirs.legal_moves, theirs.terminal, theirs.outcome), (fen, player)

@@ -1,10 +1,12 @@
 """Pair B's stand-in for Pair A's observation generator, for practice beliefs (D6).
 
-It follows the visibility of pair_a_prep's rules fixtures (profile paper_fow_v1_proposed): a
-player sees the squares of their own pieces and every square a fog-legal move of theirs goes to,
-and an en passant capture also reveals the pawn it takes. So a blocked pawn does not see its
-blocker, and a pawn sees a diagonal only when there is something to take there. Replace it with
-Pair A's rules adapter once `observe()` exists there; tests/test_observe.py checks the fixtures.
+It follows pair_a_prep's rules fixtures (profile paper_fow_v1_proposed) and Pair A's
+RulesAdapter.visible_squares rule: a player sees the squares of their own pieces and the
+destinations of their pseudo-legal moves (check ignored), and an en passant capture, open only to
+the side to move, also reveals the pawn it takes. So a blocked pawn does not see its blocker, a
+pawn sees a diagonal only when there is something to take there, and views go on being computed
+from each side's pieces after the game ends. tests/test_observe.py checks the fixtures, and
+compares with Pair A's observe() once that is importable; replace this module with it then.
 """
 import chess
 
@@ -13,14 +15,13 @@ from fow_shared.values import fog_legal_moves, terminal_score
 
 
 def visible_squares(board: chess.Board, color: chess.Color) -> frozenset[str]:
-    """The squares `color` sees on `board`, whichever side is to move."""
+    """The squares `color` sees on `board`, whichever side is to move, also after the game ends."""
     view = board.copy(stack=False)
     if view.turn != color:
         view.turn = color
         view.ep_square = None  # an en passant right belongs to the side to move only
-    view.halfmove_clock = 0  # what a player sees does not depend on the fifty-move counter
     seen = set(chess.SquareSet(view.occupied_co[color]))  # own pieces' squares
-    for move in fog_legal_moves(view):
+    for move in view.generate_pseudo_legal_moves():
         seen.add(move.to_square)
         if view.is_en_passant(move):
             seen.add(move.to_square + (-8 if color == chess.WHITE else 8))
