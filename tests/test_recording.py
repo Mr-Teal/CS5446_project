@@ -30,3 +30,14 @@ def test_records_written_before_game_id_existed_still_load(tmp_path):
     path.write_text(json.dumps(old) + "\n")
     (back,) = read_records(path)
     assert back.game_id == ""
+
+
+def test_an_unknown_halfmove_clock_survives_a_write_and_read(tmp_path):
+    from dataclasses import replace
+    rec = record(game_id="g-000002")
+    turn = rec.agent_input
+    hidden = replace(rec, agent_input=replace(turn, observation=replace(turn.observation, halfmove_clock=None)))
+    path = tmp_path / "hidden.jsonl"
+    write_records(path, [hidden])
+    (back,) = read_records(path)
+    assert back.agent_input.observation.halfmove_clock is None and back == hidden

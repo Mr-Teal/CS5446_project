@@ -39,7 +39,9 @@ class Observation:
     # Every visible square is present; None means visibly empty.
     visible_pieces: Mapping[str, Optional[str]]
     legal_moves: Tuple[str, ...]
-    halfmove_clock: int
+    # None when the rules do not show the clock to the player (paper_fow_v1_proposed lists it
+    # as hidden); the referee and each hypothesis FEN keep their own counters.
+    halfmove_clock: Optional[int] = None
     # A captured own piece is observable. Do not encode an unseen opponent move here.
     captured_own_piece_at: Optional[str] = None
     terminal: bool = False
@@ -49,7 +51,7 @@ class Observation:
     def __post_init__(self) -> None:
         if self.schema_version != SCHEMA_VERSION or not _colour(self.player):
             raise ValueError("unsupported observation version or player")
-        if self.ply < 0 or self.halfmove_clock < 0:
+        if self.ply < 0 or (self.halfmove_clock is not None and self.halfmove_clock < 0):
             raise ValueError("negative move counter")
         if len(set(self.visible_squares)) != len(self.visible_squares) or not all(map(_square, self.visible_squares)):
             raise ValueError("visible_squares must be unique board squares")
