@@ -13,6 +13,7 @@ and agent ownership, team settings and delivery dates remain to be agreed.
 | Rules adapter and referee | [rules_adapter.py](rules_adapter.py) | History-preserving states, private observations, actual terminal outcomes and shared-protocol referee; see [implementation notes](docs/rules_adapter.md) |
 | Paper implementation specifications | [paper_specs.md](docs/paper_specs.md) | Pinned v2 sources, parameters, section references, implementation checks and open questions |
 | Small-game validation | [toy_games.py](toy_games.py) | Information sets, chance nodes, LP reference solutions and behavioral best-response/Nash-gap checks |
+| Fixed-tree PCFR+ | [pcfr.py](pcfr.py), [algorithm notes](docs/pcfr.md) | Predictive RM+, counterfactual updates and separate last/average diagnostics on toy games; simultaneous schedule |
 | Stockfish measurements | [benchmark_stockfish.py](benchmark_stockfish.py) | Fixed positions, depths 1 and 11, best-move/all-move MultiPV, raw scores and timings |
 | Rules fixtures | [rules_cases.json](data/rules_cases.json), [fixtures.py](fixtures.py) | 17 special positions and acceptance checks for a future adapter |
 | Reproduction differences | [reproduction_differences.md](docs/reproduction_differences.md) | Published settings, proposed choices, measurements and unresolved decisions |
