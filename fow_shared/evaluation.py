@@ -7,7 +7,7 @@ from time import perf_counter
 from typing import Mapping, Tuple
 
 from .interfaces import Agent, BeliefTracker, Referee
-from .contracts import AgentInput, HistoryEvent
+from .contracts import AgentInput, HistoryEvent, Observation
 
 
 @dataclass(frozen=True)
@@ -45,6 +45,13 @@ class MatchResult:
     stopped_at_ply_limit: bool
 
 
+def _check_side_to_move(observations: Mapping[str, Observation], referee: Referee) -> None:
+    """Both snapshots must name the referee's side to move; trackers rely on it."""
+    to_move = referee.current_player()
+    if any(o.side_to_move != to_move for o in observations.values()):
+        raise ValueError("referee observation names the wrong side to move")
+
+
 def play_game(referee: Referee, agents: Mapping[str, Agent],
               trackers: Mapping[str, BeliefTracker], config: MatchConfig) -> MatchResult:
     """Run one game. Supply fresh agents/trackers for every game in a match set."""
@@ -57,6 +64,7 @@ def play_game(referee: Referee, agents: Mapping[str, Agent],
     history = []
     private_history = {"white": [], "black": []}
     observations = {player: referee.observe(player) for player in ("white", "black")}
+    _check_side_to_move(observations, referee)
     beliefs = {player: trackers[player].update(observations[player])
                for player in ("white", "black")}
     while not referee.is_terminal() and len(history) < config.max_plies:
@@ -82,7 +90,10 @@ def play_game(referee: Referee, agents: Mapping[str, Agent],
         referee.apply(decision.move)
         if not referee.is_terminal():
             observations = {viewer: referee.observe(viewer) for viewer in ("white", "black")}
-            beliefs = {viewer: trackers[viewer].update(observations[viewer])
+            _check_side_to_move(observations, referee)
+            # Each tracker learns its own player's move, never the opponent's.
+            beliefs = {viewer: trackers[viewer].update(
+                           observations[viewer], own_move=decision.move if viewer == player else None)
                        for viewer in ("white", "black")}
     capped = not referee.is_terminal()
     winner = "draw" if capped else referee.winner()

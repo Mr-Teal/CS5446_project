@@ -91,7 +91,7 @@ def test_common_match_loop_passes_only_agent_input_and_records_move():
         def reset(self, player, seed):
             pass
 
-        def update(self, observation):
+        def update(self, observation, own_move=None):
             return replace(turn.belief, player=observation.player, ply=observation.ply)
 
     class Agent:
