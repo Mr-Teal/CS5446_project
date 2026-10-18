@@ -48,3 +48,12 @@ def test_each_belief_is_answered_with_its_own_boards():
     assert answers[1].hypothesis_values == pytest.approx((0.68226,), abs=1e-4)  # Black's extra rook
     for answer, t in zip(answers, beliefs):
         answer.validate_for(t)
+
+
+# Catches: the history lost when counting pieces after each move, so a threefold-repetition draw
+# reads as White taking the king (Teal's example on PR #4).
+def test_children_values_keeps_the_history_so_a_repetition_draw_is_seen():
+    board = chess.Board("6k1/5Q2/6K1/8/8/8/8/8 w - - 0 1")
+    for uci in ["f7f6", "g8h8", "f6f7", "h8g8", "f7f6", "g8h8", "f6f7"]:
+        board.push(chess.Move.from_uci(uci))
+    assert MaterialEvaluator().children_values(board)["h8g8"] == (0.0, True)

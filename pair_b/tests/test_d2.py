@@ -102,3 +102,14 @@ def test_label_parent_gives_one_record_per_move_with_rules_applied():
         child = chess.Board(STALEMATE_OR_MATE)
         child.push_uci(r["move"])
         assert r["fen"] == child.fen()
+
+
+# Catches: a practice record for a move that repeats the position a third time scored by Stockfish
+# instead of as the draw the rules make it.
+@needs_engine
+def test_label_parent_sees_a_repetition_draw_through_the_games_history():
+    parent = board_after(["Nf3", "Nf6", "Ng1", "Ng8", "Nf3", "Nf6", "Ng1"])  # Black to move
+    with StockfishEvaluator(depth=1) as ev:
+        records = {r["move"]: r for r in label_parent(parent, "g-test", 7, ev, ev)}
+    assert records["f6g8"]["rule"] == {"name": "repetition", "v": 0.0}
+    assert records["f6g8"]["d1"] is None and records["f6g8"]["d11"] is None

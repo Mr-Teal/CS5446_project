@@ -70,7 +70,7 @@ def label_parent(parent: chess.Board, game_id: str, ply: int, ev1, ev_deep) -> l
     parent_fen = parent.fen()
     records = []
     for uci in moves:
-        child = parent.copy(stack=False)
+        child = parent.copy()  # keeps the game's history, so a repetition draw is seen
         child.push_uci(uci)
         rule = rule_value(child)
         records.append({

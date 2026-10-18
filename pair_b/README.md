@@ -27,6 +27,10 @@ All four:
 - score positions the fog rules decide (`rule_score`) exactly, before any engine or network call;
 - run Stockfish with 1 thread and 16 MB of hash, and close it when used in a `with` block.
 
+The Stockfish and piece-value evaluators also take a `chess.Board` directly (`board_value`,
+`children_values`, values from White's view). Children keep that board's move history for the
+rule checks, so a threefold-repetition draw is seen; Stockfish always gets the position alone.
+
 ## How good they are
 
 On 1,200 fresh games (`d2-check`: the 119,132 positions that the moves at 4,766 decision points

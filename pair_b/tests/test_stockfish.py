@@ -131,3 +131,32 @@ def test_evaluate_beliefs_answers_each_belief_with_its_own_boards():
     assert answers[1].hypothesis_values == (1.0,)   # Black to move takes the king: +1 for Black
     for answer, t in zip(answers, (white, black)):
         answer.validate_for(t)
+
+
+def teals_repetition_board():
+    """Teal's example on PR #4: Black to move; Kh8-g8 would make the third Kg6/Qf7/Kg8 position."""
+    board = chess.Board("6k1/5Q2/6K1/8/8/8/8/8 w - - 0 1")
+    for uci in ["f7f6", "g8h8", "f6f7", "h8g8", "f7f6", "g8h8", "f6f7"]:
+        board.push(chess.Move.from_uci(uci))
+    return board
+
+
+# Catches: each move's result judged without the game's history, so a threefold-repetition draw
+# reads as White taking the king (+1).
+def test_children_values_keeps_the_history_so_a_repetition_draw_is_seen():
+    with StockfishEvaluator(depth=1) as ev:
+        values = ev.children_values(teals_repetition_board())
+    assert values["h8g8"] == (0.0, True)
+
+
+# Catches: the moves that led to a position sent to Stockfish with it. python-chess replays them,
+# and a fog-only move among them (here castling out of check) is illegal for Stockfish.
+def test_a_position_reached_by_a_fog_only_move_is_sent_to_stockfish_alone():
+    from fow_shared.values import fog_legal_moves
+    board = chess.Board("8/8/8/8/8/4k3/4q3/4K2R w K - 0 1")
+    board.push(chess.Move.from_uci("e1g1"))
+    board.push(chess.Move.from_uci("e3d3"))
+    with StockfishEvaluator(depth=1) as ev:
+        values = ev.children_values(board)
+    assert sorted(values) == sorted(m.uci() for m in fog_legal_moves(board))
+    assert all(-1 <= v <= 1 for v, _ in values.values())

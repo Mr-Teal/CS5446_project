@@ -80,10 +80,12 @@ class StockfishEvaluator:
     def children_scores(self, board: chess.Board) -> dict[str, chess.engine.Score]:
         """Stockfish's White-view score for every orthodox legal move here, from one MultiPV call.
 
-        The board must not be decided by a rule (check rule_value first).
+        The board must not be decided by a rule (check rule_value first). Stockfish gets the
+        position alone, as everywhere here: the rules use the board's history, the engine does not.
         """
         n = board.legal_moves.count()
-        infos = self.engine.analyse(board, chess.engine.Limit(depth=self.depth), multipv=n, game=self._game_token())
+        infos = self.engine.analyse(board.copy(stack=False), chess.engine.Limit(depth=self.depth), multipv=n,
+                                    game=self._game_token())
         return {info["pv"][0].uci(): info["score"].white() for info in infos}
 
     def board_value(self, board: chess.Board) -> tuple[float, bool]:
@@ -104,13 +106,16 @@ class StockfishEvaluator:
 
     def children_values(self, board: chess.Board) -> dict[str, tuple[float, bool]]:
         """White-view value of every fog-legal child, and whether a rule decided it: by rule, from
-        the parent's MultiPV call, or, for a fog-only move to a safe square, by scoring the child."""
+        the parent's MultiPV call, or, for a fog-only move to a safe square, by scoring the child.
+
+        Each child keeps the board's history, so a repetition draw is seen when the board carries
+        it; a board built from a FEN has none to keep."""
         engine = {}
         if not board.was_into_check() and any(board.generate_legal_moves()):
             engine = self.children_scores(board)
         values = {}
         for move in fog_legal_moves(board):
-            child = board.copy(stack=False)
+            child = board.copy()
             child.push(move)
             rule = rule_value(child)
             if rule is not None:

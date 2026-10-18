@@ -9,21 +9,19 @@ Boards decided by a fog-of-war rule keep the rule's exact value.
 import chess
 
 from fow_shared.contracts import LeafValues
-from fow_shared.values import cp_to_score, fog_legal_moves, rule_score, terminal_score
+from fow_shared.values import cp_to_score, fog_legal_moves, terminal_score
+
+from .values import rule_value
 
 PIECE_CP = {chess.PAWN: 100, chess.KNIGHT: 300, chess.BISHOP: 300, chess.ROOK: 500, chess.QUEEN: 900,
             chess.KING: 0}
 _SIGN = {"white": 1.0, "black": -1.0}
 
 
-def _side_to_move_value(board: chess.Board) -> float:
-    """The board's value for its side to move: by rule, else by counting material."""
-    rule = rule_score(board)
-    if rule is not None:
-        return rule[1]
-    balance = sum(PIECE_CP[p.piece_type] * (1 if p.color == board.turn else -1)
-                  for p in board.piece_map().values())
-    return cp_to_score(balance)
+def _sign(player: str) -> float:
+    if player not in _SIGN:
+        raise ValueError(f"player must be 'white' or 'black', got {player!r}")
+    return _SIGN[player]
 
 
 class MaterialEvaluator:
@@ -43,23 +41,13 @@ class MaterialEvaluator:
         board = chess.Board(fen)
         if terminal_score(board) is not None:
             return {}
-        values = {}
-        for move in fog_legal_moves(board):
-            child = board.copy(stack=False)
-            child.push(move)
-            values[move.uci()] = -_side_to_move_value(child) + 0.0  # + 0.0 turns -0.0 into 0.0
-        return values
+        sign = 1.0 if board.turn == chess.WHITE else -1.0
+        return {uci: sign * v + 0.0 for uci, (v, _) in self.children_values(board).items()}  # + 0.0: no -0.0
 
     def evaluate_boards(self, fens: list[str], player: str) -> list[float]:
         """One value per board, same order, from `player`'s view ("white" or "black")."""
-        if player not in _SIGN:
-            raise ValueError(f"player must be 'white' or 'black', got {player!r}")
-        values = []
-        for fen in fens:
-            board = chess.Board(fen)
-            v = _side_to_move_value(board)
-            values.append(v if (board.turn == chess.WHITE) == (player == "white") else -v + 0.0)
-        return values
+        sign = _sign(player)
+        return [sign * self.board_value(chess.Board(fen))[0] + 0.0 for fen in fens]
 
     def evaluate_beliefs(self, turns) -> list[LeafValues]:
         """One LeafValues per belief (fow_shared AgentInput), each board scored on its own."""
@@ -70,3 +58,22 @@ class MaterialEvaluator:
             answer.validate_for(turn)
             answers.append(answer)
         return answers
+
+    def board_value(self, board: chess.Board) -> tuple[float, bool]:
+        """One board's value from White's view, and whether a rule decided it (else counted)."""
+        rule = rule_value(board)
+        if rule is not None:
+            return rule[1], True
+        balance = sum(PIECE_CP[p.piece_type] * (1 if p.color == chess.WHITE else -1)
+                      for p in board.piece_map().values())
+        return cp_to_score(balance), False
+
+    def children_values(self, board: chess.Board) -> dict[str, tuple[float, bool]]:
+        """White-view value of every fog-legal child, and whether a rule decided it. Each child
+        keeps the board's history, so a repetition draw is seen when the board carries it."""
+        values = {}
+        for move in fog_legal_moves(board):
+            child = board.copy()
+            child.push(move)
+            values[move.uci()] = self.board_value(child)
+        return values
