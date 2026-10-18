@@ -17,7 +17,7 @@ import numpy as np
 import torch
 
 from pairb.belief_data import ENCODING, load_arrays, rows_of
-from pairb.belief_eval import baseline_pred, errors, predict
+from pairb.belief_eval import baseline_pred, errors, predict, require_d1
 from pairb.belief_net import BeliefNetwork
 from pairb.data import split_of
 
@@ -94,8 +94,11 @@ def main():
     planes = torch.from_numpy(arrays["planes"]).to(device)  # float16 on the device; float32 per batch
     d1 = baseline_pred(arrays, ids["val"])
     baseline = errors(d1, arrays, ids["val"])[0] if d1 is not None else None
-    if args.use_d1 and d1 is None:
-        raise SystemExit("--use-d1 needs records carrying d1:<i> diagnostics")
+    if args.use_d1:
+        try:  # every board the network will read, training and validation alike
+            require_d1(arrays, np.concatenate([ids["train"], ids["val"]]))
+        except ValueError as exc:
+            raise SystemExit(f"--use-d1: {exc}")
     print(f"quick Stockfish on validation: {baseline}", flush=True)
 
     net = BeliefNetwork(args.blocks, args.channels, args.embed, use_d1=args.use_d1,

@@ -50,13 +50,16 @@ def main():
     beliefs = np.flatnonzero(np.array([split_of(g) for g in arrays["game_id"]]) == args.split)
     if not len(beliefs):
         sys.exit(f"no {args.split} beliefs in {args.data}")
-    network, net_err = errors(predict(net, arrays, beliefs, device), arrays, beliefs)
+    try:
+        network, net_err = errors(predict(net, arrays, beliefs, device), arrays, beliefs)
+    except ValueError as exc:  # e.g. a d1-reading network on records without quick-Stockfish values
+        sys.exit(str(exc))
     report = {"run": run.name, "data": Path(args.data).name, "split": args.split, "network": network,
               "created": datetime.datetime.now().astimezone().isoformat(timespec="seconds")}
     d1 = baseline_pred(arrays, beliefs)
     if d1 is not None:
         report["baseline"], base_err = errors(d1, arrays, beliefs)
-        report["root_mae_difference"] = paired_difference(net_err, base_err, args.n_boot)
+        report["root_mae_difference"] = paired_difference(net_err, base_err, arrays["game_id"][beliefs], args.n_boot)
     (run / f"eval-{Path(args.data).name}-{args.split}.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report, indent=2))
 

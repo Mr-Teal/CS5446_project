@@ -33,9 +33,10 @@ def game_ids():
     return found
 
 
-def tiny_dataset(folder: Path):
+def tiny_dataset(folder: Path, drop_d1_in=None):
+    """drop_d1_in: a split whose first belief loses its quick-Stockfish values."""
     folder.mkdir()
-    rng, ev, records = random.Random(0), MaterialEvaluator(), []
+    rng, ev, records, dropped = random.Random(0), MaterialEvaluator(), [], False
     for g in game_ids():
         board = chess.Board()
         for ply in range(30):
@@ -47,6 +48,8 @@ def tiny_dataset(folder: Path):
                 turn = make_turn(board.copy(stack=False), random.Random(ply), n_hypotheses=4, ply=ply + 1)
                 values = ev.evaluate_boards([h.fen for h in turn.belief.hypotheses], turn.observation.player)
                 d1 = {f"d1:{i}": max(-1.0, min(1.0, v + 0.05)) for i, v in enumerate(values)}
+                if split_of(g) == drop_d1_in and not dropped:
+                    d1, dropped = {}, True
                 records.append(record_for(turn, values, ply, g, "test-material", diagnostics=d1))
     write_records(folder / "part-00.jsonl", records)
     (folder / "manifest.json").write_text(json.dumps({"dataset": folder.name, "created": "2026-10-18", "records": len(records)}))
@@ -112,3 +115,28 @@ def test_eval_compares_the_network_with_quick_stockfish_on_the_same_beliefs(run)
 def test_eval_refuses_the_test_split_without_final(run):
     result = evaluate(run, "test")
     assert result.returncode != 0 and "--final" in result.stderr
+
+
+def train(data, out, *extra):
+    return subprocess.run([sys.executable, str(ROOT / "scripts" / "train_belief_net.py"), "--data", str(data),
+                           "--out", str(out), "--blocks", "1", "--channels", "8", "--embed", "16", "--epochs", "1",
+                           "--batch", "4", "--device", "cpu", "--workers", "1", "--cache-dir", str(out.parent / "cache"),
+                           *extra], capture_output=True, text=True)
+
+
+# Catches: a missing quick-Stockfish value silently fed to the network as 0 during training.
+def test_training_with_d1_refuses_a_training_belief_without_quick_stockfish_values(tmp_path):
+    tiny_dataset(tmp_path / "d6", drop_d1_in="train")
+    result = train(tmp_path / "d6", tmp_path / "run", "--use-d1")
+    assert result.returncode != 0 and "d1" in result.stderr
+
+
+# Catches: the same during evaluation, where the network would be scored on made-up inputs.
+def test_evaluating_a_d1_network_refuses_beliefs_without_quick_stockfish_values(tmp_path):
+    tiny_dataset(tmp_path / "full")
+    assert train(tmp_path / "full", tmp_path / "run", "--use-d1").returncode == 0
+    tiny_dataset(tmp_path / "gappy", drop_d1_in="val")
+    result = subprocess.run([sys.executable, str(ROOT / "scripts" / "eval_belief_net.py"), "--run", str(tmp_path / "run"),
+                             "--data", str(tmp_path / "gappy"), "--split", "val", "--device", "cpu", "--workers", "1",
+                             "--cache-dir", str(tmp_path / "cache")], capture_output=True, text=True)
+    assert result.returncode != 0 and "d1" in result.stderr

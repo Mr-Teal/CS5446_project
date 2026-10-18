@@ -10,10 +10,24 @@ import torch
 from .belief_data import rows_of
 
 
+def require_d1(arrays: dict, beliefs: np.ndarray) -> None:
+    """Raise ValueError if a board the rules do not decide has no quick-Stockfish value: a network
+    that reads d1 must never be fed a made-up one."""
+    rows, _ = rows_of(arrays, beliefs)
+    missing = np.isnan(arrays["d1"][rows]) & ~arrays["rule"][rows]
+    if missing.any():
+        n_beliefs = len(np.unique(arrays["belief"][rows][missing]))
+        raise ValueError(f"{int(missing.sum())} boards in {n_beliefs} beliefs have no quick-Stockfish value "
+                         "(d1:<i> diagnostics); a network that reads d1 needs one for every board the rules "
+                         "do not decide")
+
+
 @torch.no_grad()
 def predict(net, arrays: dict, beliefs: np.ndarray, device, batch: int = 256, planes=None) -> np.ndarray:
     """The network's value of every board of `beliefs`, in rows_of order. `planes` may hold
     arrays["planes"] already on the device."""
+    if net.use_d1:
+        require_d1(arrays, beliefs)
     net.eval()
     out = []
     for i in range(0, len(beliefs), batch):
@@ -49,10 +63,14 @@ def baseline_pred(arrays: dict, beliefs: np.ndarray) -> np.ndarray | None:
     return None if np.isnan(d1[~arrays["rule"][rows]]).any() else np.nan_to_num(d1)
 
 
-def paired_difference(a: np.ndarray, b: np.ndarray, n_boot: int = 2000, seed: int = 0) -> dict:
-    """Mean of a - b over beliefs with a 95% bootstrap interval. Negative means a errs less."""
+def paired_difference(a: np.ndarray, b: np.ndarray, groups: np.ndarray, n_boot: int = 2000, seed: int = 0) -> dict:
+    """Mean of a - b over beliefs, with a 95% bootstrap interval that resamples whole games
+    (`groups`, one game_id per belief): beliefs from one game are correlated, so resampling them
+    one by one would make the interval too narrow. Negative means a errs less."""
     diff = a - b
-    rng = np.random.default_rng(seed)
-    boots = diff[rng.integers(0, len(diff), size=(n_boot, len(diff)))].mean(axis=1)
+    keys, game = np.unique(groups, return_inverse=True)
+    sums, counts = np.bincount(game, weights=diff), np.bincount(game)
+    pick = np.random.default_rng(seed).integers(0, len(keys), size=(n_boot, len(keys)))
+    boots = sums[pick].sum(axis=1) / counts[pick].sum(axis=1)
     return {"mean": float(diff.mean()), "ci95": [float(np.quantile(boots, 0.025)), float(np.quantile(boots, 0.975))],
-            "beliefs": int(len(diff))}
+            "beliefs": int(len(diff)), "games": int(len(keys)), "resampled": "games"}
