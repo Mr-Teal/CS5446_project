@@ -89,6 +89,22 @@ def test_forced_score_looks_one_move_ahead_under_fog_rules(fen, want):
     assert forced_score(chess.Board(fen)) == want
 
 
+# Teal's edge case: every Black move walks into check, but each also takes the halfmove clock to
+# 100, so the game is drawn before White can take the king.
+def test_a_move_that_ends_the_game_in_a_draw_is_not_a_loss():
+    assert forced_score(chess.Board("7k/5Q2/6K1/8/8/8/8/8 b - - 99 80")) == ("forced-draw", 0.0)
+
+
+def test_a_repetition_draw_one_move_ahead_needs_the_history_kept():
+    # White twice declined to take the king, so Kg8 now repeats a position for the third time.
+    board = chess.Board("6k1/5Q2/6K1/8/8/8/8/8 w - - 0 1")
+    for uci in ["f7f6", "g8h8", "f6f7", "h8g8", "f7f6", "g8h8", "f6f7"]:
+        board.push(chess.Move.from_uci(uci))
+    assert forced_score(board) == ("forced-draw", 0.0)
+    assert forced_score(chess.Board(board.fen())) == ("forced-loss", -1.0)  # history lost: a loss
+    assert len(board.move_stack) == 7  # the check leaves the board as it found it
+
+
 def test_rule_score_checks_finished_games_before_forced_results():
     assert rule_score(chess.Board("8/8/8/8/8/8/8/4K3 b - - 0 1")) == ("king-captured", -1.0)
     assert rule_score(chess.Board("7k/6Q1/6K1/8/8/8/8/8 b - - 0 1")) == ("forced-loss", -1.0)

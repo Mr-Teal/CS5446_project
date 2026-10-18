@@ -89,24 +89,42 @@ def terminal_score(board: chess.Board) -> Optional[Tuple[str, float]]:
     return None
 
 
+_FORCED = {-1.0: "forced-loss", 0.0: "forced-draw", 1.0: "forced-win"}
+
+
 def forced_score(board: chess.Board) -> Optional[Tuple[str, float]]:
     """A result decided one move ahead under fog rules, for the side to move, or None.
 
     The game is not over yet. "king-capture": the side to move can take the king (+1).
-    "forced-loss": every fog-legal move leaves its own king capturable (-1); this covers
-    orthodox checkmate and stalemate, unless castling out of or through check escapes.
-    Stockfish 19 crashes on a king-capture position, so check this before any engine call.
+    Otherwise every fog-legal move is tried: a move that ends the game (a fifty-move or
+    repetition draw) scores that result, and a move that leaves its own king capturable
+    scores -1. If every move is one of these, the best of them is the result ("forced-loss"
+    or "forced-draw"); orthodox checkmate and stalemate are usually forced losses, unless
+    castling out of or through check escapes. Any other move leaves the result open: None.
+
+    Moves are tried on the board itself and undone, so a repetition draw one move ahead is
+    seen when the board carries its history. Stockfish 19 crashes on a king-capture
+    position, so check this before any engine call.
     """
     if board.was_into_check():
         return "king-capture", 1.0
-    if any(board.generate_legal_moves()):
-        return None  # an orthodox legal move never leaves the king attacked
+    best = None
     for move in fog_legal_moves(board):
-        child = board.copy(stack=False)
-        child.push(move)
-        if not child.was_into_check():
-            return None  # only castling into, out of or through check can escape here
-    return ("forced-loss", -1.0) if fog_legal_moves(board) else None
+        board.push(move)
+        try:
+            ended = terminal_score(board)
+            if ended is not None:
+                value = -ended[1] + 0.0  # the child's score is for the opponent
+            elif board.was_into_check():
+                value = -1.0  # the opponent takes the king next move
+            else:
+                return None  # a safe move: the rules decide nothing here
+        finally:
+            board.pop()
+        best = value if best is None else max(best, value)
+    if best is None:
+        return None  # no fog-legal move at all (rare): left to the rules adapter
+    return _FORCED[best], best
 
 
 def rule_score(board: chess.Board) -> Optional[Tuple[str, float]]:

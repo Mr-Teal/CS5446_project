@@ -37,8 +37,9 @@ R1–R3 work, but no such source files were present in this directory.
   `terminal_score` reports finished games (king captured, fifty moves,
   threefold repetition with history); `forced_score` reports positions decided
   one move ahead that are not over yet (king capture available, or every move
-  leaves the king capturable). Stockfish 19 crashes on a position where the
-  side to move can capture the king, so check `rule_score` first.
+  either ends the game in a draw or leaves the king capturable). Stockfish 19
+  crashes on a position where the side to move can capture the king, so check
+  `rule_score` first.
 - `fow_shared/features.py`: candidate network input `(N, 32, 8, 8)` plus
   `(N,)` normalized hypothesis weights. Plane names and orientation are in
   `PLANE_NAMES`. It requires a rules-specific opponent-visibility callback.
