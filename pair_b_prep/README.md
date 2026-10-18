@@ -108,6 +108,16 @@ https://github.com/Mr-Teal/CS5446_project/pull/1
 Merged commit: a8458d86462613f2486094da7d99f20e3757bb91 (18 October 2026).
 This tool is not a vendored copy or replacement for fow_shared.
 
+The adapter also supports the required `Observation.side_to_move` in PR #2
+(`pair-b/interface-item-4`, inspected at
+`a5b89dd65fb2e7622126713caec49aca3eafa7f0`). It sets this to the acting player,
+not ply parity, and omits the keyword only for the older main contract. Both
+contracts use schema v1, so compatibility is detected from dataclass fields.
+All 11 preparation tests pass against main and separately against PR #2's actual
+`contracts.py`, read from GitHub into an isolated temporary package. This checks
+contract compatibility, including Black at an even ply; it is not a full branch,
+runner, engine or trained-model integration test. No shared files are changed.
+
 When Colin's artifacts arrive: implement the adapter, record provenance, run and
 investigate the checks, finish manual validation, and benchmark real evaluators
 outside results/demo. Hand Pair A the evaluator, checkpoint/config and real report.

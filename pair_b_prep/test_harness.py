@@ -40,6 +40,23 @@ class HarnessTests(unittest.TestCase):
         with self.assertRaises(AssertionError): children({'a1a2':0,'a1a3':0},{'moves':['a1a2']},1e-6)
 
 class SharedContractTests(unittest.TestCase):
+    def test_acting_player_for_both_colours_at_even_ply(self):
+        from pair_b_prep.adapter_example import make_turn
+        from fow_shared.contracts import Observation
+        from dataclasses import fields
+        for player, active, moves in [('white', 'w', ['a1a2']),
+                                      ('black', 'b', ['h8h7'])]:
+            with self.subTest(player=player):
+                fen = f'7k/8/8/8/8/8/8/K7 {active} - - 0 80'
+                turn = make_turn(dict(player=player, fens=[fen], weights=[1.0],
+                                      legal_moves=moves))
+                self.assertEqual(turn.observation.player, player)
+                self.assertEqual(turn.observation.ply, 158)
+                self.assertEqual(turn.observation.legal_moves, tuple(moves))
+                self.assertEqual(turn.belief.hypotheses[0].fen, fen)
+                if 'side_to_move' in {f.name for f in fields(Observation)}:
+                    self.assertEqual(turn.observation.side_to_move, player)
+
     def test_real_shared_contracts_accept_probes(self):
         from pair_b_prep.adapter_example import make_turn
         from fow_shared.contracts import LeafValues
