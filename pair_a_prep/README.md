@@ -8,6 +8,7 @@ and agent ownership, team settings and delivery dates remain to be agreed.
 
 | Work | File | Contents |
 |---|---|---|
+| Pair A interface draft | [interface_draft.py](interface_draft.py), [interface_draft.md](docs/interface_draft.md) | Proposed rules/tracker signatures, private observation fields and update sequence; pending review |
 | Paper implementation specifications | [paper_specs.md](docs/paper_specs.md) | Pinned v2 sources, parameters, section references, implementation checks and open questions |
 | Small-game validation | [toy_games.py](toy_games.py) | Information sets, chance nodes, LP reference solutions and behavioral best-response/Nash-gap checks |
 | Stockfish measurements | [benchmark_stockfish.py](benchmark_stockfish.py) | Fixed positions, depths 1 and 11, best-move/all-move MultiPV, raw scores and timings |
