@@ -5,7 +5,8 @@ all the beliefs of one call go through one network pass without mixing. evaluate
 evaluate_children have no belief to give, so each board becomes a belief of its own, built from
 what its side to move would see if that board were true (pairb.observe). Boards the fog-of-war
 rules decide keep the rule's exact value. A use_d1 network also reads quick Stockfish's value of
-each board: one depth-1 call per board, or one MultiPV call for all of a node's children.
+each board: one depth-1 call per board, children included, because that is the value it trained
+on (a parent's MultiPV score of a child differs from the child's own by 0.07 on average).
 """
 from pathlib import Path
 
@@ -93,15 +94,11 @@ class BeliefNetworkEvaluator:
         board = chess.Board(fen)
         if terminal_score(board) is not None:
             return {}
-        if self.stockfish is not None:
-            known = self.stockfish.children_values(board)
-        else:
-            known = {}
-            for move in fog_legal_moves(board):
-                child = board.copy()
-                child.push(move)
-                rule = rule_value(child)
-                known[move.uci()] = (rule[1], True) if rule is not None else (float("nan"), False)
+        known = {}
+        for move in fog_legal_moves(board):
+            child = board.copy()  # keeps the history for the rule checks
+            child.push(move)
+            known[move.uci()] = self._known(child)
         children = []
         for uci in known:
             child = board.copy(stack=False)

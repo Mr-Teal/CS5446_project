@@ -77,9 +77,9 @@ def test_children_are_scored_for_the_player_making_the_move():
         assert v == pytest.approx(-rule[1] if rule else -C, abs=1e-6), uci
 
 
-def nudged():
+def nudged(use_d1=False):
     torch.manual_seed(0)
-    net = BeliefNetwork(blocks=1, channels=8, embed=16)
+    net = BeliefNetwork(blocks=1, channels=8, embed=16, use_d1=use_d1)
     with torch.no_grad():
         for p in net.parameters():
             p.add_(0.1 * torch.randn_like(p))
@@ -97,20 +97,26 @@ def test_beliefs_scored_together_match_beliefs_scored_alone():
         assert x.hypothesis_values == pytest.approx(y.hypothesis_values, abs=1e-6)
 
 
-# Catches: with quick Stockfish as input, its value fed from the wrong side.
+# Catches: with quick Stockfish as input, its value fed from the wrong side, or the per-move call
+# feeding the parent's MultiPV score of a child instead of the child's own depth-1 value, which is
+# what the network trained on (make_beliefs scores each board on its own; review of #6).
 @needs_engine
-def test_with_quick_stockfish_the_correction_applies_from_the_side_to_move():
+def test_with_quick_stockfish_each_board_gets_its_own_depth_1_value_from_its_side_to_move():
     stm = lambda v: math.tanh(math.atanh(max(-D1_CLIP, min(D1_CLIP, v))) + C)
+    board = chess.Board(MIDDLEGAME)
     with StockfishEvaluator(depth=1) as sf:
         (plain,) = sf.evaluate_boards([BLACK_TO_MOVE], "black")
-        children = sf.evaluate_children(MIDDLEGAME)
+        own = {}
+        for move in fog_legal_moves(board):
+            child = board.copy()
+            child.push(move)
+            own[move.uci()] = (sf.evaluate_boards([child.fen(en_passant="fen")], "black")[0], rule_score(child))
     with BeliefNetworkEvaluator(constant_net(use_d1=True), name="test", device="cpu") as ev:
         assert ev.evaluate_boards([BLACK_TO_MOVE], "white") == pytest.approx([-stm(plain)], abs=1e-5)
         got = ev.evaluate_children(MIDDLEGAME)
-    for uci, v in children.items():
-        child = chess.Board(MIDDLEGAME)
-        child.push(chess.Move.from_uci(uci))
-        assert got[uci] == pytest.approx(v if rule_score(child) else -stm(-v), abs=1e-5), uci
+    assert set(got) == set(own)
+    for uci, (child_value, rule) in own.items():  # child_value is for Black, the side to move after White's move
+        assert got[uci] == pytest.approx(-rule[1] if rule else -stm(child_value), abs=1e-5), uci
 
 
 # Catches: a saved network loaded without its weights, or one for other input planes accepted.
@@ -125,3 +131,23 @@ def test_checkpoints_load_with_their_weights_and_their_planes_are_checked(tmp_pa
         assert ev.evaluate_boards([QUIET], "white") == pytest.approx([C], abs=1e-6)
     with pytest.raises(ValueError):
         BeliefNetworkEvaluator.from_checkpoint(bad, device="cpu")
+
+
+# Catches: a rule-decided board whose quick-Stockfish value the record leaves out being read as 0 in
+# training and evaluation but as its rule value by the evaluator; through the belief summary that
+# moves the other boards' values (review of #6).
+@needs_engine
+def test_training_path_and_evaluator_agree_on_a_belief_with_a_rule_board():
+    import numpy as np
+    from fow_shared.contracts import Decision, TrainingRecord
+    from pairb.belief_data import build_arrays
+    from pairb.belief_eval import predict
+    turn = blind_turn("white", [KING_CAPTURE, QUIET])
+    with StockfishEvaluator(depth=1) as sf:
+        (quiet_d1,) = sf.evaluate_boards([QUIET], "white")
+    record = TrainingRecord(turn, Decision("e1d1", {"e1d1": 1.0}, {"d1:1": quiet_d1}), 0.8, (1.0, 0.6), 0, "t", "t", "g-1")
+    net = nudged(use_d1=True)
+    via_training = predict(net, build_arrays([record]), np.array([0]), torch.device("cpu"))
+    with BeliefNetworkEvaluator(net, name="test", device="cpu") as ev:
+        (answer,) = ev.evaluate_beliefs([turn])
+    assert answer.hypothesis_values[1] == pytest.approx(float(via_training[1]), abs=1e-5)

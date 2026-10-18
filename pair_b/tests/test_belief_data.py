@@ -48,4 +48,40 @@ def test_boards_the_rules_decide_are_marked():
               "4k3/8/8/8/8/8/8/R3K3 w - - 0 1")     # nothing decided
     turn = AgentInput(obs, Belief("white", 4, tuple(Hypothesis(f, 0.5) for f in boards)), 1000)
     record = TrainingRecord(turn, Decision("e1d1", {"e1d1": 1.0}), 0.8, (1.0, 0.6), 0, "test", "test", "g-000003")
-    assert build_arrays([record])["rule"].tolist() == [True, False]
+    arrays = build_arrays([record])
+    assert arrays["rule"].tolist() == [True, False]
+    # No d1 recorded: a rule board takes its rule value (as the evaluator feeds it), others stay unknown.
+    assert arrays["d1"][0] == 1.0 and np.isnan(arrays["d1"][1])
+
+
+# Catches: a training step that grows with belief size (Pair A plans 256+ boards per belief), or a
+# batching that drops or repeats beliefs.
+def test_batches_hold_whole_beliefs_up_to_a_board_cap():
+    from pairb.belief_data import belief_batches
+    sizes = np.array([3, 5, 2, 8, 1, 4])
+    batches = belief_batches(sizes, np.arange(6), max_boards=8)
+    assert [b.tolist() for b in batches] == [[0, 1], [2], [3], [4, 5]]
+    assert sorted(np.concatenate(batches).tolist()) == list(range(6))
+    assert belief_batches(np.array([20]), np.arange(1), max_boards=8)[0].tolist() == [0]  # one big belief alone
+
+
+def _write(folder, name, records):
+    from fow_shared.recording import write_records
+    folder.mkdir(exist_ok=True)
+    write_records(folder / name, records)
+
+
+# Catches: a crash on an empty part file (a worker whose points were all rule-decided), on a folder
+# without manifest.json, or on files named otherwise, which Pair A's label runs may well produce.
+def test_loading_copes_with_empty_files_missing_manifests_and_other_names(tmp_path):
+    import pytest as _pytest
+    from pairb.belief_data import load_arrays
+    records = [practice_record(MIDDLEGAME, 1, "g-000001"), practice_record(BLACK_TO_MOVE, 2, "g-000002")]
+    _write(tmp_path / "a", "part-00.jsonl", records)
+    _write(tmp_path / "a", "part-01.jsonl", [])
+    assert len(load_arrays(tmp_path / "a", tmp_path / "cache", workers=1)["root"]) == 2
+    _write(tmp_path / "b", "labels-pair-a.jsonl", records)
+    assert len(load_arrays(tmp_path / "b", tmp_path / "cache", workers=1, pattern="*.jsonl")["root"]) == 2
+    (tmp_path / "c").mkdir()
+    with _pytest.raises(ValueError, match="no records"):
+        load_arrays(tmp_path / "c", tmp_path / "cache", workers=1)

@@ -7,7 +7,7 @@ left out of the board error. A belief's position value is the weighted mean of i
 import numpy as np
 import torch
 
-from .belief_data import rows_of
+from .belief_data import belief_batches, rows_of
 
 
 def require_d1(arrays: dict, beliefs: np.ndarray) -> None:
@@ -23,15 +23,14 @@ def require_d1(arrays: dict, beliefs: np.ndarray) -> None:
 
 
 @torch.no_grad()
-def predict(net, arrays: dict, beliefs: np.ndarray, device, batch: int = 256, planes=None) -> np.ndarray:
-    """The network's value of every board of `beliefs`, in rows_of order. `planes` may hold
-    arrays["planes"] already on the device."""
+def predict(net, arrays: dict, beliefs: np.ndarray, device, max_boards: int = 4096, planes=None) -> np.ndarray:
+    """The network's value of every board of `beliefs`, in rows_of order, at most `max_boards`
+    boards per pass. `planes` may hold arrays["planes"] already on the device."""
     if net.use_d1:
         require_d1(arrays, beliefs)
     net.eval()
     out = []
-    for i in range(0, len(beliefs), batch):
-        chunk = beliefs[i:i + batch]
+    for chunk in belief_batches(np.bincount(arrays["belief"]), beliefs, max_boards):
         rows, local = rows_of(arrays, chunk)
         x = planes[torch.from_numpy(rows).to(device)] if planes is not None else torch.from_numpy(arrays["planes"][rows]).to(device)
         d1 = torch.from_numpy(np.nan_to_num(arrays["d1"][rows])).to(device) if net.use_d1 else None
