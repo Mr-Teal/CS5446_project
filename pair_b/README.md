@@ -73,7 +73,8 @@ real use; `evaluate_boards` and `evaluate_children` score each board as a belief
 Until Pair A's player can label beliefs, it learns from practice data:
 
 - **What each player sees:** `observe.py`, a stand-in that passes all 17 `pair_a_prep` rules
-  fixtures. Swap in Pair A's `observe()` when it exists.
+  fixtures and matches Pair A's `RulesAdapter.observe()` on 64,396 views, finished games included.
+  Swap in Pair A's `observe()` once it is on `main`; a test compares the two until then.
 - **Beliefs:** `standin_beliefs.py` keeps the true board and moves some of the opponent's unseen
   pieces to other unseen squares, keeping only boards the player cannot tell from the truth (same
   squares seen, same pieces on them, same legal moves): 8 boards for 99% of beliefs.
@@ -92,7 +93,8 @@ against careful Stockfish (a position's value is the weighted mean of its boards
 | The same, ignoring the rest of the belief | 0.076 | 0.047 |
 
 The network that reads quick Stockfish errs 15% less on positions than quick Stockfish alone
-(paired difference -0.008, 95% CI -0.009 to -0.007). The planes-only network needs far more data to
+(paired difference -0.008, 95% CI -0.009 to -0.007, resampling the 959 games whole, since beliefs
+from one game are correlated). The planes-only network needs far more data to
 read chess from scratch. Reading the rest of the belief helps a little on these per-board labels,
 but too little to call from one run each; Pair A's labels are the real test.
 
@@ -127,7 +129,7 @@ pip install -e . -e pair_b pytest
 cd pair_b; python -m pytest -q
 ```
 
-The 146 tests run Stockfish itself where they need it; those are skipped when it is not on `PATH`.
+The 151 tests run Stockfish itself where they need it; those are skipped when it is not on `PATH`.
 
 ## Rebuild Network 1, or retrain it on new labels
 
