@@ -17,7 +17,12 @@ import pytest
 from no_torch import PAIR_B
 
 pytest.importorskip("torch")  # Intel Macs have no torch build: skip this file there
-pytest.importorskip("pair_b_prep")  # Bryan's harness is PR #3: skip where it is not merged
+# Bryan's harness is PR #3: skip where it is not merged. The guards name the submodules imported below, not the
+# package: a branch without PR #3 can still hold an untracked pair_b_prep/ folder (his results, bytecode), which
+# Python imports as an empty package, and a guard on the package alone would pass and then fail the imports below
+# at collection, stopping the whole suite.
+pytest.importorskip("pair_b_prep.adapter_example")
+pytest.importorskip("pair_b_prep.harness")
 
 from pair_b_prep import adapter_example
 from pair_b_prep.harness import run_checks
