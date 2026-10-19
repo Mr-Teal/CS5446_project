@@ -44,7 +44,8 @@ cannot use a visitor's browser to start games, start runs or write files, nor ca
 name from the page is checked before any file is read: a static file's against a short list of safe characters, and
 then resolved; a saved game's for folders, drives and NUL; a log's and its run id by the RunManager. Each is at most 128
 characters, so no name is too long for the file system (Python 3.12's Path.is_file raises for one: R19). The server
-writes only into <home>/games, under names it makes itself, and its RunManager only into <home>/runs.
+writes only into <home>/games, under names it makes itself, and its RunManager only into <home>/runs. Every answer
+forbids type sniffing (X-Content-Type-Options) and framing by any page (X-Frame-Options and the CSP frame-ancestors).
 
 Routes are the entries of ROUTES: a method, a pattern for the path and the name of the LabApp method that answers it.
 """
@@ -575,10 +576,15 @@ class _Handler(BaseHTTPRequestHandler):
             raise ApiError(403, "Fog Lab answers only its own page, not a page from another site")
 
     def _send(self, reply: Reply) -> None:
+        """Write `reply`. Every answer, an error too, says that its type is not to be guessed and that no page may
+        frame it (so another site cannot trick a click on Fog Lab's page into starting a run or a game)."""
         self.send_response(reply.status)
         self.send_header("Content-Type", reply.content_type)
         self.send_header("Content-Length", str(len(reply.body)))
         self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Content-Security-Policy", "frame-ancestors 'none'")
         self.end_headers()
         if self.command != "HEAD":
             self.wfile.write(reply.body)

@@ -819,6 +819,25 @@ def test_other_pages_and_other_host_names_are_refused(lab):
         assert lab.get("/api/config", headers)[0] == 200
 
 
+SAFE_HEADERS = {"X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY",
+                "Content-Security-Policy": "frame-ancestors 'none'"}
+
+
+# Defence in depth. Catches: an answer that a browser may sniff as another type than the one sent, or that a page on
+# another site may frame (a click it tricks the user into could start a run or replace the live game): an API answer,
+# a static file, the page itself, an error, and the library's own refusal of a request it cannot read.
+def test_every_answer_forbids_sniffing_and_framing(lab):
+    answers = [lab.send("GET", "/api/config"), lab.send("GET", "/static/app.js"), lab.send("GET", "/"),
+               lab.send("GET", f"/api/games/{UNKNOWN_ID}"), lab.send("POST", "/api/games", b"{not json")]
+    assert [answer.status for answer in answers] == [200, 200, 200, 404, 400]
+    for answer in answers:
+        assert {name: answer.header(name) for name in SAFE_HEADERS} == SAFE_HEADERS
+    head, _ = raw_exchange(lab.port, b"FETCH / HTTP/1.0\r\n\r\n")  # answered by send_error
+    assert head.startswith(b"HTTP/1.0 501")
+    for name, value in SAFE_HEADERS.items():
+        assert f"\r\n{name}: {value}\r\n".encode() in head + b"\r\n"
+
+
 # Catches: a request the library cannot read or serve (a bad Content-Length, a body that stops short, a request line
 # that is too long, a method it does not know) answered with its HTML error page or a dropped connection.
 @pytest.mark.parametrize("request_bytes, status", [
