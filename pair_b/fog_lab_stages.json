@@ -1,0 +1,10 @@
+{
+  "stages": [
+    {"label": "main", "ref": "origin/main", "title": "after PR #2"},
+    {"label": "+ PR #4", "ref": "origin/pair-b/evaluators", "title": "Scorers, Network 1"},
+    {"label": "+ PR #6", "ref": "origin/pair-b/belief-network", "title": "Belief network"},
+    {"label": "+ PR #5", "ref": "origin/pair-b/label-definitions", "title": "Label definitions"},
+    {"label": "+ PR #3", "ref": "origin/pair-b/evaluator-validation-prep", "title": "Bryan's harness"},
+    {"label": "+ Teal's branch", "ref": "origin/pair-a/rules-interface", "title": "Rules adapter, PCFR+"}
+  ]
+}
