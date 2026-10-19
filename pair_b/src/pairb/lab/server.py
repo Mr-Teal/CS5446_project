@@ -204,15 +204,17 @@ class LabApp:
         self._failed: dict[str, str] = {}  # scorer id -> why it failed to open
 
     def close(self) -> None:
-        """Close the live game (its scorers, so no engine is left running) and stop the test run that is going (R29),
-        waiting a little for it to be saved. No game goes live afterwards. Calling it again does nothing."""
+        """Stop the test run that is going (R29), waiting a little for it to be saved, then close the live game (its
+        scorers, so no engine is left running). No game goes live and no run starts afterwards. The runs come first:
+        closing a game waits for a bot's turn in progress, and a run asked for meanwhile would still have started.
+        Calling it again does nothing."""
         with self._lock:
             self._closed = True
             session, self._session = self._session, None
-        if session is not None:
-            session.close()
         if self.runs is not None:
             self.runs.close()
+        if session is not None:
+            session.close()
 
     def handle(self, method: str, target: str, body: bytes) -> Reply:
         """The answer to a request: `target` is the request line's path with its query. ApiError for an error."""

@@ -21,11 +21,13 @@ from urllib.parse import quote
 
 import pytest
 
+from fow_shared.contracts import Decision
 from no_torch import PAIR_B
 from pairb.lab import paths, runs
 from pairb.lab.runs import RunBusy, RunManager
 from pairb.lab.scorers import ScorerOptions
 from pairb.lab.server import LabApp, make_server
+from pairb.lab.session import BOTS, BotSpec, Session, default_tracker
 from pairb.lab.stages import load_stages
 from pairb.rules import StandinRules
 
@@ -467,6 +469,61 @@ def test_closing_the_app_stops_the_run(make_manager, serve):
     lab.app.close()
     assert runner.calls[0]["cancel"].is_set() and manager.status()["running"] is False
     assert "closing" in lab.send("POST", "/api/tests/run", {}).error(409)
+
+
+class SlowBot:
+    """An Agent whose turn lasts until `go_on` is set (a minute at most), having set `thinking`; then it plays its
+    first legal move."""
+
+    name = "slow-bot"
+    thinking, go_on = threading.Event(), threading.Event()
+
+    def __init__(self, scorer=None):
+        pass
+
+    def reset(self, player, seed):
+        pass
+
+    def act(self, turn):
+        self.thinking.set()
+        self.go_on.wait(60)
+        moves = turn.observation.legal_moves
+        return Decision(moves[0], {move: float(move == moves[0]) for move in moves})
+
+
+# Catches: a run that starts while the app closes. A Ctrl+C that comes during the bot's turn finds the live game busy:
+# closing it waits for the turn to end, and a run asked for in that gap started, with its fetch and its worktree, on the
+# way out. The run manager is closed first, so such a request is refused.
+def test_no_run_starts_while_the_app_closes(make_manager, serve, monkeypatch):
+    runner = FakeRunner()
+    lab = serve(make_manager(runner))
+    monkeypatch.setitem(BOTS, "slow", BotSpec("slow", SlowBot, default_tracker))
+    monkeypatch.setattr(SlowBot, "thinking", threading.Event())
+    monkeypatch.setattr(SlowBot, "go_on", threading.Event())
+    closing_game, real_close = threading.Event(), Session.close
+
+    def close(self):
+        closing_game.set()
+        real_close(self)  # waits for the bot's turn, which holds the game
+
+    monkeypatch.setattr(Session, "close", close)
+    created = lab.send("POST", "/api/games", {"scorer": "material", "particles": 16, "guesses": 2, "bot": "slow"})
+    assert created.status == 200, created.body
+    game = created.data()["id"]
+    threads = [threading.Thread(target=lab.send, args=("POST", f"/api/games/{game}/move", {"move": "e2e4"})),
+               threading.Thread(target=lab.app.close)]
+    threads[0].start()
+    try:
+        assert SlowBot.thinking.wait(60)
+        threads[1].start()
+        assert closing_game.wait(60)
+        assert "closing" in lab.send("POST", "/api/tests/run", {"fetch": False}).error(409)
+        assert runner.calls == []
+    finally:
+        SlowBot.go_on.set()
+        for thread in threads:
+            if thread.ident is not None:  # started
+                thread.join(60)
 
 
 # ---- logs ----
