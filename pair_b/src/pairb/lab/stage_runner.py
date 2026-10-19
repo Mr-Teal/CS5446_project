@@ -135,9 +135,11 @@ def new_group_options(windows: bool | None = None) -> dict:
 
 @dataclass
 class CheckResult:
-    """How one check went. `status` is "pass", "fail" or "unavailable" (run_check gives no other; "skipped" is kept
-    for callers that report a check they did not run). `summary` is the line the card shows, `counts` the numbers
-    behind it: pytest's {"passed", "failed", "errors", "skipped"}, the harness's {"pass", "manual", "fail"}, or {}.
+    """How one check went. `status` is "pass", "fail", "skipped" or "unavailable". run_check gives "skipped" for a
+    pytest check whose every test was skipped (it ran, and checked nothing); run_stages also reports a check that a
+    stop kept from starting as "skipped", with the summary NOT_RUN. `summary` is the line the card shows, `counts`
+    the numbers behind it: pytest's {"passed", "failed", "errors", "skipped"}, the harness's {"pass", "manual",
+    "fail"}, or {}.
     `log` is where the check's output was saved (None when nothing ran): run_check gives the path it was handed, and
     run_stages makes it relative to the run folder."""
 
@@ -309,7 +311,8 @@ def run_check(check: Check, env: Mapping[str, str], log_path: Path, timeout: flo
     - an import check (imports_b, imports_a) also fails unless every module path it printed lies in the stage, its own
       folder or, for imports_b, which runs in the stage's pair_b, the one above (imports_ok decides);
     - pytest's summary and counts come from parse_pytest_summary, and a pytest run that passes without a summary line
-      is "passed (no counts reported)" (R27);
+      is "passed (no counts reported)" (R27); one that exits 0 with every test it ran skipped is "skipped", with
+      pytest's words as its summary, since it checked nothing;
     - a harness check's summary is the pass, manual and fail counts of the report.json in the folder after `--out`;
     - unittest's (on stderr) is the number of tests and its verdict, as "Ran 11 tests: OK";
     - otherwise a pass is "passed" and a failure is its exit code and the last line it wrote to stderr (or stdout).
@@ -382,6 +385,8 @@ def _judge(check: Check, outcome: _Outcome, timeout: float) -> tuple[str, str, d
             return status, "passed (no counts reported)" if passed else _failure(outcome), counts
         if not passed and not (counts["failed"] or counts["errors"]):
             said += f" (exit code {outcome.code})"  # pytest failing after its tests, say on a plugin's error
+        if passed and counts["skipped"] and not counts["passed"]:
+            return "skipped", said, counts  # every test it ran was skipped: it checked nothing
         return status, said, counts
     if _runs_module(check.argv, "unittest"):
         ran = _UNITTEST_RAN.search(outcome.stderr)

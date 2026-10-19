@@ -919,6 +919,24 @@ def test_run_check_reads_pytest_counts(tmp_path):
         "fail", "1 failed, 1 passed, 1 skipped", {"passed": 1, "failed": 1, "errors": 0, "skipped": 1})
 
 
+# Catches: a pytest check that ran but whose every test skipped (Teal's observe test where her adapter is missing,
+# say) shown as a green pass, when it checked nothing. It is "skipped", greyed out with pytest's own words, and its log
+# is kept like any other.
+def test_a_pytest_check_whose_tests_all_skipped_is_skipped(tmp_path):
+    (tmp_path / "pytest.ini").write_text("[pytest]\n", encoding="utf-8")
+    (tmp_path / "test_tiny.py").write_text("import pytest\n\ndef test_one():\n    pytest.skip('not here')\n",
+                                           encoding="utf-8")
+    log_path = tmp_path / "logs" / "6-observe_vs_teal.txt"
+    check = Check("observe_vs_teal", "Our observe = Teal's", (sys.executable, *PYTEST), tmp_path, None)
+    result = run_check(check, clean_env(), log_path)
+    assert result == CheckResult("observe_vs_teal", "Our observe = Teal's", "skipped", "1 skipped",
+                                 {"passed": 0, "failed": 0, "errors": 0, "skipped": 1}, str(log_path))
+    assert "result: skipped (1 skipped)" in log_path.read_text(encoding="utf-8")
+    (tmp_path / "test_tiny.py").write_text("import pytest\n\ndef test_one():\n    pytest.skip('not here')\n\n"
+                                           "def test_two():\n    assert True\n", encoding="utf-8")
+    assert run_check(check, clean_env(), log_path).status == "pass"  # one that ran is enough
+
+
 # R27: pytest that passes without a summary line (-qq prints none) is a pass, not "0 passed".
 def test_a_pytest_check_that_passes_without_counts(tmp_path):
     (tmp_path / "pytest.ini").write_text("[pytest]\n", encoding="utf-8")

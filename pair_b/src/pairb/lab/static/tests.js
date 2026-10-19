@@ -12,8 +12,8 @@
 // Health (section 1) shows the run that is going, its cards filling in as each stage ends, or else the latest saved
 // run. The fog rules, the scorer checks and the accuracy (sections 2 to 4) come from the latest saved run's "final":
 // the last stage that was built. Grey is never a failure: a check that cannot run here (no torch, no Pair A
-// environment), one a stage cannot run (no pair_b yet), a stage that was not built. A stopped run's cards say
-// "stopped" (R30).
+// environment), one a stage cannot run (no pair_b yet), a pytest check whose tests all skipped, a stage that was not
+// built. A stopped run's cards say "stopped" (R30).
 //
 // Everything above "the page" is pure, so Node's runner tests it: node --test tests/js/. Text from the server reaches
 // the page only through esc() or textContent, and a server value never becomes a class name.
@@ -24,6 +24,7 @@ import {capitalise, CHECK, enc, esc, exact, isNumber, NONE, signed} from "./pane
 const RUN_ID = /^[0-9]{8}-[0-9]{6}-[0-9]{6}$/;           // runs.RUN_ID
 const LOG_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;   // runs.LOG_NAME
 const STOPPED = "stopped";                               // stage_runner.STOPPED: the summary of a check a stop cut off
+const NOT_RUN = "not run: the run was stopped";          // stage_runner.NOT_RUN: a check a stop kept from starting
 const DOT = " \u00B7 ", ARROW = "\u2192", CROSS = "\u2717\uFE0E", HALT = "\u25A0\uFE0E";
 const POLL_MS = 1500;
 const FX_SIZE = 132;  // px: the fog-rules boards
@@ -111,9 +112,11 @@ export function cardStatus(stage, {stopped = false} = {}) {
 }
 
 /** Whether a stop cut `item` off: in a stopped run, the check it stopped ("fail" with the summary "stopped") and those
- * it kept from starting ("skipped"). */
+ * it kept from starting ("skipped" with the summary NOT_RUN). A pytest check whose tests all skipped is "skipped" too,
+ * with pytest's words: it ran to its end, and nothing cut it off. */
 function cutOff(item, stopped) {
-  return stopped && (item?.status === "skipped" || (item?.status === "fail" && item?.summary === STOPPED));
+  return stopped && ((item?.status === "skipped" && item?.summary === NOT_RUN)
+    || (item?.status === "fail" && item?.summary === STOPPED));
 }
 
 // ---- links and words ----

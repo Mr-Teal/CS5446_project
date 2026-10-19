@@ -218,6 +218,21 @@ test("stage cards: a stopped run says stopped", () => {
   assert.match(both, /<div class="stage grey"[^>]*><div class="hd"><span class="mark">[^<]*<\/span> \+ PR #3/);
 });
 
+// Catches: a pytest check whose tests all skipped (it ran to its end and checked nothing) drawn as anything but a grey
+// line with pytest's words; in a stopped run, taken for a check the stop kept from starting, which only "not run: the
+// run was stopped" is, so that a stage checked through before the stop came would say stopped.
+test("stage cards: a check whose tests all skipped is grey with its summary, in a stopped run too", () => {
+  const skipped = check("observe_vs_teal", "Our observe = Teal's", "skipped", "1 skipped", "logs/6-observe_vs_teal.txt",
+                        {passed: 0, failed: 0, errors: 0, skipped: 1});
+  const done = stage("+ PR #3", "clean", [check("pair_b", "Pair B", "pass", "99 passed"), skipped]);
+  for (const stopped of [false, true]) {
+    const html = stagesHtml([done], {runId: RUN, stopped});
+    assert.match(html, /class="ln grey"/); assert.equal(html.includes('class="ln stopped"'), false);
+    assert.match(text(html), /Our observe = Teal's 1 skipped/);
+    assert.equal(cardStatus(done, {stopped}), "green");
+  }
+});
+
 test("stage cards: a run in progress ends with what it is doing", () => {
   const html = stagesHtml([stage("main", "clean")], {running: `+ PR #4: ${HOSTILE}`});
   assert.match(html, /class="stage going"/); shownAsText(html, HOSTILE);
