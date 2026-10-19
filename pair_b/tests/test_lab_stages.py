@@ -22,6 +22,7 @@ from no_torch import PAIR_B, run_without_torch
 from pairb.lab import scorers
 from pairb.lab.paths import venv_python
 from pairb.lab.scorers import CHECKPOINTS, LABELS, SCORER_IDS
+from pairb.lab.stage_runner import THIS_CHECKOUT
 from pairb.lab.stages import (Check, Envs, Stage, find_envs, harness_config, harness_paths, imports_ok, load_stages,
                               pair_a_setup_commands, parse_pytest_summary, stage_checks, stage_env)
 
@@ -91,19 +92,17 @@ def test_the_records_have_the_agreed_fields():
 
 # ---- the stages file ----
 
-# Catches: a stage added, dropped or reordered in the file, or a ref, label or title that differs from spec 5.1 and
-# the approved mockup (the first stage's title leaves out the mockup's commit hash, which would go stale).
-def test_loads_the_repo_stages_file():
+# Catches: a repo stages file that the Tests tab cannot run: one the loader refuses (a ref it would not hand to git
+# among them), two cards with one label (the runner adds "+ this checkout" after the file's stages), or a first stage
+# that is not origin/main, on which the others are merged. The stages themselves change as pull requests open and
+# merge (the README asks for that edit), so they are not pinned here.
+def test_the_repo_stages_file_is_usable(tmp_path):
     stages = load_stages(STAGES_FILE)
-    assert stages == [
-        Stage("main", "origin/main", "after PR #2"),
-        Stage("+ PR #4", "origin/pair-b/evaluators", "Scorers, Network 1"),
-        Stage("+ PR #6", "origin/pair-b/belief-network", "Belief network"),
-        Stage("+ PR #5", "origin/pair-b/label-definitions", "Label definitions"),
-        Stage("+ PR #3", "origin/pair-b/evaluator-validation-prep", "Bryan's harness"),
-        Stage("+ Teal's branch", "origin/pair-a/rules-interface", "Rules adapter, PCFR+"),
-    ]
-    assert (stages[0].ref, stages[-1].ref) == ("origin/main", "origin/pair-a/rules-interface")
+    labels = [stage.label for stage in stages]
+    assert len(set(labels)) == len(labels) and THIS_CHECKOUT not in labels
+    assert stages[0].ref == "origin/main"
+    for stage in stages:  # each ref passes the loader's checks on its own too
+        assert load_stages(write_stages(tmp_path, {"stages": [dataclasses.asdict(stage)]})) == [stage]
 
 
 # Catches: a ref git could read as an option (-x), or one that is several words, reaching `git worktree add` and
