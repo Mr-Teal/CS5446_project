@@ -1,0 +1,68 @@
+"""D2 records to training arrays (D3)."""
+import hashlib
+import json
+from pathlib import Path
+
+import chess
+import numpy as np
+
+from .encode import N_PLANES, encode_board, stm_sign
+
+ENCODING = "net1-planes-0-18-v1"
+CACHE_VERSION = 2  # bump whenever build_arrays changes what it returns
+HALFMOVE_PLANE = 18
+
+
+def split_of(game_id: str) -> str:
+    """Spec §6: the sha1 bucket of the game ID; 0-7 train, 8 validation, 9 test."""
+    bucket = int(hashlib.sha1(game_id.encode()).hexdigest(), 16) % 10
+    return "train" if bucket < 8 else ("val" if bucket == 8 else "test")
+
+
+def read_records(folder) -> list[dict]:
+    return [json.loads(line) for f in sorted(Path(folder).glob("part-*.jsonl")) for line in f.read_text().splitlines()]
+
+
+def pack(planes: np.ndarray) -> np.ndarray:
+    """(N, 19, 8, 8) planes as uint8, 4x smaller: the 0/1 planes as they are, and the
+    halfmove plane as the clock itself (it never exceeds 100 in a game that goes on)."""
+    p = planes.copy()
+    p[:, HALFMOVE_PLANE] *= 100
+    return np.rint(p).astype(np.uint8)
+
+
+def unpack(packed: np.ndarray) -> np.ndarray:
+    x = packed.astype(np.float32)
+    x[:, HALFMOVE_PLANE] /= 100
+    return x
+
+
+def build_arrays(records) -> dict[str, np.ndarray]:
+    """Arrays for training, values in the side to move's view. Boards decided by a rule are
+    skipped: the rules score those, not the network."""
+    rows = [r for r in records if r["rule"] is None]
+    planes = np.zeros((len(rows), N_PLANES, 8, 8), dtype=np.uint8)
+    d1, y, sign = (np.zeros(len(rows), dtype=np.float32) for _ in range(3))
+    for i, r in enumerate(rows):
+        board = chess.Board(r["fen"])
+        s = stm_sign(board)
+        planes[i] = pack(encode_board(board)[None])[0]
+        d1[i], y[i], sign[i] = s * r["d1"]["v"], s * r["d11"]["v"], s
+    return {"planes": planes, "d1": d1, "y": y, "sign": sign,
+            "game_id": np.array([r["game_id"] for r in rows]),
+            "parent": np.array([f"{r['game_id']}|{r['parent_fen']}" for r in rows])}
+
+
+def load_arrays(folder, cache_dir) -> dict[str, np.ndarray]:
+    """build_arrays for a dataset folder, cached outside it (finished datasets are never edited)."""
+    folder = Path(folder)
+    manifest = json.loads((folder / "manifest.json").read_text())
+    key = hashlib.sha1(f"{folder.resolve()}|{manifest['created']}|{manifest['records']}|{ENCODING}|{CACHE_VERSION}".encode()).hexdigest()[:12]
+    path = Path(cache_dir) / f"{folder.name}-{key}.npz"
+    if path.exists():
+        with np.load(path) as z:
+            return {k: z[k] for k in z.files}
+    arrays = build_arrays(read_records(folder))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(path, **arrays)
+    return arrays
