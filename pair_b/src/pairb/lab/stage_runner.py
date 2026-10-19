@@ -12,8 +12,10 @@ A run (run_stages) goes like this:
    goes on with the refs the checkout already has.
 3. The first stage's commit is checked out, detached, in a new worktree, tempfile.mkdtemp(prefix="fog-lab-")/stage,
    and its checks run. Each later stage's ref is merged on top (`merge --no-ff --no-edit`, made as Fog Lab
-   <fog-lab@localhost>) and its checks run. A ref that names no commit is "missing-ref"; a merge that fails is
-   "conflict", with the unmerged files listed and the merge aborted. Either way the stages after it are "skipped".
+   <fog-lab@localhost>) and its checks run, unless the stages before it already hold its commit (a pull request
+   that main has merged): then it is "contained", merged and checked no more. A ref that names no commit is
+   "missing-ref"; a merge that fails is "conflict", with the unmerged files listed and the merge aborted. Either way
+   the stages after it are "skipped".
 4. Last comes "+ this checkout", the checkout's committed HEAD: "contained" when the stages already hold it, and
    otherwise merged and checked like the others. Uncommitted changes are never part of a run.
 5. On the last cleanly built stage: Pair A's fog-rules positions against both rules implementations (fixture_check.py,
@@ -578,13 +580,11 @@ class _Run:
 
     def stage(self, index: int, stage: Stage, head: str | None, final: bool) -> StageResult:
         """Build `stage` on top of the ones before it, then run its checks. The first stage makes the worktree;
-        "+ this checkout" (`final`) merges the checkout's HEAD, `head`, unless the worktree already holds it."""
+        "+ this checkout" (`final`) merges the checkout's HEAD, `head`. A later stage whose commit the worktree already
+        holds (a pull request that main has merged, say) is "contained": nothing is merged and no check runs again."""
         if final:
             if head is None:
                 return self.result(stage, None, "missing-ref")
-            if self.in_worktree("merge-base", "--is-ancestor", head, "HEAD").code == 0:
-                self.progress(f"{stage.label}: already in the stages before it")
-                return self.result(stage, head, "contained")
             sha, what = head, f"this checkout's HEAD ({head[:7]})"
         else:
             sha = _resolve(self.checkout, stage.ref)
@@ -592,6 +592,9 @@ class _Run:
                 self.progress(f"{stage.label}: {stage.ref} names no commit here")
                 return self.result(stage, None, "missing-ref")
             what = f"{stage.ref} ({sha[:7]})"
+        if index > 0 and self.in_worktree("merge-base", "--is-ancestor", sha, "HEAD").code == 0:
+            self.progress(f"{stage.label}: already in the stages before it")
+            return self.result(stage, sha, "contained")
         if index == 0:
             self.progress(f"{stage.label}: checking out {what}")
             added = _git(self.checkout, *self.no_hooks, "worktree", "add", "--detach", str(self.worktree), sha)

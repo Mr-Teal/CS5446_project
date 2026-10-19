@@ -300,6 +300,27 @@ def test_this_checkout_contained_or_merged(repo, tmp_path):
     assert summary["final"]["label"] == "+ this checkout"
 
 
+# Catches: a stage whose ref the stages before it already hold (a pull request merged into main, still listed in the
+# stages file) merged again, which git does as "Already up to date", and every check run again on the same code. Like
+# "+ this checkout", it is "contained": no checks, the stages after it go on, and the final sections stay with the last
+# stage that was built.
+def test_a_ref_the_stages_already_hold_is_contained(repo, tmp_path):
+    git(repo, "checkout", "-q", "-b", "merged", "main")
+    git(repo, "merge", "-q", "--no-ff", "--no-edit", "a")  # main with a merged in, as on GitHub
+    git(repo, "checkout", "-q", "main")
+    runner, messages = FakeRunner(), []
+    summary = run(repo, ["merged", "a", "c", "a"], tmp_path / "run", runner, on_progress=messages.append)
+    assert merges(summary) == [("merged", "clean"), ("+ a", "contained"), ("+ c", "clean"), ("+ a", "contained"),
+                               ("+ this checkout", "contained")]
+    for contained in (summary["stages"][1], summary["stages"][3]):
+        assert (contained["sha"], contained["conflicts"], contained["checks"]) == (rev(repo, "a"), [], [])
+    assert {call.index for call in runner.calls} == {0, 2}
+    assert runner.calls[-1].files == ["README.md", "a.txt", "c.txt", "pair_b"]
+    assert summary["final"]["label"] == "+ c"
+    assert messages.count("+ a: already in the stages before it") == 2
+    assert worktrees(repo) == {repo.resolve()}
+
+
 # Catches: a ref that is not there crashing the run, or the stages after it still merged.
 def test_missing_ref_reported(repo, tmp_path):
     summary = run(repo, ["main", "origin/nope", "c"], tmp_path / "run1", FakeRunner())
