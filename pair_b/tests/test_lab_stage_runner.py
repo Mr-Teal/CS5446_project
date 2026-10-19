@@ -24,6 +24,7 @@ import pytest
 
 from no_torch import PAIR_B
 from pair_a_prep.fixtures import load_suite
+from pairb.lab import stage_runner
 from pairb.lab.accuracy import read_accuracy
 from pairb.lab.stage_runner import CheckResult, StageResult, run_check, run_stages
 from pairb.lab.stages import Check, Stage, stage_env
@@ -787,6 +788,34 @@ def clean_env() -> dict:
 
 def python(code: str, *args: str) -> tuple[str, ...]:
     return (sys.executable, "-c", code, *args)
+
+
+# Catches: a check or a git command left in the process group of the console that started Fog Lab on Windows, where
+# a Ctrl+C in that window then reaches it as well: git is never to be stopped part way, and a check cut off that way
+# would be saved as a red failure. On POSIX each command leads a session of its own (no terminal either). The choice is
+# pure, so both platforms are checked on any machine.
+def test_each_command_gets_a_process_group_of_its_own():
+    choose = stage_runner.new_group_options
+    assert choose(windows=False) == {"start_new_session": True}
+    assert choose(windows=True) == {"creationflags": 0x00000200}  # CREATE_NEW_PROCESS_GROUP
+    if os.name == "nt":
+        assert subprocess.CREATE_NEW_PROCESS_GROUP == 0x00000200
+    assert choose() == choose(windows=os.name == "nt")
+
+
+# Catches: the options chosen above not reaching the commands the runner starts.
+def test_commands_are_started_with_those_options(tmp_path, monkeypatch):
+    started, real = [], subprocess.Popen
+
+    def spy(*args, **kwargs):
+        started.append(kwargs)
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(subprocess, "Popen", spy)
+    result = run_check(Check("history", "History check", python("pass"), tmp_path, None), clean_env(),
+                       tmp_path / "log.txt")
+    assert result.status == "pass" and len(started) == 1
+    assert started[0].items() >= stage_runner.new_group_options().items()
 
 
 # Review Focus 5: a check that hangs is stopped at its timeout and marked failed "timed out".

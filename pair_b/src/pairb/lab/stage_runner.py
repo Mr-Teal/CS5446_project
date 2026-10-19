@@ -44,9 +44,10 @@ and record no rerere resolutions, whatever the user's git configuration says. On
 hooks and all, as any fetch of theirs would be: it updates their remote-tracking refs.
 
 Every command is an argument list. Its output goes to temporary files, not pipes, so that a process it leaves running
-cannot keep the runner waiting. It runs in a process group of its own on POSIX (with no terminal, so nothing it starts
-can stop to ask for a password) and is stopped as a process tree on Windows, so a check that times out is stopped along
-with whatever it started.
+cannot keep the runner waiting. It runs in a process group of its own (new_group_options: a session of its own on
+POSIX, with no terminal, so nothing it starts can stop to ask for a password; CREATE_NEW_PROCESS_GROUP on Windows), so a
+Ctrl+C in Fog Lab's window does not reach it. It is stopped as that process group on POSIX and as a process tree on
+Windows (taskkill /T), so a check that times out is stopped along with whatever it started.
 
 The run summary, plain JSON data:
 
@@ -118,7 +119,18 @@ _GIT_LOCATION = frozenset({
 _IMPORT_CHECKS = {"imports_b": 1, "imports_a": 0}  # how many folders below the stage's root each runs (stage_checks)
 _NOT_IN_A_NAME = re.compile(r"[^A-Za-z0-9._-]")
 _UNITTEST_RAN = re.compile(r"^Ran (\d+) tests? in ", re.MULTILINE)
-_NEW_GROUP = {} if os.name == "nt" else {"start_new_session": True}
+_CREATE_NEW_PROCESS_GROUP = 0x00000200  # subprocess.CREATE_NEW_PROCESS_GROUP, which only Windows' subprocess has
+
+
+def new_group_options(windows: bool | None = None) -> dict:
+    """Popen's keyword arguments that start a command in a process group of its own, away from the console Fog Lab
+    was started in: a new session on POSIX (with no terminal, so nothing it starts can stop to ask for a password),
+    CREATE_NEW_PROCESS_GROUP on Windows. Either way a Ctrl+C in Fog Lab's window reaches none of them: the run is
+    stopped through its `cancel` event instead (R29), which never stops a git command part way. `windows` None means
+    the machine this runs on."""
+    if windows is None:
+        windows = os.name == "nt"
+    return {"creationflags": _CREATE_NEW_PROCESS_GROUP} if windows else {"start_new_session": True}
 
 
 @dataclass
@@ -179,7 +191,7 @@ def _execute(argv: Sequence[str], cwd: Path | None, env: Mapping[str, str], time
     with tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:
         try:
             process = subprocess.Popen(list(argv), cwd=cwd, env=dict(env), stdin=subprocess.DEVNULL, stdout=out,
-                                       stderr=err, **_NEW_GROUP)
+                                       stderr=err, **new_group_options())
         except OSError as error:  # no such interpreter or folder, no permission
             return _Outcome(None, seconds=time.monotonic() - start, error=error)
         try:
