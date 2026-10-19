@@ -197,10 +197,16 @@ From the project root, on macOS and Linux:
 cd pair_b && uv run python -m pairb.lab
 ```
 
-On Windows PowerShell, with the path of your own Stockfish:
+On Windows PowerShell, give the path of your own Stockfish. With uv:
 
 ```powershell
-cd pair_b; uv run python -m pairb.lab --stockfish C:\path\to\stockfish.exe
+cd pair_b; uv run python -m pairb.lab --stockfish "C:\path\to\stockfish.exe"
+```
+
+or with the `pair_b/.venv` that the pip set-up above makes:
+
+```powershell
+cd pair_b; .\.venv\Scripts\python -m pairb.lab --stockfish "C:\path\to\stockfish.exe"
 ```
 
 If uv stops with a certificate error, as it does on Colin's Mac, add `--system-certs` after
@@ -245,7 +251,8 @@ and never count as failures.
 
 ### What a test run does
 
-Press Run again; a run takes about 8 minutes on Colin's Mac, and the cards fill in as it goes.
+Press Run again; a run takes about a minute per stage on Colin's Mac, and the cards fill in as it
+goes.
 
 1. It fetches from GitHub first (a read-only `git fetch origin`; untick the box to work offline).
 2. In a temporary git worktree outside your checkout, it builds the stages of
@@ -260,8 +267,14 @@ The fog-rules, scorer and accuracy sections show the last stage that built. The 
 are read from saved evaluation files, and Run again never recomputes them.
 
 The stages file lists one git ref per stage, in merge order. Edit it as pull requests open and
-merge: add a line for a new pull request, and delete the line of one that is in `origin/main`,
-since its card would only repeat the one before it.
+merge: add a line for a new pull request, such as
+
+```json
+{"label": "+ PR #9", "ref": "origin/pair-b/branch", "title": "What it adds"},
+```
+
+and delete the line of one that is in `origin/main`: it has nothing new to check, and its card
+only says "contained".
 
 Runs and saved games live in `pair_b/.fog_lab/` (git-ignored): `runs/` holds each run's summary and
 logs, and the last 10 runs are kept; `games/` holds saved games.
@@ -292,8 +305,8 @@ comes on top.
    boards the tracker still thinks possible and whether the true one is among them.
 5. **A fair game.** Tick "Fair game" and press New game. Until the game ends the page gets only
    your own view, your own moves, whose turn it is and whether the game is over: the bot's moves
-   show as "?", and its panel and the Testing strip stay hidden. When the game ends, everything
-   opens up.
+   show as "?", and its panel and the Testing strip stay hidden. When the game ends, the bot's
+   moves and its panel appear, and the "Testing mode" switch brings up the Testing strip.
 6. **Step through a saved game.** "Save this game" writes the record to `pair_b/.fog_lab/games/`
    and downloads a copy. Pick it under "Saved games" and press Open (or "Open a file..." for one a
    teammate sent). First, Back, Forward and Last, or the Home, arrow and End keys, step through it
@@ -319,4 +332,5 @@ comes on top.
   results on the fresh games. `checkpoints/belief-v1-d1/`: the kept belief network (562k
   parameters), the same three files, and `eval-children-d16.json`, which `eval_children.py` wrote.
 - `tests/`: written before the code they test. `tests/js/` holds the page's JavaScript helper
-  tests, run with `node --test tests/js/`.
+  tests, run from `pair_b/` with `node --test tests/js/`, which needs Node 20.19, or 22.7 or later.
+  The app itself needs no Node.
