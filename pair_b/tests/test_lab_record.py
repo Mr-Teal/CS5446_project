@@ -108,6 +108,13 @@ def app_inspected_record():
     return record
 
 
+def tracker_failed_record():
+    """A finished game whose bot's tracker failed on the view that ended it: the result stands."""
+    record = finished_record()
+    record.tracker_error = "the bot's tracker failed on the view that ended the game: TrackerLost: no position fits"
+    return record
+
+
 def failed_record():
     """The bot raised on its turn at ply 4: its turn is in the record, with the error, and no move follows."""
     record = make_record("black", MOVES + ["b8c6"])
@@ -117,7 +124,8 @@ def failed_record():
 
 
 KINDS = {"plain, human White": lambda: make_record("white"), "plain, human Black": lambda: make_record("black"),
-         "finished": finished_record, "no explanation from the agent": app_inspected_record,
+         "finished": finished_record, "tracker failed at the end": tracker_failed_record,
+         "no explanation from the agent": app_inspected_record,
          "bot error": failed_record, "new game": lambda: make_record("white", [])}
 
 
@@ -193,14 +201,15 @@ def test_records_have_the_agreed_fields_in_the_agreed_order():
                                ("explanation", missing), ("inspection", missing), ("error", None)]
     assert fields(GameRecord) == [("options", missing), ("rules", missing), ("scorer", missing), ("bot", missing),
                                   ("start_fen", missing), ("start_observations", missing), ("plies", missing),
-                                  ("bot_turns", missing), ("result", missing), ("version", 1)]
+                                  ("bot_turns", missing), ("result", missing), ("tracker_error", None),
+                                  ("version", 1)]
 
 
 # Catches: a saved file whose key names drift from the agreed ones, which would orphan the games already saved.
 def test_the_saved_json_has_the_agreed_keys(rec):
     data = rec.to_json()
     assert set(data) == {"version", "options", "rules", "scorer", "bot", "start_fen", "start_observations", "plies",
-                         "bot_turns", "result"}
+                         "bot_turns", "result", "tracker_error"}
     assert data["version"] == 1
     assert set(data["plies"][0]) == {"ply", "player", "move", "true_fen", "observations"}
     assert set(data["bot_turns"][0]) == {"ply", "belief", "population_size", "explanation", "inspection", "error"}
@@ -365,6 +374,8 @@ BAD_SHAPES = [
     (("result",), MISSING, "result"),
     (("result",), "white", "result"),
     (("result",), {"winner": "white"}, "result"),
+    (("tracker_error",), 5, "tracker_error"),
+    (("tracker_error",), ["x"], "tracker_error"),
 ]
 
 
@@ -479,7 +490,7 @@ def test_hidden_view_reads_nothing_on_the_bots_side(rec, result):
     rec.result = result
     bot = other(rec.options["human"])
     spoiled = copy.deepcopy(rec)
-    spoiled.rules = spoiled.scorer = spoiled.bot = spoiled.start_fen = SPOILED
+    spoiled.rules = spoiled.scorer = spoiled.bot = spoiled.start_fen = spoiled.tracker_error = SPOILED
     spoiled.start_observations[bot] = {SPOILED: SPOILED}
     for ply in spoiled.plies:
         ply.true_fen = SPOILED
@@ -535,7 +546,9 @@ def test_a_finished_game():
 def test_revealed_view_adds_bot_and_truth(rec):
     human = rec.options["human"]
     s = view_state(rec, reveal=True)
-    assert set(s) == set(HIDDEN_KEYS) | {"moves", "bot", "true_fen", "bot_view", "rules", "scorer", "bot_name"}
+    assert set(s) == set(HIDDEN_KEYS) | {"moves", "bot", "true_fen", "bot_view", "rules", "scorer", "bot_name",
+                                         "tracker_error"}
+    assert s["tracker_error"] is None
     assert s["moves"] == MOVE_LIST
     assert s["true_fen"] == "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
     assert s["bot_view"] == observation_json(POSITIONS[3][1][other(human)]) and s["bot_view"] != s["you"]
@@ -586,6 +599,24 @@ def test_a_new_game():
     assert s["true_fen"] == record.start_fen == "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
     with pytest.raises(ValueError):
         view_state(record, 1, reveal=True)
+
+
+# Catches: the failure of the bot's tracker on the view that ended the game shown before the end (it happened after
+# the last move), lost from the end, shown in a hidden view, or a saved game from before this field refused: it loads
+# with None. The game is over all the same, with its result.
+def test_a_tracker_failure_at_the_end_is_shown_at_the_end_only():
+    record = tracker_failed_record()
+    end = view_state(record, reveal=True)
+    assert (end["over"], end["result"]) == (True, {"winner": "white", "reason": "king_capture"})
+    assert end["tracker_error"] == record.tracker_error
+    assert view_state(record, 0, reveal=True)["tracker_error"] is None
+    assert set(view_state(record, reveal=False)) == set(HIDDEN_KEYS)
+    going = make_record("white")
+    going.tracker_error = "the bot's tracker failed"  # never so before the end; a damaged file still shows nothing early
+    assert all(view_state(going, upto, reveal=True)["tracker_error"] is None for upto in range(4))
+    data = finished_record().to_json()
+    del data["tracker_error"]
+    assert GameRecord.from_json(data).tracker_error is None
 
 
 # Catches: the turn that failed shown as one that was played (it has no move after it), or lost from the saved game

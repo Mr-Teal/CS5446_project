@@ -550,9 +550,98 @@ def test_bot_gets_what_play_game_gives(register, human):
         assert [(observation_json(event.observation), event.own_move) for event in turn.history] == \
             [(view_before(record, i, bot), own[i]) for i in range(k)]
     assert [turn.observation.ply for turn in agent.turns] == [turn.ply for turn in record.bot_turns]
-    shown = len(record.plies) - (1 if session.over else 0)  # the view that ends the game is not shown, as in play_game
+    # Every view after every ply, the one that ends the game too, as play_game on main shows it (spec 4.2).
     assert tracker.updates == [(record.start_observations[bot], None)] + \
-        [(record.plies[i].observations[bot], own[i]) for i in range(shown)]
+        [(record.plies[i].observations[bot], own[i]) for i in range(len(record.plies))]
+
+
+class TakesTheKing(RandomAgent):
+    """A seeded random mover that plays e2e8 whenever it may: as White from KING_CAPTURE, that takes the king."""
+
+    def act(self, turn):
+        moves = turn.observation.legal_moves
+        if "e2e8" in moves:
+            return Decision("e2e8", {move: float(move == "e2e8") for move in moves})
+        return super().act(turn)
+
+
+class SpyTracker(ParticleTracker):
+    """Pair B's tracker, noting every update it is given as (observation_json, own_move)."""
+
+    def __init__(self, rules, options):
+        super().__init__(rules, n_particles=options.particles, n_hypotheses=options.guesses,
+                         initial_fen=options.start_fen)
+        self.updates = []
+
+    def update(self, observation, own_move=None):
+        self.updates.append((observation_json(observation), own_move))
+        return super().update(observation, own_move)
+
+
+FIFTY_DONE = "4k3/8/8/8/8/8/8/R3K3 w - - 100 80"  # the hundredth half-move has been played: a draw at the start
+# How each test game ends: (the human's colour, the start, the human's moves, the result).
+ENDINGS = {"the human's move": ("white", KING_CAPTURE, ["e2e8"], {"winner": "white", "reason": "king_capture"}),
+           "the bot's move": ("black", KING_CAPTURE, [], {"winner": "white", "reason": "king_capture"}),
+           "the start": ("white", FIFTY_DONE, [], {"winner": "draw", "reason": "fifty_move"})}
+
+
+# Spec 4.2: the tracker gets every one of the bot's observations, exactly as play_game gives them, and play_game on
+# main shows the view of the ply that ends the game too. Catches: that view not shown, shown with the wrong own_move
+# (the bot's move when the bot ended the game, None when the human did), and the start's view not shown when the
+# start is already over.
+@pytest.mark.parametrize("ending", ENDINGS)
+def test_the_tracker_is_shown_the_view_that_ends_the_game(register, ending):
+    human, start, moves, result = ENDINGS[ending]
+    trackers = []
+
+    def make_tracker(rules, options):
+        trackers.append(SpyTracker(rules, options))
+        return trackers[-1]
+
+    session = session_for(bot=register("king-taker", TakesTheKing, make_tracker), human=human, start_fen=start)
+    for move in moves:
+        session.human_move(move)
+    (tracker,), record, bot = trackers, session.record, session.bot_colour
+    assert session.over and session.error is None and record.result == result
+    views = [record.start_observations[bot]] + [ply.observations[bot] for ply in record.plies]
+    own = [None] + [ply.move if ply.player == bot else None for ply in record.plies]
+    assert tracker.updates == list(zip(views, own))
+    assert views[-1]["terminal"] is True and len(views) == (1 if ending == "the start" else 2)
+    assert own[-1] == ("e2e8" if ending == "the bot's move" else None)
+
+
+# Catches: a tracker that fails on the view that ends the game stopping a game that is already over (its result lost,
+# or a stop shown over it), or a fair game left closed after its end; the failure not recorded, not in the state at the
+# end (the Testing strip shows it from there), or shown at an earlier step; and scorers left open. A failure before the
+# end still stops the game (test_bot_error_stops_the_game).
+@pytest.mark.parametrize("fair", [False, True], ids=["not fair", "fair"])
+@pytest.mark.parametrize("ending", ENDINGS)
+def test_a_tracker_that_fails_on_the_view_that_ends_the_game_leaves_it_over(register, ending, fair):
+    human, start, moves, result = ENDINGS[ending]
+
+    def make_tracker(rules, options):
+        return FailingTracker(rules, options, fail_at=1 if ending == "the start" else 2)  # the view that ends it
+
+    scorer, inspector = Spy(), Spy()
+    session = session_for(bot=register("king-taker", TakesTheKing, make_tracker), human=human, start_fen=start,
+                          fair=fair, scorer=scorer, inspector=inspector)
+    for move in moves:
+        session.human_move(move)
+    record = session.record
+    assert session.over and session.error is None and record.result == result and session.revealed
+    assert record.tracker_error.startswith(
+        "the bot's tracker failed on the view that ended the game: TrackerLost: no position fits")
+    assert FEN_PLACEMENT.search(record.tracker_error) is None
+    state = session.state()
+    assert (state["over"], state["result"], state["error"]) == (True, result, None)
+    assert state["tracker_error"] == record.tracker_error and "bot" in state
+    assert all(session.state(upto)["tracker_error"] is None for upto in range(len(record.plies)))
+    assert all(turn.error is None for turn in record.bot_turns)
+    assert (scorer.closes, inspector.closes) == (1, 1)
+    with pytest.raises(ValueError, match="over"):
+        session.human_move("e1e2")
+    loaded = GameRecord.from_json(json.loads(json.dumps(session.record_json())))
+    assert loaded.tracker_error == record.tracker_error
 
 
 # Catches: anything in a game left to chance outside the seed (an unseeded draw, set or dict order), so that a game

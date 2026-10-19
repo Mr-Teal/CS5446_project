@@ -609,7 +609,10 @@ function renderTesting(state) {
 
 function heatPanel(state) {
   const turn = state.bot;
-  if (!turn) return "<h4>Move values on each of the bot's guesses</h4><div class=\"note\">The bot has not moved yet.</div>";
+  if (!turn) {
+    return "<h4>Move values on each of the bot's guesses</h4><div class=\"note\">The bot has not moved yet.</div>"
+      + trackerNote(state);
+  }
   const ex = turn.explanation ?? {}, inspection = turn.inspection ?? {};
   const appInspection = ex.app_inspection === true;
   let html = appInspection
@@ -647,7 +650,15 @@ function heatPanel(state) {
   }
   html += `<div class="note">${notes.join(" ")}</div>`;
   html += `<div class="note health">${healthLine(turn)}</div>`;
-  return html;
+  return html + trackerNote(state);
+}
+
+/** The state's tracker_error (session.py: the bot's tracker failed on the view that ended the game, which the state
+ * carries at the end only) as a warning, or "". The game is over all the same. */
+function trackerNote(state) {
+  if (typeof state.tracker_error !== "string" || !state.tracker_error) return "";
+  return `<div class="note warn">${esc(capitalise(state.tracker_error))}. The game is over all the same: its result `
+    + "stands.</div>";
 }
 
 function healthLine(turn) {

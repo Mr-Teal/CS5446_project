@@ -7,7 +7,8 @@ one ply at a time:
 
 - The bot and its tracker are reset with the bot's colour and the game's seed, plus 0 for White and 1 for Black.
 - The tracker is shown every view of the bot's from the start on, with own_move set right after the bot's own move
-  and None after the human's. As in play_game, it is not shown the view that ends the game.
+  and None after the human's. As play_game on main does (since 19 Oct), it is shown the view that ends the game too,
+  and the start's view when the start is already over.
 - On its turn the bot gets AgentInput(observation, belief, 60 000 ms, history) and nothing else. The history is
   built as play_game builds private_history: one HistoryEvent per earlier ply, holding the bot's view before that ply
   and the move if it was the bot's own. Its Decision is checked with Decision.validate_for before it is played.
@@ -31,7 +32,10 @@ move can follow either. A server sends a fair game's record only while revealed 
 Errors: an exception from the bot or its tracker stops the game. `error` says what failed, a BotTurn holding the same
 text is stored (its ply is the number of moves so far, so no step shows it as played), and every later move is
 refused. A stop reveals a fair game, so the page gets the whole error text. That text never holds a position: a FEN or
-a printed board in an exception's message is replaced, since a rules state's repr prints its FEN.
+a printed board in an exception's message is replaced, since a rules state's repr prints its FEN. Only a failure of
+the tracker on the view that ends the game does not stop it: the game is over by then, so its result stands, `error`
+stays None and `revealed` follows the game being over. That failure is kept, redacted the same way, in
+record.tracker_error, which the page's state carries at the end, where Testing mode shows it.
 
 The session owns both scorers from the moment it is created. It closes them as soon as the game is over or stopped, on
 close(), and before raising when it cannot start. One re-entrant lock guards every use of the referee, the tracker and
@@ -190,14 +194,9 @@ class Session:
         self._bot_view = views[self.bot_colour]  # the bot's latest observation
         self._history: list[HistoryEvent] = []  # play_game's private_history for the bot
         self._belief: Belief | None = None
-        if self._ended(views):
-            return
-        try:
-            self._belief = self._tracker.update(self._bot_view)
-        except Exception as exc:
-            self._stop("the bot's tracker failed on its first view", exc)
-            return
-        if self.referee.current_player() == self.bot_colour:
+        self._ended(views)
+        self._show_tracker(None, "the bot's tracker failed on its first view")
+        if not self.over and self.error is None and self.referee.current_player() == self.bot_colour:
             self._bot_turn()
 
     def human_move(self, move: str) -> None:
@@ -278,19 +277,29 @@ class Session:
 
     def _moved(self, mover: str, move: str, before: Observation, own: bool) -> None:
         """After `mover` played `move` (the bot's own move when `own`): extend the bot's history from its view
-        `before` the move, record the ply, end the game if it is over, and otherwise show the tracker the new view."""
+        `before` the move, record the ply, end the game if it is over, and show the tracker the new view, the one that
+        ends the game included."""
         self._history.append(HistoryEvent(before, move if own else None))
         views = self._views()
         self.record.plies.append(PlyRecord(len(self.record.plies), mover, move,
                                            standard_fen(self.referee.true_board()), _views_json(views)))
         self._bot_view = views[self.bot_colour]
-        if self._ended(views):
-            return
+        self._ended(views)
+        after = "its own move" if own else "the human's move"
+        self._show_tracker(move if own else None, f"the bot's tracker failed after {after}")
+
+    def _show_tracker(self, own_move: str | None, what: str) -> None:
+        """Show the tracker the bot's latest view, as play_game does after every ply: `own_move` is the bot's move
+        that led to it, or None. A failure stops a game that goes on, saying `what` failed. Once the game is over (its
+        result is recorded and its scorers are closed), a failure is kept in record.tracker_error instead, and the
+        result stands."""
         try:
-            self._belief = self._tracker.update(self._bot_view, own_move=move if own else None)
+            self._belief = self._tracker.update(self._bot_view, own_move=own_move)
         except Exception as exc:
-            after = "its own move" if own else "the human's move"
-            self._stop(f"the bot's tracker failed after {after}", exc)
+            if self.over:
+                self.record.tracker_error = f"the bot's tracker failed on the view that ended the game: {_describe(exc)}"
+            else:
+                self._stop(what, exc)
 
     def _ended(self, views: dict[str, Observation]) -> bool:
         """Whether the game is over: a rule has ended it, or its side to move has no legal move (a draw,

@@ -1,7 +1,8 @@
 """Game records for Fog Lab, and the page's view of a game.
 
 A GameRecord holds everything one game produces: the moves, the true position after each move, both
-players' observations, and for each bot turn its belief, explanation and inspection. The session fills it in
+players' observations, for each bot turn its belief, explanation and inspection, and whether the bot's tracker
+failed on the view that ended the game. The session fills it in
 as the game is played, to_json and from_json save it as JSON and load it back, and view_state turns it into
 the dictionary the page draws. Live play and stepping through a saved game draw the same screens because both
 come from view_state.
@@ -123,6 +124,9 @@ class GameRecord:
     plies: list[PlyRecord]
     bot_turns: list[BotTurn]
     result: dict | None  # {"winner", "reason"} once the game has ended
+    # Why the bot's tracker failed on the view that ended the game, or None. The game is over all the same and its
+    # result stands; a failure before the end stops the game instead (BotTurn.error).
+    tracker_error: str | None = None
     version: int = VERSION
 
     def to_json(self) -> dict:
@@ -138,6 +142,7 @@ class GameRecord:
             "plies": [ply.to_json() for ply in self.plies],
             "bot_turns": [turn.to_json() for turn in self.bot_turns],
             "result": copy.deepcopy(self.result),
+            "tracker_error": self.tracker_error,
         }
 
     @classmethod
@@ -145,7 +150,8 @@ class GameRecord:
         """The record that `data` (what json.loads gave for a saved game) describes.
 
         ValueError, naming the fault by its place and never by its value, for another version, for a missing
-        key and for a value of the wrong kind.
+        key and for a value of the wrong kind. A missing "tracker_error" (a game saved before it was kept) means
+        None.
         """
         data = _object(data, "")
         version = _field(data, "version", "", *_INT)
@@ -173,6 +179,8 @@ class GameRecord:
                                                     "start_observations"),
                    plies=plies, bot_turns=turns,
                    result=None if result is None else {"winner": result["winner"], "reason": result["reason"]},
+                   tracker_error=(_field(data, "tracker_error", "", *_or_null(_TEXT)) if "tracker_error" in data
+                                  else None),
                    version=version)
 
 
@@ -197,7 +205,9 @@ def view_state(record: GameRecord, upto: int | None = None, *, reveal: bool) -> 
     - bot: the bot's latest turn that has been played by now (BotTurn.ply < upto), as JSON, or None;
     - true_fen: the true position;
     - bot_view: the bot's observation after those moves;
-    - rules, scorer, bot_name: the rules implementation, the scorer and the bot, by name.
+    - rules, scorer, bot_name: the rules implementation, the scorer and the bot, by name;
+    - tracker_error: why the bot's tracker failed on the view that ended the game, where the game is over (the
+      failure came after the last move), and None everywhere else.
     """
     total = len(record.plies)
     if upto is None:
@@ -233,6 +243,7 @@ def view_state(record: GameRecord, upto: int | None = None, *, reveal: bool) -> 
         rules=record.rules,
         scorer=record.scorer,
         bot_name=record.bot,
+        tracker_error=record.tracker_error if over else None,
     )
     return state
 
