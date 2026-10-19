@@ -281,6 +281,29 @@ test("fog-rules cards: the check's own failure and missing rules are shown, with
   assert.ok(text(fixturesHtml(undefined)).length > 0);
 });
 
+// Ruling R30. A stop that comes while the two fog-rules checks run (they are part of the final sections, which start
+// only while the run is not stopping) leaves both entries {available: false, status: "fail", reason: "stopped"}, in a
+// saved summary with stopped: true. Catches: those drawn as red failures ("the check itself failed"), against the
+// page's own word that what a stop cut short is no failure; and a real failure of the check hidden by the stop.
+const STOPPED_FX = rules => ({rules, available: false, status: "fail", reason: "stopped", cases: [],
+                              log: `logs/6-fixtures-${rules}.txt`});
+
+test("fog-rules cards: an entry the stop cut off says stopped, not failed; a real failure stays red", () => {
+  for (const rules of ["standin", "teal"]) {
+    const html = fixturesHtml(STOPPED_FX(rules), {runId: RUN, stopped: true});
+    assert.equal(html.includes("fx-error"), false, rules); assert.match(html, /class="note fx-stopped"/);
+    assert.match(text(html), /stopped .*run again/i); assert.equal(/failed/.test(text(html)), false);
+    assert.ok(html.includes(`href="/api/tests/runs/${RUN}/logs/6-fixtures-${rules}.txt"`));  // what the log says
+  }
+  const chips = text(rulesChoiceHtml({standin: STOPPED_FX("standin"), teal: STOPPED_FX("teal")}, "standin",
+                                     {stopped: true}));
+  assert.ok(chips.includes("Our stand-in observe: stopped") && chips.includes("Teal's RulesAdapter: stopped"), chips);
+  assert.match(fixturesHtml(STOPPED_FX("standin"), {runId: RUN}), /class="fx-error"/);  // the summary says no stop
+  const crashed = {...STOPPED_FX("standin"), reason: "Traceback (most recent call last):\nValueError: bad fixtures"};
+  assert.match(fixturesHtml(crashed, {runId: RUN, stopped: true}), /class="fx-error"/);  // a stopped run's real failure
+  assert.ok(text(rulesChoiceHtml({standin: crashed}, "standin", {stopped: true})).includes("the check failed"));
+});
+
 test("the rules switch: each choice with how its positions went, the chosen one pressed", () => {
   const fixtures = {standin: entry("standin", [BLOCKED, BLOCKED, THREEFOLD], {status: "fail"}),
                     teal: {rules: "teal", available: false, status: "unavailable", reason: "not here", cases: []}};

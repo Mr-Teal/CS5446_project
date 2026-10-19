@@ -308,13 +308,18 @@ function checkLine(item, {runId, stopped, long, stage}) {
 
 /** The cards for one fixtures entry (stage_runner's final.fixtures[rules]): one per position, each with an empty
  * div[data-case] for its board, which the page draws once the cards are in. An entry for rules the stage lacks gives
- * its reason, and one whose check itself failed gives the end of its error output (R21): the section never empties. */
-export function fixturesHtml(entry, {runId = null} = {}) {
+ * its reason, and one whose check itself failed gives the end of its error output (R21): the section never empties.
+ * In a run that was `stopped`, an entry the stop cut off says so, in the stopped colour, and is no failure (R30). */
+export function fixturesHtml(entry, {runId = null, stopped = false} = {}) {
   if (!entry || typeof entry !== "object") return '<div class="note">This run has no result for these rules.</div>';
   const named = RULES.find(([rules]) => rules === entry.rules);
   const label = named?.[1] ?? words(entry.rules), inSentence = named?.[2] ?? words(entry.rules);
   const href = logHref(runId, entry.log);
   const log = href ? ` ${logLink(href, `Fog rules${DOT}${label}`, "Open its log")}` : "";
+  if (entryCutOff(entry, stopped)) {
+    return `<div class="note fx-stopped">The run was stopped while it checked Pair A's positions against `
+      + `${esc(inSentence)}, so there is no result yet: run again for one.${log}</div>`;
+  }
   if (entry.available !== true) {
     if (entry.status === "fail") {
       return `<div class="fx-error"><h4>The fog-rules check itself failed against ${esc(inSentence)}</h4>`
@@ -378,17 +383,25 @@ function expectLines(expect) {
   return lines;
 }
 
-/** The switch between the two rules implementations, each with how its positions went; `chosen` is pressed. */
-export function rulesChoiceHtml(fixtures, chosen) {
+/** The switch between the two rules implementations, each with how its positions went; `chosen` is pressed.
+ * `stopped` is the summary's, as for fixturesHtml. */
+export function rulesChoiceHtml(fixtures, chosen, {stopped = false} = {}) {
   return RULES.map(([rules, label]) => {
     const entry = fixtures && typeof fixtures === "object" ? fixtures[rules] : null, on = rules === chosen;
     return `<button type="button" class="chip${on ? " on" : ""}" data-rules="${rules}" aria-pressed="${on}">`
-      + `${esc(label)}: ${esc(entryWords(entry))}</button>`;
+      + `${esc(label)}: ${esc(entryWords(entry, stopped))}</button>`;
   }).join("");
 }
 
-function entryWords(entry) {
+/** Whether a stop cut a fog-rules entry off: in a stopped run, the check it ended, which stage_runner reports as
+ * failed with the reason "stopped" (R30). */
+function entryCutOff(entry, stopped) {
+  return stopped && entry?.available !== true && entry?.status === "fail" && entry?.reason === STOPPED;
+}
+
+function entryWords(entry, stopped) {
   if (!entry || typeof entry !== "object") return "no result";
+  if (entryCutOff(entry, stopped)) return STOPPED;
   if (entry.available !== true) return entry.status === "fail" ? "the check failed" : "unavailable";
   const cases = Array.isArray(entry.cases) ? entry.cases : [];
   const passing = cases.filter(item => Array.isArray(item?.errors) && item.errors.length === 0).length;
@@ -855,10 +868,11 @@ function drawFixtures() {
   const cases = entry?.available === true && Array.isArray(entry.cases) ? entry.cases : [];
   $("t-fx-count").textContent = cases.length ? `${cases.length} ` : "";
   $("t-legend").hidden = !cases.length;
+  const stopped = page.latest?.stopped === true;  // R30: what the stop cut off is no failure
   $("t-rules").innerHTML = final ? `<span class="meta">Checked against:</span> ${rulesChoiceHtml(final.fixtures,
-    page.rules)}<span class="meta">in ${esc(final.label)}</span>` : "";
+    page.rules, {stopped})}<span class="meta">in ${esc(final.label)}</span>` : "";
   if (!final) return noResults();
-  box.innerHTML = fixturesHtml(entry, {runId: page.latest.id});
+  box.innerHTML = fixturesHtml(entry, {runId: page.latest.id, stopped});
   for (const node of box.querySelectorAll("[data-case]")) {
     const item = cases[Number(node.dataset.case)] ?? {};
     drawBoard(node, {fen: typeof item.fen === "string" ? item.fen : "", flip: item.player === "black",

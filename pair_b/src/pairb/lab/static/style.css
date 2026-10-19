@@ -310,6 +310,11 @@ table.u .pc { font-size: 1.1em; color: inherit; }
 .fx-error h4 { margin: 0; }
 .fx-error pre { margin: 6px 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 0.7rem/1.45 var(--mono); }
 .fx-error a { color: inherit; font-weight: 600; }
+.fx-stopped {
+  padding: 10px 12px; border: 1px solid var(--stop-head); border-radius: 10px; background: var(--stop-bg);
+  color: var(--stop-text);
+}
+.fx-stopped a { color: inherit; font-weight: 600; }
 
 /* 3. the scorer grid */
 table.grid { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
