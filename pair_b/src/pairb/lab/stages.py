@@ -281,23 +281,27 @@ def stage_checks(stage_dir: Path, envs: Envs, out_dir: Path, sha: str, *, torch:
 
 _ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 # pytest's last line: "160 passed, 1 skipped in 49.87s", "1 failed, 159 passed in 3.20s", "2 errors in 0.50s",
-# "no tests ran in 0.01s"; the time may be followed by "(0:01:01)", and the line may sit between "=" signs.
-_SUMMARY = re.compile(r"(?:no tests ran|(\d+ [a-z]+(?:, \d+ [a-z]+)*)) in \d+(?:\.\d+)?s(?: \(\d+:\d\d:\d\d\))?")
-_COUNT = re.compile(r"(\d+) ([a-z]+)")
+# "no tests ran in 0.01s"; the time may be followed by "(0:01:01)", and the line may sit between "=" signs. pytest 9
+# counts passing subtests apart from tests, as an item of its own with two words: "2 passed, 4 subtests passed in 0.01s"
+# (and "1 subtests passed" for one). An item is a number and a word, with "subtests " before the word for those.
+_ITEM = r"\d+ (?:subtests )?[a-z]+"
+_SUMMARY = re.compile(rf"(?:no tests ran|({_ITEM}(?:, {_ITEM})*)) in \d+(?:\.\d+)?s(?: \(\d+:\d\d:\d\d\))?")
+_COUNT = re.compile(r"(\d+) (subtests )?([a-z]+)")
 _COUNTED = {"passed": "passed", "failed": "failed", "error": "errors", "errors": "errors", "skipped": "skipped"}
 
 
 def parse_pytest_summary(text: str) -> dict[str, int]:
     """The counts in the last summary line of pytest's output: {"passed", "failed", "errors", "skipped"}, each 0 if
-    the line does not mention it. Other words in the line (warnings, deselected, xfailed, ...) are not counted. When
-    there is no summary line (pytest never got that far, or the command was not pytest) every count is 0. Never raises.
-    """
+    the line does not mention it. Other words in the line (warnings, deselected, xfailed, ...) are not counted, and
+    neither are pytest 9's subtests items ("4 subtests passed"): they are not tests, and pytest counts them apart from
+    the tests they ran in. When there is no summary line (pytest never got that far, or the command was not pytest)
+    every count is 0. Never raises."""
     counts = {"passed": 0, "failed": 0, "errors": 0, "skipped": 0}
     for line in reversed(_ANSI.sub("", text).splitlines()):
         match = _SUMMARY.fullmatch(line.strip(" =\t"))
         if match:
-            for number, word in _COUNT.findall(match.group(1) or ""):
-                if word in _COUNTED:
+            for number, subtests, word in _COUNT.findall(match.group(1) or ""):
+                if not subtests and word in _COUNTED:
                     counts[_COUNTED[word]] = int(number)
             break
     return counts

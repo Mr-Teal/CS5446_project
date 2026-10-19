@@ -699,7 +699,13 @@ def test_a_windows_layout_flows_through(tmp_path):
 
 # ---- reading pytest's last line ----
 
-# Catches: a count read from the wrong word, or a missing one not being zero. The first three lines are the plan's.
+# Catches: a count read from the wrong word, or a missing one not being zero. The first three lines are the plan's. The
+# last block is pytest 9's subtests: it counts them apart from tests, as an item of their own ("4 subtests passed", and
+# "1 subtests passed" for one), and the parser must neither give up on the line (all zeros, so a failing run showed
+# 0 failed) nor add them to a count. The first two of those are the lines the review found; the next five are what the
+# pinned pytest 9.1.1 printed with -q for scratch files (a failed or skipped subtest is counted under plain "failed" or
+# "skipped" there); then its colored form and its -v form; the last three use keys pytest declares but 9.1.1 never
+# printed, or an error beside subtests.
 @pytest.mark.parametrize("line, counts", [
     ("160 passed, 1 skipped in 49.87s", {"passed": 160, "skipped": 1, "failed": 0, "errors": 0}),
     ("1 failed, 159 passed in 3.20s", {"passed": 159, "failed": 1, "skipped": 0, "errors": 0}),
@@ -718,6 +724,23 @@ def test_a_windows_layout_flows_through(tmp_path):
     ("\x1b[32m160 passed\x1b[0m\x1b[32m in 49.87s\x1b[0m", {"passed": 160, "failed": 0, "skipped": 0, "errors": 0}),
     ("\x1b[31m\x1b[1m1 failed\x1b[0m, \x1b[32m159 passed\x1b[0m\x1b[31m in 3.20s\x1b[0m",
      {"passed": 159, "failed": 1, "skipped": 0, "errors": 0}),
+    ("2 passed, 4 subtests passed in 0.01s", {"passed": 2, "failed": 0, "skipped": 0, "errors": 0}),
+    ("1 failed, 3 passed, 1 skipped, 1 warning, 2 subtests passed in 0.01s",
+     {"passed": 3, "failed": 1, "skipped": 1, "errors": 0}),
+    ("3 passed, 4 subtests passed in 0.01s", {"passed": 3, "failed": 0, "skipped": 0, "errors": 0}),
+    ("1 failed, 4 passed, 1 skipped, 1 warning, 2 subtests passed in 0.01s",
+     {"passed": 4, "failed": 1, "skipped": 1, "errors": 0}),
+    ("1 passed, 1 subtests passed in 0.00s", {"passed": 1, "failed": 0, "skipped": 0, "errors": 0}),
+    ("2 failed, 1 passed, 2 subtests passed in 0.01s", {"passed": 1, "failed": 2, "skipped": 0, "errors": 0}),
+    ("2 passed, 1 skipped, 2 subtests passed in 0.01s", {"passed": 2, "failed": 0, "skipped": 1, "errors": 0}),
+    ("\x1b[31m\x1b[31m\x1b[1m1 failed\x1b[0m, \x1b[32m4 passed\x1b[0m, \x1b[33m1 skipped\x1b[0m, "
+     "\x1b[33m1 warning\x1b[0m, \x1b[32m2 subtests passed\x1b[0m\x1b[31m in 0.02s\x1b[0m\x1b[0m",
+     {"passed": 4, "failed": 1, "skipped": 1, "errors": 0}),
+    ("===== 1 failed, 4 passed, 1 skipped, 1 warning, 2 subtests passed in 0.01s =====",
+     {"passed": 4, "failed": 1, "skipped": 1, "errors": 0}),
+    ("1 passed, 2 subtests failed in 0.01s", {"passed": 1, "failed": 0, "skipped": 0, "errors": 0}),
+    ("1 passed, 1 subtests skipped in 0.01s", {"passed": 1, "failed": 0, "skipped": 0, "errors": 0}),
+    ("2 errors, 3 passed, 2 subtests passed in 0.50s (0:00:00)", {"passed": 3, "failed": 0, "skipped": 0, "errors": 2}),
 ])
 def test_parse_pytest_summary(line, counts):
     assert parse_pytest_summary(line) == counts
@@ -734,6 +757,7 @@ ZEROS = {"passed": 0, "failed": 0, "skipped": 0, "errors": 0}
     "", "\n\n", "Traceback (most recent call last):\n  File \"x.py\", line 1\nImportError: no module named x\n",
     "tests/test_a.py::test_x PASSED\n", "FAILED tests/test_a.py::test_x - assert 3 passed == 4\n",
     "5 passed", "5 passed in", "passed in 3s", "in 3.2s", "Ran 11 tests in 0.002s\n\nOK\n",
+    "2 passed, 4 subtests passed", "4 subtests passed in",
     "the run went well: 5 passed in 1.0s, honest\n",  # a sentence that contains one
 ])
 def test_parse_pytest_summary_finds_nothing(text):
@@ -758,6 +782,61 @@ def test_parse_pytest_summary_takes_the_last_line_of_a_real_output():
     assert parse_pytest_summary(text + "Exception ignored in: <something>\n") == parse_pytest_summary(text)
     assert parse_pytest_summary("2 passed in 1s\n3 failed in 2s\n") == {"passed": 0, "failed": 3, "skipped": 0,
                                                                          "errors": 0}
+
+
+# A scratch test file for the real pytest: four plain tests (two pass, one fails, one skips), a test that passes with
+# three subtests and a unittest test that passes with two, so pytest 9 has plain results and five passing subtests.
+SUBTESTS_SAMPLE = """\
+import unittest
+
+import pytest
+
+
+def test_passes():
+    pass
+
+
+def test_also_passes():
+    pass
+
+
+def test_fails():
+    assert False
+
+
+def test_skips():
+    pytest.skip("not today")
+
+
+def test_loops_with_subtests(subtests):
+    for i in range(3):
+        with subtests.test(i=i):
+            assert True
+
+
+class TestUnittestStyle(unittest.TestCase):
+    def test_loops_with_subTest(self):
+        for i in range(2):
+            with self.subTest(i=i):
+                self.assertTrue(True)
+"""
+
+
+# Catches: a summary line the parser has only seen written down by hand. This one is printed by the pinned pytest
+# itself, run as the stage commands run it (-m pytest -q -p no:cacheprovider) on a scratch folder of its own: pytest 9
+# gives passing subtests an item of their own ("5 subtests passed"), the parser once read any line with one as no
+# summary and so showed 0 failed for a failing run, and a subtest must not be added to "passed". Skipped where pytest
+# has no subtests (it is then not the pinned one).
+@pytest.mark.skipif(pytest.version_tuple < (9,), reason="needs pytest 9, which reports subtests")
+def test_parse_pytest_summary_on_a_real_run_with_subtests(tmp_path):
+    (tmp_path / "pytest.ini").write_text("", encoding="utf-8")  # this folder is the root: no other settings apply
+    (tmp_path / "test_sample.py").write_text(SUBTESTS_SAMPLE, encoding="utf-8")
+    env = {name: value for name, value in os.environ.items() if name != "PYTEST_ADDOPTS"}
+    ran = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "--color=no"], cwd=tmp_path,
+                         env=env, capture_output=True, encoding="utf-8", errors="replace", timeout=120)
+    assert ran.returncode == 1, ran.stdout + ran.stderr  # the sample has a failing test
+    assert "5 subtests passed" in ran.stdout, ran.stdout  # the item this test is about, as this pytest words it
+    assert parse_pytest_summary(ran.stdout) == {"passed": 4, "failed": 1, "errors": 0, "skipped": 1}, ran.stdout
 
 
 # ---- the import check ----
