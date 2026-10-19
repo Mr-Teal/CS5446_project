@@ -8,7 +8,6 @@ which is also what the Fog Lab Tests tab does. Every test that builds closes wha
 import contextlib
 import hashlib
 import shutil
-from collections import Counter
 
 import chess
 import chess.engine
@@ -123,11 +122,13 @@ def test_a_missing_stockfish_is_named():
 
 
 # Catches: the adapter and the harness disagreeing: it is Bryan's own checks that the Tests tab reports,
-# and a belief network that cannot pass them through this bundle is not checked at all.
+# and a belief network that cannot pass them through this bundle is not checked at all. How many checks
+# there are is Bryan's to change while PR #3 is under review, so only their verdicts are pinned: none
+# failed, and each passed or is left to a person (manual).
 @NEEDS_STOCKFISH
 def test_bryans_checks_run_on_the_bundle_and_pass():
     with opened(config()) as bundle:
         results = run_checks(bundle)
     failed = [(r["name"], r["detail"]) for r in results if r["status"] == "fail"]
     assert not failed
-    assert Counter(r["status"] for r in results) == {"pass": 16, "manual": 2}
+    assert results and {r["status"] for r in results} <= {"pass", "manual"}
