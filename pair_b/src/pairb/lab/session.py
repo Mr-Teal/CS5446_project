@@ -297,7 +297,8 @@ class Session:
             self._belief = self._tracker.update(self._bot_view, own_move=own_move)
         except Exception as exc:
             if self.over:
-                self.record.tracker_error = f"the bot's tracker failed on the view that ended the game: {_describe(exc)}"
+                self.record.tracker_error = ("the bot's tracker failed on the view that ended the game: "
+                                             f"{_describe(exc)}")
             else:
                 self._stop(what, exc)
 

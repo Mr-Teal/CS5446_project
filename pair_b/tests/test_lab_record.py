@@ -612,7 +612,7 @@ def test_a_tracker_failure_at_the_end_is_shown_at_the_end_only():
     assert view_state(record, 0, reveal=True)["tracker_error"] is None
     assert set(view_state(record, reveal=False)) == set(HIDDEN_KEYS)
     going = make_record("white")
-    going.tracker_error = "the bot's tracker failed"  # never so before the end; a damaged file still shows nothing early
+    going.tracker_error = "the bot's tracker failed"  # never so before the end: a damaged file shows nothing early
     assert all(view_state(going, upto, reveal=True)["tracker_error"] is None for upto in range(4))
     data = finished_record().to_json()
     del data["tracker_error"]

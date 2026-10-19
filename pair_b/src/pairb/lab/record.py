@@ -191,8 +191,7 @@ def view_state(record: GameRecord, upto: int | None = None, *, reveal: bool) -> 
 
     `reveal` has no default and is given by name, so that no caller gets the bot's side of a fair game by
     leaving it out (fail-closed). reveal=False gives the keys of HIDDEN_KEYS and no others, the most a human may
-    know of a fair game that
-    is still going:
+    know of a fair game that is still going:
     - fair, human: from the options;
     - ply: how many moves have been made;
     - to_move: whose turn it is;
