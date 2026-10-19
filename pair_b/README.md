@@ -4,6 +4,11 @@ Pair B (Colin and Bryan) builds the judge that the search asks to score position
 of its tree. Everything here answers `fow_shared`'s `LeafEvaluator` calls, so a search or a match
 swaps one evaluator for another by changing one argument.
 
+The [NumPy linear correction baseline](docs/linear_baseline.md) adds a ridge-regression
+comparison to Network 1 using the same board planes and depth-1 input. It includes independent
+training/evaluation commands and the shared evaluator interface; no PyTorch imports are needed
+unless explicitly comparing against Network 1. Its pilot is not a final playing-strength result.
+
 ## The evaluators
 
 | Evaluator | `name` | What it is | ms per node* |

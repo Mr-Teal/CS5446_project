@@ -1,0 +1,264 @@
+{
+  "purpose": "Exploratory validation pilot; not independent final evidence or a Network 1 comparison",
+  "base_revision": "6d743a4aa2ff1467d8265a87c5fd0b2eea171db8",
+  "generation": {
+    "games": 120,
+    "parents_per_game": 3,
+    "max_plies": 120,
+    "workers": 4,
+    "seed": 5446,
+    "label_depth": 11
+  },
+  "training": {
+    "n_train": 7981,
+    "n_val": 841,
+    "selected_alpha": 0.1,
+    "candidates": [
+      {
+        "alpha": 1e-05,
+        "validation": {
+          "mse": 0.05695049708791878,
+          "mae": 0.1698296113063411,
+          "mae_close": 0.17840720629529774,
+          "mae_decided": 0.10044179180022311,
+          "mae_close_by_d1": 0.20226687526750234,
+          "choice": {
+            "top1": 0.4666666666666667,
+            "regret": 0.02335923323407769,
+            "parents": 30
+          }
+        }
+      },
+      {
+        "alpha": 0.0001,
+        "validation": {
+          "mse": 0.049996459225405306,
+          "mae": 0.1578364122356765,
+          "mae_close": 0.1472596781006844,
+          "mae_decided": 0.08769299078953613,
+          "mae_close_by_d1": 0.1747265114204891,
+          "choice": {
+            "top1": 0.4666666666666667,
+            "regret": 0.01997009947275122,
+            "parents": 30
+          }
+        }
+      },
+      {
+        "alpha": 0.001,
+        "validation": {
+          "mse": 0.03566056221349102,
+          "mae": 0.12386537834885145,
+          "mae_close": 0.09793665002982217,
+          "mae_decided": 0.05843697090844787,
+          "mae_close_by_d1": 0.12628525990137984,
+          "choice": {
+            "top1": 0.4666666666666667,
+            "regret": 0.015201765640328328,
+            "parents": 30
+          }
+        }
+      },
+      {
+        "alpha": 0.01,
+        "validation": {
+          "mse": 0.029664550962790148,
+          "mae": 0.10140287269852936,
+          "mae_close": 0.07140452841684342,
+          "mae_decided": 0.039071398669099235,
+          "mae_close_by_d1": 0.10051069980261065,
+          "choice": {
+            "top1": 0.5,
+            "regret": 0.013888265533993641,
+            "parents": 30
+          }
+        }
+      },
+      {
+        "alpha": 0.1,
+        "validation": {
+          "mse": 0.029511093310181768,
+          "mae": 0.09515428899271947,
+          "mae_close": 0.0706591467042267,
+          "mae_decided": 0.02818396372897118,
+          "mae_close_by_d1": 0.10065108265744159,
+          "choice": {
+            "top1": 0.4666666666666667,
+            "regret": 0.013347100062916676,
+            "parents": 30
+          }
+        }
+      },
+      {
+        "alpha": 1.0,
+        "validation": {
+          "mse": 0.03060762683106797,
+          "mae": 0.09609142536232916,
+          "mae_close": 0.06982022876683666,
+          "mae_decided": 0.03194042180809796,
+          "mae_close_by_d1": 0.10081825237779916,
+          "choice": {
+            "top1": 0.43333333333333335,
+            "regret": 0.017144899908453227,
+            "parents": 30
+          }
+        }
+      }
+    ],
+    "runtime": {
+      "python": "3.14.0",
+      "platform": "macOS-26.7.1-x86_64-i386-64bit-Mach-O",
+      "numpy": "2.5.4",
+      "python_chess": "1.11.2",
+      "source_sha256": "bf8c2dd48cfe2ccc5d3def06d7154c1cc37b04ff1c43bef2288b2b00c36ebd1c"
+    }
+  },
+  "game_counts": {
+    "train": 100,
+    "val": 10,
+    "test_held_out": 9
+  },
+  "evaluation": {
+    "source": {
+      "dataset": "linear-pilot-120",
+      "files_sha256": {
+        "part-00.jsonl": "235cd65de8f290efe313412b0595974520e4f76cd79578e09f6c8341c302a143",
+        "part-01.jsonl": "b85b1a691c599808b8c633c04baaaf1b4cc1acad3baf5ecea16c2e3df5133828",
+        "part-02.jsonl": "b1d23b176a860f40585a096bdeaf656f5a29ac53117db4be801d9ef846786bc3",
+        "part-03.jsonl": "b8b550509558f3d1036f3ed674f24921c644f08755c0a0ba99d4b05584662592",
+        "manifest.json": "0a4198670d458e39c480710df594cecf0a7a1374ff898b024578d38358a9f840"
+      },
+      "sha256": "9911930d6c2b9269b981edaf75a9dedebe4b7455dff60a3bce547a7bc65bc5e6",
+      "records": 9487,
+      "non_rule_rows": 9483,
+      "rule_rows_excluded": 4
+    },
+    "split": "val",
+    "n": 841,
+    "games": 10,
+    "fitting_game_overlap": 0,
+    "selection_game_overlap": 10,
+    "independent_games": false,
+    "split_evidence_available": true,
+    "bootstrap": {
+      "resamples": 2000,
+      "seed": 0,
+      "unit": "whole games"
+    },
+    "linear": {
+      "mse": 0.029511093310181768,
+      "mae": 0.09515428899271947,
+      "mae_close": 0.0706591467042267,
+      "mae_decided": 0.02818396372897118,
+      "mae_close_by_d1": 0.10065108265744159,
+      "choice": {
+        "top1": 0.4666666666666667,
+        "regret": 0.013347100062916676,
+        "parents": 30
+      }
+    },
+    "baseline": {
+      "mse": 0.032765451818704605,
+      "mae": 0.10014993697404861,
+      "mae_close": 0.07059422880411148,
+      "mae_decided": 0.04488357529044151,
+      "mae_close_by_d1": 0.10286743938922882,
+      "choice": {
+        "top1": 0.43333333333333335,
+        "regret": 0.014254766702651977,
+        "parents": 30
+      }
+    },
+    "material": {
+      "mse": 0.2359486749205433,
+      "mae": 0.3366634424699237,
+      "mae_close": 0.15728708847419448,
+      "mae_decided": 0.1349896298236721,
+      "mae_close_by_d1": 0.17210818298638988,
+      "choice": {
+        "top1": 0.16666666666666666,
+        "regret": 0.32184936590492724,
+        "parents": 30
+      }
+    },
+    "regret_difference": {
+      "mean": -0.0009076666397353013,
+      "ci95": [
+        -0.01162110169728597,
+        0.008439500660945972
+      ],
+      "parents": 30,
+      "games": 10,
+      "resampled": "games"
+    },
+    "runtime": {
+      "python": "3.14.0",
+      "platform": "macOS-26.7.1-x86_64-i386-64bit-Mach-O",
+      "numpy": "2.5.4",
+      "python_chess": "1.11.2",
+      "source_sha256": "bf8c2dd48cfe2ccc5d3def06d7154c1cc37b04ff1c43bef2288b2b00c36ebd1c"
+    },
+    "checkpoint_sha256": "1ffd015475947fbc264d699c3f97ebde662259f5d3914b64619f0d09424d095f"
+  },
+  "timing": {
+    "source": {
+      "dataset": "linear-pilot-120",
+      "files_sha256": {
+        "part-00.jsonl": "235cd65de8f290efe313412b0595974520e4f76cd79578e09f6c8341c302a143",
+        "part-01.jsonl": "b85b1a691c599808b8c633c04baaaf1b4cc1acad3baf5ecea16c2e3df5133828",
+        "part-02.jsonl": "b1d23b176a860f40585a096bdeaf656f5a29ac53117db4be801d9ef846786bc3",
+        "part-03.jsonl": "b8b550509558f3d1036f3ed674f24921c644f08755c0a0ba99d4b05584662592",
+        "manifest.json": "0a4198670d458e39c480710df594cecf0a7a1374ff898b024578d38358a9f840"
+      },
+      "sha256": "9911930d6c2b9269b981edaf75a9dedebe4b7455dff60a3bce547a7bc65bc5e6"
+    },
+    "runtime": {
+      "python": "3.14.0",
+      "platform": "macOS-26.7.1-x86_64-i386-64bit-Mach-O",
+      "numpy": "2.5.4",
+      "python_chess": "1.11.2",
+      "source_sha256": "bf8c2dd48cfe2ccc5d3def06d7154c1cc37b04ff1c43bef2288b2b00c36ebd1c"
+    },
+    "split": "val",
+    "parents": 30,
+    "repeats": 3,
+    "parent_selection": "sorted unique parent FENs, first limit",
+    "parent_fens_sha256": "96c884d78c3340565ad18661999c81e717b82740c65de7d43523965e427088b8",
+    "checkpoint_sha256": "1ffd015475947fbc264d699c3f97ebde662259f5d3914b64619f0d09424d095f",
+    "engine_options": {
+      "threads": 1,
+      "hash_mb": 16,
+      "depth": 1,
+      "new_game_each_call": false
+    },
+    "evaluators": {
+      "material": {
+        "name": "material-1-3-3-5-9",
+        "calls": 90,
+        "median_ms": 3.1881614995654672,
+        "p95_ms": 4.9196184998436365,
+        "mean_ms": 2.812492666998878
+      },
+      "d1": {
+        "name": "stockfish-19-d1",
+        "calls": 90,
+        "median_ms": 6.04421399475541,
+        "p95_ms": 9.37127109755238,
+        "mean_ms": 5.4112191111522
+      },
+      "linear": {
+        "name": "linear-pilot-120-v1+stockfish-d1-linear",
+        "calls": 90,
+        "median_ms": 8.063765500992304,
+        "p95_ms": 12.615485697097027,
+        "mean_ms": 7.145021444173633
+      }
+    },
+    "engine_id": {
+      "name": "Stockfish 19",
+      "author": "the Stockfish developers (see AUTHORS file)"
+    },
+    "engine_binary_sha256": "8eed61129d1493c5d1f2fd9323f0c54c47ac49319911fbde18c6b9c87e8b13c5",
+    "mean_children": 30.566666666666666
+  }
+}
