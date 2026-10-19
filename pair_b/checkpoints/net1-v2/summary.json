@@ -1,0 +1,64 @@
+{
+  "dataset": "d2-v2",
+  "encoding": "net1-planes-0-18-v1",
+  "config": {
+    "blocks": 6,
+    "channels": 64,
+    "in_planes": 19
+  },
+  "params": 521425,
+  "device": "mps",
+  "n": {
+    "train": 638451,
+    "val": 76765,
+    "test_held_out": 79614
+  },
+  "baseline": {
+    "mse": 0.025973,
+    "mae": 0.097483,
+    "mae_close": 0.09192,
+    "mae_decided": 0.082294,
+    "mae_close_by_d1": 0.125502,
+    "choice": {
+      "top1": 0.418158,
+      "regret": 0.035953,
+      "parents": 3073
+    }
+  },
+  "val": {
+    "mse": 0.021057,
+    "mae": 0.077787,
+    "mae_close": 0.106151,
+    "mae_decided": 0.039299,
+    "mae_close_by_d1": 0.12653,
+    "choice": {
+      "top1": 0.412952,
+      "regret": 0.036162,
+      "parents": 3073
+    }
+  },
+  "best_epoch": 1,
+  "epochs_run": 6,
+  "mae_improvement_pct": 20.2,
+  "ms_per_board": {
+    "mps_batch_32": 0.02744,
+    "mps_batch_1024": 0.00943,
+    "cpu_batch_32": 0.43988
+  },
+  "seconds": 179.2,
+  "created": "2026-10-16T20:47:23+08:00",
+  "args": {
+    "data": "data/d2-v2",
+    "out": "runs/net1-v2",
+    "blocks": 6,
+    "channels": 64,
+    "epochs": 30,
+    "patience": 5,
+    "batch": 512,
+    "lr": 0.002,
+    "weight_decay": 0.0001,
+    "seed": 0,
+    "device": "auto",
+    "cache_dir": "data/cache"
+  }
+}
