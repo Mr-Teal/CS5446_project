@@ -2,7 +2,7 @@
 
 Everything here is a plain function of its arguments. Nothing starts a process, calls git or writes a file, so the
 commands a stage would run can be checked for any layout, Windows-style paths and paths with spaces included, on any
-machine. The runner (git worktree, merges, subprocesses) is the other half of this module.
+machine. The runner (git worktree, merges, subprocesses) is in stage_runner.py.
 
 The stages file (pair_b/fog_lab_stages.json) lists the stages in merge order:
 
