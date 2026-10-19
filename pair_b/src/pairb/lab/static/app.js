@@ -8,13 +8,15 @@
 // (Ruling R15), and only then do the bot panel, the Testing strip and the Testing switches appear. A fair game that is
 // still going arrives without them; a replay always has them, even stepped back to before its end.
 
-import {displaySquares, drawBoard, glyph, heatColor, moveTargets, parseFen, topMoves, worstMoves} from "./board.js";
+import {displaySquares, drawBoard, glyph, moveTargets, parseFen, topMoves, worstMoves} from "./board.js";
+import {bar, capitalise, cell, CHECK, enc, esc, exact, isNumber, NONE, signed} from "./panel.js";
+import {startTests} from "./tests.js";
 
 const TOP_MOVES = 6;    // rows in the bot's table and the heatmap; the chosen move is added when it is not among them
 const WORST_MOVES = 2;
 const STRIP_SIZE = 200, MINI_SIZE = 88;  // px; the main board's size follows the window
 const SESSION_KEY = "fogLab.play";       // the game on the screen, so that reloading the page keeps it
-const MINUS = "\u2212", NONE = "\u2013", CHECK = "\u2713\uFE0E", STAR = "\u2605\uFE0E";
+const STAR = "\u2605\uFE0E";
 const COLOUR = {white: "White", black: "Black"};
 const PIECE_NAMES = {q: "queen", r: "rook", b: "bishop", n: "knight"};
 const REASONS = {
@@ -26,8 +28,8 @@ const REASONS = {
 const ALL_SQUARES = displaySquares(false);
 
 // The tabs: a button[data-tab] in the header and a section[data-panel] for each. A tab's start function, when it has
-// one, runs the first time the tab is shown. The Tests tab is a placeholder until its own page (tests.js) is added.
-const TAB_START = {play: null, tests: null};
+// one, runs the first time the tab is shown: the Tests tab's page is tests.js. (The Play tab starts with the page.)
+const TAB_START = {play: null, tests: startTests};
 const startedTabs = new Set();
 
 const ui = {
@@ -543,7 +545,7 @@ function renderBotPanel(state) {
     html += `<div class="note">${Object.keys(ex.policy ?? {}).length} legal moves. The values in the Testing strip are
       the app's inspection, not the agent's reasoning.</div>`;
   } else if (ex.averages) {
-    const guesses = ex.guesses?.length ?? 0;
+    const guesses = Array.isArray(ex.guesses) ? ex.guesses.length : 0;  // a number, whatever a record holds
     html += `<div class="cap">${uniform(ex.weights) ? "Average" : "Weighted average"} value over its ${guesses}
       guess${guesses === 1 ? "" : "es"} at your hidden pieces (${COLOUR[other(state.human)]}'s view, +1 =
       ${COLOUR[other(state.human)]} wins). Scorer ${esc(ex.scorer ?? "?")}, ${Math.round(ex.elapsed_ms ?? 0)} ms.</div>`;
@@ -663,22 +665,6 @@ function healthLine(turn) {
 
 // ---- small helpers ----
 
-/** A heatmap cell: the value on its colour, or a dash when there is no value. */
-function cell(value, extra = "") {
-  const classes = ["v", isNumber(value) ? "" : "none", extra].filter(Boolean).join(" ");
-  return `<td class="${classes}" style="background:${heatColor(value)}" title="${exact(value)}">`
-    + `${isNumber(value) ? (value < 0 ? MINUS : "") + Math.abs(value).toFixed(2) : NONE}</td>`;
-}
-
-/** A centred bar for a value: right of the middle for a gain, left for a loss, `scale` filling half the track. */
-function bar(value, scale) {
-  if (!isNumber(value)) return "";
-  const width = Math.round(Math.min(1, Math.abs(value) / scale) * 50);
-  const side = value < 0 ? `right:50%` : `left:50%`;
-  return `<span class="track"><span class="zero"></span><span class="bar ${value < 0 ? "neg" : "pos"}" `
-    + `style="${side};width:${width}%"></span></span>`;
-}
-
 function moveLabel(move, pieces, ex) {
   const symbol = glyph(pieces[move.slice(0, 2)]);
   return `${symbol ? `<span class="pc">${symbol}</span> ` : ""}${esc(move)}${move === ex.chosen ? ` ${CHECK}` : ""}`;
@@ -727,34 +713,6 @@ function uniform(weights) {
   return !weights?.length || weights.every(weight => Math.abs(weight - weights[0]) < 1e-12);
 }
 
-function isNumber(value) {
-  return typeof value === "number" && Number.isFinite(value);
-}
-
-/** A value with its sign (a true minus), to `digits` places; a dash when there is none. */
-function signed(value, digits = 3) {
-  if (!isNumber(value)) return NONE;
-  return `${value < 0 ? MINUS : value > 0 ? "+" : ""}${Math.abs(value).toFixed(digits)}`;
-}
-
-function exact(value) {
-  return isNumber(value) ? String(value) : "none";
-}
-
-function capitalise(text) {
-  const words = String(text ?? "");
-  return words && words[0].toUpperCase() + words.slice(1);
-}
-
-function esc(text) {
-  return String(text ?? "").replace(/[&<>"']/g, char => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;",
-                                                          "'": "&#39;"})[char]);
-}
-
-function enc(text) {
-  return encodeURIComponent(text);
-}
-
 function download(name, text) {
   const link = document.createElement("a");
   link.href = URL.createObjectURL(new Blob([text], {type: "application/json"}));
@@ -782,26 +740,33 @@ function readSession() {
   }
 }
 
-/** After a reload: the live game and the replay that were on the screen, if the server still has them. */
+/** After a reload: the live game and the replay that were on the screen, if the server still has them. It runs as
+ * work, like any other request: the server answers a game's state only once a bot reply in progress is done, and until
+ * then the page is busy, so New game cannot start a game that this answer would then replace on the screen. */
 async function restore() {
   const saved = readSession();
   if (!saved) return;
   Object.assign(ui, {testing: Boolean(saved.testing), scorerLabel: saved.scorerLabel ?? null});
-  if (saved.gameId) {
-    try {
-      showLive(await api(`/api/games/${enc(saved.gameId)}`));
-    } catch {
-      ui.gameId = null;  // a newer game replaced it, or the server restarted
+  const replay = saved.mode === "replay" && saved.replay ? saved.replay : null;
+  if (!saved.gameId && !replay) return;
+  await work(replay ? "Opening the replay\u2026" : "Opening the game\u2026", async () => {
+    if (saved.gameId) {
+      try {
+        showLive(await api(`/api/games/${enc(saved.gameId)}`));
+      } catch {
+        ui.gameId = null;  // a newer game replaced it, or the server restarted
+      }
     }
-  }
-  if (saved.mode === "replay" && saved.replay) {
-    try {
-      await showReplay(saved.replay);
-    } catch {
-      // the server keeps only the newest replays
+    if (replay) {
+      try {
+        await showReplay(replay);
+      } catch {
+        // the server keeps only the newest replays
+      }
     }
-  }
-  writeSession();
+  }, error => {
+    ui.notice = `The game on the screen before could not be shown again: ${error.message}`;
+  });
 }
 
 // ---- start ----

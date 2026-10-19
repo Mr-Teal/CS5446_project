@@ -100,12 +100,64 @@
     </section>
   </section>
 
-  <section class="tab-panel" id="panel-tests" data-panel="tests" role="tabpanel" aria-labelledby="tab-tests" hidden>
-    <div class="card placeholder">
-      <h4>Tests</h4>
-      <p>This tab is not built yet. It will show the open pull requests merged one by one, Pair A's fog-rules
-        positions, Bryan's scorer checks and how accurate each scorer is.</p>
+  <section class="tab-panel tests" id="panel-tests" data-panel="tests" role="tabpanel" aria-labelledby="tab-tests"
+           hidden>
+    <div class="run-bar">
+      <span class="spinner" id="t-spinner" hidden></span>
+      <span class="meta" id="t-last">Reading the last test run&hellip;</span>
+      <span class="grow"></span>
+      <label class="check"
+             title="A read-only git fetch from origin before the stages are merged. Untick it to work offline.">
+        <input type="checkbox" id="t-fetch" checked> fetch from GitHub first</label>
+      <button type="button" class="primary" id="t-run">Run again</button>
     </div>
+    <div class="progress" id="t-progress" hidden></div>
+    <div class="banners" id="t-banners" aria-live="polite"></div>
+
+    <h3 class="sec">1. Health: the pull requests merged one by one, in merge order</h3>
+    <p class="why">Each card is the repo with one more pull request merged in. A failure turns its card red, and a
+      click on the check opens its output. Grey is never a failure: a check that cannot run here, or a stage that was
+      not built.</p>
+    <div class="stages" id="t-stages"></div>
+
+    <h3 class="sec">2. Fog rules: Pair A's <span id="t-fx-count"></span>rules positions, as the player sees them</h3>
+    <p class="why">Each position comes with what the player must and must not see, and which moves must or must not be
+      allowed. A fog-rules bug shows up here as a ring on the wrong kind of square.</p>
+    <div class="rules-choice" id="t-rules"></div>
+    <div class="legend" id="t-legend" hidden>
+      <span><span class="key fog"></span>hidden from this player</span>
+      <span><span class="key see"></span>must be seen</span>
+      <span><span class="key nosee"></span>must stay hidden</span>
+      <span><span class="key mv"></span>move here must be allowed</span>
+      <span><span class="key nomv"></span>move here must not be allowed</span>
+    </div>
+    <div class="fx" id="t-fixtures"></div>
+
+    <h3 class="sec">3. Scorer checks: Bryan's harness, run on every scorer</h3>
+    <p class="why">The same small positions go to each scorer. "Moves" checks the values it gives each move
+      (evaluate_children); "board" checks its value of the position itself, from the right side's view, with the rules
+      applied first (evaluate_boards).</p>
+    <div class="scroll"><table class="grid" id="t-grid" hidden></table></div>
+    <div class="note" id="t-grid-note"></div>
+
+    <h3 class="sec">4. Accuracy, and how sure we are</h3>
+    <p class="why">Errors against a deeper Stockfish, read from the saved evaluation files: Run again never recomputes
+      them. Lower is better. <span id="t-acc-from"></span></p>
+    <div class="acc" id="t-acc"></div>
+    <div class="card forest" id="t-forest-card" hidden>
+      <h4>Is the difference real? Paired difference, 95% interval, resampling whole games</h4>
+      <div id="t-forest"></div>
+    </div>
+
+    <dialog class="log-dialog" id="t-log" aria-labelledby="t-log-title">
+      <div class="log-head">
+        <h4 id="t-log-title">Log</h4>
+        <span class="grow"></span>
+        <a id="t-log-open" href="#" target="_blank" rel="noopener">Open in a new tab</a>
+        <button type="button" id="t-log-close">Close</button>
+      </div>
+      <pre id="t-log-text"></pre>
+    </dialog>
   </section>
 </div>
 <noscript><p>Fog Lab needs JavaScript to draw its boards.</p></noscript>
