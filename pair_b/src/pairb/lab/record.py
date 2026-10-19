@@ -21,8 +21,8 @@ as the dicts observation_json writes, so one form serves the record, the file an
   moves before the bot's move, which is the ply of the move it played. A turn that failed has no move
   after it: its ply is len(plies), it stays in the saved game, and no step of view_state shows it as played.
 
-view_state(record, upto) is the game after `upto` moves (default: all). The game is over only at the end of
-a record that has a result, so stepping back through a finished game shows what live play showed at each
+view_state(record, upto, reveal=...) is the game after `upto` moves (default: all). The game is over only at the
+end of a record that has a result, so stepping back through a finished game shows what live play showed at each
 move: no result and no banner before the last one.
 
 Fair game. Until a fair game ends the page may get only what the human is entitled to: their own
@@ -176,12 +176,14 @@ class GameRecord:
                    version=version)
 
 
-def view_state(record: GameRecord, upto: int | None = None, reveal: bool = True) -> dict:
+def view_state(record: GameRecord, upto: int | None = None, *, reveal: bool) -> dict:
     """The page's view of the game after `upto` moves (default: all of them), as plain JSON values that share
     nothing with the record. ValueError when `upto` is not a whole number from 0 to the number of moves, and
     when options["human"] is not a colour.
 
-    reveal=False gives the keys of HIDDEN_KEYS and no others, the most a human may know of a fair game that
+    `reveal` has no default and is given by name, so that no caller gets the bot's side of a fair game by
+    leaving it out (fail-closed). reveal=False gives the keys of HIDDEN_KEYS and no others, the most a human may
+    know of a fair game that
     is still going:
     - fair, human: from the options;
     - ply: how many moves have been made;

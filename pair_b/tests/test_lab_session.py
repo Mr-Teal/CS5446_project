@@ -150,7 +150,7 @@ def test_full_game_with_random_human_moves(seed):
     assert session.record_json() == record.to_json()
     loaded = GameRecord.from_json(json.loads(json.dumps(session.record_json())))
     for upto in range(n + 1):
-        assert view_state(loaded, upto) == view_state(record, upto)
+        assert view_state(loaded, upto, reveal=True) == view_state(record, upto, reveal=True)
 
 
 # Catches: a bot that waits for the human when the human plays Black, and a state that is not revealed outside a
@@ -414,7 +414,7 @@ def test_bot_error_stops_the_game(register, make_agent, fail_at, plies, what):
     assert len(record.plies) == plies and (scorer.closes, inspector.closes) == (1, 1)
     loaded = GameRecord.from_json(json.loads(json.dumps(record.to_json())))
     assert loaded.bot_turns[-1].error == session.error
-    shown = view_state(loaded)["bot"]
+    shown = view_state(loaded, reveal=True)["bot"]
     assert shown is None or shown["error"] is None  # the failed turn is never shown as played
 
 

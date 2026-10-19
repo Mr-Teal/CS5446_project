@@ -434,11 +434,22 @@ def test_any_damage_is_a_value_error_without_a_position_or_a_record_that_can_be_
             try:
                 for upto in range(len(loaded.plies) + 1):
                     for reveal in (False, True):
-                        view_state(loaded, upto, reveal)
+                        view_state(loaded, upto, reveal=reveal)
                 json.dumps(loaded.to_json())
             except Exception as error:
                 raise AssertionError(f"{where} was accepted, then {error!r}") from error
     assert len(places) > 500 and rejected and accepted  # the sweep covered the record, and met both outcomes
+
+
+# Catches (fail-closed): a call that leaves out `reveal` getting the revealed view, the bot's side and the true board
+# included, of a fair game that is still going; and a `reveal` passed by position, where it reads like a step. Every
+# caller says which view it wants, by name.
+def test_reveal_has_no_default_and_is_given_by_name(rec):
+    for args in ((), (3,), (3, True), (3, False), (None, True)):
+        with pytest.raises(TypeError):
+            view_state(rec, *args)
+    assert view_state(rec, 3, reveal=False) == view_state(rec, reveal=False)
+    assert view_state(rec, upto=3, reveal=True) == view_state(rec, reveal=True)
 
 
 # Catches (brief): a hidden view with a key more or fewer than HIDDEN_KEYS, and a `you` that is not the human's
@@ -489,9 +500,9 @@ def test_fair_comes_from_the_options():
     del unmarked.options["fair"]
     for upto in range(4):
         for reveal in (False, True):
-            assert view_state(make_record(fair=True), upto, reveal)["fair"] is True
-            assert view_state(make_record(fair=False), upto, reveal)["fair"] is False
-            assert view_state(unmarked, upto, reveal)["fair"] is False
+            assert view_state(make_record(fair=True), upto, reveal=reveal)["fair"] is True
+            assert view_state(make_record(fair=False), upto, reveal=reveal)["fair"] is False
+            assert view_state(unmarked, upto, reveal=reveal)["fair"] is False
 
 
 # Catches: a game-over banner on a position the game had not ended in (a saved game stepped back would show it
@@ -501,9 +512,9 @@ def test_over_and_result_only_at_the_end(rec):
     rec.result = {"winner": "draw", "reason": "no_legal_moves"}
     for reveal in (False, True):
         for k in range(3):
-            s = view_state(rec, k, reveal)
+            s = view_state(rec, k, reveal=reveal)
             assert (s["over"], s["result"]) == (False, None)
-        for s in (view_state(rec, 3, reveal), view_state(rec, reveal=reveal)):
+        for s in (view_state(rec, 3, reveal=reveal), view_state(rec, reveal=reveal)):
             assert (s["over"], s["result"]) == (True, {"winner": "draw", "reason": "no_legal_moves"})
             assert s["you"]["terminal"] is False
 
@@ -523,7 +534,7 @@ def test_a_finished_game():
 # what the player already has; and values that are not the record's own.
 def test_revealed_view_adds_bot_and_truth(rec):
     human = rec.options["human"]
-    s = view_state(rec)
+    s = view_state(rec, reveal=True)
     assert set(s) == set(HIDDEN_KEYS) | {"moves", "bot", "true_fen", "bot_view", "rules", "scorer", "bot_name"}
     assert s["moves"] == MOVE_LIST
     assert s["true_fen"] == "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
@@ -537,8 +548,8 @@ def test_revealed_view_adds_bot_and_truth(rec):
 # Catches (brief): a step that shows the wrong moment: `you` for the start or after the first move.
 def test_step_back(rec):
     human = rec.options["human"]
-    assert view_state(rec, upto=1)["you"] == rec.plies[0].observations[human]
-    assert view_state(rec, upto=0)["you"] == rec.start_observations[human]
+    assert view_state(rec, upto=1, reveal=True)["you"] == rec.plies[0].observations[human]
+    assert view_state(rec, upto=0, reveal=True)["you"] == rec.start_observations[human]
 
 
 # Catches: every field of the view at every step: an off-by-one in the index of the position (after k moves is
@@ -547,7 +558,7 @@ def test_step_back(rec):
 @pytest.mark.parametrize("k", range(4))
 def test_every_step_shows_that_moment(rec, k):
     human = rec.options["human"]
-    s = view_state(rec, k)
+    s = view_state(rec, k, reveal=True)
     shown = BOT_TURN_SHOWN[human][k]
     assert s["ply"] == k and s["to_move"] == TO_MOVE[k]
     assert s["you"] == observation_json(POSITIONS[k][1][human])
@@ -563,25 +574,26 @@ def test_every_step_shows_that_moment(rec, k):
 def test_a_step_outside_the_record_is_a_value_error(rec, upto):
     for reveal in (False, True):
         with pytest.raises(ValueError, match="ply"):
-            view_state(rec, upto, reveal)
+            view_state(rec, upto, reveal=reveal)
 
 
 # Catches: a new game (no move yet) breaking the view: the first step is the start itself, and no turn is shown.
 def test_a_new_game():
     record = make_record("black", [])
-    s = view_state(record)
+    s = view_state(record, reveal=True)
     assert s["ply"] == 0 and s["you"] == record.start_observations["black"] and s["your_moves"] == []
     assert (s["moves"], s["bot"], s["over"], s["result"]) == ([], None, False, None)
     assert s["true_fen"] == record.start_fen == "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
     with pytest.raises(ValueError):
-        view_state(record, 1)
+        view_state(record, 1, reveal=True)
 
 
 # Catches: the turn that failed shown as one that was played (it has no move after it), or lost from the saved game
 # (it is what the bug report is made from).
 def test_a_failed_turn_is_saved_but_is_not_a_played_one():
     record = failed_record()
-    assert view_state(record)["bot"]["ply"] == 2 and view_state(record)["bot"]["error"] is None
+    assert view_state(record, reveal=True)["bot"]["ply"] == 2
+    assert view_state(record, reveal=True)["bot"]["error"] is None
     again = GameRecord.from_json(json.loads(json.dumps(record.to_json())))
     assert (again.bot_turns[-1].ply, again.bot_turns[-1].error) == (4, "the bot stopped")
 
@@ -592,7 +604,7 @@ def test_a_loaded_record_gives_the_same_views(kind):
     loaded = GameRecord.from_json(json.loads(json.dumps(kind.to_json())))
     for upto in range(len(kind.plies) + 1):
         for reveal in (False, True):
-            assert view_state(loaded, upto, reveal) == view_state(kind, upto, reveal)
+            assert view_state(loaded, upto, reveal=reveal) == view_state(kind, upto, reveal=reveal)
 
 
 # Catches: a view that hands the page one of the record's own lists or dicts, at any depth, so that a change to the
@@ -601,7 +613,7 @@ def test_views_are_copies(kind):
     before = snapshot(kind)
     for upto in range(len(kind.plies) + 1):
         for reveal in (False, True):
-            scribble(view_state(kind, upto, reveal))
+            scribble(view_state(kind, upto, reveal=reveal))
     assert kind.to_json() == before
 
 
@@ -610,4 +622,4 @@ def test_views_are_copies(kind):
 def test_the_view_needs_the_humans_colour(rec):
     rec.options["human"] = "random"
     with pytest.raises(ValueError, match="human"):
-        view_state(rec)
+        view_state(rec, reveal=True)
