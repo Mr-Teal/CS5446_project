@@ -20,7 +20,7 @@ from fow_shared.values import standard_fen
 from pairb.bot import OnePlyBot
 from pairb.lab.record import HIDDEN_KEYS, GameRecord, observation_json, view_state
 from pairb.lab.scorers import SCORER_IDS
-from pairb.lab.session import BOTS, FAIR_ERROR, BotSpec, GameOptions, Session, default_tracker
+from pairb.lab.session import BOTS, BotSpec, GameOptions, Session, default_tracker
 from pairb.material import MaterialEvaluator
 from pairb.rules import StandinRules
 from pairb.tracker import ParticleTracker, TrackerLost
@@ -225,6 +225,53 @@ def test_fair_game_shows_only_human_fields_until_the_end():
     assert "bot" in session.state(1) and "true_fen" in session.state(0)  # stepping back shows the bot's side too
 
 
+# Ruling R17. Catches: a fair game that opens up before the bot fails, one that stays hidden after an error stop (the
+# record's details would then never be reachable, as no move can follow), and a stopped fair game whose state shows
+# less than the whole error or less than what revealing adds at that step.
+def test_fair_game_stopped_by_an_error_is_revealed(register):
+    class SecondMoveFails(RandomAgent):
+        moves = 0
+
+        def act(self, turn):
+            self.moves += 1
+            if self.moves == 2:
+                raise RuntimeError("the bot broke on its second move")
+            return super().act(turn)
+
+    session = session_for(bot=register("second-move-fails", SecondMoveFails), fair=True)
+    session.human_move("e2e4")  # the bot's first move goes through
+    state = session.state()
+    assert not session.revealed and set(state) == set(HIDDEN_KEYS) | {"id", "error", "device"}
+    assert state["error"] is None
+    session.human_move("d2d4")  # always legal here: no Black move reaches d3 or d4; then the bot fails
+    record = session.record
+    assert session.error.startswith("the bot failed to move: RuntimeError: the bot broke on its second move")
+    assert session.revealed and not session.over
+    state = session.state()
+    assert set(state) == set(view_state(record, reveal=True)) | {"id", "error", "device"}
+    assert state["error"] == session.error  # the whole text, not the generic one
+    assert state["bot"] == record.bot_turns[0].to_json() and state["true_fen"] == record.plies[-1].true_fen
+    assert (state["over"], state["result"]) == (False, None)  # stopped, not over
+    assert all("true_fen" in session.state(upto) for upto in range(len(record.plies) + 1))  # every step opens
+    with pytest.raises(ValueError) as refused:
+        session.human_move("g1f3")
+    assert str(refused.value) == f"game stopped: {session.error}"
+
+
+# Ruling R17. Catches: a `revealed` that is True while a fair game is going on, False once it is over, or ever False
+# for a game that is not fair; and one that can be set from outside.
+def test_revealed_only_when_a_fair_game_ends():
+    for fair in (True, False):
+        session = session_for(fair=fair, seed=1)
+        rng = random.Random(1)
+        while not session.over:
+            assert session.revealed is not fair
+            session.human_move(rng.choice(session.state()["you"]["legal_moves"]))
+        assert session.revealed is True and len(session.record.plies) > 2
+        with pytest.raises(AttributeError):
+            session.revealed = False
+
+
 # Review Focus 1. Catches: the inspection made with the bot's own scorer (Stockfish's hash would then carry the true
 # board into the bot's later answers), the bot's scorer asked about anything but its guesses, the inspector asked
 # about anything but the true board, inspection numbers that are not the inspector's values on the true board, and a
@@ -372,8 +419,8 @@ def test_bot_error_stops_the_game(register, make_agent, fail_at, plies, what):
 
 
 # Ruling R8. Catches: a position reaching the page in an error (a state's repr prints its FEN, a board prints its
-# squares), and a fair game's error telling the human more than that the bot stopped, in state() or in the refusal
-# of their next move, while the record keeps the whole message.
+# squares), in state(), in the refusal of the next move or in the record. An error stop reveals a fair game too
+# (Ruling R17), so both kinds of game show the whole, redacted text.
 def test_error_text_never_holds_a_position(register):
     class Leaky(RandomAgent):
         def act(self, turn):
@@ -389,13 +436,10 @@ def test_error_text_never_holds_a_position(register):
         assert "StandinState(board=Board('<position>'), ply=0)" in detail and detail.count("<board>") == 2
         assert FEN_PLACEMENT.search(detail) is None and "r n b q" not in detail and "\u265c" not in detail
         state = session.state()
+        assert session.revealed and state["error"] == detail and "true_fen" in state
         with pytest.raises(ValueError) as refused:
             session.human_move("e7e5")
-        if fair:
-            assert set(state) == set(HIDDEN_KEYS) | {"id", "error", "device"} and state["error"] == FAIR_ERROR
-            assert str(refused.value) == f"game stopped: {FAIR_ERROR}"
-        else:
-            assert state["error"] == detail and str(refused.value) == f"game stopped: {detail}"
+        assert str(refused.value) == f"game stopped: {detail}"
 
 
 # Spec 4.6. Catches: an agent without an explanation leaving the panel empty or crashing the session, an app
@@ -422,9 +466,10 @@ def test_agent_without_explanation_gets_app_inspection(register):
     assert turn.inspection["true_values"] == MaterialEvaluator().evaluate_children(record.plies[0].true_fen)
 
 
-# Catches: a failure of the app's own inspection (an inspector whose engine died) stopping a game in which the bot did
-# nothing wrong, or escaping as an exception, for a bot that explains itself and for one that relies on the app's
-# inspection; what needs no inspector (the tracker's side, the agent's policy and guesses) is still filled in.
+# Ruling R18. Catches: a failure of the app's own inspection (an inspector whose engine died) stopping a game in which
+# the bot did nothing wrong, or escaping as an exception, for a bot that explains itself and for one that relies on the
+# app's inspection; the failure is written under "error" with None for every value the inspector would have given,
+# and what needs no inspector (the tracker's side, the agent's policy and guesses) is still filled in.
 @pytest.mark.parametrize("explains", [True, False])
 def test_inspection_failure_does_not_stop_the_game(register, explains):
     class Broken(Spy):
@@ -439,7 +484,7 @@ def test_inspection_failure_does_not_stop_the_game(register, explains):
     failed = "the app's inspection failed: RuntimeError: engine process died"
     assert session.error is None and turn.error is None and len(record.plies) == 2
     assert turn.inspection["error"].startswith(failed)
-    assert turn.inspection["true_values"] is None and turn.inspection["lost_by_not_knowing"] is None
+    assert [turn.inspection[key] for key in ("true_values", "best_on_true_board", "lost_by_not_knowing")] == [None] * 3
     assert turn.inspection["truth_in_particles"] is True  # White's 20 first moves, none seen: all are particles
     explanation = turn.explanation
     assert explanation["chosen"] == record.plies[1].move
@@ -447,8 +492,8 @@ def test_inspection_failure_does_not_stop_the_game(register, explains):
         assert "app_inspection" not in explanation  # the bot's own explanation, untouched
     else:
         assert explanation["app_inspection"] is True and explanation["error"].startswith(failed)
-        assert explanation["values"] is None and explanation["guesses"] == [entry["fen"] for entry in turn.belief]
-        assert len(explanation["policy"]) == 20
+        assert [explanation[key] for key in ("values", "averages", "min", "max")] == [None] * 4
+        assert explanation["guesses"] == [entry["fen"] for entry in turn.belief] and len(explanation["policy"]) == 20
     session.human_move(session.state()["you"]["legal_moves"][0])  # and the game goes on
     assert len(record.plies) == 4
 
@@ -571,8 +616,8 @@ def test_scorers_close_once():
     assert (scorer.closes, inspector.closes) == (1, 1)
 
 
-# Ruling R9. Catches: a state(), record_json() or close() that does not wait for a bot turn in progress, which could
-# read a board while python-chess's repetition check is replaying it, or close the engines under the bot.
+# Ruling R9. Catches: a state(), record_json(), revealed or close() that does not wait for a bot turn in progress,
+# which could read a board while python-chess's repetition check is replaying it, or close the engines under the bot.
 def test_every_access_waits_for_the_bot_turn(register):
     thinking, go_on = threading.Event(), threading.Event()
 
@@ -588,6 +633,7 @@ def test_every_access_waits_for_the_bot_turn(register):
     mover = threading.Thread(target=session.human_move, args=("e2e4",))
     waiting = [threading.Thread(target=lambda: seen.update(state=session.state())),
                threading.Thread(target=lambda: seen.update(record=session.record_json())),
+               threading.Thread(target=lambda: seen.update(revealed=session.revealed)),
                threading.Thread(target=session.close)]
     mover.start()
     assert thinking.wait(10)
@@ -601,8 +647,37 @@ def test_every_access_waits_for_the_bot_turn(register):
         go_on.set()
         for thread in (mover, *waiting):
             thread.join(10)
-    assert seen["state"]["ply"] == 2 and len(seen["record"]["plies"]) == 2
+    assert seen["state"]["ply"] == 2 and len(seen["record"]["plies"]) == 2 and seen["revealed"] is True
     assert (scorer.closes, inspector.closes) == (1, 1)
+
+
+# Ruling R9, from the other side. Catches: a state() that holds the lock only while it asks `revealed` (which takes
+# the lock itself) and lets go of it before it reads the record, so that a move could change the record half-way
+# through the view.
+def test_state_keeps_the_lock_while_it_reads_the_record(monkeypatch):
+    reading, go_on = threading.Event(), threading.Event()
+
+    def slow_view_state(*args, **kwargs):
+        reading.set()
+        go_on.wait(10)
+        return view_state(*args, **kwargs)
+
+    monkeypatch.setattr("pairb.lab.session.view_state", slow_view_state)
+    session = session_for()
+    seen = {}
+    reader = threading.Thread(target=lambda: seen.update(state=session.state()))
+    mover = threading.Thread(target=session.human_move, args=("e2e4",))
+    reader.start()
+    assert reading.wait(10)
+    mover.start()
+    mover.join(0.3)
+    try:
+        assert mover.is_alive()  # the move waits until the view has been read
+    finally:
+        go_on.set()
+        for thread in (reader, mover):
+            thread.join(10)
+    assert seen["state"]["ply"] == 0 and len(session.record.plies) == 2
 
 
 # Catches: an option out of range or of the wrong kind (from the page's JSON) getting past GameOptions, or refused

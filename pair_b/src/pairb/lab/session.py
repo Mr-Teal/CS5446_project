@@ -23,14 +23,15 @@ recorded and never fed back. An agent that gives no explanation gets the app's i
 made with the inspector and marked "app_inspection". A failure of the app's own inspection does not stop the game: it
 is written into the inspection, under "error".
 
-Fair game: until a fair game is over, state() is view_state(reveal=False), only what the human is entitled to, plus
-the game's id, the scorer's device and the error, which is FAIR_ERROR until the end. Whether the bot's side is
-revealed is decided in one place, Session._revealed.
+Fair game: until a fair game is revealed, state() is view_state(reveal=False), only what the human is entitled to,
+plus the game's id, the scorer's device and the error (None). Session.revealed decides it, and nothing else does: it is
+always True outside a fair game, and in a fair game once the game is over or has been stopped by an error, since no
+move can follow either. A server sends a fair game's record only while revealed is True.
 
 Errors: an exception from the bot or its tracker stops the game. `error` says what failed, a BotTurn holding the same
 text is stored (its ply is the number of moves so far, so no step shows it as played), and every later move is
-refused. An error text never holds a position: a FEN or a printed board in an exception's message is replaced, since a
-rules state's repr prints its FEN and error text reaches the page.
+refused. A stop reveals a fair game, so the page gets the whole error text. That text never holds a position: a FEN or
+a printed board in an exception's message is replaced, since a rules state's repr prints its FEN.
 
 The session owns both scorers from the moment it is created. It closes them as soon as the game is over or stopped, on
 close(), and before raising when it cannot start. One re-entrant lock guards every use of the referee, the tracker and
@@ -64,6 +65,8 @@ from .scorers import SCORER_IDS
 COLOURS = ("white", "black")
 HUMAN_CHOICES = ("white", "black", "random")
 TIME_BUDGET_MS = 60_000
+# What a fair game that is not revealed would show for an error (Ruling R8). An error stop reveals the game (R17), so
+# this text is never shown now; it stays as the fail-closed answer should `revealed` ever be narrowed.
 FAIR_ERROR = "the bot stopped with an error; details are in the record"
 
 _UCI = re.compile(r"[a-h][1-8][a-h][1-8][qrbn]?")
@@ -143,7 +146,7 @@ class Session:
     id is uuid4().hex[:12]. options are the GameOptions it was made with; human is the human's colour, "random"
     resolved, and bot_colour the other one. referee is for the app's inspection and for tests. record is the game so
     far. over is True once the game has a result; error is set when the bot or its tracker stopped the game, which is
-    then not over and takes no more moves.
+    then not over and takes no more moves. revealed says whether the page may see the bot's side.
     """
 
     def __init__(self, options: GameOptions, rules: Rules, scorer, inspector):
@@ -207,7 +210,7 @@ class Session:
             if self.over:
                 raise ValueError("the game is over")
             if self.error is not None:
-                raise ValueError(f"game stopped: {self._shown_error()}")
+                raise ValueError(f"game stopped: {self._error_text(self.revealed)}")
             if self._closed:
                 raise ValueError("the game has been closed")
             if self.referee.current_player() != self.human:
@@ -222,19 +225,28 @@ class Session:
             if not self.over and self.error is None:
                 self._bot_turn()
 
-    def state(self, upto: int | None = None) -> dict:
-        """The page's view after `upto` moves (default: all of them): view_state, revealed outside a fair game and
-        once a fair game is over, plus "id", "error" (why the game stopped, or None; FAIR_ERROR in a fair game until it
-        is over) and "device" (the bot's scorer's device, or None; no secret, so shown in a fair game too). ValueError
-        when `upto` is not a whole number from 0 to the number of moves."""
+    @property
+    def revealed(self) -> bool:
+        """Whether the page may see the bot's side and the true board, in state() and in the record: always outside a
+        fair game, and in a fair game once it is over or has been stopped by an error. Read under the session's lock.
+        This is the only place that decides it."""
         with self._lock:
-            view = view_state(self.record, upto, reveal=self._revealed())
-            view.update(id=self.id, error=self._shown_error(), device=self._device)
+            return not self.options.fair or self.over or self.error is not None
+
+    def state(self, upto: int | None = None) -> dict:
+        """The page's view after `upto` moves (default: all of them): view_state, with the bot's side and the true
+        board when `revealed`, plus "id", "error" (why the game stopped, or None) and "device" (the bot's scorer's
+        device, or None; no secret, so shown in a fair game too). ValueError when `upto` is not a whole number from 0
+        to the number of moves."""
+        with self._lock:
+            reveal = self.revealed
+            view = view_state(self.record, upto, reveal=reveal)
+            view.update(id=self.id, error=self._error_text(reveal), device=self._device)
             return view
 
     def record_json(self) -> dict:
         """The game record as plain JSON values (GameRecord.to_json), read under the session's lock. It holds the
-        bot's side and the true board, so it is not for a fair game that is not over."""
+        bot's side and the true board: a server sends it only while `revealed` is True, which it checks itself."""
         with self._lock:
             return self.record.to_json()
 
@@ -360,15 +372,11 @@ class Session:
     def _views(self) -> dict[str, Observation]:
         return {colour: self.referee.observe(colour) for colour in COLOURS}
 
-    def _revealed(self) -> bool:
-        """Whether the page may see the bot's side and the true board: always outside a fair game, and in a fair game
-        once it is over. This is the only place that decides it."""
-        return not self.options.fair or self.over
-
-    def _shown_error(self) -> str | None:
+    def _error_text(self, reveal: bool) -> str | None:
+        """The error as the page may see it, given `revealed`: the whole text when revealed, FAIR_ERROR otherwise."""
         if self.error is None:
             return None
-        return self.error if self._revealed() else FAIR_ERROR
+        return self.error if reveal else FAIR_ERROR
 
     def _close_scorers(self) -> None:
         if self._closed:
