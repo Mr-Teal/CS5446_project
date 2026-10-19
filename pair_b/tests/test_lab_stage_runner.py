@@ -514,20 +514,52 @@ def test_what_a_run_refuses(repo, tmp_path):
     assert not (tmp_path / "run").exists(), "each was refused before anything was made"
 
 
-# Catches: the user's git configuration getting into a throwaway merge: hooks that refuse merges and commit messages,
-# commits signed by a signing program (here one that does not exist, so signing fails), or rerere recording the
-# conflict in the repository's shared cache.
-def test_the_users_hooks_and_signing_stay_out_of_the_merges(repo, tmp_path):
-    for hook in ("pre-merge-commit", "commit-msg"):
-        path = repo / ".git" / "hooks" / hook
-        path.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+# Every hook git 2.50 runs for `worktree add` (post-checkout, post-index-change, reference-transaction), a merge
+# (prepare-commit-msg and post-merge besides those; --no-verify skips only pre-merge-commit and commit-msg) or
+# `merge --abort`, measured with hooks that note their name, and a few that a merge's commit or gc could run.
+HOOKS = ("pre-merge-commit", "prepare-commit-msg", "commit-msg", "post-commit", "post-checkout", "post-merge",
+         "reference-transaction", "post-index-change", "pre-auto-gc", "post-rewrite")
+
+
+def install_hooks(folder: Path, marker: Path) -> None:
+    """Hooks that write their name to `marker` and then fail: each refuses what it is asked about, or, for a hook
+    whose verdict git ignores (post-merge), shows by the marker that it ran."""
+    folder.mkdir(parents=True, exist_ok=True)
+    for hook in HOOKS:
+        path = folder / hook
+        path.write_text(f"#!/bin/sh\necho {hook} >> '{marker.as_posix()}'\nexit 1\n", encoding="utf-8")
         path.chmod(0o755)
+
+
+# Catches: the user's git set-up reaching the throwaway worktree and its merges: a hook of theirs run there (a failing
+# post-checkout made `worktree add` fail and the whole run raise; a failing prepare-commit-msg made a clean merge a
+# "conflict" with no files; a post-merge hook ran in the worktree), whether the hooks are in the repository's own
+# folder or in a global core.hooksPath; commits signed by a signing program (here one that does not exist, so signing
+# fails); merge.verifySignatures refusing the unsigned commits as a "conflict"; or rerere recording the real conflict
+# in the repository's shared cache. The global and system configuration are the test's own, so the user's cannot mask
+# the hooks.
+@pytest.mark.parametrize("where", ["in .git/hooks", "in a global core.hooksPath"])
+def test_the_users_hooks_and_signing_stay_out_of_the_merges(repo, tmp_path, monkeypatch, where):
+    marker = tmp_path / "hooks-that-ran.txt"
+    global_config = tmp_path / "global.gitconfig"
+    if where == "in .git/hooks":
+        install_hooks(repo / ".git" / "hooks", marker)
+        global_config.write_text("", encoding="utf-8")
+    else:
+        install_hooks(tmp_path / "global-hooks", marker)
+        global_config.write_text(f"[core]\n\thooksPath = {(tmp_path / 'global-hooks').as_posix()}\n", encoding="utf-8")
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", str(global_config))
+    monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
     git(repo, "config", "commit.gpgsign", "true")
     git(repo, "config", "gpg.program", str(tmp_path / "no-such-signer"))
+    git(repo, "config", "merge.verifySignatures", "true")
     git(repo, "config", "rerere.enabled", "true")
     summary = run(repo, ["main", "a", "c", "b"], tmp_path / "run", FakeRunner())
+
     assert merges(summary) == [("main", "clean"), ("+ a", "clean"), ("+ c", "clean"), ("+ b", "conflict"),
                                ("+ this checkout", "skipped")]
+    assert summary["stages"][3]["conflicts"] == ["a.txt"], "the real conflict, not one made by a hook or a signature"
+    assert not marker.exists(), f"hooks ran: {marker.read_text(encoding='utf-8').split() if marker.exists() else ''}"
     assert not (repo / ".git" / "rr-cache").exists()
 
 

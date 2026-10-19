@@ -28,8 +28,11 @@ object store, so a run's merge commits stay there as unreachable objects until g
 it does any abandoned commit.) Git gets an environment without the variables that name a repository, an index or a
 work tree (GIT_DIR, GIT_INDEX_FILE, GIT_WORK_TREE and the rest of `git rev-parse --local-env-vars`), which git sets for
 the hooks it runs: inherited, they would send the worktree and its merges to that repository. Commands in the worktree
-also cannot find a repository above it (GIT_CEILING_DIRECTORIES is its temporary folder), and the merges sign nothing,
-run no hooks, stash nothing and record no rerere resolutions, whatever the user's git configuration says.
+also cannot find a repository above it (GIT_CEILING_DIRECTORIES is its temporary folder). No hook of the user's runs
+for the throwaway work: `git worktree add`, every command in the worktree and the clean-up get an empty folder as
+core.hooksPath, wherever the user keeps their hooks. The merges also sign nothing, check no signatures, stash nothing
+and record no rerere resolutions, whatever the user's git configuration says. Only the fetch is the user's own git,
+hooks and all, as any fetch of theirs would be: it updates their remote-tracking refs.
 
 Every command is an argument list. Its output goes to temporary files, not pipes, so that a process it leaves running
 cannot keep the runner waiting. It runs in a process group of its own on POSIX (with no terminal, so nothing it starts
@@ -87,10 +90,11 @@ RULES = ("standin", "teal")
 _FETCH_TIMEOUT = 120  # seconds; GitHub answers in a few
 _GIT_TIMEOUT = 600  # checking out or merging a stage
 _FIXTURE_TIMEOUT = 600
-# A merge needs no identity of the user's, and nothing in the user's configuration may sign it, stash for it or record
-# its conflicts in the shared rerere cache.
+# A merge needs no identity of the user's, and nothing in the user's configuration may sign it, refuse it for want of
+# signatures, stash for it or record its conflicts in the shared rerere cache. (Hooks: see _Run.no_hooks.)
 _MERGE = ("-c", "user.name=Fog Lab", "-c", "user.email=fog-lab@localhost", "-c", "commit.gpgsign=false",
-          "-c", "merge.autoStash=false", "-c", "rerere.enabled=false")
+          "-c", "merge.verifySignatures=false", "-c", "merge.autoStash=false", "-c", "rerere.enabled=false")
+_NO_HOOKS = "no-hooks"  # an empty folder in the run's temporary folder, given to git as core.hooksPath
 # `git rev-parse --local-env-vars` (git 2.50), the namespace, and where to stop looking for a repository.
 _GIT_LOCATION = frozenset({
     "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_CONFIG", "GIT_CONFIG_PARAMETERS", "GIT_CONFIG_COUNT",
@@ -404,7 +408,8 @@ def _run_folder(path: Path, temp_root: Path) -> Path | None:
 def _remove_stale_worktrees(checkout: Path, on_progress: Callable[[str], None]) -> None:
     """Remove the worktrees an earlier run left registered in the checkout (see the module docstring), however it left
     them: whole, locked by a `git worktree add` it was killed in, or with their folder gone; then prune. The checkout
-    itself, listed first, is never one of them."""
+    itself, listed first, is never one of them. (This runs before the run has its empty hooks folder; git 2.50 runs no
+    hook for `worktree list`, `remove` or `prune`.)"""
     listed = _git(checkout, "worktree", "list", "--porcelain").stdout
     paths = [line[len("worktree "):] for line in listed.splitlines() if line.startswith("worktree ")]
     temp_root = Path(tempfile.gettempdir()).resolve()
@@ -439,14 +444,17 @@ def _fetch(checkout: Path, fetch: bool, on_progress: Callable[[str], None]) -> d
 
 def _clean_up(checkout: Path, temp: Path, worktree: Path) -> None:
     """Remove the run's worktree, then its temporary folder (whatever git could not), then git's record of it. Never
-    raises: anything left (a git that stopped working, a file Windows holds open) goes at the next run's start."""
+    raises: anything left (a git that stopped working, a file Windows holds open) goes at the next run's start. Git
+    2.50 runs no hook for either command; they get the run's empty hooks folder anyway (once the folder has gone, a
+    hooks path with nothing there means no hooks just the same)."""
+    no_hooks = ("-c", f"core.hooksPath={(temp / _NO_HOOKS).as_posix()}")
     try:
-        _git(checkout, "worktree", "remove", "--force", "--force", str(worktree))
+        _git(checkout, *no_hooks, "worktree", "remove", "--force", "--force", str(worktree))
     except RuntimeError:
         pass
     shutil.rmtree(temp, ignore_errors=True)
     try:
-        _git(checkout, "worktree", "prune")
+        _git(checkout, *no_hooks, "worktree", "prune")
     except RuntimeError:
         pass
 
@@ -480,9 +488,17 @@ class _Run:
         self.options = {"torch": torch, "stockfish": stockfish, "device": device}
         self.check_runner, self.progress = check_runner, on_progress
         self.last: tuple[int, str, list[Check], list[CheckResult]] | None = None
+        # No hook of the user's runs for the throwaway work. Measured on git 2.50: `worktree add` runs post-checkout,
+        # post-index-change and reference-transaction; a merge runs prepare-commit-msg and post-merge besides those
+        # (--no-verify skips only pre-merge-commit and commit-msg); `merge --abort` runs post-index-change and
+        # reference-transaction. An empty folder as core.hooksPath (portable, unlike /dev/null) leaves git none to run,
+        # wherever the user keeps theirs: in the repository or in a global core.hooksPath.
+        hooks = temp / _NO_HOOKS
+        hooks.mkdir()
+        self.no_hooks = ("-c", f"core.hooksPath={hooks.as_posix()}")
 
     def in_worktree(self, *args: str) -> _Outcome:
-        return _git(self.worktree, *args, ceiling=self.temp)
+        return _git(self.worktree, *self.no_hooks, *args, ceiling=self.temp)
 
     @staticmethod
     def result(stage: Stage, sha: str | None, merge: str, conflicts=(), checks=()) -> StageResult:
@@ -506,7 +522,7 @@ class _Run:
             what = f"{stage.ref} ({sha[:7]})"
         if index == 0:
             self.progress(f"{stage.label}: checking out {what}")
-            added = _git(self.checkout, "worktree", "add", "--detach", str(self.worktree), sha)
+            added = _git(self.checkout, *self.no_hooks, "worktree", "add", "--detach", str(self.worktree), sha)
             if added.code != 0:
                 why = (f"git worktree add timed out after {_GIT_TIMEOUT} s" if added.timed_out else
                        _tail(added.stderr, 3) or f"git worktree add exited with code {added.code}")
