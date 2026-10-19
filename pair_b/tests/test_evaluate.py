@@ -1,7 +1,8 @@
 """Network 1's scoring helpers (D3): the piece-value baseline read straight from the planes."""
 import chess
 import pytest
-import torch
+
+torch = pytest.importorskip("torch")  # Intel Macs have no torch build: skip this file there
 
 from pairb.data import pack
 from pairb.encode import encode_board

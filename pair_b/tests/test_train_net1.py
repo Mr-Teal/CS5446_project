@@ -6,7 +6,8 @@ import sys
 from pathlib import Path
 
 import pytest
-import torch
+
+torch = pytest.importorskip("torch")  # Intel Macs have no torch build: skip this file there
 
 from pairb.data import read_records, split_of
 from pairb.net1 import Network1
