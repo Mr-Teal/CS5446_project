@@ -1044,6 +1044,37 @@ def test_start_command_wires_its_flags_and_cleans_up_on_ctrl_c(monkeypatch, caps
     assert capsys.readouterr() == ("Fog Lab: http://127.0.0.1:4321  (Ctrl+C to stop)\n", "")
 
 
+# Catches: a relative --stockfish path handed on as it is. The Play tab would find the engine, but the Tests tab's
+# harness and history checks run in a stage's worktree, where the path points nowhere. The scorers and the test runs
+# get the same absolute path.
+def test_start_command_makes_a_relative_stockfish_path_absolute(tmp_path, monkeypatch):
+    (tmp_path / "engines").mkdir()
+    (tmp_path / "engines" / "stockfish-x").write_bytes(b"")
+    monkeypatch.chdir(tmp_path)
+    calls = fake_start(monkeypatch)
+    assert start_command.main(["--port", "0", "--rules", "standin", "--stockfish", "engines/stockfish-x"]) == 0
+    absolute = str(Path.cwd() / "engines" / "stockfish-x")
+    assert (calls[2][4]["stockfish"], calls[3][2].stockfish) == (absolute, absolute)
+
+
+# Catches: a path-like --stockfish value (with a folder separator in it, or naming a file that is there, as Windows
+# finds stockfish.exe in the folder it starts from) left relative, and a bare command name made into a path, which
+# would stop the PATH lookup that finds it.
+def test_which_stockfish_values_are_paths(tmp_path, monkeypatch):
+    (tmp_path / "engines").mkdir()
+    (tmp_path / "engines" / "stockfish-x").write_bytes(b"")
+    (tmp_path / "stockfish.exe").write_bytes(b"")
+    (tmp_path / "a folder").mkdir()
+    monkeypatch.chdir(tmp_path)
+    here, engine = Path.cwd(), start_command.engine_path
+    assert engine(str(Path("engines", "stockfish-x"))) == str(here / "engines" / "stockfish-x")
+    assert engine("engines/not-there-yet") == str(here / "engines" / "not-there-yet")  # a path all the same
+    assert engine("stockfish.exe") == str(here / "stockfish.exe")  # a file that is there
+    assert engine(str(here / "engines" / "stockfish-x")) == str(here / "engines" / "stockfish-x")  # absolute already
+    for name in ("stockfish", "stockfish.exe-elsewhere", "a folder"):  # no file of that name here: the PATH decides
+        assert engine(name) == name
+
+
 # R29. Catches: a Ctrl+C during a test run that leaves its window silent for the seconds the run takes to stop.
 def test_start_command_says_it_is_stopping_a_run(monkeypatch, capsys):
     calls = fake_start(monkeypatch, running=True)
