@@ -9,7 +9,10 @@ same legal moves and the same result.
 - The first update starts from the public start position.
 - After the player's own move, the move is applied to every particle.
 - After a move the player did not see, each particle is replaced by every position one move away.
-- Only the states that show the player exactly the observation are kept, one per standard_fen.
+- Only the states that show the player exactly the observation are kept. Two of them are merged
+  only when they have the same standard_fen and the same positions since the last irreversible
+  move (the positions python-chess's threefold-repetition check counts), so merging never changes
+  what the rules can decide later, a repetition draw included.
 - Cap: if more than n_particles are left, a seeded random sample of n_particles is kept.
 - Rebuild, when none is left (a cap dropped the true position earlier, or the start was wrong):
   up to rebuild_tries times, a previous particle has one to three of the opponent's pieces on
@@ -18,20 +21,28 @@ same legal moves and the same result.
   at random on the squares the player cannot see now. Each stage collects distinct positions that
   fit until it has n_hypotheses of them (n_particles if that is smaller) or its tries run out, so
   that a rebuilt belief is not a single guess. TrackerLost if nothing fits.
-- Output: a Belief of up to n_hypotheses particles, sampled, with uniform weights.
-  population_size is the number of particles while the set is exact (never capped or rebuilt
-  since reset), and None after that.
+- A view that ends the game never raises. If nothing fits it even after a rebuild, the positions
+  one step on that show the player the same squares and pieces are kept (all of them if none does),
+  and the update counts as a rebuild.
+- Output: a Belief of up to n_hypotheses particles, sampled, with uniform weights. Hypotheses that
+  share a FEN get distinct history_ids, a short hash of their positions since the last
+  irreversible move; a FEN that is unique in the belief keeps "". population_size is the number of
+  particles while the set is exact (never capped or rebuilt since reset), and None after that.
 
-Particles keep their move history, because threefold repetition needs it. A rebuilt particle is
-made from a FEN, so its history starts there; the rules start such a state at ply 0, and it is
-given the ply it stands for with dataclasses.replace, which Pair B's StandinState and Teal's
-RuleState both allow. One random.Random, seeded by reset, makes every choice, so the same rules,
-start, seed, observations and own moves always give the same particles and beliefs.
+Particles keep their move history, because threefold repetition needs it. Keeping histories apart
+makes an uncapped set grow with every path the opponent could have walked unseen: in a quiet
+ending with a rook or a king wandering out of view, tens of thousands of particles within a dozen
+plies. A rebuilt particle is made from a FEN, so its history starts there; the rules start such a
+state at ply 0, and it is given the ply it stands for with dataclasses.replace, which Pair B's
+StandinState and Teal's RuleState both allow. One random.Random, seeded by reset, makes every
+choice, so the same rules, start, seed, observations and own moves always give the same particles
+and beliefs.
 """
 import dataclasses
+import hashlib
 import random
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from typing import Any
 
 import chess
@@ -42,6 +53,9 @@ from fow_shared.values import standard_fen
 from .rules import Rules
 
 _BACK_RANKS = (0, 7)  # no pawn may stand on the first or last rank
+# A particle's positions since the last irreversible move, as python-chess's repetition check
+# compares them (Board.epd: the en passant square only when a legal capture exists), sorted.
+Window = tuple[str, ...]
 
 
 class TrackerLost(RuntimeError):
@@ -79,6 +93,7 @@ class ParticleTracker:
         self._rng = rng
         self._particles: list = []
         self._fens: list[str] = []
+        self._windows: list[Window] = []
         self._last: Observation | None = None  # the observation the particles fit
         self.capped = False
         self.rebuilt = False
@@ -96,7 +111,8 @@ class ParticleTracker:
 
         own_move is the player's own move that led to it: None at the start and after a move the
         player did not see. ValueError for a view of the other player or an own move that was not
-        legal; TrackerLost, with the particles left as they were, when no position fits.
+        legal; TrackerLost, with the particles left as they were, when no position fits a view that
+        does not end the game.
         """
         if self._player is None:
             raise RuntimeError("call reset(player, seed) before update")
@@ -105,24 +121,29 @@ class ParticleTracker:
         if self._last is None:
             if own_move is not None:
                 raise ValueError("the first update comes before any move, so own_move must be None")
-            previous, candidates = [], [self._start]
+            previous, candidates = [], [(self._start, ())]
         else:
             if own_move is not None and own_move not in self._last.legal_moves:
                 raise ValueError(f"{own_move!r} was not among {self._player}'s legal moves")
-            previous = self._particles
-            candidates = (child for state in previous for child in self._successors(state, own_move))
-        found = self._consistent(candidates, observation)
+            previous = list(zip(self._particles, self._windows))
+            candidates = (child for state, window in previous for child in self._successors(state, window, own_move))
+        found = self._keep(candidates, lambda view: view == observation)
         rebuilt = not found
         if rebuilt:
-            if not previous:
-                raise TrackerLost(f"the start position does not fit {self._player}'s first view")
-            found = self._rebuild(previous, observation, own_move)
-        fens = list(found)
-        capped = self.n_particles is not None and len(fens) > self.n_particles
+            if previous:
+                found = self._rebuild(previous, observation, own_move)
+            if not found and observation.terminal:
+                found = self._lookalikes(previous, observation, own_move)
+            if not found:
+                raise TrackerLost(f"no position fits {self._player}'s view at ply {observation.ply}" if previous
+                                  else f"the start position does not fit {self._player}'s first view")
+        keys = list(found)
+        capped = self.n_particles is not None and len(keys) > self.n_particles
         if capped:
-            fens = [fens[i] for i in sorted(self._rng.sample(range(len(fens)), self.n_particles))]
-        self._fens = fens
-        self._particles = [found[fen] for fen in fens]
+            keys = [keys[i] for i in sorted(self._rng.sample(range(len(keys)), self.n_particles))]
+        self._particles = [found[key] for key in keys]
+        self._fens = [fen for fen, _ in keys]
+        self._windows = [window for _, window in keys]
         self._last = observation
         self.capped, self.rebuilt = capped, rebuilt
         self.exact = self.exact and not (capped or rebuilt)
@@ -139,29 +160,45 @@ class ParticleTracker:
     def _belief(self, observation: Observation) -> Belief:
         k = min(self.n_hypotheses, len(self._fens))
         picked = sorted(self._rng.sample(range(len(self._fens)), k))
-        return Belief(self._player, observation.ply, tuple(Hypothesis(self._fens[i], 1 / k) for i in picked),
+        shared = Counter(self._fens[i] for i in picked)
+        hypotheses = tuple(Hypothesis(self._fens[i], 1 / k,
+                                      _history_id(self._windows[i]) if shared[self._fens[i]] > 1 else "")
+                           for i in picked)
+        return Belief(self._player, observation.ply, hypotheses,
                       population_size=len(self._fens) if self.exact else None, weighting="uniform")
 
-    def _successors(self, state: Any, own_move: str | None) -> list:
-        """The states one ply after `state`: after the player's own move, or after each move the side
-        to move could have made, when the player did not see it."""
+    def _successors(self, state: Any, window: Window, own_move: str | None) -> list[tuple[Any, Window]]:
+        """The (state, window) pairs one ply after `state`: after the player's own move, or after each
+        move the side to move could have made, when the player did not see it.
+
+        A move python-chess calls irreversible (a capture, a pawn move, a lost castling right, or any
+        move while an en passant capture is open) empties the window; any other move adds the
+        position it leaves, as python-chess's repetition check walks back through them.
+        """
         moves = self.rules.legal_moves(state)
         if own_move is not None:
-            return [self.rules.apply_move(state, own_move)] if own_move in moves else []
-        return [self.rules.apply_move(state, move) for move in moves]
+            moves = (own_move,) if own_move in moves else ()
+        if not moves:
+            return []
+        board = self.rules.board(state)
+        longer = tuple(sorted((*window, board.epd())))
+        return [(self.rules.apply_move(state, move), () if board.is_irreversible(chess.Move.from_uci(move)) else longer)
+                for move in moves]
 
-    def _consistent(self, states: Iterable, observation: Observation,
-                    kept: dict[str, Any] | None = None) -> dict[str, Any]:
-        """The states that would have shown the player exactly `observation`, by standard_fen, added
-        to `kept` if given; the first state met is kept for each FEN, in the order met."""
+    def _keep(self, pairs: Iterable[tuple[Any, Window]], fits: Callable[[Observation], bool],
+              kept: dict[tuple[str, Window], Any] | None = None) -> dict[tuple[str, Window], Any]:
+        """The (state, window) pairs whose view for the player passes `fits`, by (standard_fen, window),
+        added to `kept` if given; the first state met is kept for each key, in the order met."""
         kept = {} if kept is None else kept
-        for state in states:
-            if self.rules.observe(state, self._player) == observation:
-                kept.setdefault(standard_fen(self.rules.board(state)), state)
+        for state, window in pairs:
+            if fits(self.rules.observe(state, self._player)):
+                kept.setdefault((standard_fen(self.rules.board(state)), window), state)
         return kept
 
-    def _rebuild(self, previous: list, observation: Observation, own_move: str | None) -> dict[str, Any]:
-        """Positions that fit `observation` when no particle does, made from `previous` particles.
+    def _rebuild(self, previous: list[tuple[Any, Window]], observation: Observation,
+                 own_move: str | None) -> dict[tuple[str, Window], Any]:
+        """Positions that fit `observation` when no particle does, made from `previous` particles;
+        empty if none is found. A rebuilt position is made from a FEN, so its window starts empty.
 
         Each stage collects distinct positions until it has n_hypotheses of them (n_particles if
         that is smaller) or its rebuild_tries tries run out; the second runs only if the first found
@@ -171,22 +208,35 @@ class ParticleTracker:
         before = self._last
         seen = set(before.visible_squares)
         unseen = [square for square in chess.SQUARES if chess.square_name(square) not in seen]
-        found: dict[str, Any] = {}
+        found: dict[tuple[str, Window], Any] = {}
         for _ in range(self.rebuild_tries):
             if len(found) >= want:
                 break
-            moved = self._move_unseen(self._rng.choice(previous), unseen, before.ply)
+            moved = self._move_unseen(self._rng.choice(previous)[0], unseen, before.ply)
             if moved is not None:
-                self._consistent(self._successors(moved, own_move), observation, found)
+                self._keep(self._successors(moved, (), own_move), lambda view: view == observation, found)
         for _ in range(0 if found else self.rebuild_tries):
             if len(found) >= want:
                 break
-            placed = self._place_unseen(self._rng.choice(previous), observation, own_move)
+            placed = self._place_unseen(self._rng.choice(previous)[0], observation, own_move)
             if placed is not None:
-                self._consistent([placed], observation, found)
-        if not found:
-            raise TrackerLost(f"no position fits {self._player}'s view at ply {observation.ply}")
+                self._keep([(placed, ())], lambda view: view == observation, found)
         return found
+
+    def _lookalikes(self, previous: list[tuple[Any, Window]], observation: Observation,
+                    own_move: str | None) -> dict[tuple[str, Window], Any]:
+        """For a view that ends the game and that nothing fits: the positions one step on that show the
+        player the same squares and pieces, whatever the result and legal moves, or all of them if
+        none does, so that the end of a game never raises. With nothing to step to (the particles had
+        already ended the game), the particles themselves."""
+        if not previous:
+            candidates = [(self._start, ())]
+        else:
+            candidates = [child for state, window in previous for child in self._successors(state, window, own_move)]
+        candidates = candidates or previous
+        shown = (observation.visible_squares, dict(observation.visible_pieces))
+        return (self._keep(candidates, lambda view: (view.visible_squares, dict(view.visible_pieces)) == shown)
+                or self._keep(candidates, lambda view: True))
 
     def _move_unseen(self, state: Any, unseen: list[int], ply: int) -> Any:
         """`state` with one to three of the opponent's pieces on `unseen` squares moved to other empty
@@ -268,6 +318,11 @@ class ParticleTracker:
 
 def _color(player: str) -> chess.Color:
     return chess.WHITE if player == "white" else chess.BLACK
+
+
+def _history_id(window: Window) -> str:
+    """A short, reproducible name for a particle's positions since the last irreversible move."""
+    return hashlib.sha1("\n".join(window).encode("utf-8")).hexdigest()[:16]
 
 
 def _en_passant_square(observation: Observation) -> int | None:

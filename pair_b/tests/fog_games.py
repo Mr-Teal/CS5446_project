@@ -29,3 +29,12 @@ def random_game(rules: Rules, seed: int, plies: int, fen: str | None = None):
         move = rng.choice(moves)
         referee.apply(move)
         yield referee, mover, move, {player: referee.observe(player) for player in ("white", "black")}
+
+
+def scripted_game(rules: Rules, moves, fen: str | None = None):
+    """As random_game, for the given moves from `fen`; ValueError if one of them is not legal."""
+    referee = GameReferee(rules, fen)
+    for move in moves:
+        mover = referee.current_player()
+        referee.apply(move)
+        yield referee, mover, move, {player: referee.observe(player) for player in ("white", "black")}
