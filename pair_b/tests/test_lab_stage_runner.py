@@ -15,6 +15,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from datetime import datetime
 from pathlib import Path
@@ -159,6 +160,24 @@ class FakeRunner:
 
 
 PAIR_B_KEYS = ["imports_b", "pair_b", "imports_a", "shared"]  # what a stage with a pair_b folder gets
+
+
+class StoppableRunner(FakeRunner):
+    """A FakeRunner that takes the stop event the way run_stages hands it to a check runner (cancel=), keeping each one
+    it got in `events`. A check that `hold(check, stage folder)` picks is held until the run is stopped, and then comes
+    back failed, "stopped", as run_check has a stopped check (R29)."""
+
+    def __init__(self, hold=lambda check, root: False, on_call=None):
+        super().__init__(on_call)
+        self.hold, self.events = hold, []
+
+    def __call__(self, check, env, log_path, *, cancel):
+        self.events.append(cancel)
+        result = super().__call__(check, env, log_path)
+        if self.hold(check, self.calls[-1].root):
+            assert cancel.wait(60), "the run was never stopped"
+            return CheckResult(check.key, check.label, "fail", "stopped", {}, str(log_path))
+        return result
 
 
 # ---- the records ----
@@ -568,7 +587,8 @@ def test_the_users_hooks_and_signing_stay_out_of_the_merges(repo, tmp_path, monk
 # Catches: a summary key missing or renamed, a value that cannot be saved as JSON, or a time without its zone.
 def test_the_summary(repo, tmp_path):
     summary = run(repo, ["main", "a"], tmp_path / "run", FakeRunner(), torch=True)
-    assert list(summary) == ["started", "finished", "machine", "fetch", "checkout_sha", "stages", "final"]
+    assert list(summary) == ["started", "finished", "machine", "fetch", "checkout_sha", "stages", "final", "stopped"]
+    assert summary["stopped"] is False
     assert json.loads(json.dumps(summary)) == summary
     started, finished = (datetime.fromisoformat(summary[key]) for key in ("started", "finished"))
     assert started.tzinfo is not None and started <= finished
@@ -681,6 +701,81 @@ def test_a_fog_rules_check_that_cannot_start_is_a_failure(repo, tmp_path):
     assert str(repo.resolve() / "pair_b" / ".venv") in entry["reason"]
 
 
+# ---- stopping a run (R29) ----
+
+# Catches: a stop that waits for the rest of the run, a check started or a stage merged after it, the checks it cut off
+# left out of the card, the final sections run for a stopped run (the fog-rules checks take a while), a summary that
+# does not say it was stopped, and the worktree left behind.
+def test_a_stopped_run_skips_the_rest_and_still_removes_its_worktree(repo, tmp_path):
+    cancel = threading.Event()
+
+    def in_stage_a(check, root):  # held while it runs, and stopped from another thread, as RunManager.close() does
+        if check.key == "pair_b" and (root / "a.txt").exists():
+            threading.Timer(0.2, cancel.set).start()
+            return True
+        return False
+
+    runner = StoppableRunner(hold=in_stage_a)
+    messages = []
+    summary = run(repo, ["main", "a", "c"], tmp_path / "run", runner, cancel=cancel, on_progress=messages.append)
+
+    assert merges(summary) == [("main", "clean"), ("+ a", "clean"), ("+ c", "skipped"), ("+ this checkout", "skipped")]
+    checks = summary["stages"][1]["checks"]
+    assert [(check["key"], check["status"]) for check in checks] == [
+        ("imports_b", "pass"), ("pair_b", "fail"), ("imports_a", "skipped"), ("shared", "skipped")]
+    assert checks[1]["summary"] == "stopped"
+    assert (checks[2]["summary"], checks[2]["counts"], checks[2]["log"]) == ("not run: the run was stopped", {}, None)
+    assert [(call.index, call.check.key) for call in runner.calls] == [
+        *((0, key) for key in PAIR_B_KEYS), (1, "imports_b"), (1, "pair_b")]
+    assert all(event is cancel for event in runner.events)
+    assert summary["final"] is None and summary["stopped"] is True
+    assert messages[-1] == "Stopped"
+    assert not runner.calls[-1].root.parent.exists(), "the worktree and its temporary folder are gone"
+    assert worktrees(repo) == {repo.resolve()}
+
+
+# Catches: a stop noticed only inside a check, so that one coming between two stages still lets the next be merged;
+# and a run whose stop event is never set going any differently from one without, or not handing the event to every
+# check.
+def test_a_stop_between_stages_merges_nothing_more(repo, tmp_path):
+    cancel = threading.Event()
+    runner = StoppableRunner(on_call=lambda check, env, log_path: check.key == "shared" and cancel.set())
+    summary = run(repo, ["main", "a", "c"], tmp_path / "run1", runner, cancel=cancel)
+    assert merges(summary) == [("main", "clean"), ("+ a", "skipped"), ("+ c", "skipped"),
+                               ("+ this checkout", "skipped")]
+    assert [check["status"] for check in summary["stages"][0]["checks"]] == ["pass", "pass", "unavailable",
+                                                                             "unavailable"]
+    assert {call.index for call in runner.calls} == {0}
+    assert summary["final"] is None and summary["stopped"] is True
+    assert worktrees(repo) == {repo.resolve()}
+
+    never = threading.Event()
+    runner = StoppableRunner()
+    summary = run(repo, ["main", "a", "c"], tmp_path / "run2", runner, cancel=never)
+    assert merges(summary) == [("main", "clean"), ("+ a", "clean"), ("+ c", "clean"), ("+ this checkout", "contained")]
+    assert summary["stopped"] is False and summary["final"]["label"] == "+ c"
+    assert len(runner.events) == 12 and all(event is never for event in runner.events)
+
+
+# Catches: a stop during the final sections that waits for the fog-rules checks (each starts Pair B's interpreter on
+# Pair A's positions) or does not say they were stopped. The stage's interpreter is this test environment.
+def test_a_stop_during_the_fog_rules_checks_stops_them(repo, tmp_path):
+    link_venv(repo)
+    cancel = threading.Event()
+
+    def progress(message):
+        if message.startswith("Fog rules:"):
+            cancel.set()
+
+    summary = run(repo, ["main"], tmp_path / "run", StoppableRunner(), cancel=cancel, on_progress=progress)
+    for rules in ("standin", "teal"):
+        entry = summary["final"]["fixtures"][rules]
+        assert (entry["rules"], entry["status"], entry["reason"], entry["cases"]) == (rules, "fail", "stopped", [])
+        assert "stopped" in (tmp_path / "run" / entry["log"]).read_text(encoding="utf-8")
+    assert summary["stopped"] is True
+    assert worktrees(repo) == {repo.resolve()}
+
+
 # ---- run_check ----
 
 def clean_env() -> dict:
@@ -720,6 +815,57 @@ def test_a_timed_out_check_stops_what_it_started(tmp_path):
     assert started.exists(), "the grandchild had started before the timeout"
     time.sleep(2.5)
     assert not survived.exists(), "the grandchild was stopped with the check"
+
+
+# R29. Catches: a stop that leaves the check, or what it started, running (a server's Ctrl+C never reaches them: they
+# are in a process group of their own), one that waits for the timeout instead, and a stopped check reported as anything
+# but failed, "stopped".
+def test_a_stopped_check_dies_with_what_it_started(tmp_path):
+    started, survived, pid_file = tmp_path / "started", tmp_path / "survived", tmp_path / "pid"
+    grandchild = (f"import pathlib, time; pathlib.Path({str(started)!r}).touch(); time.sleep(2.5); "
+                  f"pathlib.Path({str(survived)!r}).touch()")
+    child = ("import os, pathlib, subprocess, sys, time\n"
+             f"pathlib.Path({str(pid_file)!r}).write_text(str(os.getpid()), encoding='utf-8')\n"
+             f"subprocess.Popen([sys.executable, '-c', {grandchild!r}])\n"
+             "time.sleep(120)\n")
+    cancel = threading.Event()
+
+    def stop_once_started():
+        deadline = time.monotonic() + 60
+        while not started.exists() and time.monotonic() < deadline:
+            time.sleep(0.01)
+        cancel.set()
+
+    threading.Thread(target=stop_once_started, daemon=True).start()
+    log_path = tmp_path / "logs" / "0-history.txt"
+    began = time.monotonic()
+    result = run_check(Check("history", "History check", python(child), tmp_path, None), clean_env(), log_path,
+                       timeout=300, cancel=cancel)
+    assert time.monotonic() - began < 60
+    assert (result.status, result.summary, result.counts, result.log) == ("fail", "stopped", {}, str(log_path))
+    assert started.exists(), "the grandchild had started before the stop"
+    assert "stopped" in log_path.read_text(encoding="utf-8")
+    if os.name != "nt":
+        with pytest.raises(ProcessLookupError):
+            os.kill(int(pid_file.read_text(encoding="utf-8")), 0)
+    time.sleep(2.5)
+    assert not survived.exists(), "the grandchild was stopped with the check"
+
+
+# Catches: a check given a stop event that is never set judged differently (its exit code or output lost while the
+# runner looks at the event), or kept past its timeout.
+def test_a_check_whose_stop_never_comes_runs_as_before(tmp_path):
+    never = threading.Event()
+    code = "import sys; print('some output'); sys.stderr.write('it broke\\n'); sys.exit(3)"
+    result = run_check(Check("history", "History check", python(code), tmp_path, None), clean_env(),
+                       tmp_path / "log.txt", cancel=never)
+    assert (result.status, result.summary) == ("fail", "exit code 3: it broke")
+    assert "--- stdout ---\nsome output\n" in (tmp_path / "log.txt").read_text(encoding="utf-8")
+    began = time.monotonic()
+    result = run_check(Check("history", "History check", python("import time; time.sleep(5)"), tmp_path, None),
+                       clean_env(), tmp_path / "log.txt", timeout=0.5, cancel=never)
+    assert time.monotonic() - began < 4
+    assert (result.status, result.summary) == ("fail", "timed out after 0.5 s")
 
 
 # Catches: pytest's counts not read, or the run not done in the check's folder.

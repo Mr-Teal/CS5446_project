@@ -2,16 +2,19 @@
 [--rules auto|teal|standin]
 
 It puts the repository's root on the import path before it chooses the rules, since Teal's adapter (pair_a_prep) lives
-there, then serves on 127.0.0.1 until Ctrl+C and closes the live game on the way out. The line it prints says the port
-it listens on, which is not the one asked for when that was 0.
+there, then serves on 127.0.0.1 until Ctrl+C. The Tests tab's runs merge the stages of pair_b/fog_lab_stages.json in
+this checkout and are saved in pair_b/.fog_lab/runs; they use the same Stockfish and device as the games, and leave out
+the networks where torch is not installed. On the way out it closes the live game and stops a test run that is going.
+The line it prints says the port it listens on, which is not the one asked for when that was 0.
 """
 import argparse
 import re
 import sys
 
 from ..rules import pick_rules
-from .paths import ensure_repo_on_path
-from .scorers import ScorerOptions
+from .paths import ensure_repo_on_path, lab_home
+from .runs import RunManager
+from .scorers import ScorerOptions, torch_available
 from .server import LabApp, make_server
 
 
@@ -38,8 +41,10 @@ def main(argv: list[str] | None = None) -> int:
         rules = pick_rules(args.rules)
     except ValueError as error:
         parser.error(str(error))
+    runs = RunManager(repo, lab_home(repo), repo / "pair_b" / "fog_lab_stages.json", torch=torch_available(),
+                      stockfish=args.stockfish, device=args.device)
     app = LabApp(repo, ScorerOptions(repo / "pair_b" / "checkpoints", stockfish=args.stockfish, device=args.device),
-                 rules)
+                 rules, runs=runs)
     try:
         server = make_server(app, args.port)
     except OSError as error:
@@ -53,7 +58,9 @@ def main(argv: list[str] | None = None) -> int:
         pass
     finally:
         server.server_close()
-        app.close()
+        if runs.status()["running"]:
+            print("Fog Lab: stopping the test run that is going, then leaving", file=sys.stderr, flush=True)
+        app.close()  # the live game, and the test run (it waits a little for the run to be saved)
     return 0
 
 

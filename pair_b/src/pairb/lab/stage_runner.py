@@ -22,6 +22,15 @@ A run (run_stages) goes like this:
 6. However the run ends, the worktree is removed (`git worktree remove`), its temporary folder deleted and git's record
    of it pruned.
 
+A run can be stopped (R29): run_stages and run_check take a `cancel` event, which the server's run manager sets when the
+app closes. Every check and fog-rules run looks at it while its command runs (every _POLL seconds) and, once it is set,
+stops the command with whatever it started, as a timeout does: the check fails with the summary "stopped". run_stages
+looks at it before each stage and each check: from then on, every check it has not begun is "skipped" ("not run: the
+run was stopped"), every stage after is "skipped", and the final sections are left out (None) unless they had begun.
+The worktree is still removed (step 6), and the summary's "stopped" says whether anything was cut short. Git commands
+are never stopped part way, since a git that is killed can leave its locks in the user's repository; each has its own
+timeout.
+
 What a run never touches: the checkout's working tree, index, HEAD, branches and stash. Every merge happens in the
 detached worktree, no branch is created, moved or deleted, and nothing is pushed. (The worktree shares the checkout's
 object store, so a run's merge commits stay there as unreachable objects until git's garbage collection drops them, as
@@ -46,19 +55,20 @@ The run summary, plain JSON data:
      "fetch"                 {"requested", "ok" (None when not requested), "message"}
      "checkout_sha"          the checkout's HEAD commit (None in a checkout with no commits)
      "stages"                [StageResult as JSON, ...], "+ this checkout" last
-     "final"                 None when no stage was built, else
+     "final"                 None when no stage was built (or the run was stopped before the final sections), else
                              {"label"     the last cleanly built stage, whose results these are
                               "fixtures"  {"standin": entry, "teal": entry}
                               "harness"   {scorer id: entry} for that stage's harness checks (empty without pair_b_prep)
-                              "accuracy"  read_accuracy(<stage>/pair_b/checkpoints)}}
+                              "accuracy"  read_accuracy(<stage>/pair_b/checkpoints)}
+     "stopped"               True when the run was stopped (cancel) before it was done, else False}
 
 A fixtures entry is fixture_check.py's own JSON ({"rules", "available", "reason", "cases"}) with "status" ("pass" when
 every position passes, "fail" when one does not, "unavailable" when those rules are not in the stage) and "log" added.
-When the check itself fails (it exits non-zero, cannot start, times out, or prints something that is not its JSON
-object), the entry is {"rules", "available": False, "status": "fail", "reason": the end of its error output, "cases":
-[], "log"} (R21), so the section is never dropped. A harness entry is {"status", "summary", "counts" ({"pass",
-"manual", "fail"}), "checks" and "metadata" (report.json's own), "log"}: an unavailable check has its reason as the
-summary, and one that wrote no report.json has no checks and None metadata.
+When the check itself fails (it exits non-zero, cannot start, times out, is stopped, or prints something that is not
+its JSON object), the entry is {"rules", "available": False, "status": "fail", "reason": the end of its error output
+(or "stopped"), "cases": [], "log"} (R21), so the section is never dropped. A harness entry is {"status", "summary",
+"counts" ({"pass", "manual", "fail"}), "checks" and "metadata" (report.json's own), "log"}: an unavailable check has
+its reason as the summary, and one that wrote no report.json has no checks and None metadata.
 
 Files: logs go to run_dir/logs/<stage index>-<check key>.txt, any character but letters, digits, ".", "_" and "-"
 turned into "-" (the colon of harness:<id> is not allowed in a Windows file name, R26); the fog-rules runs log to
@@ -74,6 +84,7 @@ import shutil
 import signal
 import subprocess
 import tempfile
+import threading
 import time
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import asdict, dataclass, replace
@@ -90,6 +101,9 @@ RULES = ("standin", "teal")
 _FETCH_TIMEOUT = 120  # seconds; GitHub answers in a few
 _GIT_TIMEOUT = 600  # checking out or merging a stage
 _FIXTURE_TIMEOUT = 600
+_POLL = 0.1  # seconds between looks at the stop event while a check's command runs (R29)
+STOPPED = "stopped"  # the summary of a check, and the reason of a fog-rules entry, that the stop cut off
+NOT_RUN = "not run: the run was stopped"  # the summary of a check that a stop kept from starting
 # A merge needs no identity of the user's, and nothing in the user's configuration may sign it, refuse it for want of
 # signatures, stash for it or record its conflicts in the shared rerere cache. (Hooks: see _Run.no_hooks.)
 _MERGE = ("-c", "user.name=Fog Lab", "-c", "user.email=fog-lab@localhost", "-c", "commit.gpgsign=false",
@@ -152,12 +166,15 @@ class _Outcome:
     seconds: float = 0.0
     timed_out: bool = False
     error: OSError | None = None  # why it could not be started
+    stopped: bool = False  # the run was stopped while it ran (R29)
 
 
-def _execute(argv: Sequence[str], cwd: Path | None, env: Mapping[str, str], timeout: float) -> _Outcome:
-    """Run `argv` in `cwd` with exactly `env`, nothing on its stdin, for at most `timeout` seconds. Never raises for
-    the command: one that cannot start comes back with the error, one that runs too long is stopped with what it
-    started. Anything that interrupts the wait (Ctrl+C) stops the command too, and is passed on."""
+def _execute(argv: Sequence[str], cwd: Path | None, env: Mapping[str, str], timeout: float,
+             cancel: threading.Event | None = None) -> _Outcome:
+    """Run `argv` in `cwd` with exactly `env`, nothing on its stdin, for at most `timeout` seconds, or until `cancel`
+    is set (looked at every _POLL seconds). Never raises for the command: one that cannot start comes back with the
+    error, one that runs too long or is stopped is stopped with what it started. Anything that interrupts the wait
+    (Ctrl+C) stops the command too, and is passed on."""
     start = time.monotonic()
     with tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:
         try:
@@ -165,17 +182,33 @@ def _execute(argv: Sequence[str], cwd: Path | None, env: Mapping[str, str], time
                                        stderr=err, **_NEW_GROUP)
         except OSError as error:  # no such interpreter or folder, no permission
             return _Outcome(None, seconds=time.monotonic() - start, error=error)
-        timed_out = False
         try:
-            process.wait(timeout=timeout)
-        except subprocess.TimeoutExpired:
-            timed_out = True
-            _stop(process)
+            ending = _wait(process, timeout, cancel)
         except BaseException:
             _stop(process)
             raise
-        return _Outcome(None if timed_out else process.returncode, _text(out), _text(err), time.monotonic() - start,
-                        timed_out)
+        if ending is not None:
+            _stop(process)
+        return _Outcome(None if ending else process.returncode, _text(out), _text(err), time.monotonic() - start,
+                        timed_out=ending == "timeout", stopped=ending == STOPPED)
+
+
+def _wait(process: subprocess.Popen, timeout: float, cancel: threading.Event | None) -> str | None:
+    """Wait for `process` to end: None when it does, "timeout" when `timeout` seconds pass first, STOPPED when `cancel`
+    is set first (a process started after it was set is stopped at once). Without `cancel` it is one wait; with it,
+    waits of _POLL seconds with a look at the event before each."""
+    deadline = time.monotonic() + timeout
+    while True:
+        if cancel is not None and cancel.is_set() and process.poll() is None:
+            return STOPPED
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return "timeout"
+        try:
+            process.wait(timeout=remaining if cancel is None else min(_POLL, remaining))
+            return None
+        except subprocess.TimeoutExpired:
+            pass
 
 
 def _stop(process: subprocess.Popen) -> None:
@@ -239,6 +272,8 @@ def _write_log(path: Path, argv: Sequence[str], cwd: Path | None, outcome: _Outc
         ending = f"could not start: {_why_not_started(outcome.error, argv, cwd)}"
     elif outcome.timed_out:
         ending = f"timed out after {timeout:g} s, and was stopped with what it started"
+    elif outcome.stopped:
+        ending = f"stopped after {outcome.seconds:.1f} s with what it started, because the run was stopped"
     else:
         ending = f"exit code {outcome.code} after {outcome.seconds:.1f} s"
     lines += [f"--- {ending} ---", f"result: {verdict}"]
@@ -248,15 +283,17 @@ def _write_log(path: Path, argv: Sequence[str], cwd: Path | None, outcome: _Outc
 
 # ---- one check ----
 
-def run_check(check: Check, env: Mapping[str, str], log_path: Path, timeout: float = 1200) -> CheckResult:
+def run_check(check: Check, env: Mapping[str, str], log_path: Path, timeout: float = 1200, *,
+              cancel: threading.Event | None = None) -> CheckResult:
     """Run one check with `env` as its whole environment, save its output to `log_path` and say how it went.
 
     An unavailable check returns at once with its reason: nothing runs, no log, no config file (its argv may be empty).
     Otherwise a harness check's config is first written, as UTF-8 JSON, to the file after `--config` in its argv,
     folders made as needed (R25). Then:
 
-    - a check that cannot start (no interpreter, no folder), times out ("timed out after <n> s"; it is stopped with
-      whatever it started) or exits non-zero fails;
+    - a check that cannot start (no interpreter, no folder), times out ("timed out after <n> s"), is stopped because
+      `cancel` was set while it ran ("stopped", R29; the event is looked at every _POLL seconds) or exits non-zero
+      fails; one that times out or is stopped is stopped with whatever it started;
     - an import check (imports_b, imports_a) also fails unless every module path it printed lies in the stage, its own
       folder or, for imports_b, which runs in the stage's pair_b, the one above (imports_ok decides);
     - pytest's summary and counts come from parse_pytest_summary, and a pytest run that passes without a summary line
@@ -274,7 +311,7 @@ def run_check(check: Check, env: Mapping[str, str], log_path: Path, timeout: flo
         config.parent.mkdir(parents=True, exist_ok=True)
         config.write_text(json.dumps(check.config), encoding="utf-8")
         notes.append(f"config written to {config}: {json.dumps(check.config)}")
-    outcome = _execute(check.argv, check.cwd, env, timeout)
+    outcome = _execute(check.argv, check.cwd, env, timeout, cancel)
     status, summary, counts = _judge(check, outcome, timeout)
     _write_log(log_path, check.argv, check.cwd, outcome, timeout, f"{status} ({summary})", notes)
     return CheckResult(check.key, check.label, status, summary, counts, str(log_path))
@@ -303,6 +340,8 @@ def _judge(check: Check, outcome: _Outcome, timeout: float) -> tuple[str, str, d
         return "fail", f"could not start: {_why_not_started(outcome.error, check.argv, check.cwd)}", {}
     if outcome.timed_out:
         return "fail", f"timed out after {timeout:g} s", {}
+    if outcome.stopped:
+        return "fail", STOPPED, {}
     passed = outcome.code == 0
     status = "pass" if passed else "fail"
     if check.key.startswith("harness:"):
@@ -478,15 +517,18 @@ def _relative(path: Path, root: Path) -> str:
 
 
 class _Run:
-    """One run in progress: where it builds, what it runs the checks with, and the last stage it built cleanly."""
+    """One run in progress: where it builds, what it runs the checks with, the last stage it built cleanly, and whether
+    it has been stopped."""
 
     def __init__(self, checkout: Path, run_dir: Path, temp: Path, *, torch: bool, stockfish: str, device: str | None,
                  check_runner: Callable[[Check, Mapping[str, str], Path], CheckResult],
-                 on_progress: Callable[[str], None]):
+                 on_progress: Callable[[str], None], cancel: threading.Event | None):
         self.checkout, self.run_dir, self.temp, self.worktree = checkout, run_dir, temp, temp / "stage"
         self.envs = find_envs(checkout)
         self.options = {"torch": torch, "stockfish": stockfish, "device": device}
         self.check_runner, self.progress = check_runner, on_progress
+        self.cancel = cancel
+        self.halted = False  # the run was stopped and something was cut short (R29)
         self.last: tuple[int, str, list[Check], list[CheckResult]] | None = None
         # No hook of the user's runs for the throwaway work. Measured on git 2.50: `worktree add` runs post-checkout,
         # post-index-change and reference-transaction; a merge runs prepare-commit-msg and post-merge besides those
@@ -499,6 +541,19 @@ class _Run:
 
     def in_worktree(self, *args: str) -> _Outcome:
         return _git(self.worktree, *self.no_hooks, *args, ceiling=self.temp)
+
+    def stopping(self) -> bool:
+        """Whether the run has been asked to stop. The caller then skips what comes next, so the run is `halted` from
+        the first time this says so (R29)."""
+        if self.cancel is not None and self.cancel.is_set():
+            self.halt()
+        return self.halted
+
+    def halt(self) -> None:
+        """Note that the stop has cut the run short, saying so in the progress the first time."""
+        if not self.halted:
+            self.halted = True
+            self.progress("Stopping: the rest of the run is skipped")
 
     @staticmethod
     def result(stage: Stage, sha: str | None, merge: str, conflicts=(), checks=()) -> StageResult:
@@ -543,15 +598,20 @@ class _Run:
 
     def run_checks(self, index: int, stage: Stage) -> list[CheckResult]:
         """Run the checks of the stage now in the worktree, each with the stage's environment and a log of its own,
-        and remember the stage as the last cleanly built one."""
+        and remember the stage as the last cleanly built one. The check runner gets the stop event as `cancel` when
+        the run has one; once the run is stopping, the checks not begun are "skipped"."""
         head = self.in_worktree("rev-parse", "HEAD").stdout.strip()  # the code under test: the stage's merge commit
         checks = stage_checks(self.worktree, self.envs, self.run_dir / "stages" / str(index), head, **self.options)
         env = _stage_environment(self.worktree)
+        stop = {} if self.cancel is None else {"cancel": self.cancel}
         results = []
         for check in checks:
+            if self.stopping():
+                results.append(CheckResult(check.key, check.label, "skipped", NOT_RUN, {}, None))
+                continue
             self.progress(f"{stage.label}: {check.label}")
             log_path = self.run_dir / "logs" / _log_name(index, check.key)
-            result = self.check_runner(check, dict(env), log_path)
+            result = self.check_runner(check, dict(env), log_path, **stop)
             if result.log is not None:
                 result = replace(result, log=_relative(log_path, self.run_dir))
             results.append(result)
@@ -576,7 +636,9 @@ class _Run:
         against = "our stand-in observe" if rules == "standin" else "Teal's rules adapter"
         self.progress(f"Fog rules: Pair A's positions against {against}")
         argv = (str(self.envs.pair_b_python), str(FIXTURE_CHECK), "--rules", rules)
-        outcome = _execute(argv, self.worktree, env, _FIXTURE_TIMEOUT)
+        outcome = _execute(argv, self.worktree, env, _FIXTURE_TIMEOUT, self.cancel)
+        if outcome.stopped:
+            self.halt()
         entry = _fixtures_entry(rules, outcome, argv, self.worktree)
         cases = entry["cases"]
         failing = sum(1 for case in cases if not isinstance(case, dict) or case.get("errors"))
@@ -600,6 +662,8 @@ def _fixtures_entry(rules: str, outcome: _Outcome, argv: Sequence[str], cwd: Pat
             status = "unavailable" if not report["available"] else "fail" if failing else "pass"
             return {**report, "status": status}
         reason = "it exited 0 but did not print its JSON report"
+    elif outcome.stopped:
+        reason = STOPPED
     elif outcome.error is not None:
         reason = f"could not start: {_why_not_started(outcome.error, argv, cwd)}"
     elif outcome.timed_out:
@@ -625,15 +689,18 @@ def run_stages(checkout: Path, stages: list[Stage], run_dir: Path, *, fetch: boo
                torch: bool, stockfish: str = "stockfish", device: str | None = None,
                check_runner: Callable[[Check, Mapping[str, str], Path], CheckResult] = run_check,
                on_progress: Callable[[str], None] = lambda message: None,
-               on_stage: Callable[[dict], None] = lambda stage: None) -> dict:
+               on_stage: Callable[[dict], None] = lambda stage: None,
+               cancel: threading.Event | None = None) -> dict:
     """Merge `stages` one by one in a throwaway worktree of `checkout`, run each stage's checks there, add
     "+ this checkout", and return the run summary (the module docstring has the steps and the summary's shape).
 
     `run_dir` is this run's folder: logs and harness files go in it (it is made if need be). `fetch` asks for
     `git fetch origin` first. `torch`, `stockfish` and `device` are passed to stage_checks. `check_runner` runs each
     check (`run_check` with its default timeout; tests pass a fake), handed the check, the stage's environment and the
-    log path. `on_progress` gets a line of text at each step, and `on_stage` each finished stage's JSON as soon as the
-    stage is done (R7): the same dict that goes into "stages", which is not changed afterwards.
+    log path, and `cancel=` too when there is one. `on_progress` gets a line of text at each step, and `on_stage` each
+    finished stage's JSON as soon as the stage is done (R7): the same dict that goes into "stages", which is not changed
+    afterwards. `cancel`, once set, stops the run as the module docstring says (R29); it ends "Stopped" instead of
+    "Done".
 
     ValueError when there are no stages; RuntimeError when `checkout` is not a git checkout, git cannot be run, or a
     stage's worktree cannot be made. Whatever is raised, from here or from a callback or the check runner, the
@@ -656,21 +723,21 @@ def run_stages(checkout: Path, stages: list[Stage], run_dir: Path, *, fetch: boo
     temp = Path(tempfile.mkdtemp(prefix="fog-lab-")).resolve()
     try:
         run = _Run(checkout, run_dir, temp, torch=torch, stockfish=stockfish, device=device,
-                   check_runner=check_runner, on_progress=on_progress)
-        stopped = False
+                   check_runner=check_runner, on_progress=on_progress, cancel=cancel)
+        blocked = False  # by a missing ref or a conflict: the stages after it are skipped
         for index, stage in enumerate(planned):
-            if stopped:
+            if blocked or run.stopping():
                 result = run.result(stage, None, "skipped")
             else:
                 result = run.stage(index, stage, head, final=index == len(stages))
-                stopped = result.merge in ("missing-ref", "conflict")
+                blocked = result.merge in ("missing-ref", "conflict")
             reported.append(asdict(result))
             on_stage(reported[-1])
-        final = run.final()
+        final = None if run.stopping() else run.final()
     finally:
         _clean_up(checkout, temp, temp / "stage")
-    on_progress("Done")
+    on_progress("Stopped" if run.halted else "Done")
     return {"started": started, "finished": _now(),
             "machine": {"name": platform.node(), "system": platform.system(), "release": platform.release(),
                         "arch": platform.machine(), "python": platform.python_version(), "torch": torch},
-            "fetch": fetched, "checkout_sha": head, "stages": reported, "final": final}
+            "fetch": fetched, "checkout_sha": head, "stages": reported, "final": final, "stopped": run.halted}

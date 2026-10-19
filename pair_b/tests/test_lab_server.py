@@ -7,6 +7,7 @@ always gets a home under tmp_path, so nothing is written into the checkout, and 
 test needs to count what was opened and closed.
 """
 import dataclasses
+import errno
 import http.client
 import json
 import os
@@ -515,6 +516,49 @@ def test_a_save_that_cannot_write_says_so(lab):
     assert "could not save" in expect_error(lab.send("POST", f"/api/games/{game}/save"), 500)
 
 
+# Ruling R19 (a). Catches: a listing that crashes with no message when the games path cannot be listed (here it is a
+# file).
+def test_the_saved_games_listing_says_when_it_cannot_list(lab):
+    lab.home.mkdir(parents=True)
+    (lab.home / "games").write_text("a file where the folder should be", encoding="utf-8")
+    assert "could not list the saved games" in expect_error(lab.send("GET", "/api/saved"), 500)
+
+
+@pytest.fixture
+def is_file_as_on_python_3_12(monkeypatch):
+    """Path.is_file as Python 3.12 has it: for a name longer than the file system allows (255 bytes here) it raises
+    OSError, where 3.14 says False. So the tests below show the guard on any version."""
+    real = Path.is_file
+
+    def is_file(self, *args, **kwargs):
+        if any(len(part.encode("utf-8")) > 255 for part in self.parts):
+            raise OSError(errno.ENAMETOOLONG, "File name too long", str(self))
+        return real(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "is_file", is_file)
+
+
+# Ruling R19 (a). Catches: a name too long for the file system answered with a 500 (a teammate's Python 3.12 raises
+# for one), for a static file and for a saved game; names of a length the file system can hold but that are refused
+# (or offered by the listing and then refused); and the longest names allowed not being served.
+def test_names_too_long_for_the_file_system_get_messages(lab, static_dir, is_file_as_on_python_3_12):
+    for name in ["a" * 300, "a" * 300 + ".js", "a" * 129]:
+        expect_error(lab.send("GET", f"/static/{name}"), 404)
+    (static_dir / ("b" * 128)).write_text("the longest name", encoding="utf-8")
+    assert lab.send("GET", "/static/" + "b" * 128).text == "the longest name"
+    for name in ["a" * 300 + ".json", "\u00e9" * 200 + ".json"]:
+        assert "name" in expect_error(lab.send("POST", "/api/replays", {"name": name}), 400)
+    # 125 characters but 365 bytes: within the length allowed, and still too long for the file system
+    expect_error(lab.send("POST", "/api/replays", {"name": "\u265f" * 120 + ".json"}), 404)
+    games = lab.home / "games"
+    games.mkdir(parents=True)
+    longest = "c" * 123 + ".json"  # 128 characters, the most a saved game's name may have
+    (games / longest).write_text(json.dumps(lab.get(f"/api/games/{play(lab, 'e2e4')}/record")[1]), encoding="utf-8")
+    (games / ("d" * 200 + ".json")).write_text("{}", encoding="utf-8")  # too long a name to load: not offered
+    assert [row["name"] for row in lab.get("/api/saved")[1]] == [longest]
+    assert lab.post("/api/replays", {"name": longest})[0] == 200
+
+
 # ---- scorers: availability, opening, failing ----
 
 # Catches: an unavailable scorer starting a game, a 400 that does not carry the reason the page lists, and the
@@ -560,6 +604,31 @@ def test_a_new_game_closes_the_old_one(lab, monkeypatch):
     lab.app.close()
     assert [spy.closes for _, spy in opened] == [1, 1, 1, 1]
     assert lab.get(f"/api/games/{second}")[0] == 404
+
+
+# Ruling R19 (b). Catches: a new game that finishes opening its scorers after the app has closed (Ctrl+C while it
+# opens) going live anyway, with its engines left running after the server has stopped; and a game started after close.
+def test_no_game_goes_live_after_close(lab, monkeypatch):
+    entered, release, spies = threading.Event(), threading.Event(), []
+
+    def slow_open(scorer_id, opts):
+        spies.append(Spy())
+        entered.set()
+        release.wait(60)
+        return spies[-1]
+
+    monkeypatch.setattr(server, "open_scorer", slow_open)
+    answers = []
+    opening = threading.Thread(target=lambda: answers.append(lab.send("POST", "/api/games", GAME)))
+    opening.start()
+    assert entered.wait(60)
+    lab.app.close()
+    release.set()
+    opening.join(timeout=120)
+    assert "shutting down" in expect_error(answers[0], 409)
+    assert [spy.closes for spy in spies] == [1, 1]
+    assert "shutting down" in expect_error(lab.send("POST", "/api/games", GAME), 409)
+    assert len(spies) == 2, "nothing is opened after close"
 
 
 # Catches: a refused new game (bad options, an unavailable scorer, a start the rules refuse) ending the game in
@@ -826,6 +895,25 @@ def test_an_unexpected_error_is_a_500_that_keeps_its_details_off_the_page(lab, m
     assert lab.get("/api/config")[0] == 200
 
 
+# Ruling R19 (c). Catches: a ConnectionError raised inside a route (a BrokenPipeError from a pipe to an engine or a
+# check, say) taken for a client that left: the page then gets no answer at all, and the window no trace.
+def test_a_connection_error_inside_a_route_is_a_500(lab, monkeypatch, capsys):
+    def broken(self, request):
+        raise BrokenPipeError(errno.EPIPE, "Broken pipe")
+
+    monkeypatch.setattr(LabApp, "config", broken)
+    assert "internal error" in expect_error(lab.send("GET", "/api/config"), 500)
+    assert "BrokenPipeError" in capsys.readouterr().err
+
+
+# Catches: the Tests tab's routes crashing, or answering as if there were runs, in an app made without a run manager.
+@pytest.mark.parametrize("method, path", [("POST", "/api/tests/run"), ("GET", "/api/tests/status"),
+                                          ("GET", "/api/tests/latest"),
+                                          ("GET", "/api/tests/runs/20261019-120000-000000/logs/0-pair_b.txt")])
+def test_the_test_routes_need_a_run_manager(lab, method, path):
+    assert "test runs" in expect_error(lab.send(method, path, {} if method == "POST" else None), 404)
+
+
 # ---- the start command ----
 
 def first_line(stream, timeout) -> str:
@@ -859,6 +947,11 @@ def test_start_command_prints_its_url_and_serves(tmp_path):
         connection.request("GET", "/")
         assert 'id="app"' in connection.getresponse().read().decode("utf-8")
         connection.close()
+        connection = http.client.HTTPConnection("127.0.0.1", port, timeout=60)
+        connection.request("GET", "/api/tests/status")  # the app has its run manager; nothing is started here
+        response = connection.getresponse()
+        assert response.status == 200 and json.loads(response.read())["running"] is False
+        connection.close()
     finally:
         process.terminate()
         try:
@@ -868,21 +961,33 @@ def test_start_command_prints_its_url_and_serves(tmp_path):
             process.communicate()
 
 
-# Ruling R10, and "closes the session on exit". Catches: the repo root put on the path after the rules are picked
-# (Teal's adapter would never be found), a flag that is dropped, the printed port being the requested one, and a
-# Ctrl+C that leaves the server's socket or the live game open.
-def test_start_command_wires_its_flags_and_cleans_up_on_ctrl_c(monkeypatch, capsys):
+class FakeServer:
+    """make_server's server for the start command's tests: it serves until a Ctrl+C at once."""
+
+    server_address = ("127.0.0.1", 4321)  # not the port that was asked for
+
+    def __init__(self, calls):
+        self.calls = calls
+
+    def serve_forever(self):
+        self.calls.append("serve")
+        raise KeyboardInterrupt
+
+    def server_close(self):
+        self.calls.append("server_close")
+
+
+def fake_start(monkeypatch, running=False) -> list:
+    """Replace what the start command builds with fakes that note, in the list returned, what they were made with and
+    what was done to them. The run manager says `running` when asked."""
     calls = []
 
-    class FakeServer:
-        server_address = ("127.0.0.1", 4321)  # not the port that was asked for
+    class FakeRuns:
+        def __init__(self, checkout, home, stages_file, **options):
+            calls.append(("runs", checkout, home, stages_file, options))
 
-        def serve_forever(self):
-            calls.append("serve")
-            raise KeyboardInterrupt
-
-        def server_close(self):
-            calls.append("server_close")
+        def status(self):
+            return {"running": running}
 
     class FakeApp:
         def __init__(self, repo, scorer_opts, rules, **more):
@@ -893,15 +998,39 @@ def test_start_command_wires_its_flags_and_cleans_up_on_ctrl_c(monkeypatch, caps
 
     monkeypatch.setattr(start_command, "ensure_repo_on_path", lambda: calls.append("on_path") or REPO)
     monkeypatch.setattr(start_command, "pick_rules", lambda choice: calls.append(("rules", choice)) or "RULES")
+    monkeypatch.setattr(start_command, "RunManager", FakeRuns)
     monkeypatch.setattr(start_command, "LabApp", FakeApp)
-    monkeypatch.setattr(start_command, "make_server", lambda app, port: calls.append(("server", port)) or FakeServer())
+    monkeypatch.setattr(start_command, "make_server",
+                        lambda app, port: calls.append(("server", port)) or FakeServer(calls))
+    return calls
+
+
+# Ruling R10, and "closes the session on exit". Catches: the repo root put on the path after the rules are picked
+# (Teal's adapter would never be found), a flag that is dropped, the printed port being the requested one, a Ctrl+C
+# that leaves the server's socket or the live game open, and test runs that are not wired to this checkout, its home,
+# its stages file, the engine and device asked for, and whether torch is here (Task 16; here it is not, as on an Intel
+# Mac, whatever this machine has).
+def test_start_command_wires_its_flags_and_cleans_up_on_ctrl_c(monkeypatch, capsys):
+    calls = fake_start(monkeypatch)
+    monkeypatch.setattr(start_command, "torch_available", lambda: False)
     code = start_command.main(["--port", "0", "--stockfish", "sf", "--device", "cpu", "--rules", "teal"])
     assert code == 0
     options = ScorerOptions(REPO / "pair_b" / "checkpoints", stockfish="sf", device="cpu")
     assert calls[:2] == ["on_path", ("rules", "teal")]
-    assert calls[2] == ("app", REPO, options, "RULES", {})
-    assert calls[3:] == [("server", 0), "serve", "server_close", "app.close"]
-    assert capsys.readouterr().out == "Fog Lab: http://127.0.0.1:4321  (Ctrl+C to stop)\n"
+    assert calls[2] == ("runs", REPO, lab_home(REPO), REPO / "pair_b" / "fog_lab_stages.json",
+                        {"torch": False, "stockfish": "sf", "device": "cpu"})
+    assert calls[3][:4] == ("app", REPO, options, "RULES")
+    assert list(calls[3][4]) == ["runs"] and type(calls[3][4]["runs"]).__name__ == "FakeRuns"
+    assert calls[4:] == [("server", 0), "serve", "server_close", "app.close"]
+    assert capsys.readouterr() == ("Fog Lab: http://127.0.0.1:4321  (Ctrl+C to stop)\n", "")
+
+
+# R29. Catches: a Ctrl+C during a test run that leaves its window silent for the seconds the run takes to stop.
+def test_start_command_says_it_is_stopping_a_run(monkeypatch, capsys):
+    calls = fake_start(monkeypatch, running=True)
+    assert start_command.main(["--port", "0", "--rules", "standin"]) == 0
+    assert calls[-3:] == ["serve", "server_close", "app.close"]
+    assert "stopping the test run" in capsys.readouterr().err
 
 
 # Catches: a stack trace for a mistake in a flag, a port outside 0..65535 reaching the socket, and Teal's adapter

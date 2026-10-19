@@ -1,24 +1,34 @@
-"""Fog Lab's server: a small JSON API over one live game and loaded replays, and the page's files.
+"""Fog Lab's server: a small JSON API over one live game, loaded replays and the test runs, and the page's files.
 
 It is the standard library's ThreadingHTTPServer on 127.0.0.1 only, with no framework. Chess stays on the server: the
-page draws what it is sent and sends clicks. Routes (an error is {"error": message} with 400, 403, 404 or 500):
+page draws what it is sent and sends clicks. Routes (an error is {"error": message} with 400, 403, 404, 409 or 500):
 
     GET  /                          the page, static/index.html
     GET  /static/<name>             a file directly inside static/, else 404
     GET  /api/config                {rules: {name, label}, scorers: [{id, label, available, reason}], default_scorer,
                                     torch, machine}
-    POST /api/games                 GameOptions fields (scorer: default_scorer when absent) -> {id, state}
+    POST /api/games                 GameOptions fields (scorer: default_scorer when absent) -> {id, state}; 409 once
+                                    the app is closing
     GET  /api/games/<id>[?ply=n]    Session.state(n)
     POST /api/games/<id>/move       {move} -> the state after the move and the bot's reply
     GET  /api/games/<id>/record     the record as JSON; 403 for a fair game that is still going
     POST /api/games/<id>/save       writes it to <home>/games/<YYYYMMDD-HHMMSS>-<id>.json -> {name}; 403 likewise
     GET  /api/saved                 [{name, modified}], newest first
     POST /api/replays               a record, or {name} of a saved game -> {id, plies}
-    GET  /api/replays/<id>[?ply=n]  view_state(record, n, reveal=True), plus "error" as a live state has it
+    GET  /api/replays/<id>[?ply=n]  view_state(record, n, reveal=True), plus "error": the failed turn's, at the last ply
+    POST /api/tests/run             {fetch} (true when absent) -> 202 {id}; 409 while a run is going or when closing
+    GET  /api/tests/status          RunManager.status(): {running, id, started, progress, stages, error}
+    GET  /api/tests/latest          the newest saved run's summary (runs.py); 404 when there is none
+    GET  /api/tests/runs/<id>/logs/<name>   that run's log, as text/plain; 404 for anything but a file in its logs/
+
+The test routes are 404 in an app made without a run manager (`runs`).
 
 One game is live at a time: a new game closes the old one. Replays are kept in memory, the newest few. LabApp holds
 both behind one lock that guards only its own fields: it is never held while a Session works, since a bot's turn can
 take long, and a Session holds its own lock for every use. The app calls a Session through its public methods alone.
+Once the app is closed (close(), on the way out), no game goes live: one that was still opening its scorers is closed
+and answered 409 (R19). The test runs are the RunManager's (runs.py): one at a time, in a thread of its own, saved under
+<home>/runs, and stopped when the app closes (R29).
 
 The server decides nothing about what a fair game may show. Session.state() does, and Session.revealed says when the
 record may go out: the record and save routes answer 403 until it is True (Rulings R16 and R17). A replay always
@@ -30,9 +40,11 @@ message, and is listed as unavailable with that message until the server restart
 
 Safety. The server answers only requests addressed to the machine itself (a Host of 127.0.0.1, localhost or ::1) and
 only from a page of its own (an Origin, when the request has one, equal to its Host), so a web page on another site
-cannot use a visitor's browser to start games or write files, nor can DNS rebinding bring one in. A file name from the
-page is checked before any file is read: a static file's against a short list of safe characters, and then resolved;
-a saved game's for folders, drives and NUL. The server writes only into <home>/games, under names it makes itself.
+cannot use a visitor's browser to start games, start runs or write files, nor can DNS rebinding bring one in. A file
+name from the page is checked before any file is read: a static file's against a short list of safe characters, and
+then resolved; a saved game's for folders, drives and NUL; a log's and its run id by the RunManager. Each is at most 128
+characters, so no name is too long for the file system (Python 3.12's Path.is_file raises for one: R19). The server
+writes only into <home>/games, under names it makes itself, and its RunManager only into <home>/runs.
 
 Routes are the entries of ROUTES: a method, a pattern for the path and the name of the LabApp method that answers it.
 """
@@ -43,7 +55,6 @@ import os
 import platform
 import re
 import sys
-import tempfile
 import threading
 import traceback
 import uuid
@@ -55,8 +66,9 @@ from typing import Any
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from ..rules import Rules
-from .paths import lab_home
+from .paths import lab_home, write_atomically
 from .record import GameRecord, view_state
+from .runs import RunBusy, RunManager
 from .scorers import ScorerInfo, ScorerOptions, available_scorers, default_scorer, open_scorer, torch_available
 from .session import GameOptions, Session
 
@@ -79,8 +91,10 @@ CONTENT_TYPES = {
     ".png": "image/png",
     ".ico": "image/x-icon",
 }
-_STATIC_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")  # one name, no folders, no dot files, no drives
+_STATIC_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")  # one name: no folders, dot files or drives, 128 at most
+MAX_SAVED_NAME = 128  # characters in the name of a saved game the page may load
 _PLY = re.compile(r"-?[0-9]{1,9}")  # ASCII digits only: int() also reads others
+_CLOSING = "Fog Lab is shutting down, so no game can start"
 
 
 class ApiError(Exception):
@@ -158,6 +172,10 @@ ROUTES = (
     ("GET", r"/api/saved", "saved"),
     ("POST", r"/api/replays", "new_replay"),
     ("GET", r"/api/replays/(?P<id>[^/]+)", "replay_state"),
+    ("POST", r"/api/tests/run", "start_run"),
+    ("GET", r"/api/tests/status", "run_status"),
+    ("GET", r"/api/tests/latest", "latest_run"),
+    ("GET", r"/api/tests/runs/(?P<id>[^/]+)/logs/(?P<name>[^/]+)", "run_log"),
 )
 _ROUTES = tuple((method, re.compile(pattern), name) for method, pattern, name in ROUTES)
 
@@ -166,28 +184,34 @@ class LabApp:
     """What the server serves: the live game, the loaded replays, the scorers and where games are saved.
 
     `repo` is the team repository's root; `scorer_opts` says where Stockfish and the checkpoints are; `rules` is the
-    rules implementation every game uses; `runs` is the manager of background test runs, for the routes that start and
-    report them, or None; `home` is where games are saved, by default lab_home(repo): tests give a folder of their
-    own, so nothing is written into the checkout. Request methods are called from many threads at once.
+    rules implementation every game uses; `runs` is the RunManager of the background test runs, for the routes that
+    start and report them, or None; `home` is where games are saved, by default lab_home(repo): tests give a folder of
+    their own, so nothing is written into the checkout. Request methods are called from many threads at once.
     """
 
-    def __init__(self, repo: Path, scorer_opts: ScorerOptions, rules: Rules, runs=None, home: Path | None = None):
+    def __init__(self, repo: Path, scorer_opts: ScorerOptions, rules: Rules, runs: RunManager | None = None,
+                 home: Path | None = None):
         self.repo = Path(repo)
         self.scorer_opts = scorer_opts
         self.rules = rules
         self.runs = runs
         self.home = lab_home(self.repo) if home is None else Path(home)
-        self._lock = threading.Lock()  # guards the three fields below, and nothing else
+        self._lock = threading.Lock()  # guards the four fields below, and nothing else
+        self._closed = False  # set by close(): no game goes live after it (R19)
         self._session: Session | None = None
         self._replays: dict[str, GameRecord] = {}  # oldest first
         self._failed: dict[str, str] = {}  # scorer id -> why it failed to open
 
     def close(self) -> None:
-        """Close the live game (its scorers, so no engine is left running). Calling it again does nothing."""
+        """Close the live game (its scorers, so no engine is left running) and stop the test run that is going (R29),
+        waiting a little for it to be saved. No game goes live afterwards. Calling it again does nothing."""
         with self._lock:
+            self._closed = True
             session, self._session = self._session, None
         if session is not None:
             session.close()
+        if self.runs is not None:
+            self.runs.close()
 
     def handle(self, method: str, target: str, body: bytes) -> Reply:
         """The answer to a request: `target` is the request line's path with its query. ApiError for an error."""
@@ -234,7 +258,11 @@ class LabApp:
     def new_game(self, request: Request) -> dict:
         """Start a game and make it the live one, closing the old one. The old game is left alone if the new one
         cannot be started: 400 for options that are wrong, a scorer that is unavailable or will not open, and a start
-        that the rules refuse."""
+        that the rules refuse. 409 once the app is closing, even for a game that was opening its scorers when it
+        closed: that one is closed at once (R19)."""
+        with self._lock:
+            if self._closed:
+                raise ApiError(409, _CLOSING)
         fields = request.read_object()
         if "scorer" not in fields:
             fields = {**fields, "scorer": default_scorer(self._scorers())}
@@ -251,7 +279,12 @@ class LabApp:
         except ValueError as error:
             raise ApiError(400, str(error)) from error
         with self._lock:
-            previous, self._session = self._session, session
+            closed = self._closed
+            if not closed:
+                previous, self._session = self._session, session
+        if closed:  # the app closed while the scorers opened: nobody would close this game
+            session.close()
+            raise ApiError(409, _CLOSING)
         if previous is not None:
             previous.close()
         return {"id": session.id, "state": session.state()}
@@ -282,7 +315,7 @@ class LabApp:
         folder = self.home / "games"
         try:
             folder.mkdir(parents=True, exist_ok=True)
-            _write_atomically(folder / name, json.dumps(record, ensure_ascii=False, indent=1))
+            write_atomically(folder / name, json.dumps(record, ensure_ascii=False, indent=1))
         except OSError as error:
             raise ApiError(500, f"could not save the game: {error}") from error
         return {"name": name}
@@ -323,14 +356,17 @@ class LabApp:
     # ---- saved games and replays ----
 
     def saved(self, request: Request) -> list[dict]:
+        """The saved games the page may load. 500 with the reason when the games folder cannot be listed (R19)."""
         try:
             entries = list((self.home / "games").iterdir())
         except FileNotFoundError:
             return []
+        except OSError as error:  # the games path is a file, or may not be read
+            raise ApiError(500, f"could not list the saved games: {error}") from error
         found = []
         for path in entries:
             with contextlib.suppress(OSError):  # a file that was removed since the listing is not listed
-                if path.suffix == ".json" and path.is_file():
+                if path.suffix == ".json" and _saved_name_ok(path.name) and path.is_file():
                     found.append((path.stat().st_mtime_ns, path.name))
         found.sort(reverse=True)
         return [{"name": name, "modified": _local_time(stamp)} for stamp, name in found]
@@ -368,15 +404,74 @@ class LabApp:
 
     def _saved_json(self, name: Any) -> Any:
         """The JSON in the saved game called `name`, a file directly inside the games folder."""
-        if not isinstance(name, str) or not name or name in (".", "..") or re.search(r"[/\\:\x00]", name):
-            raise ApiError(400, "name must be the name of a saved game, with no folders")
+        if not _saved_name_ok(name):
+            raise ApiError(400, f"name must be the name of a saved game: no folders, {MAX_SAVED_NAME} characters at "
+                                "most")
         path = self.home / "games" / name
-        if not path.is_file():
+        try:
+            found = path.is_file()
+        except OSError:  # Python 3.12 raises for a name the file system cannot hold (too many bytes); 3.14 says False
+            found = False
+        if not found:
             raise ApiError(404, f"there is no saved game called {name}")
         try:
             return json.loads(path.read_text(encoding="utf-8"))
         except (OSError, ValueError, RecursionError) as error:  # ValueError holds bad UTF-8 and bad JSON
             raise ApiError(400, f"{name} could not be read as a saved game") from error
+
+    # ---- test runs (the Tests tab) ----
+
+    def start_run(self, request: Request) -> Reply:
+        """Start a test run: 202 {id}. 400 for a body other than {"fetch": true or false} (fetch is true when absent:
+        the page never sends a ref); 409 while a run is going or when the app is closing."""
+        runs = self._runs()
+        fields = request.read_object()
+        unknown = sorted(set(fields) - {"fetch"})
+        if unknown:
+            raise ApiError(400, f"unknown option: {', '.join(unknown)}")
+        fetch = fields.get("fetch", True)
+        if not isinstance(fetch, bool):
+            raise ApiError(400, "fetch must be true or false")
+        try:
+            run_id = runs.start(fetch)
+        except RunBusy as error:
+            raise ApiError(409, str(error)) from error
+        except OSError as error:  # its folder could not be made
+            raise ApiError(500, f"could not start the test run: {error}") from error
+        return json_reply({"id": run_id}, 202)
+
+    def run_status(self, request: Request) -> dict:
+        return self._runs().status()
+
+    def latest_run(self, request: Request) -> dict:
+        summary = self._runs().latest()
+        if summary is None:
+            raise ApiError(404, "no test run has been saved yet")
+        return summary
+
+    def run_log(self, request: Request) -> Reply:
+        """A log of a run, as text: only a file directly inside that run's logs folder (RunManager.log_path)."""
+        runs = self._runs()
+        try:
+            path = runs.log_path(request.args["id"], request.args["name"])
+            body = path.read_bytes() if path.is_file() else None
+        except (ValueError, OSError):
+            body = None
+        if body is None:
+            raise ApiError(404, "there is no such log")
+        return Reply(body, CONTENT_TYPES[".txt"])
+
+    def _runs(self) -> RunManager:
+        if self.runs is None:
+            raise ApiError(404, "this Fog Lab was started without test runs")
+        return self.runs
+
+
+def _saved_name_ok(name: Any) -> bool:
+    """Whether `name` may be the name of a saved game to load: text of 1 to MAX_SAVED_NAME characters, not "." or
+    "..", with no folder, drive or NUL in it. The listing offers only such names."""
+    return (isinstance(name, str) and 0 < len(name) <= MAX_SAVED_NAME and name not in (".", "..")
+            and not re.search(r"[/\\:\x00]", name))
 
 
 def _state(session: Session, upto: int | None) -> dict:
@@ -399,20 +494,6 @@ def _static_file(name: str) -> Reply:
                 raise ApiError(404, "there is no such file") from None
             return Reply(body, CONTENT_TYPES.get(PurePath(name).suffix.lower(), "application/octet-stream"))
     raise ApiError(404, "there is no such file")
-
-
-def _write_atomically(path: Path, text: str) -> None:
-    """Write `text` to `path` as UTF-8 so that a reader sees the whole file or none: into a temporary file in the same
-    folder (which the games listing skips), then renamed over the name."""
-    handle, temporary = tempfile.mkstemp(dir=path.parent, prefix=".saving-", suffix=".tmp")
-    try:
-        with os.fdopen(handle, "w", encoding="utf-8") as out:
-            out.write(text)
-        os.replace(temporary, path)
-    except BaseException:
-        with contextlib.suppress(OSError):
-            os.unlink(temporary)
-        raise
 
 
 def _local_time(nanoseconds: int) -> str:
@@ -448,17 +529,26 @@ class _Handler(BaseHTTPRequestHandler):
     def _serve(self) -> None:
         try:
             body = self._read_body()  # first, so that a refusal does not leave a body unread on the connection
+        except ConnectionError:
+            raise  # the client left mid-upload: nobody is there to answer, and handle_error says nothing of it
+        except Exception as error:
+            self._send(self._failure(error))
+            return
+        try:
             self._check_origin()
             reply = self.server.app.handle("GET" if self.command == "HEAD" else self.command, self.path, body)
-        except ApiError as error:
-            reply = error_reply(error.status, error.message)
-        except ConnectionError:
-            raise  # the client left: nobody to answer, and handle_error says nothing of it
-        except Exception:
-            print(f"Fog Lab: {self.command} {self.path!r} failed:", file=sys.stderr)
-            traceback.print_exc()
-            reply = error_reply(500, "internal error: the window that started Fog Lab has the details")
+        except Exception as error:  # a ConnectionError from a route too: a failure like any other (R19)
+            reply = self._failure(error)
         self._send(reply)
+
+    def _failure(self, error: Exception) -> Reply:
+        """The answer for an exception: an ApiError's own, or else a 500 whose details (they may hold a position) go
+        to the window that started the app and never to the page."""
+        if isinstance(error, ApiError):
+            return error_reply(error.status, error.message)
+        print(f"Fog Lab: {self.command} {self.path!r} failed:", file=sys.stderr)
+        traceback.print_exception(error)
+        return error_reply(500, "internal error: the window that started Fog Lab has the details")
 
     def _read_body(self) -> bytes:
         length = self.headers.get("Content-Length")
