@@ -34,7 +34,8 @@ makes an uncapped set grow with every path the opponent could have walked unseen
 ending with a rook or a king wandering out of view, tens of thousands of particles within a dozen
 plies. A rebuilt particle is made from a FEN, so its history starts there; the rules start such a
 state at ply 0, and it is given the ply it stands for with dataclasses.replace, which Pair B's
-StandinState and Teal's RuleState both allow. One random.Random, seeded by reset, makes every
+StandinState and Teal's RuleState both allow, and, where the state keeps one (Teal's RuleState), the
+view's capture notice. One random.Random, seeded by reset, makes every
 choice, so the same rules, start, seed, observations and own moves always give the same particles
 and beliefs.
 """
@@ -297,13 +298,18 @@ class ParticleTracker:
             to = self._rng.choice(spots)
             board.set_piece_at(to, piece)
             free.remove(to)
-        return self._state_from(board, observation.ply)
+        return self._state_from(board, observation.ply, observation.captured_own_piece_at)
 
-    def _state_from(self, board: chess.Board, ply: int) -> Any:
+    def _state_from(self, board: chess.Board, ply: int, captured_at: str | None = None) -> Any:
         """A state of the rules for a board changed by hand, at `ply`; None if the rules refuse it.
 
         The rules build it from the FEN, which has no move history, and start it at ply 0, so it is
-        given its ply with dataclasses.replace when its state type has a ply field.
+        given its ply with dataclasses.replace when its state type has a ply field. A FEN has no
+        capture notice either. Where the state type keeps one (Teal's RuleState: captured_player and
+        captured_square), a state that must fit a view is given the view's, `captured_at`, the square
+        where the player lost a piece, or it could never show the player that view. Pair B's
+        StandinState keeps none. (A state that is stepped forward before it is compared, as a first
+        rebuild stage's is, gets its notice from the move.)
         """
         board.castling_rights = board.clean_castling_rights()
         _drop_stale_en_passant(board)
@@ -311,8 +317,13 @@ class ParticleTracker:
             state = self.rules.initial_state(standard_fen(board))
         except ValueError:
             return None
-        if dataclasses.is_dataclass(state) and "ply" in {field.name for field in dataclasses.fields(state)}:
-            state = dataclasses.replace(state, ply=ply)
+        if dataclasses.is_dataclass(state):
+            names = {field.name for field in dataclasses.fields(state)}
+            changes = {"ply": ply} if "ply" in names else {}
+            if captured_at is not None and {"captured_player", "captured_square"} <= names:
+                changes.update(captured_player=self._player, captured_square=captured_at)
+            if changes:
+                state = dataclasses.replace(state, **changes)
         return state
 
 

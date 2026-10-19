@@ -12,7 +12,7 @@ import pytest
 from fog_games import random_game, scripted_game
 from fow_shared.contracts import Belief
 from fow_shared.values import standard_fen
-from pairb.rules import GameReferee, StandinRules
+from pairb.rules import GameReferee, StandinRules, TealRules, teal_available
 from pairb.tracker import ParticleTracker, TrackerLost
 
 COLOURS = ("white", "black")
@@ -30,6 +30,13 @@ REBUILD_SEED = 1  # a game in which a one-particle tracker has to rebuild
 # position comes back a third time at ply 8, a threefold-repetition draw.
 SHUFFLE = "4k3/8/8/8/8/8/8/R6K w - - 0 1"
 SHUFFLE_MOVES = ["a1b1", "e8d8", "b1a1", "d8e8"] * 2
+KNIGHT_TAKES_E2 = "4k3/8/8/8/8/2n5/4P3/4K3 b - - 0 1"  # Nc3xe2 takes the pawn on e2, which White sees
+PAWN_ON_E2 = "4k3/8/8/8/8/8/4P3/4K3 b - - 0 1"  # as KNIGHT_TAKES_E2 to White's eyes, until the knight takes
+# Each rules implementation this checkout has: Teal's adapter only where it can be imported, as in the Tests tab's
+# stages that hold her branch.
+RULES = [pytest.param(StandinRules, id="standin"),
+         pytest.param(TealRules, id="teal", marks=pytest.mark.skipif(
+             not teal_available(), reason="Teal's rules adapter is not in this checkout"))]
 
 
 def tracked(rules, seed, plies, fen=None, moves=None, **options):
@@ -326,6 +333,46 @@ def test_rebuild_falls_back_to_placing_pieces_at_random():
     for fen in tracker.particle_fens():
         board = chess.Board(fen)
         assert board.piece_at(chess.E2) == chess.Piece(chess.KNIGHT, chess.BLACK) and board.king(chess.BLACK) is not None
+
+
+# Spec 4.4: a particle shows the player the same capture notice as the view. Teal's rules give one
+# (captured_own_piece_at), the stand-in's do not. White's tracker was told Black has no knight, so no
+# particle explains Nc3xe2, and only the rebuild's second stage, placing Black's pieces around what the
+# view shows, does. Catches: a rebuilt particle that is made from a FEN without the view's capture
+# notice, which then fits no view that has one: under Teal's rules the tracker lost track (the final
+# review saw it in games capped at 4 and 8 particles).
+@pytest.mark.parametrize("make_rules", RULES)
+def test_a_rebuilt_particle_keeps_the_capture_notice(make_rules):
+    rules = make_rules()
+    referee = GameReferee(rules, KNIGHT_TAKES_E2)
+    tracker = ParticleTracker(rules, initial_fen=PAWN_ON_E2, rebuild_tries=20)
+    tracker.reset("white", 0)
+    tracker.update(referee.observe("white"))
+    referee.apply("c3e2")
+    view = referee.observe("white")
+    assert view.captured_own_piece_at == ("e2" if isinstance(rules, TealRules) else None)
+    belief = tracker.update(view)
+    assert tracker.rebuilt and belief.population_size is None and len(tracker.particles()) == 8
+    assert_consistent(rules, tracker, "white", view)
+    for fen in tracker.particle_fens():
+        assert chess.Board(fen).piece_at(chess.E2) == chess.Piece(chess.KNIGHT, chess.BLACK)
+
+
+# Catches: the same loss in play. Capped at 8 particles with 200 tries per rebuild stage, these seeded
+# random games rebuild often, and under Teal's rules a tracker lost track at a view with a capture notice:
+# Black's at ply 17 (seed 1, notice on h5), White's at ply 22 (seed 4, on f2). The trackers must keep
+# track for 30 plies, with every particle fitting its player's view, under either rules.
+@pytest.mark.parametrize("make_rules", RULES)
+@pytest.mark.parametrize("seed", [1, 4])
+def test_capped_trackers_keep_track_through_rebuilds(make_rules, seed):
+    rules = make_rules()
+    rebuilds = 0
+    for referee, trackers, observations, beliefs in tracked(rules, seed, 30, n_particles=8, n_hypotheses=8,
+                                                            rebuild_tries=200):
+        for player, tracker in trackers.items():
+            assert_consistent(rules, tracker, player, observations[player])
+            rebuilds += tracker.rebuilt
+    assert rebuilds > 0 and referee.ply == 30
 
 
 # Catches: a tracker that carries on without a consistent particle instead of raising TrackerLost, or
