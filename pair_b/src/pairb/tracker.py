@@ -15,8 +15,9 @@ same legal moves and the same result.
   up to rebuild_tries times, a previous particle has one to three of the opponent's pieces on
   squares the player did not see moved to other such squares, and is stepped forward again;
   failing that, up to rebuild_tries times, the opponent's pieces of a previous particle are placed
-  at random on the squares the player cannot see now. The first try that fits ends the rebuild.
-  TrackerLost if nothing fits.
+  at random on the squares the player cannot see now. Each stage collects distinct positions that
+  fit until it has n_hypotheses of them (n_particles if that is smaller) or its tries run out, so
+  that a rebuilt belief is not a single guess. TrackerLost if nothing fits.
 - Output: a Belief of up to n_hypotheses particles, sampled, with uniform weights.
   population_size is the number of particles while the set is exact (never capped or rebuilt
   since reset), and None after that.
@@ -149,33 +150,43 @@ class ParticleTracker:
             return [self.rules.apply_move(state, own_move)] if own_move in moves else []
         return [self.rules.apply_move(state, move) for move in moves]
 
-    def _consistent(self, states: Iterable, observation: Observation) -> dict[str, Any]:
-        """The states that would have shown the player exactly `observation`, by standard_fen; the
-        first state met is kept for each FEN, in the order met."""
-        kept = {}
+    def _consistent(self, states: Iterable, observation: Observation,
+                    kept: dict[str, Any] | None = None) -> dict[str, Any]:
+        """The states that would have shown the player exactly `observation`, by standard_fen, added
+        to `kept` if given; the first state met is kept for each FEN, in the order met."""
+        kept = {} if kept is None else kept
         for state in states:
             if self.rules.observe(state, self._player) == observation:
                 kept.setdefault(standard_fen(self.rules.board(state)), state)
         return kept
 
     def _rebuild(self, previous: list, observation: Observation, own_move: str | None) -> dict[str, Any]:
-        """Positions that fit `observation` when no particle does, made from `previous` particles."""
+        """Positions that fit `observation` when no particle does, made from `previous` particles.
+
+        Each stage collects distinct positions until it has n_hypotheses of them (n_particles if
+        that is smaller) or its rebuild_tries tries run out; the second runs only if the first found
+        none.
+        """
+        want = self.n_hypotheses if self.n_particles is None else min(self.n_hypotheses, self.n_particles)
         before = self._last
         seen = set(before.visible_squares)
         unseen = [square for square in chess.SQUARES if chess.square_name(square) not in seen]
+        found: dict[str, Any] = {}
         for _ in range(self.rebuild_tries):
+            if len(found) >= want:
+                break
             moved = self._move_unseen(self._rng.choice(previous), unseen, before.ply)
             if moved is not None:
-                found = self._consistent(self._successors(moved, own_move), observation)
-                if found:
-                    return found
-        for _ in range(self.rebuild_tries):
+                self._consistent(self._successors(moved, own_move), observation, found)
+        for _ in range(0 if found else self.rebuild_tries):
+            if len(found) >= want:
+                break
             placed = self._place_unseen(self._rng.choice(previous), observation, own_move)
             if placed is not None:
-                found = self._consistent([placed], observation)
-                if found:
-                    return found
-        raise TrackerLost(f"no position fits {self._player}'s view at ply {observation.ply}")
+                self._consistent([placed], observation, found)
+        if not found:
+            raise TrackerLost(f"no position fits {self._player}'s view at ply {observation.ply}")
+        return found
 
     def _move_unseen(self, state: Any, unseen: list[int], ply: int) -> Any:
         """`state` with one to three of the opponent's pieces on `unseen` squares moved to other empty

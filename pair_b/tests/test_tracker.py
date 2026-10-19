@@ -124,6 +124,25 @@ def test_rebuild_keeps_beliefs_consistent():
     assert rebuilds > 0
 
 
+# Catches: a rebuild that stops at its first fit, which can leave the tracker on one wrong particle for
+# the rest of the game; it must collect up to min(n_hypotheses, n_particles) distinct particles.
+# Seed 12: at ply 2, after Black's own d7d5, none of Black's 8 particles fits; the rebuild finds 8.
+def test_a_rebuild_collects_several_particles():
+    rules = StandinRules()
+    for referee, trackers, observations, beliefs in tracked(rules, 12, 40, n_particles=8, n_hypotheses=8):
+        rebuilt = [player for player, tracker in trackers.items() if tracker.rebuilt]
+        if rebuilt:
+            break
+    else:
+        pytest.fail("no update had to rebuild")
+    player = rebuilt[0]
+    tracker, belief = trackers[player], beliefs[player]
+    assert 1 < len(tracker.particles()) <= 8
+    assert_consistent(rules, tracker, player, observations[player])
+    assert isinstance(belief, Belief) and belief.population_size is None  # built, so it passed validation
+    assert len(belief.hypotheses) == len(tracker.particles())
+
+
 # Catches: more guesses than asked for, weights that do not sum to one, guesses that are not
 # particles, or FENs not written with standard_fen, which keeps en passant squares fog rules can use.
 def test_belief_shape():
@@ -173,16 +192,19 @@ def test_the_game_ending_view_is_accepted():
 
 # Catches: a rebuild that cannot explain a game-ending view. Black's tracker is told the rook starts
 # on a2, from where it cannot take the king, so only moving the unseen rook explains the capture.
+# Also: random placement tried although moving pieces found some positions. In 30 tries moving finds
+# fewer than 8; placing at random would then add positions with the rook anywhere (Black sees nothing).
 def test_a_rebuild_can_explain_the_game_ending_view():
     rules = StandinRules()
     referee = GameReferee(rules, KING_CAPTURE)
-    tracker = ParticleTracker(rules, initial_fen="4k3/8/8/8/8/8/R7/4K3 w - - 0 1")
+    tracker = ParticleTracker(rules, initial_fen="4k3/8/8/8/8/8/R7/4K3 w - - 0 1", rebuild_tries=30)
     tracker.reset("black", 0)
     tracker.update(referee.observe("black"))
     referee.apply("e2e8")
     view = referee.observe("black")
     tracker.update(view)
     assert tracker.rebuilt and not tracker.exact
+    assert 1 <= len(tracker.particles()) < 8
     assert_consistent(rules, tracker, "black", view)
     for fen in tracker.particle_fens():
         board = chess.Board(fen)
@@ -191,7 +213,8 @@ def test_a_rebuild_can_explain_the_game_ending_view():
 
 # Catches: a rebuild without its fallback. White's tracker is told Black has only a king, so when a
 # Black knight appears on e2 no moving of unseen pieces explains it; placing pieces around what the
-# view shows does.
+# view shows does. Also: a fallback that stops at its first fit, or collects more than n_hypotheses
+# (8 here, below the cap of 256) distinct positions.
 def test_rebuild_falls_back_to_placing_pieces_at_random():
     rules = StandinRules()
     referee = GameReferee(rules, KNIGHT_ON_C3)
@@ -202,6 +225,7 @@ def test_rebuild_falls_back_to_placing_pieces_at_random():
     view = referee.observe("white")
     belief = tracker.update(view)
     assert tracker.rebuilt and belief.population_size is None
+    assert len(tracker.particles()) == 8
     assert_consistent(rules, tracker, "white", view)
     for fen in tracker.particle_fens():
         board = chess.Board(fen)
