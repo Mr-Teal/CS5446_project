@@ -10,6 +10,7 @@ import dataclasses
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -302,6 +303,19 @@ def test_setup_commands_in_each_platforms_spelling():
     assert "bin/python" not in windows
     assert "repository" in mac and "repository" in windows
     assert pair_a_setup_commands() == pair_a_setup_commands(windows=os.name == "nt")
+
+
+# Catches: a command that cannot be copied out of the setup text whole, such as one with a comma glued to its end
+# (copied as it stood, "python3 -m venv pair_a_prep/.venv," makes a folder called ".venv,"). Each command stands alone
+# between backticks, with a space or the end of the text on either side, and nothing else is in backticks.
+@pytest.mark.parametrize("windows", [False, True], ids=["mac", "windows"])
+def test_each_setup_command_can_be_copied_out_whole(windows):
+    text = pair_a_setup_commands(windows=windows)
+    make, python = ("python", "pair_a_prep/.venv/Scripts/python.exe") if windows else ("python3",
+                                                                                      "pair_a_prep/.venv/bin/python")
+    commands = [f"{make} -m venv pair_a_prep/.venv", f"{python} -m pip install -r pair_a_prep/requirements.txt"]
+    assert re.findall(r"(?:^|(?<=\s))`([^`]+)`(?=\s|$)", text) == commands
+    assert text.count("`") == 2 * len(commands)
 
 
 # ---- which checks a stage gets ----

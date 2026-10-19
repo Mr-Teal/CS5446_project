@@ -169,13 +169,14 @@ def stage_env(stage_dir: Path, base: Mapping[str, str]) -> dict[str, str]:
 def pair_a_setup_commands(windows: bool | None = None) -> str:
     """Pair A's setup commands (pair_a_prep/README.md, "Setup and execution"), in this platform's spelling: the
     interpreter is `.venv/bin/python` here and `.venv/Scripts/python.exe` on Windows, and Windows has `python` where
-    a Mac has `python3`. `windows` None means the machine this runs on."""
+    a Mac has `python3`. Each command stands alone between backticks, with no punctuation attached, so that it can be
+    copied out whole. `windows` None means the machine this runs on."""
     if windows is None:
         windows = os.name == "nt"
     python = venv_python(Path("pair_a_prep"), windows).as_posix()
     make = "python" if windows else "python3"
-    return (f"from the repository root, run {make} -m venv pair_a_prep/.venv, "
-            f"then {python} -m pip install -r pair_a_prep/requirements.txt")
+    return (f"from the repository root, run `{make} -m venv pair_a_prep/.venv` "
+            f"and then `{python} -m pip install -r pair_a_prep/requirements.txt`")
 
 
 def harness_paths(out_dir: Path, scorer_id: str) -> tuple[Path, Path]:
