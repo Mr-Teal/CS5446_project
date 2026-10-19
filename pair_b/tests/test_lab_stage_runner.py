@@ -829,20 +829,24 @@ def test_check_timeout_marks_failure(tmp_path):
     assert "timed out after 0.5 s" in log_path.read_text(encoding="utf-8")
 
 
-# Catches: a timed-out check stopped while what it started (a test's subprocess, an engine) runs on.
+# Catches: a timed-out check stopped while what it started (a test's subprocess, an engine) runs on. Two interpreters
+# must start before the timeout, so it is long enough for a slow Windows laptop. The grandchild notes when it started
+# and would mark that it survived `delay` seconds later: at least 3 s after the timeout, as it started after the check.
 def test_a_timed_out_check_stops_what_it_started(tmp_path):
+    timeout, delay = 10, 13
     started, survived = tmp_path / "started", tmp_path / "survived"
-    grandchild = (f"import pathlib, time; pathlib.Path({str(started)!r}).touch(); time.sleep(2.5); "
-                  f"pathlib.Path({str(survived)!r}).touch()")
+    grandchild = (f"import pathlib, time; pathlib.Path({str(started)!r}).write_text(repr(time.time()), "
+                  f"encoding='utf-8'); time.sleep({delay}); pathlib.Path({str(survived)!r}).touch()")
     child = ("import pathlib, subprocess, sys, time\n"
              f"subprocess.Popen([sys.executable, '-c', {grandchild!r}])\n"
              f"while not pathlib.Path({str(started)!r}).exists():\n    time.sleep(0.01)\n"
-             "time.sleep(60)\n")
+             "time.sleep(120)\n")
     result = run_check(Check("history", "History check", python(child), tmp_path, None), clean_env(),
-                       tmp_path / "log.txt", timeout=1)
-    assert (result.status, result.summary) == ("fail", "timed out after 1 s")
+                       tmp_path / "log.txt", timeout=timeout)
+    assert (result.status, result.summary) == ("fail", f"timed out after {timeout} s")
     assert started.exists(), "the grandchild had started before the timeout"
-    time.sleep(2.5)
+    mark = float(started.read_text(encoding="utf-8")) + delay  # when the grandchild would mark that it survived
+    time.sleep(max(0.0, mark + 1 - time.time()))
     assert not survived.exists(), "the grandchild was stopped with the check"
 
 
