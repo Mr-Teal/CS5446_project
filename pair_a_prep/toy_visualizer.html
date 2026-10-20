@@ -5,6 +5,8 @@
 :root{font-family:system-ui,sans-serif;color:#152640;background:#f2f5fa}body{margin:0;padding:24px;max-width:1500px;margin:auto}h1{margin:0 0 8px;font-size:28px}p{line-height:1.5}header p{color:#526580}section{background:white;border:1px solid #d9e1ed;border-radius:12px;padding:18px;margin:16px 0}button,select{padding:8px 12px;border:1px solid #a9b8ce;border-radius:6px;background:white;color:inherit}button{cursor:pointer}button:hover{background:#edf3ff}label{display:inline-flex;gap:8px;align-items:center;margin:6px 14px 6px 0}input[type=range]{width:min(520px,65vw)}.controls{position:sticky;top:0;z-index:2;box-shadow:0 3px 12px #15264012}.stats{display:flex;gap:25px;flex-wrap:wrap;margin-top:12px}.stats strong{font-size:20px;display:block}.muted{font-size:13px;color:#526580}.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}.scroll{overflow:auto}svg{font-family:system-ui,sans-serif;display:block}.node{cursor:pointer}.node.selected circle{stroke:#f08a16;stroke-width:4}.node text{pointer-events:none}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;border-bottom:1px solid #e0e6ef;padding:9px;vertical-align:top}th{background:#f4f7fb}td:first-child{max-width:320px;overflow-wrap:anywhere}.badge{padding:4px 8px;background:#fff1d7;border-radius:5px}.knowledge{display:flex;gap:10px;flex-wrap:wrap}.root{padding:10px 15px;border:2px solid #3463bd;border-radius:8px}.root.removed{opacity:.5;border-style:dashed}.root.current{background:#deebff}.root small{display:block}#details{min-height:36px;white-space:pre-wrap;font-size:13px}#chart{width:100%;height:auto}.legend{display:flex;gap:20px;flex-wrap:wrap}@media(max-width:800px){body{padding:12px}.split{grid-template-columns:1fr}}
 </style></head><body>
 <header><h1>Toy game solver explorer</h1><p>Actual PCFR+ checkpoints · alternating updates · quadratic own-reach average</p><p><span class="badge">Full tree inspector — not agent input</span> Values are for player 0. These are recorded solver runs, not live chess games.</p></header>
+<section id="loadStatus"><strong>Games not loaded.</strong> Open the generated <a href="results/toy_explorer.html">results/toy_explorer.html</a> in Edge, Chrome or Firefox. This source template has no run data. VS Code and GitHub previews may block JavaScript.</section>
+<noscript><section>JavaScript is required. Open the generated explorer in a browser with JavaScript enabled.</section></noscript>
 <section class="controls"><label>Game <select id="game"></select></label><label>Policy <select id="policy"><option value="last">Last published strategy</option><option value="average">Average strategy</option></select></label><br>
 <button id="play">Play</button> <button id="prev">Previous</button> <button id="next">Next</button>
 <label><input id="frame" type="range" min="0" value="0"><span id="round"></span></label>
@@ -18,7 +20,8 @@
 <script id="report" type="application/json">__REPORT_DATA__</script>
 <script>
 'use strict';
-const data=JSON.parse(document.getElementById('report').textContent),$=id=>document.getElementById(id),NS='http://www.w3.org/2000/svg';
+const raw=document.getElementById('report').textContent.trim(),isTemplate=raw.startsWith('__'),data=isTemplate?{scenarios:[]}:JSON.parse(raw),$=id=>document.getElementById(id),NS='http://www.w3.org/2000/svg';
+if(isTemplate){$('loadStatus').firstElementChild.textContent='This is the source template, not the generated explorer.';document.querySelectorAll('button,select,input').forEach(e=>e.disabled=true);}else{$('loadStatus').hidden=true;}
 let timer=null,selected=null;
 function el(tag,attrs={},text=''){const e=document.createElementNS(NS,tag);for(const [k,v]of Object.entries(attrs))e.setAttribute(k,v);e.textContent=text;return e;}
 function pretty(x){return Math.abs(x)<1e-10?'0':Number(x).toPrecision(5);}
@@ -47,5 +50,5 @@ function draw(){const s=data.scenarios[+$('game').value],index=+$('frame').value
 }
 $('game').onchange=()=>{stop();selected=null;$('details').textContent='Click a node in the tree.';$('frame').value=0;draw();};$('policy').onchange=draw;$('frame').oninput=()=>{stop();draw();};
 function move(d){const s=data.scenarios[+$('game').value];$('frame').value=Math.max(0,Math.min(s.frames.length-1,+$('frame').value+d));draw();}
-$('prev').onclick=()=>{stop();move(-1);};$('next').onclick=()=>{stop();move(1);};$('play').onclick=()=>{if(timer){stop();return;}if(+$('frame').value===+$('frame').max)$('frame').value=0;$('play').textContent='Pause';timer=setInterval(()=>{move(1);if(+$('frame').value===+$('frame').max)stop();},450);};draw();
+$('prev').onclick=()=>{stop();move(-1);};$('next').onclick=()=>{stop();move(1);};$('play').onclick=()=>{if(timer){stop();return;}if(+$('frame').value===+$('frame').max)$('frame').value=0;$('play').textContent='Pause';timer=setInterval(()=>{move(1);if(+$('frame').value===+$('frame').max)stop();},450);};if(data.scenarios.length)draw();
 </script></body></html>

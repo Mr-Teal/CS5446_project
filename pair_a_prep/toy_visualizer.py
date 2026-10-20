@@ -64,7 +64,14 @@ def export(output: Path, rounds=200):
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("x", encoding="utf-8") as stream:
-        stream.write(template.replace("__REPORT_DATA__", payload))
+        page = template.replace('<script id="report" type="application/json">__REPORT_DATA__</script>',
+                                '<script id="report" type="application/json">' + payload + '</script>')
+        # The exporter supports arbitrary output folders, so do not retain the
+        # source template's relative link to results/ inside a generated page.
+        page = page.replace('href="results/toy_explorer.html"', 'href="#"')
+        page = page.replace('This source template has no run data.',
+                            'If this message remains visible, JavaScript did not finish loading.')
+        stream.write(page)
     return report
 
 

@@ -9,6 +9,7 @@ and agent ownership, team settings and delivery dates remain to be agreed.
 
 | Work | File | Contents |
 |---|---|---|
+| Chessboard viewer | [launch instructions](docs/board_viewer.md), [server](board_viewer.py) | Click-to-move chessboard, both fog perspectives, sample games and step-by-step replay using the rules adapter |
 | Pair A interface draft | [interface_draft.py](interface_draft.py), [interface_draft.md](docs/interface_draft.md) | Proposed rules/tracker signatures, private observation fields and update sequence; pending review |
 | Rules adapter and referee | [rules_adapter.py](rules_adapter.py) | History-preserving states, private observations, actual terminal outcomes and shared-protocol referee; see [implementation notes](docs/rules_adapter.md) |
 | Paper implementation specifications | [paper_specs.md](docs/paper_specs.md) | Pinned v2 sources, parameters, section references, implementation checks and open questions |
@@ -24,6 +25,21 @@ and agent ownership, team settings and delivery dates remain to be agreed.
 
 All comments, docstrings and documentation in this directory must be written
 in English so teammates can read and maintain them.
+
+## Open the chessboard viewer
+
+For first-time setup, including fetching the branch and installing dependencies,
+see [the teammate launch guide](docs/board_viewer.md#first-time-setup-for-teammates).
+After setup, run from the repository root:
+
+```powershell
+pair_a_prep/.venv/Scripts/python -m pair_a_prep.board_viewer
+```
+
+Keep the terminal running and open **http://127.0.0.1:8765/** in a browser.
+Each teammate must start the viewer on their own computer; this loopback
+address does not connect to another teammate's server. Open the URL, not the
+HTML asset or a VS Code preview. Ctrl+C stops the server.
 
 ## Setup and execution
 
