@@ -54,10 +54,15 @@ def build_arrays(records) -> dict[str, np.ndarray]:
 
 
 def load_arrays(folder, cache_dir) -> dict[str, np.ndarray]:
-    """build_arrays for a dataset folder, cached outside it (finished datasets are never edited)."""
+    """build_arrays for a dataset folder, cached outside it. The cache key covers the manifest and each
+    part file's name, size and modification time, so part files rewritten under an unchanged manifest
+    are read again."""
     folder = Path(folder)
     manifest = json.loads((folder / "manifest.json").read_text())
-    key = hashlib.sha1(f"{folder.resolve()}|{manifest['created']}|{manifest['records']}|{ENCODING}|{CACHE_VERSION}".encode()).hexdigest()[:12]
+    parts = sorted(folder.glob("part-*.jsonl"))
+    files = "|".join(f"{p.name}:{p.stat().st_size}:{p.stat().st_mtime_ns}" for p in parts)
+    stamp = f"{manifest['created']}|{manifest['records']}|{files}"
+    key = hashlib.sha1(f"{folder.resolve()}|{stamp}|{ENCODING}|{CACHE_VERSION}".encode()).hexdigest()[:12]
     path = Path(cache_dir) / f"{folder.name}-{key}.npz"
     if path.exists():
         with np.load(path) as z:

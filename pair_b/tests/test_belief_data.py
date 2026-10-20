@@ -1,4 +1,6 @@
 """Belief records (fow_shared TrainingRecord) to flat per-board training arrays (D6)."""
+import json
+import os
 import random
 
 import chess
@@ -85,3 +87,35 @@ def test_loading_copes_with_empty_files_missing_manifests_and_other_names(tmp_pa
     (tmp_path / "c").mkdir()
     with _pytest.raises(ValueError, match="no records"):
         load_arrays(tmp_path / "c", tmp_path / "cache", workers=1)
+
+
+def _touch_later(path):
+    """Move a file's modification time on by a second, as a rewrite a moment later would (some file
+    systems keep only whole seconds)."""
+    st = path.stat()
+    os.utime(path, ns=(st.st_atime_ns, st.st_mtime_ns + 1_000_000_000))
+
+
+# Catches: a cache keyed on the manifest alone. A label run whose manifest has no `created`, exported
+# again into the same folder with the same number of records, would load the old arrays.
+def test_loading_rebuilds_when_the_files_change_under_an_unchanged_manifest(tmp_path):
+    from pairb.belief_data import load_arrays
+    first = [practice_record(MIDDLEGAME, 1, "g-000001"), practice_record(BLACK_TO_MOVE, 2, "g-000002")]
+    again = [practice_record(MIDDLEGAME, 3, "g-000003"), practice_record(BLACK_TO_MOVE, 4, "g-000004")]
+    _write(tmp_path / "run", "part-00.jsonl", first)
+    (tmp_path / "run" / "manifest.json").write_text(json.dumps({"records": 2, "config_id": "test"}))
+    assert load_arrays(tmp_path / "run", tmp_path / "cache", workers=1)["game_id"].tolist() == ["g-000001", "g-000002"]
+    _write(tmp_path / "run", "part-00.jsonl", again)
+    _touch_later(tmp_path / "run" / "part-00.jsonl")
+    assert load_arrays(tmp_path / "run", tmp_path / "cache", workers=1)["game_id"].tolist() == ["g-000003", "g-000004"]
+
+
+# Catches: a key that changes between two loads of unchanged files, which would rebuild the arrays on
+# every run.
+def test_loading_reuses_its_cache_while_the_files_are_unchanged(tmp_path, monkeypatch):
+    from pairb.belief_data import load_arrays
+    _write(tmp_path / "run", "part-00.jsonl", [practice_record(MIDDLEGAME, 1, "g-000001")])
+    (tmp_path / "run" / "manifest.json").write_text(json.dumps({"created": "x", "records": 1}))
+    load_arrays(tmp_path / "run", tmp_path / "cache", workers=1)
+    monkeypatch.setattr("pairb.belief_data._part_arrays", lambda path: pytest.fail("rebuilt unchanged files"))
+    assert load_arrays(tmp_path / "run", tmp_path / "cache", workers=1)["game_id"].tolist() == ["g-000001"]

@@ -67,14 +67,15 @@ def _merge(parts: list[dict]) -> dict[str, np.ndarray]:
 
 def load_arrays(folder, cache_dir, workers: int = 8, pattern: str = "part-*.jsonl") -> dict[str, np.ndarray]:
     """build_arrays for a folder of record files (`pattern`), one file per process, cached outside
-    the folder. manifest.json is optional; without it the cache key comes from the files themselves."""
+    the folder. The cache key covers each file's name, size and modification time, plus the
+    manifest's `created` and `records` when there is one (manifest.json is optional), so files
+    rewritten under an unchanged manifest are read again."""
     folder = Path(folder)
     parts = sorted(folder.glob(pattern))
+    stamp = "|".join(f"{p.name}:{p.stat().st_size}:{p.stat().st_mtime_ns}" for p in parts)
     if (folder / "manifest.json").exists():
         manifest = json.loads((folder / "manifest.json").read_text())
-        stamp = f"{manifest.get('created')}|{manifest.get('records')}"
-    else:
-        stamp = "|".join(f"{p.name}:{p.stat().st_size}:{p.stat().st_mtime_ns}" for p in parts)
+        stamp += f"|{manifest.get('created')}|{manifest.get('records')}"
     key = hashlib.sha1(f"{folder.resolve()}|{pattern}|{stamp}|{ENCODING}|{CACHE_VERSION}".encode()).hexdigest()[:12]
     path = Path(cache_dir) / f"{folder.name}-{key}.npz"
     if path.exists():

@@ -1,4 +1,6 @@
-"""Turning D2 records into training arrays, and the split by game (D1 spec §6)."""
+"""Turning D2 records into training arrays, the split by game (D1 spec §6), and the array cache."""
+import json
+import os
 import subprocess
 import sys
 
@@ -6,7 +8,7 @@ import chess
 import numpy as np
 import pytest
 
-from pairb.data import build_arrays, pack, split_of, unpack
+from pairb.data import build_arrays, load_arrays, pack, split_of, unpack
 from pairb.encode import encode_board
 
 WHITE_TO_MOVE = "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3"
@@ -58,3 +60,36 @@ def test_build_arrays_keys_each_row_by_its_game_and_parent():
             record(WHITE_TO_MOVE, "g-000002", 0.2, 0.3, parent_fen="P1")]
     keys = build_arrays(recs)["parent"].tolist()
     assert len(set(keys)) == 3
+
+
+def write_d2(folder, records, manifest):
+    folder.mkdir(exist_ok=True)
+    (folder / "manifest.json").write_text(json.dumps(manifest))
+    (folder / "part-00.jsonl").write_text("".join(json.dumps(r) + "\n" for r in records))
+
+
+def touch_later(path):
+    """Move a file's modification time on by a second, as a rewrite a moment later would (some file
+    systems keep only whole seconds)."""
+    st = path.stat()
+    os.utime(path, ns=(st.st_atime_ns, st.st_mtime_ns + 1_000_000_000))
+
+
+# Catches: a cache keyed on the manifest alone, which hands back the old arrays when the part files
+# are rewritten under an unchanged manifest (a re-export of the same size into the same folder).
+def test_load_arrays_rebuilds_when_a_part_file_changes_under_the_same_manifest(tmp_path):
+    manifest = {"created": "2026-10-20T09:00:00", "records": 1}
+    write_d2(tmp_path / "d2", [record(WHITE_TO_MOVE, "g-000000", 0.2, 0.3)], manifest)
+    assert load_arrays(tmp_path / "d2", tmp_path / "cache")["y"].tolist() == pytest.approx([0.3])
+    write_d2(tmp_path / "d2", [record(WHITE_TO_MOVE, "g-000000", 0.2, 0.7)], manifest)
+    touch_later(tmp_path / "d2" / "part-00.jsonl")
+    assert load_arrays(tmp_path / "d2", tmp_path / "cache")["y"].tolist() == pytest.approx([0.7])
+
+
+# Catches: a key that changes between two loads of unchanged files, which would rebuild the arrays
+# on every run.
+def test_load_arrays_reuses_its_cache_while_the_files_are_unchanged(tmp_path, monkeypatch):
+    write_d2(tmp_path / "d2", [record(WHITE_TO_MOVE, "g-000000", 0.2, 0.3)], {"created": "x", "records": 1})
+    load_arrays(tmp_path / "d2", tmp_path / "cache")
+    monkeypatch.setattr("pairb.data.build_arrays", lambda records: pytest.fail("rebuilt unchanged files"))
+    assert load_arrays(tmp_path / "d2", tmp_path / "cache")["y"].tolist() == pytest.approx([0.3])
