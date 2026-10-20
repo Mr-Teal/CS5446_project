@@ -1,0 +1,549 @@
+{
+  "algorithm": "PCFR+",
+  "schedule": "alternating",
+  "prediction": "previous sequence utility, new own descendants (Appendix F)",
+  "averaging": "quadratic own-reach weighted",
+  "games": {
+    "matching_pennies": {
+      "oracle_value": 0.0,
+      "trace": [
+        {
+          "rounds": 1,
+          "schedule": "alternating",
+          "last": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 10,
+          "schedule": "alternating",
+          "last": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 100,
+          "schedule": "alternating",
+          "last": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 1000,
+          "schedule": "alternating",
+          "last": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 2000,
+          "schedule": "alternating",
+          "last": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          }
+        }
+      ],
+      "last_policy": [
+        {
+          "p0": {
+            "H": 0.5,
+            "T": 0.5
+          }
+        },
+        {
+          "p1_hidden": {
+            "H": 0.5,
+            "T": 0.5
+          }
+        }
+      ],
+      "average_policy": [
+        {
+          "p0": {
+            "H": 0.5,
+            "T": 0.5
+          }
+        },
+        {
+          "p1_hidden": {
+            "H": 0.5,
+            "T": 0.5
+          }
+        }
+      ]
+    },
+    "revealed_pennies": {
+      "oracle_value": -1.0,
+      "trace": [
+        {
+          "rounds": 1,
+          "schedule": "alternating",
+          "last": {
+            "value": -1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": -1.0,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 10,
+          "schedule": "alternating",
+          "last": {
+            "value": -1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": -1.0,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 100,
+          "schedule": "alternating",
+          "last": {
+            "value": -1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": -1.0,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 1000,
+          "schedule": "alternating",
+          "last": {
+            "value": -1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": -1.0,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 2000,
+          "schedule": "alternating",
+          "last": {
+            "value": -1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": -1.0,
+            "nash_gap": 0.0
+          }
+        }
+      ],
+      "last_policy": [
+        {
+          "p0": {
+            "H": 0.5,
+            "T": 0.5
+          }
+        },
+        {
+          "p1_after_H": {
+            "H": 0.0,
+            "T": 1.0
+          },
+          "p1_after_T": {
+            "H": 1.0,
+            "T": 0.0
+          }
+        }
+      ],
+      "average_policy": [
+        {
+          "p0": {
+            "H": 0.5,
+            "T": 0.5
+          }
+        },
+        {
+          "p1_after_H": {
+            "H": 0.0,
+            "T": 1.0
+          },
+          "p1_after_T": {
+            "H": 1.0,
+            "T": 0.0
+          }
+        }
+      ]
+    },
+    "hidden_coin": {
+      "oracle_value": 0.5,
+      "trace": [
+        {
+          "rounds": 1,
+          "schedule": "alternating",
+          "last": {
+            "value": 0.5,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.5,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 10,
+          "schedule": "alternating",
+          "last": {
+            "value": 0.5,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.5,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 100,
+          "schedule": "alternating",
+          "last": {
+            "value": 0.5,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.5,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 1000,
+          "schedule": "alternating",
+          "last": {
+            "value": 0.5,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.5,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 2000,
+          "schedule": "alternating",
+          "last": {
+            "value": 0.5,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.5,
+            "nash_gap": 0.0
+          }
+        }
+      ],
+      "last_policy": [
+        {
+          "guess_hidden": {
+            "H": 1.0,
+            "T": 0.0
+          }
+        },
+        {}
+      ],
+      "average_policy": [
+        {
+          "guess_hidden": {
+            "H": 1.0,
+            "T": 0.0
+          }
+        },
+        {}
+      ]
+    },
+    "revealed_coin": {
+      "oracle_value": 1.0,
+      "trace": [
+        {
+          "rounds": 1,
+          "schedule": "alternating",
+          "last": {
+            "value": 1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 1.0,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 10,
+          "schedule": "alternating",
+          "last": {
+            "value": 1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 1.0,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 100,
+          "schedule": "alternating",
+          "last": {
+            "value": 1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 1.0,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 1000,
+          "schedule": "alternating",
+          "last": {
+            "value": 1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 1.0,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 2000,
+          "schedule": "alternating",
+          "last": {
+            "value": 1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 1.0,
+            "nash_gap": 0.0
+          }
+        }
+      ],
+      "last_policy": [
+        {
+          "guess_H": {
+            "H": 1.0,
+            "T": 0.0
+          },
+          "guess_T": {
+            "H": 0.0,
+            "T": 1.0
+          }
+        },
+        {}
+      ],
+      "average_policy": [
+        {
+          "guess_H": {
+            "H": 1.0,
+            "T": 0.0
+          },
+          "guess_T": {
+            "H": 0.0,
+            "T": 1.0
+          }
+        },
+        {}
+      ]
+    },
+    "kuhn": {
+      "oracle_value": -0.05555555555555558,
+      "trace": [
+        {
+          "rounds": 1,
+          "schedule": "alternating",
+          "last": {
+            "value": -0.3333333333333333,
+            "nash_gap": 0.5
+          },
+          "average": {
+            "value": -0.3333333333333333,
+            "nash_gap": 0.5
+          }
+        },
+        {
+          "rounds": 10,
+          "schedule": "alternating",
+          "last": {
+            "value": -0.0618476908434164,
+            "nash_gap": 0.07890946720370787
+          },
+          "average": {
+            "value": -0.06044396913294667,
+            "nash_gap": 0.03172978148630495
+          }
+        },
+        {
+          "rounds": 100,
+          "schedule": "alternating",
+          "last": {
+            "value": -0.05555555555555619,
+            "nash_gap": 2.5610447262902625e-08
+          },
+          "average": {
+            "value": -0.055560558422837886,
+            "nash_gap": 3.8451778370751644e-05
+          }
+        },
+        {
+          "rounds": 1000,
+          "schedule": "alternating",
+          "last": {
+            "value": -0.055555555555555525,
+            "nash_gap": 2.7755575615628914e-17
+          },
+          "average": {
+            "value": -0.05555556062601438,
+            "nash_gap": 3.897184541745702e-08
+          }
+        },
+        {
+          "rounds": 2000,
+          "schedule": "alternating",
+          "last": {
+            "value": -0.055555555555555525,
+            "nash_gap": 2.7755575615628914e-17
+          },
+          "average": {
+            "value": -0.055555556189837985,
+            "nash_gap": 4.875133408077659e-09
+          }
+        }
+      ],
+      "last_policy": [
+        {
+          "p0:0:start": {
+            "check": 0.7835825429276972,
+            "bet": 0.21641745707230273
+          },
+          "p0:0:check_bet": {
+            "fold": 1.0,
+            "call": 0.0
+          },
+          "p0:1:start": {
+            "check": 1.0,
+            "bet": 0.0
+          },
+          "p0:1:check_bet": {
+            "fold": 0.45024920959436393,
+            "call": 0.549750790405636
+          },
+          "p0:2:start": {
+            "check": 0.35074762878309185,
+            "bet": 0.6492523712169082
+          },
+          "p0:2:check_bet": {
+            "fold": 0.0,
+            "call": 1.0
+          }
+        },
+        {
+          "p1:1:check": {
+            "check": 1.0,
+            "bet": 0.0
+          },
+          "p1:1:bet": {
+            "fold": 0.6666666666666667,
+            "call": 0.33333333333333337
+          },
+          "p1:2:check": {
+            "check": 0.0,
+            "bet": 1.0
+          },
+          "p1:2:bet": {
+            "fold": 0.0,
+            "call": 1.0
+          },
+          "p1:0:check": {
+            "check": 0.6666666666666666,
+            "bet": 0.3333333333333333
+          },
+          "p1:0:bet": {
+            "fold": 1.0,
+            "call": 0.0
+          }
+        }
+      ],
+      "average_policy": [
+        {
+          "p0:0:start": {
+            "check": 0.7835825512453377,
+            "bet": 0.21641744875466232
+          },
+          "p0:0:check_bet": {
+            "fold": 1.0,
+            "call": 0.0
+          },
+          "p0:1:start": {
+            "check": 0.9999999872881725,
+            "bet": 1.2711827425184928e-08
+          },
+          "p0:1:check_bet": {
+            "fold": 0.45024920251233064,
+            "call": 0.5497507974876693
+          },
+          "p0:2:start": {
+            "check": 0.3507476231886805,
+            "bet": 0.6492523768113195
+          },
+          "p0:2:check_bet": {
+            "fold": 0.0,
+            "call": 1.0
+          }
+        },
+        {
+          "p1:1:check": {
+            "check": 0.9999999990632027,
+            "bet": 9.367972849366368e-10
+          },
+          "p1:1:bet": {
+            "fold": 0.6666666647442784,
+            "call": 0.33333333525572173
+          },
+          "p1:2:check": {
+            "check": 1.873594569873274e-10,
+            "bet": 0.9999999998126405
+          },
+          "p1:2:bet": {
+            "fold": 0.0,
+            "call": 1.0
+          },
+          "p1:0:check": {
+            "check": 0.6666666697692908,
+            "bet": 0.33333333023070927
+          },
+          "p1:0:bet": {
+            "fold": 1.0,
+            "call": 0.0
+          }
+        }
+      ]
+    }
+  }
+}

@@ -59,22 +59,24 @@ def test_imperfect_recall_is_rejected():
         PCFRPlus(root)
 
 
-def test_nonuniform_matrix_equilibrium_and_continuation():
+@pytest.mark.parametrize("schedule", ["simultaneous", "alternating"])
+def test_nonuniform_matrix_equilibrium_and_continuation(schedule):
     matrix = [[2, -1], [-2, 3]]
     root = Node(player=0, infoset="row", children={str(i): Node(player=1, infoset="column",
         children={str(j): terminal(matrix[i][j]) for j in range(2)}) for i in range(2)})
-    solver = PCFRPlus(root)
+    solver = PCFRPlus(root, schedule=schedule)
     solver.run(300)
     solver.run(700)
     result = solver.metrics()
     assert result["average"]["nash_gap"] < 0.002
     assert solver.policy(True)[0]["row"]["0"] == pytest.approx(5 / 8, abs=0.002)
-    direct = PCFRPlus(root); direct.run(1000)
+    direct = PCFRPlus(root, schedule=schedule); direct.run(1000)
     assert solver.policy() == direct.policy()
 
 
-def test_kuhn_value_and_gap_against_known_equilibrium():
-    solver = PCFRPlus(kuhn_poker())
+@pytest.mark.parametrize("schedule", ["simultaneous", "alternating"])
+def test_kuhn_value_and_gap_against_known_equilibrium(schedule):
+    solver = PCFRPlus(kuhn_poker(), schedule=schedule)
     solver.run(2000)
     metrics = solver.metrics()
     assert metrics["average"]["value"] == pytest.approx(-1 / 18, abs=0.0001)
@@ -98,3 +100,36 @@ def test_api_order_and_validation():
     assert solver.policy()[0]["p0"]["H"] == 0.5
     with pytest.raises(ValueError):
         solver.run(-1)
+
+
+def test_alternating_feedback_sees_the_new_opponent_policy():
+    matrix = [[2, -1], [-2, 3]]
+    root = Node(player=0, infoset="row", children={str(i): Node(player=1, infoset="column",
+        children={str(j): terminal(matrix[i][j]) for j in range(2)}) for i in range(2)})
+    solver = PCFRPlus(root, schedule="alternating")
+    solver.step()
+    assert list(solver.policy()[0]["row"].values()) == pytest.approx([0.5, 0.5])
+    assert list(solver.policy()[1]["column"].values()) == pytest.approx([1, 0])
+    solver.step()
+    # Row responds to column's pure first action. Column immediately sees the
+    # NEW pure first row: utility [-2, 1], not its stale [-0, -1] vector.
+    assert list(solver.policy()[0]["row"].values()) == pytest.approx([1, 0])
+    assert solver.minimizers[1]["column"].previous_utility == pytest.approx([-2, 1])
+    assert list(solver.policy()[1]["column"].values()) == pytest.approx([1 / 13, 12 / 13])
+    assert all(m._pending for player in solver.minimizers for m in player.values())
+
+
+@pytest.mark.parametrize("factory, expected", [
+    (matching_pennies, 0.0), (lambda: matching_pennies(True), -1.0),
+    (hidden_coin, 0.5), (lambda: hidden_coin(True), 1.0)])
+def test_alternating_chance_and_hidden_information(factory, expected):
+    solver = PCFRPlus(factory(), schedule="alternating")
+    solver.run(100)
+    metrics = solver.metrics()
+    assert metrics["last"]["value"] == pytest.approx(expected, abs=1e-5)
+    assert metrics["average"]["nash_gap"] < 1e-5
+
+
+def test_schedule_validation():
+    with pytest.raises(ValueError, match="schedule"):
+        PCFRPlus(matching_pennies(), schedule="unknown")

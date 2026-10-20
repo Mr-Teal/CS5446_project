@@ -25,11 +25,21 @@ Opponent and chance reach weight utilities; own reach does not. All occurrences
 of an information set are summed before its regret update. The diagnostic
 average uses own-reach weighting and round weights `t**2`.
 
-Scheduling choice: both players produce strategies before either receives
-feedback in a round (simultaneous updates). This differs from the alternating
-experimental setup in the source paper and is not claimed to reproduce
-Obscuro's update schedule. Setting `predictive=False` supplies zero predictions
-as a CFR+ control with the same schedule and averaging.
+Two explicit schedules are available. The default remains `simultaneous` for
+compatibility with the original report: both players produce strategies before
+either receives feedback. `alternating` initializes both held strategies, then
+feeds back player 0's held strategy and publishes its successor, then feeds back
+player 1 against that NEW player-0 strategy and publishes player 1's successor.
+This implements alternating updates; exact growing-tree Obscuro integration is
+still separate. Setting `predictive=False` supplies zero predictions as a CFR+
+control with the chosen schedule and averaging.
+
+One round contains one feedback update per player. In alternating mode the
+returned last profile is the newly published profile, ready for the next
+feedback. The initial uniform profile is not averaged: after each complete round
+we average the two published policies with weight `t**2` and their own reaches.
+In simultaneous mode the last profile remains the one used in that round.
+Reports name their schedule, so iteration counts and policy timing are explicit.
 
 ## API
 
@@ -37,7 +47,7 @@ as a CFR+ control with the same schedule and averaging.
 from pair_a_prep.pcfr import PCFRPlus
 from pair_a_prep.toy_games import kuhn_poker
 
-solver = PCFRPlus(kuhn_poker())
+solver = PCFRPlus(kuhn_poker(), schedule="alternating")
 solver.run(2000)                    # additional complete rounds
 last = solver.policy()             # detached per-player infoset dictionaries
 average = solver.policy(average=True)
@@ -61,6 +71,7 @@ also limited to small games. No seed is needed: there is no sampling.
 ```powershell
 python -m pytest -q pair_a_prep/tests/test_pcfr.py
 python -m pair_a_prep.pcfr --rounds 2000 --output pair_a_prep/results/pcfr_new.json
+python -m pair_a_prep.pcfr --schedule alternating --rounds 2000 --output pair_a_prep/results/pcfr_alt_new.json
 ```
 
 The report includes checkpoint metrics, final policies, LP reference values,
@@ -76,6 +87,6 @@ nonuniform matrix equilibrium, deterministic continuation and Kuhn poker.
 
 ## Next integration steps
 
-Before integrating chess, implement/test the intended alternating update order,
-gadget values, KLUSS information sets, one-sided tree expansion, persistence,
+Before integrating chess, implement/test gadget values, KLUSS information sets,
+one-sided tree expansion, persistence,
 and purification separately. The report does not validate any of those parts.

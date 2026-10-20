@@ -58,14 +58,19 @@ class PredictiveRMPlus:
 
 
 class PCFRPlus:
-    """Simultaneous full-tree CFR with one PRM+ minimizer per information set.
+    """Full-tree CFR with one PRM+ minimizer per information set.
 
-    Each round produces both strategies before observing either utility vector.
+    Simultaneous rounds produce both strategies before observing either utility
+    vector. Alternating rounds feed back and publish player 0, then player 1.
     The tree must remain fixed after construction. No sampling,
     pruning, dynamic growth or chess-specific subgame gadgets are implemented.
     """
 
-    def __init__(self, root: Node, predictive: bool = True, averaging_power: int = 2):
+    def __init__(self, root: Node, predictive: bool = True, averaging_power: int = 2,
+                 schedule: str = "simultaneous"):
+        if schedule not in ("simultaneous", "alternating"):
+            raise ValueError("schedule must be simultaneous or alternating")
+        self.schedule = schedule
         if averaging_power not in (0, 1, 2):
             raise ValueError("averaging_power must be 0, 1 or 2")
         self.root = root
@@ -141,23 +146,39 @@ class PCFRPlus:
 
         visit(self.root, 1.0)
 
+    def _prepare(self, player) -> None:
+        # Appendix F: predict sequence-form utility using the previous
+        # opponent strategy, then propagate through NEW own descendants.
+        # Reusing the old local counterfactual vector misses this dependency.
+        previous = self._previous_opponent[player]
+        for key in self._order[player]:
+            minimizer = self.minimizers[player][key]
+            prediction = (np.zeros_like(minimizer.regrets) if previous is None
+                          else self._utilities(player, previous)[key])
+            self._strategy[player][key] = minimizer.next_strategy(prediction)
+
+    def _observe(self, player) -> None:
+        utilities = self._utilities(player)
+        for key, minimizer in self.minimizers[player].items():
+            minimizer.observe(utilities[key])
+        self._previous_opponent[player] = {
+            key: value.copy() for key, value in self._strategy[1 - player].items()}
+
     def step(self) -> None:
-        for player in (0, 1):
-            # Appendix F: predict sequence-form utility using the previous
-            # opponent strategy, then propagate through NEW own descendants.
-            # Reusing the old local counterfactual vector misses this dependency.
-            previous = self._previous_opponent[player]
-            for key in self._order[player]:
-                minimizer = self.minimizers[player][key]
-                prediction = (np.zeros_like(minimizer.regrets) if previous is None
-                              else self._utilities(player, previous)[key])
-                self._strategy[player][key] = minimizer.next_strategy(prediction)
-        for player in (0, 1):
-            utilities = self._utilities(player)
-            for key, minimizer in self.minimizers[player].items():
-                minimizer.observe(utilities[key])
-            self._previous_opponent[player] = {
-                key: value.copy() for key, value in self._strategy[1 - player].items()}
+        if self.schedule == "simultaneous":
+            for player in (0, 1):
+                self._prepare(player)
+            for player in (0, 1):
+                self._observe(player)
+        else:
+            if self.rounds == 0:
+                for player in (0, 1):
+                    self._prepare(player)
+            # Feed back the held policy, then immediately publish its successor.
+            # Player 1 observes the NEW player-0 policy in this same round.
+            for player in (0, 1):
+                self._observe(player)
+                self._prepare(player)
         self.rounds += 1
         for player in (0, 1):
             self._accumulate_average(player, self.rounds ** self.averaging_power)
@@ -173,7 +194,8 @@ class PCFRPlus:
         """Detached behavioral strategies in the toy oracle's input format.
 
         Before averaging has positive reach, use the current local strategy.
-        The last policy is the one actually used, not an extra predictive step.
+        Simultaneous mode returns the profile used in the last round. Alternating
+        mode returns the latest published profile, ready for the next feedback.
         """
         policies = []
         for player in (0, 1):
@@ -186,7 +208,7 @@ class PCFRPlus:
         return tuple(policies)
 
     def metrics(self) -> dict:
-        report = {"rounds": self.rounds}
+        report = {"rounds": self.rounds, "schedule": self.schedule}
         for name, average in (("last", False), ("average", True)):
             policy = self.policy(average)
             report[name] = {"value": behavioral_value(self.root, policy),
@@ -198,16 +220,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--rounds", type=int, default=2000)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--schedule", choices=("simultaneous", "alternating"), default="simultaneous")
     args = parser.parse_args()
     if args.rounds < 1:
         parser.error("rounds must be positive")
     games = {"matching_pennies": matching_pennies(), "revealed_pennies": matching_pennies(True),
              "hidden_coin": hidden_coin(), "revealed_coin": hidden_coin(True), "kuhn": kuhn_poker()}
-    report = {"algorithm": "PCFR+", "schedule": "simultaneous full-tree",
+    report = {"algorithm": "PCFR+", "schedule": args.schedule,
               "prediction": "previous sequence utility, new own descendants (Appendix F)",
               "averaging": "quadratic own-reach weighted", "games": {}}
     for name, root in games.items():
-        solver = PCFRPlus(root)
+        solver = PCFRPlus(root, schedule=args.schedule)
         checkpoints = sorted({min(n, args.rounds) for n in (1, 10, 100, 1000, args.rounds)})
         trace = []
         for checkpoint in checkpoints:
