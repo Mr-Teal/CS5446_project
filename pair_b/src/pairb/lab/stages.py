@@ -37,8 +37,8 @@ and, where it has pair_a_prep/rules_adapter.py (Teal's):
     observe_vs_teal  our observe against Teal's adapter
 
 A stage may lack what a check needs, and then the check is "unavailable", not failed, because it would only fail on the
-missing file. origin/main has no pair_b folder (Pair B's code arrives with PR #4), so the checks that run in pair_b
-(imports_b, pair_b, observe_vs_teal) cannot start there. And Bryan's harness reaches the belief network through our own
+missing file. A stage without a pair_b folder (as main was before PR #4) cannot start the checks that run in pair_b
+(imports_b, pair_b, observe_vs_teal). And Bryan's harness reaches the belief network through our own
 adapter, pairb/harness_adapter.py, which this build adds: a stage without that file (every stage before one that holds
 this build's code) cannot run it.
 
@@ -235,17 +235,17 @@ def stage_checks(stage_dir: Path, envs: Envs, out_dir: Path, sha: str, *, torch:
     """The checks for the stage built in `stage_dir`, in the order they run (see the module docstring for what each
     is). `sha` is the stage's head commit, `out_dir` is where the runner keeps this stage's harness files, `torch` says
     whether this machine has torch, `stockfish` is the engine (a command on the PATH, or a path) and `device` is for
-    the networks (None lets them pick). The commands are those of the 18 Oct staged run (fog-lab-reference/
-    ci_stages2.sh), as argument lists.
+    the networks (None lets them pick). The commands are those of the 18 Oct staged run, as
+    argument lists.
 
     What the stage holds decides which checks it gets: Bryan's checks where `pair_b_prep/` is a folder, and the
     observe test where `pair_a_prep/rules_adapter.py` is a file. What is missing makes a check unavailable and never
     failed: Pair A's environment (imports_a and shared), torch (the two networks' harness checks), and what a stage
-    may not have yet: Pair B itself (origin/main has no pair_b folder, so imports_b, pair_b and observe_vs_teal, which
-    run in it, cannot start), and, in a stage that does not hold this build's code, our belief-network adapter (that
-    scorer's harness check). This looks at the stage's folders and writes nothing."""
+    may not have yet: Pair B itself (without a pair_b folder, as main was before PR #4, imports_b, pair_b and
+    observe_vs_teal, which run in it, cannot start), and, in a stage that does not hold this build's code, our
+    belief-network adapter (that scorer's harness check). This looks at the stage's folders and writes nothing."""
     stage, pair_b_dir = Path(stage_dir), Path(stage_dir) / "pair_b"
-    no_pair_b = None if pair_b_dir.is_dir() else _NO_PAIR_B  # origin/main has no pair_b folder: it comes with PR #4
+    no_pair_b = None if pair_b_dir.is_dir() else _NO_PAIR_B  # no pair_b folder, as in main before PR #4
     python_b = str(envs.pair_b_python)
     python_a = None if envs.pair_a_python is None else str(envs.pair_a_python)
     no_pair_a = None if python_a is not None else f"Pair A's environment not set up here: {pair_a_setup_commands()}"

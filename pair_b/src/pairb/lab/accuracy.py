@@ -31,7 +31,7 @@ in "missing", in the order of the tables above, and "why_missing" says why in a 
 Nothing here raises for a bad file. Dates and counts are only "where present": a file without them still gives its
 table.
 
-The headings, labels and marked rows are those of the mockup Colin approved (fog-lab-mockups/tests.html).
+The headings, labels and marked rows are those of the Tests-tab mockup Colin approved.
 """
 import json
 import math

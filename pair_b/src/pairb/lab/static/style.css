@@ -1,5 +1,5 @@
 /* Fog Lab's page. It works offline: the system's own fonts, and nothing loaded from anywhere else.
-   Boards and the panels follow the approved mockups (docs/superpowers/specs/fog-lab-mockups/). */
+   Boards and the panels follow the approved mockups. */
 
 :root {
   color-scheme: light dark;
@@ -224,7 +224,7 @@ table.u .pc { font-size: 1.1em; color: inherit; }
 .heat td.best { box-shadow: inset 0 0 0 2px #1f9d4a; font-weight: 700; }
 .health { color: var(--text); }
 
-/* ---- the Tests tab (tests.js), after the approved mockup fog-lab-mockups/tests.html ---- */
+/* ---- the Tests tab (tests.js), after the approved mockup ---- */
 .run-bar { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; padding: 2px 0 10px; }
 .run-bar .meta { font-size: 0.8rem; }
 .run-bar .check { display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; }

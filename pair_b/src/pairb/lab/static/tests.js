@@ -1,5 +1,4 @@
-// Fog Lab's Tests tab: the latest test run, drawn as in the approved mockup (docs/superpowers/specs/fog-lab-mockups/
-// tests.html, spec section 5), and "Run again".
+// Fog Lab's Tests tab: the latest test run, drawn as in the approved mockup, and "Run again".
 //
 // The page does no testing and no chess. The server runs the stages (pairb.lab.stage_runner, in the background through
 // runs.py) and the page draws what it answers, by relative URLs only:

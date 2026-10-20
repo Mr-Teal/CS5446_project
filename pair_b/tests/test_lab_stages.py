@@ -3,8 +3,8 @@
 Nothing here calls git, and stage_checks only describes what to run, so the tests look at the argument lists, working
 folders, environments, config data and "unavailable" reasons it gives. That is why paths with spaces and Windows-style
 paths can be tested on any machine: the interpreters in these tests are made-up paths that nothing runs (one test runs
-the import check for real, in this interpreter), and every expectation is a literal, copied from the 18 Oct staged run
-(fog-lab-reference/ci_stages2.sh), from Bryan's harness, or from the design (spec 5.1).
+the import check for real, in this interpreter), and every expectation is a literal, copied from the 18 Oct staged run,
+from Bryan's harness, or from the design.
 """
 import dataclasses
 import importlib.util
@@ -50,9 +50,9 @@ def write_stages(tmp_path, document) -> Path:
 
 
 def make_stage(tmp_path, *, bryan=False, teal=False, adapter=True, pair_b=True) -> Path:
-    """A stage folder holding what decides the checks: Pair B's folder (origin/main has none), Bryan's folder, Teal's
-    rules adapter, and our belief-network adapter for his harness, which a stage has once this build's code is in it
-    (the stages before that do not)."""
+    """A stage folder holding what decides the checks: Pair B's folder (main had none before PR #4), Bryan's folder,
+    Teal's rules adapter, and our belief-network adapter for his harness, which a stage has once this build's code is
+    in it (the stages before that do not)."""
     stage = tmp_path / "stage"
     stage.mkdir(parents=True)
     if pair_b:
@@ -455,7 +455,7 @@ def test_networks_available_with_torch(tmp_path):
 
 
 # Catches: Pair B's checks being run, and ending in "No such file or directory" for their working folder, at the first
-# stage, origin/main, which has no pair_b folder at all (Pair B's code arrives with PR #4). Its card in the mockup shows
+# stage, as main was before PR #4, when it had no pair_b folder at all. Its card in the mockup showed
 # Shared + Pair A and nothing else. The Pair B checks stay in the list, greyed out; nothing else is held back.
 def test_pair_b_checks_are_unavailable_in_a_stage_without_pair_b(tmp_path):
     stage = make_stage(tmp_path, adapter=False, pair_b=False)
