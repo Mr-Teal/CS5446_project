@@ -1,9 +1,8 @@
 {
   "stages": [
-    {"label": "main", "ref": "origin/main", "title": "PRs #4 to #6 merged"},
-    {"label": "+ PR #3", "ref": "origin/pair-b/evaluator-validation-prep", "title": "Bryan's harness"},
-    {"label": "+ PR #7", "ref": "origin/pair-b/label-validator", "title": "Label validator"},
+    {"label": "main", "ref": "origin/main", "title": "Everything merged so far"},
     {"label": "+ PR #8", "ref": "origin/pair-b/linear-baseline", "title": "Linear baseline"},
+    {"label": "+ PR #11", "ref": "origin/pair-b/loader-cache-key", "title": "Loader cache fix"},
     {"label": "+ Teal's branch", "ref": "origin/pair-a/rules-interface", "title": "Rules adapter, PCFR+"}
   ]
 }

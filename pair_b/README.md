@@ -160,8 +160,10 @@ positions from one game never sit on both sides. `data/` and `runs/` stay out of
    the fresh check `--source data/d2-check --parents 100000 --seed 7 --out data/d6-check`.
 2. Training, about 2 minutes on an Apple GPU:
    `python scripts/train_belief_net.py --data data/d6-v1 --out runs/belief-v1-d1 --use-d1`. Point
-   `--data` at a folder of Pair A's labels to retrain on them. `--use-d1` needs quick Stockfish's
-   values as `d1:<i>` diagnostics in the records; train without it otherwise.
+   `--data` at a folder of Pair A's labels to retrain on them, after checking that folder with
+   `python scripts/validate_labels.py <folder>` (add `--require-played-policy` for a full label run;
+   [docs/label_validation.md](docs/label_validation.md) lists the checks). `--use-d1` needs quick
+   Stockfish's values as `d1:<i>` diagnostics in the records; train without it otherwise.
 3. Evaluation: `python scripts/eval_belief_net.py --run runs/belief-v1-d1 --data data/d6-check --split train`.
 
 A label folder holds JSONL files written with `fow_shared.recording.write_records` (`part-*.jsonl` by
@@ -323,13 +325,15 @@ comes on top.
 - `src/pairb/`: the evaluators (`stockfish.py`, `network_evaluator.py`, `material.py`,
   `belief_evaluator.py`), Network 1 (`net1.py`, with its 19-plane board encoding in `encode.py`),
   practice data (`d2.py`), and training and evaluation helpers (`data.py`, `evaluate.py`,
-  `metrics.py`). The belief network: `belief_net.py`, `belief_data.py`, `belief_eval.py`, and the
-  practice beliefs `observe.py` and `standin_beliefs.py`. Fog Lab: `tracker.py` (the honest belief
+  `metrics.py`). The belief network: `belief_net.py`, `belief_data.py`, `belief_eval.py`, the
+  practice beliefs `observe.py` and `standin_beliefs.py`, and `label_validation.py` (the checks
+  behind `scripts/validate_labels.py`, for Pair A's label folders). Fog Lab: `tracker.py` (the honest belief
   tracker), `bot.py` (the one-ply belief bot), `rules.py` (Teal's adapter or our stand-in, behind
   one interface), `harness_adapter.py` (the belief network as a scorer for Bryan's harness) and
   `lab/` (the server, the test runner and the page in `lab/static/`).
 - `scripts/`: `make_d2.py`, `train_net1.py`, `eval_net1.py`, `make_beliefs.py`,
-  `train_belief_net.py`, `eval_belief_net.py`, `eval_children.py` and `bench_tracker.py`.
+  `train_belief_net.py`, `eval_belief_net.py`, `eval_children.py`, `bench_tracker.py` and
+  `validate_labels.py`.
   `eval_children.py` measures per-move accuracy against depth-16 Stockfish and writes only the
   JSON file named by `--out`; the Tests tab reads `checkpoints/belief-v1-d1/eval-children-d16.json`.
   `bench_tracker.py` times the belief tracker and writes nothing.
