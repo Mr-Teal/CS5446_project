@@ -1,0 +1,218 @@
+{
+  "scope": "fixed-tree gadget verification, not KLUSS or full Obscuro",
+  "payoffs": "player_0",
+  "label_weights": {
+    "a": 0.9,
+    "b": 0.1
+  },
+  "games": {
+    "resolve": {
+      "oracle_value": 0.0,
+      "metrics": {
+        "rounds": 2000,
+        "schedule": "alternating",
+        "last": {
+          "value": 0.0,
+          "nash_gap": 0.0
+        },
+        "average": {
+          "value": 5.4504569316329615e-11,
+          "nash_gap": 7.093853282569285e-10
+        }
+      },
+      "root_prior": {
+        "a": 0.75,
+        "b": 0.25
+      },
+      "alternate_player0": {
+        "A": 0,
+        "B": 0.4
+      },
+      "last": {
+        "policy": [
+          {
+            "decision": {
+              "L": 0.5,
+              "R": 0.5
+            }
+          },
+          {
+            "__gadget__:[\"enter\",\"A\"]": {
+              "enter": 0.33333333333333337,
+              "exit": 0.6666666666666666
+            },
+            "__gadget__:[\"enter\",\"B\"]": {
+              "enter": 1.0,
+              "exit": 0.0
+            }
+          }
+        ],
+        "continuation_values": {
+          "a": 0.0,
+          "b": 0.0
+        },
+        "belief_value": 0.0
+      },
+      "average": {
+        "policy": [
+          {
+            "decision": {
+              "L": 0.49999999999154954,
+              "R": 0.5000000000084505
+            }
+          },
+          {
+            "__gadget__:[\"enter\",\"A\"]": {
+              "enter": 0.3333333322897444,
+              "exit": 0.6666666677102556
+            },
+            "__gadget__:[\"enter\",\"B\"]": {
+              "enter": 0.9999999994549543,
+              "exit": 5.450456930540434e-10
+            }
+          }
+        ],
+        "continuation_values": {
+          "a": -1.6900925103868758e-11,
+          "b": 1.6900925103868758e-11
+        },
+        "belief_value": -1.3520740083095006e-11
+      }
+    },
+    "resolve_custom_prior": {
+      "oracle_value": 0.20000000000000004,
+      "metrics": {
+        "rounds": 2000,
+        "schedule": "alternating",
+        "last": {
+          "value": 0.2,
+          "nash_gap": 1.1102230246251565e-16
+        },
+        "average": {
+          "value": 0.2000000001115272,
+          "nash_gap": 2.744638544216471e-09
+        }
+      },
+      "root_prior": {
+        "a": 0.25,
+        "b": 0.75
+      },
+      "alternate_player0": {
+        "A": 0,
+        "B": 0.4
+      },
+      "last": {
+        "policy": [
+          {
+            "decision": {
+              "L": 0.29999999999999993,
+              "R": 0.7000000000000001
+            }
+          },
+          {
+            "__gadget__:[\"enter\",\"A\"]": {
+              "enter": 1.0,
+              "exit": 0.0
+            },
+            "__gadget__:[\"enter\",\"B\"]": {
+              "enter": 0.3333333333333332,
+              "exit": 0.6666666666666667
+            }
+          }
+        ],
+        "continuation_values": {
+          "a": -0.40000000000000013,
+          "b": 0.40000000000000013
+        },
+        "belief_value": -0.3200000000000001
+      },
+      "average": {
+        "policy": [
+          {
+            "decision": {
+              "L": 0.29999999739847005,
+              "R": 0.70000000260153
+            }
+          },
+          {
+            "__gadget__:[\"enter\",\"A\"]": {
+              "enter": 0.9999999988847281,
+              "exit": 1.1152718119065665e-09
+            },
+            "__gadget__:[\"enter\",\"B\"]": {
+              "enter": 0.3333333316926747,
+              "exit": 0.6666666683073253
+            }
+          }
+        ],
+        "continuation_values": {
+          "a": -0.4000000052030599,
+          "b": 0.4000000052030599
+        },
+        "belief_value": -0.3200000041624479
+      }
+    },
+    "maxmargin": {
+      "oracle_value": -0.19999999999999996,
+      "metrics": {
+        "rounds": 2000,
+        "schedule": "alternating",
+        "last": {
+          "value": -0.19999999999999996,
+          "nash_gap": 3.3306690738754696e-16
+        },
+        "average": {
+          "value": -0.19999999999999998,
+          "nash_gap": 1.761090662188991e-09
+        }
+      },
+      "root_prior": null,
+      "alternate_player0": {
+        "A": 0,
+        "B": 0.4
+      },
+      "last": {
+        "policy": [
+          {
+            "decision": {
+              "L": 0.3999999999999999,
+              "R": 0.6
+            }
+          },
+          {
+            "__gadget__:[\"select\"]": {
+              "A": 0.5000000000000001,
+              "B": 0.49999999999999994
+            }
+          }
+        ],
+        "continuation_values": {
+          "a": -0.20000000000000007,
+          "b": 0.20000000000000007
+        },
+        "belief_value": -0.16000000000000006
+      },
+      "average": {
+        "policy": [
+          {
+            "decision": {
+              "L": 0.40000000070289266,
+              "R": 0.5999999992971073
+            }
+          },
+          {
+            "__gadget__:[\"select\"]": {
+              "A": 0.5000000001480439,
+              "B": 0.4999999998519561
+            }
+          }
+        ],
+        "continuation_values": {
+          "a": -0.1999999985942147,
+          "b": 0.1999999985942147
+        },
+        "belief_value": -0.15999999887537175
+      }
+    }
+  }
+}
