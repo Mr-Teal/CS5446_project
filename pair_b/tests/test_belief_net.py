@@ -1,6 +1,8 @@
 """The belief network (D6): one shared board reader, a weighted summary of the whole belief, and a
 value per board that can depend on that summary. Small networks on the CPU, so this runs fast."""
-import torch
+import pytest
+
+torch = pytest.importorskip("torch")  # Intel Macs have no torch build: skip this file there
 
 from pairb.belief_net import BeliefNetwork
 from pairb.net1 import D1_CLIP

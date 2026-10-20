@@ -11,7 +11,8 @@ from pathlib import Path
 
 import chess
 import pytest
-import torch
+
+torch = pytest.importorskip("torch")  # Intel Macs have no torch build: skip this file there
 
 from fow_shared.recording import write_records
 from pairb.belief_net import BeliefNetwork

@@ -1,5 +1,8 @@
 """Scoring helpers for the belief network (D6): the paired interval resamples whole games."""
 import numpy as np
+import pytest
+
+pytest.importorskip("torch")  # belief_eval needs torch; Intel Macs have none: skip this file there
 
 from pairb.belief_eval import paired_difference
 

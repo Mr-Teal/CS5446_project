@@ -1,0 +1,77 @@
+{
+  "source": {
+    "dataset": "d2-check",
+    "files_sha256": {
+      "part-00.jsonl": "617cc6d7eaeb27a5f9f347a7df656e4f14399eeb7bad1aa789c3189c28284ad8",
+      "part-01.jsonl": "7861ed0b2d9ab1eaabe8b32789ef3876ff94934a309847f3b0977130ad2f3d10",
+      "part-02.jsonl": "153aefe43e312fbdcc26d943c79f34bab9bd002aeb0dd067bc07909a42d935e8",
+      "part-03.jsonl": "cc15c71d468ba59752d25ecd94903fbfb1020a81b15d8bf30bf5609bf7c38d9b",
+      "part-04.jsonl": "8be85d9d7a4195d03955fdf0bcd253571210deb9d8232931f9651a9c6f937892",
+      "part-05.jsonl": "65524121357c98300d56b39987d6363b25dc6644206cb8601c08c7d756966dfe",
+      "part-06.jsonl": "aff33f7d6c121a904bf860da75001223cdce3d8eb245078d31ab87ab50cf2bf9",
+      "part-07.jsonl": "22241649c5d375a88b0ca6a3d296db6428e51f6ec29aaf78684a17b276de434f",
+      "part-08.jsonl": "3f80a26ae802294f41f13d65c049f7b2b3bc631972c852b656d64cf00673c4f3",
+      "part-09.jsonl": "b6b0a4a37cf0142d9781cd735c736f6df92dc1c2550ebd410c8865c7d3b58149",
+      "part-10.jsonl": "b37f753002994cf7c447ee40740d236dba29609b9f56feda0e3ce540d5e26e55",
+      "part-11.jsonl": "b2cfd12dc5190f9430774d6b21cb7164e15e9e7b88f6f047f901c9b07e76506c",
+      "manifest.json": "416a429b72d6ff7243772ad22d189be19ac5d7843b5579913e64667302161f02"
+    },
+    "sha256": "5475455ca72909b1481058b96d80a1f62aec890f25d1aafe8e2af5eff2983903"
+  },
+  "runtime": {
+    "python": "3.14.6",
+    "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "numpy": "2.5.4",
+    "python_chess": "1.11.2",
+    "source_sha256": "094b79cf2ec6b2ca08832255fa4df8eeb7c9526cbf46f554b683eca394eb4c09"
+  },
+  "split": "train",
+  "parents": 300,
+  "repeats": 4,
+  "parent_selection": "sorted unique parent FENs, first limit",
+  "parent_fens_sha256": "e763c82191e0c69569a430482e7d2aadf7a9d22dfc7e0645981440ae953cd9b2",
+  "checkpoint_sha256": "27388ccb0ec0a67d8a5984cfb2e577b911b91e811a6e26d7191436d2819a2593",
+  "engine_options": {
+    "threads": 1,
+    "hash_mb": 16,
+    "depth": 1,
+    "new_game_each_call": false
+  },
+  "evaluators": {
+    "material": {
+      "name": "material-1-3-3-5-9",
+      "calls": 1200,
+      "median_ms": 0.6357704987749457,
+      "p95_ms": 1.210261892993003,
+      "mean_ms": 0.6312327727209777
+    },
+    "d1": {
+      "name": "stockfish-19-d1",
+      "calls": 1200,
+      "median_ms": 1.3866040389984846,
+      "p95_ms": 2.969144110102205,
+      "mean_ms": 1.4700609354379897
+    },
+    "linear": {
+      "name": "linear-v1+stockfish-d1-linear",
+      "calls": 1200,
+      "median_ms": 1.7012295429594815,
+      "p95_ms": 3.246118116658181,
+      "mean_ms": 1.7159401161673788
+    },
+    "network_cpu": {
+      "name": "net1-v2+stockfish-19-d1",
+      "calls": 1200,
+      "median_ms": 12.197728967294097,
+      "p95_ms": 15.629522572271526,
+      "mean_ms": 10.152464617373576
+    }
+  },
+  "engine_id": {
+    "name": "Stockfish 19",
+    "author": "the Stockfish developers (see AUTHORS file)"
+  },
+  "engine_binary_sha256": "dc2f18c34ae962dff591b66147d220ec06e61d756b93d8a4f5e04fd8e55c251f",
+  "network_checkpoint_sha256": "ab470346acb5eb37947e3ab0eb43c005894ae72569ca016d7635fc2be6f9171f",
+  "mean_children": 29.80666666666667
+}
