@@ -199,8 +199,11 @@ class Session:
         if not self.over and self.error is None and self.referee.current_player() == self.bot_colour:
             self._bot_turn()
 
-    def human_move(self, move: str) -> None:
+    def human_move(self, move: str, *, include_after_human: bool = False) -> dict | None:
         """Play the human's move, then the bot's reply unless the game is over.
+
+        With include_after_human, return the player's view captured after their move
+        and before the bot acts. It uses state()'s usual fair-game visibility rules.
 
         ValueError, with the game unchanged, when the game is over, stopped or closed, when it is not the human's
         turn, and when `move` is not UCI text or not one of the human's legal moves.
@@ -221,8 +224,10 @@ class Session:
             before = self._bot_view
             self.referee.apply(move)
             self._moved(self.human, move, before, own=False)
+            after_human = self.state() if include_after_human else None
             if not self.over and self.error is None:
                 self._bot_turn()
+            return after_human
 
     @property
     def revealed(self) -> bool:

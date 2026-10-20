@@ -297,10 +297,16 @@ class LabApp:
 
     def move(self, request: Request) -> dict:
         session = self._game(request.args["id"])
+        fields = request.read_object()
+        intermediate = fields.get("include_after_human", False)
+        if not isinstance(intermediate, bool):
+            raise ApiError(400, "include_after_human must be a boolean")
         try:
-            session.human_move(request.read_object().get("move"))
+            after_human = session.human_move(fields.get("move"), include_after_human=intermediate)
         except ValueError as error:
             raise ApiError(400, str(error)) from error
+        if intermediate:
+            return {"after_human": after_human, "state": session.state()}
         return session.state()
 
     def record(self, request: Request) -> dict:
