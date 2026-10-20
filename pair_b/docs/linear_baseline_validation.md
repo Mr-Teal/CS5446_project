@@ -37,11 +37,8 @@ three sampled parents per game, maximum 120 plies, four workers. The dataset has
 four rule-decided rows are excluded by the existing Network 1 loader. It yielded 7,981 training
 rows from 100 games, 841 validation rows from ten games, and nine held-out test games. One
 generated game contributed no non-rule rows. Test
-games were not evaluated. Alpha 0.1 won the default validation sweep.
-
-The [compact machine-readable report](../results/linear-pilot-120.json) retains the sweep,
-dataset file hashes, code/runtime provenance, checkpoint hash, game-bootstrap interval and
-complete evaluator timing. Generated labels, caches and checkpoints stay outside Git.
+games were not evaluated. Alpha 0.1 won the default validation sweep. The pilot's labels,
+caches and checkpoint stay outside Git.
 
 | Evaluator | Validation MAE | Mean move-choice regret | Median complete children call |
 |---|---:|---:|---:|
