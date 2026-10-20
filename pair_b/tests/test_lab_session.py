@@ -303,6 +303,27 @@ def test_inspection_uses_its_own_scorer():
 
 
 # Review Focus 2. Catches: a bot asked to move after the human has taken its king, and a game going on after it.
+@pytest.mark.parametrize("fair", [False, True])
+def test_human_move_can_capture_its_observation_before_the_bot_replies(fair):
+    session = session_for(fair=fair)
+    try:
+        intermediate = session.human_move("e2e4", include_after_human=True)
+        final = session.state()
+        assert intermediate["ply"] == 1 and intermediate["to_move"] == "black"
+        assert intermediate["your_moves"] == ["e2e4"]
+        assert intermediate["you"]["visible_pieces"]["e4"] == "P"
+        assert final["ply"] == 2 and final["to_move"] == "white"
+        if fair:
+            assert "true_fen" not in intermediate and "bot" not in intermediate
+            assert "bot_view" not in intermediate and "moves" not in intermediate
+        else:
+            board = chess.Board()
+            board.push_uci("e2e4")
+            assert intermediate["true_fen"] == board.fen(en_passant="fen")
+    finally:
+        session.close()
+
+
 def test_human_capturing_the_king_ends_the_game():
     scorer, inspector = Spy(), Spy()
     session = session_for(start_fen=KING_CAPTURE, scorer=scorer, inspector=inspector)
