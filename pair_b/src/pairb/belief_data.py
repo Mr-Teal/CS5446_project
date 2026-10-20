@@ -6,6 +6,8 @@ of its belief, its label (hypothesis_values), quick Stockfish's value when the r
 feeds it) and whether the rules decide it. The same reader takes Pair B's practice beliefs now and
 Pair A's solver labels later, as both use Teal's record format.
 """
+from __future__ import annotations
+
 import hashlib
 import json
 from multiprocessing import Pool

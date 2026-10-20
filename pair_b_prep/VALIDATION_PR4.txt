@@ -1,0 +1,72 @@
+PR #4 independent local validation — 18 October 2026 (Asia/Singapore)
+
+Tested revision: 305b94af730f965fe686404041ee6444dd9e20a2
+Source: https://github.com/Mr-Teal/CS5446_project/pull/4
+GitHub ZIP downloaded through the signed-in browser; archive comment matches SHA.
+All 70 archive files remain byte-for-byte unchanged after testing.
+This is the PR4 branch snapshot, not a merged-main validation.
+
+RESULTS
+164 selected tests passed, plus 2 unittest subtests; no failures or skips.
+Includes shared tests, Pair B harness tests and Pair B material, encode, values,
+data, metrics, Stockfish and D2 tests. All four regression tests added by the
+fix pass, covering repetition in Stockfish/material/data labelling and a position
+reached through fog-only castling sent to Stockfish without the move history.
+MaterialEvaluator: 16/16 automated harness checks pass; 2 manual items remain.
+Stockfish 19 depth 1: 16/16 pass; 2 manual items remain.
+Stockfish 19 depth 11: 16/16 pass; 2 manual items remain.
+
+REPETITION FIX INDEPENDENTLY CONFIRMED
+The standalone checker supplies Teal's seven-move history and tests h8g8.
+Expected: threefold repetition, White-view value 0, decided by rule.
+Stockfish children_values: (0.0, True).
+Material children_values: (0.0, True).
+Checker exit status: 0. The previously reproduced +1 result is resolved.
+The material FEN-only call still returns -1 from Black's perspective: FEN has no
+repetition history. That is an API limitation, not a failure of this fix.
+Search integration must carry hypothetical histories and apply terminal rules
+before FEN-only evaluation; it must not expose the referee's hidden history.
+
+CHECKER COMPATIBILITY UPDATE FOR PR3
+check_repetition.py previously imported the private _side_to_move_value helper,
+which Colin removed in this fix. It now uses MaterialEvaluator.children_values
+and fails if either material or Stockfish does not return (0.0, True).
+Only this checker and this report were changed in our copied pair_b_prep sources.
+The harness and real_adapter are unchanged from our previous PR3 preparation.
+
+ENVIRONMENT AND LIMITS
+macOS x86_64, Python 3.14, chess 1.11.2, numpy 2.5.4, pytest 9.1.1, Stockfish 19.
+Existing dependencies and engine were reused in a local validation environment.
+An initial run had 163 passes and one subprocess import failure: that test clears
+PYTHONPATH. Local environment links were corrected to expose this exact snapshot
+and the installed dependencies even with a cleared environment; the rerun passed.
+No evaluator or test source was changed to obtain passing results.
+21 python-chess deprecation warnings were emitted, not test failures.
+
+Network 1 remains NOT VALIDATED locally: importing it still fails with
+ModuleNotFoundError: torch. The declared torch>=2.14.1 requirement could not be
+resolved on this platform in the earlier setup; requirements were not relaxed.
+No torch-dependent tests or checkpoint inference were run. Checkpoint SHA256:
+ab470346acb5eb37947e3ab0eb43c005894ae72569ca016d7635fc2be6f9171f
+Matching the hash proves identity only. Colin's model results are separate evidence.
+No full hidden-information audit, playing-strength test, or accuracy replication.
+The two harness manual items remain manual; the standalone history regression
+covers this specific bug and does not prove complete search integration.
+
+REPRODUCE
+With this source revision and pair_b_prep on the import path, dependencies installed
+and Stockfish 19 on PATH, run from the repository root:
+python -m pytest --import-mode=importlib -p no:cacheprovider tests pair_b_prep/test_harness.py pair_b/tests/test_material.py pair_b/tests/test_encode.py pair_b/tests/test_values.py pair_b/tests/test_data.py pair_b/tests/test_metrics.py pair_b/tests/test_stockfish.py pair_b/tests/test_d2.py -q
+python -m pair_b_prep.check_repetition --source-commit 305b94af730f965fe686404041ee6444dd9e20a2
+Use README.md's real_adapter configurations for material and Stockfish depths 1/11,
+setting source_commit to the verified SHA above. Each harness run used its defaults:
+10 repetitions, 2 warmups, tolerance 1e-6; engine cleared before each call.
+These small contract-fixture timings do not establish full-game/search performance.
+
+LOCAL EVIDENCE
+pair_b_prep/results/fixed_305b94a contains tests.txt, repetition.json,
+validation-summary.json, network1-blocked.log, and the three harness output folders.
+Raw configs, dependencies, source archive and generated timing outputs stay local.
+This report supersedes the earlier report's open-bug status for revision 4d939fc;
+that older validation report remains in the earlier local snapshot for provenance.
+This update publishes the report and compatible checker under pair_b_prep only.
