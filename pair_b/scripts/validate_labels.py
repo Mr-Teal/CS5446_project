@@ -16,9 +16,12 @@ def main(argv=None):
     parser.add_argument("source", help="one JSONL file or a label-run folder")
     parser.add_argument("--pattern", default="part-*.jsonl", help="file glob when source is a folder")
     parser.add_argument("--require-d1", action="store_true", help="require D1 on non-rule-decided boards")
+    parser.add_argument("--require-played-policy", action="store_true",
+                        help="require played_policy:<uci> on every record (full solver-label runs)")
     parser.add_argument("--splits", help="training splits.json to check against the selected dataset")
     args = parser.parse_args(argv)
-    report = validate(args.source, pattern=args.pattern, require_d1=args.require_d1, splits=args.splits)
+    report = validate(args.source, pattern=args.pattern, require_d1=args.require_d1,
+                      require_played_policy=args.require_played_policy, splits=args.splits)
     for severity, messages in (("ERROR", report.errors), ("WARNING", report.warnings)):
         for message in messages:
             print(f"{severity} {message}")

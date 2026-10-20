@@ -1,4 +1,8 @@
-"""Read-only acceptance checks for TrainingRecord label exports; no torch or engine calls."""
+"""Read-only acceptance checks for TrainingRecord label exports; no torch or engine calls.
+
+Pair A runs this on Python 3.9, so this module and everything it imports must stay 3.9-safe: a
+module with `X | None` in an annotation needs `from __future__ import annotations`. A test checks it.
+"""
 from collections import Counter
 from dataclasses import dataclass, field
 import json
@@ -28,6 +32,7 @@ class Report:
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     missing_played: int = 0
+    first_missing_played: str = ""
 
 
 def _number(value):
@@ -136,8 +141,9 @@ def _splits(path, report):
         report.errors.append(f"{path}: {exc}")
 
 
-def validate(source, *, pattern="part-*.jsonl", require_d1=False, splits=None):
-    """Stream files without writing caches or changing data. A parse error stops that file."""
+def validate(source, *, pattern="part-*.jsonl", require_d1=False, require_played_policy=False, splits=None):
+    """Stream files without writing caches or changing data. A parse error stops that file.
+    Records without played_policy give one warning, or one error with require_played_policy."""
     source = Path(source)
     report = Report()
     folder = source if source.is_dir() else source.parent
@@ -156,6 +162,8 @@ def validate(source, *, pattern="part-*.jsonl", require_d1=False, splits=None):
                     errors, missing = check_record(record, require_d1=require_d1)
                     report.errors.extend(f"{path}:{line}: {error}" for error in errors)
                     report.missing_played += missing
+                    if missing and not report.first_missing_played:
+                        report.first_missing_played = f"{path}:{line}"
                     if isinstance(record.game_id, str) and record.game_id.strip():
                         report.games.add(record.game_id)
                     if isinstance(record.config_id, str) and record.config_id.strip():
@@ -167,8 +175,12 @@ def validate(source, *, pattern="part-*.jsonl", require_d1=False, splits=None):
     if not report.records:
         report.errors.append(f"{source}: no records found matching {pattern!r}")
     if report.missing_played:
-        report.warnings.append(f"decision.diagnostics.played_policy: absent in {report.missing_played} records; "
-                               "recommended by the solver-label specification")
+        absent = (f"decision.diagnostics.played_policy: absent in {report.missing_played} records "
+                  f"(first at {report.first_missing_played}); ")
+        if require_played_policy:
+            report.errors.append(absent + "--require-played-policy requires it on every record")
+        else:
+            report.warnings.append(absent + "recommended by the solver-label specification")
     _manifest(folder, report, full_scope=source.is_dir() and pattern == "part-*.jsonl")
     if splits is not None:
         _splits(splits, report)

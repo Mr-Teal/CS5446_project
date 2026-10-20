@@ -1,4 +1,5 @@
 """Acceptance regressions for the Pair A -> Pair B label handoff."""
+import ast
 from dataclasses import asdict, replace
 import json
 import os
@@ -223,3 +224,70 @@ def test_cli_without_torch_or_engine_and_no_input_writes(tmp_path):
     path.write_text("{}\n")
     result = subprocess.run([sys.executable, "-c", code], env=env, capture_output=True, text=True)
     assert result.returncode == 1 and "schema/read error" in result.stdout
+
+
+def test_require_played_policy_turns_its_absence_into_one_error(tmp_path):
+    r = example()
+    path = export(tmp_path, [r, replace(r, decision=replace(r.decision, diagnostics={}))])
+    assert not validate(path).errors
+    report = validate(path, require_played_policy=True)
+    assert report.errors == [f"decision.diagnostics.played_policy: absent in 1 records (first at {path}:2); "
+                             "--require-played-policy requires it on every record"]
+    assert not any(w.startswith("decision.diagnostics.played_policy") for w in report.warnings)
+    assert not validate(export(tmp_path, name="part-001.jsonl"), require_played_policy=True).errors
+
+
+def test_cli_require_played_policy_fails_the_run(tmp_path):
+    r = example()
+    path = export(tmp_path, [replace(r, decision=replace(r.decision, diagnostics={}))])
+    script = Path(__file__).resolve().parents[2] / "pair_b/scripts/validate_labels.py"
+    plain = subprocess.run([sys.executable, str(script), str(path)], capture_output=True, text=True)
+    strict = subprocess.run([sys.executable, str(script), str(path), "--require-played-policy"],
+                            capture_output=True, text=True)
+    assert plain.returncode == 0 and "WARNING decision.diagnostics.played_policy" in plain.stdout
+    assert strict.returncode == 1 and "ERROR decision.diagnostics.played_policy" in strict.stdout
+
+
+def _annotations_with_union(tree):
+    """Line numbers of `X | Y` in annotations that run at import time: function signatures, and
+    module- or class-level annotated names (a local variable's annotation is never evaluated)."""
+    found = []
+
+    def has_union(node):
+        return node is not None and any(isinstance(n, ast.BinOp) and isinstance(n.op, ast.BitOr)
+                                        for n in ast.walk(node))
+
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            a = node.args
+            args = a.posonlyargs + a.args + a.kwonlyargs + [x for x in (a.vararg, a.kwarg) if x]
+            found += [node.lineno for ann in [node.returns] + [x.annotation for x in args] if has_union(ann)]
+    bodies = [tree.body]
+    while bodies:
+        for node in bodies.pop():
+            if isinstance(node, ast.AnnAssign) and has_union(node.annotation):
+                found.append(node.lineno)
+            elif isinstance(node, ast.ClassDef):
+                bodies.append(node.body)
+    return found
+
+
+def test_the_checker_and_everything_it_imports_stay_python_39_safe():
+    # Pair A runs the checker on Python 3.9 (pair_a_prep/docs/benchmark.md). There an annotation such
+    # as `tuple[str, float] | None` raises TypeError at import, unless the module starts with
+    # `from __future__ import annotations`.
+    root = Path(__file__).resolve().parents[2]
+    code = ("import json, sys; sys.modules['torch'] = None; import pairb.label_validation; "
+            "print(json.dumps([getattr(m, '__file__', None) for m in list(sys.modules.values())]))")
+    result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
+    ours = sorted({Path(f).resolve() for f in json.loads(result.stdout)
+                   if f and Path(f).resolve().is_relative_to(root)})
+    assert any(p.name == "label_validation.py" for p in ours)
+    problems = []
+    for path in ours:
+        tree = ast.parse(path.read_text(encoding="utf-8"), str(path), feature_version=(3, 9))
+        future = any(isinstance(n, ast.ImportFrom) and n.module == "__future__"
+                     and any(a.name == "annotations" for a in n.names) for n in tree.body)
+        if not future:
+            problems += [f"{path.relative_to(root)}:{line}" for line in _annotations_with_union(tree)]
+    assert not problems, "these annotations fail on Python 3.9: " + ", ".join(problems)

@@ -1,14 +1,18 @@
 # Check a solver-label handoff
 
-From the repository root, using Python 3.12+ with the shared project's dependencies
+From the repository root, using Python 3.9+ with the shared project's dependencies
 (`python -m pip install -e .`; NumPy and python-chess):
 
 ```sh
 python pair_b/scripts/validate_labels.py path/to/label-run
 python pair_b/scripts/validate_labels.py path/to/labels.jsonl
 python pair_b/scripts/validate_labels.py path/to/label-run --pattern '*.jsonl' --require-d1
+python pair_b/scripts/validate_labels.py path/to/label-run --require-played-policy
 python pair_b/scripts/validate_labels.py path/to/label-run --splits path/to/training-run/splits.json
 ```
+
+Full solver-label runs must pass with `--require-played-policy`; the pilot may
+leave the played policy out.
 
 There is no need to install the Pair B package with its PyTorch dependency. The
 command uses its source modules, starts no Stockfish process and writes no data
@@ -51,8 +55,10 @@ Additional checks:
 - When any `played_policy:<uci>` diagnostics are present, they must cover exactly
   the legal moves, contain probabilities in `[0,1]` summing to one within `1e-6`,
   and assign positive probability to the played move. Complete absence produces
-  one aggregate warning: PR5 requests them, but existing practice exports and
-  the training loader do not require them.
+  one aggregate warning naming the first such record: label_definitions.md asks
+  for them, but existing practice exports and the training loader do not require
+  them. With `--require-played-policy` it is one error instead. The played policy
+  is the only check that Obscuro's move was drawn from its purified policy.
 - Supplied `d1:<i>` entries must name canonical zero-based hypothesis indices
   and contain finite values in `[-1,1]`. `--require-d1` additionally requires a
   value for every board not decided by `fow_shared.values.rule_score`, matching
