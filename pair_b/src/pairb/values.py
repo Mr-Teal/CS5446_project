@@ -4,6 +4,8 @@ Both come from the team's shared module, fow_shared.values, so Pair A's search a
 labels use one conversion and one set of rules. This file only turns their side-to-move
 scores into White's view, which the D2 files use.
 """
+from __future__ import annotations
+
 import chess
 import chess.engine
 
