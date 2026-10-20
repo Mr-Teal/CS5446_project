@@ -15,6 +15,8 @@ and agent ownership, team settings and delivery dates remain to be agreed.
 | Small-game validation | [toy_games.py](toy_games.py) | Information sets, chance nodes, LP reference solutions and behavioral best-response/Nash-gap checks |
 | Fixed-tree PCFR+ | [pcfr.py](pcfr.py), [algorithm notes](docs/pcfr.md) | Predictive RM+, counterfactual updates and separate last/average diagnostics on toy games; simultaneous and alternating schedules |
 | Fixed-tree gadgets | [gadgets.py](gadgets.py), [gadget notes](docs/gadgets.md) | Resolve enter/exit, Maxmargin offsets, hidden-root grouping and separate continuation label values |
+| Knowledge restriction | [knowledge.py](knowledge.py), [notes](docs/knowledge.md) | Explicit synchronized-cut knowledge graph, I^2 restriction, frozen KLSS control and unfrozen KLUSS |
+| Interactive toy explorer | [open HTML](results/toy_explorer.html), [generator](toy_visualizer.py) | Recorded PCFR+ checkpoints, tree/action probabilities, shared information sets and convergence charts; fully offline |
 | Stockfish measurements | [benchmark_stockfish.py](benchmark_stockfish.py) | Fixed positions, depths 1 and 11, best-move/all-move MultiPV, raw scores and timings |
 | Rules fixtures | [rules_cases.json](data/rules_cases.json), [fixtures.py](fixtures.py) | 17 special positions and acceptance checks for a future adapter |
 | Reproduction differences | [reproduction_differences.md](docs/reproduction_differences.md) | Published settings, proposed choices, measurements and unresolved decisions |
