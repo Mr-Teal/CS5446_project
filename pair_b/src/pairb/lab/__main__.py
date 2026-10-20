@@ -1,17 +1,19 @@
 """Start Fog Lab: python -m pairb.lab [--port 8765] [--stockfish stockfish] [--device DEVICE]
-[--rules auto|teal|standin]
+[--rules auto|teal|standin] [--open]
 
 It puts the repository's root on the import path before it chooses the rules, since Teal's adapter (pair_a_prep) lives
 there, then serves on 127.0.0.1 until Ctrl+C. The Tests tab's runs merge the stages of pair_b/fog_lab_stages.json in
 this checkout and are saved in pair_b/.fog_lab/runs; they use the same Stockfish and device as the games, and leave out
 the networks where torch is not installed. A --stockfish path is made absolute at start-up (engine_path), since those
 runs' checks work in another folder. On the way out it closes the live game and stops a test run that is going.
-The line it prints says the port it listens on, which is not the one asked for when that was 0.
+The line it prints says the port it listens on, which is not the one asked for when that was 0. With --open it then
+opens that address in the default browser: the server already listens, so the page's first request waits for it.
 """
 import argparse
 import os
 import re
 import sys
+import webbrowser
 from pathlib import Path
 
 from ..rules import pick_rules
@@ -52,6 +54,8 @@ def main(argv: list[str] | None = None) -> int:
                         "(default: the best one torch finds)")
     parser.add_argument("--rules", choices=("auto", "teal", "standin"), default="auto", help="the rules to play by: "
                         "auto is Teal's adapter when this checkout has it, else Pair B's stand-in (default: auto)")
+    parser.add_argument("--open", action="store_true", help="open the page in the default browser once Fog Lab "
+                        "listens")
     args = parser.parse_args(argv)
     repo = ensure_repo_on_path()  # before the rules are chosen: Teal's adapter is imported from the repo root
     try:
@@ -69,7 +73,15 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Fog Lab: cannot listen on 127.0.0.1:{args.port}: {error}. Another Fog Lab may be running; "
               "choose another port with --port.", file=sys.stderr)
         return 1
-    print(f"Fog Lab: http://127.0.0.1:{server.server_address[1]}  (Ctrl+C to stop)", flush=True)
+    url = f"http://127.0.0.1:{server.server_address[1]}"
+    print(f"Fog Lab: {url}  (Ctrl+C to stop)", flush=True)
+    if args.open:
+        try:
+            opened = webbrowser.open(url)
+        except webbrowser.Error:
+            opened = False
+        if not opened:
+            print("Fog Lab: no browser opened; open the address above yourself", file=sys.stderr, flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
