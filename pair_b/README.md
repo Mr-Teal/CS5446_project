@@ -183,6 +183,11 @@ Fog Lab runs on your own laptop and opens in your browser. It has two tabs:
   by one, Pair A's 17 rules positions drawn as boards, Bryan's checks on every scorer, and how
   accurate each scorer is.
 
+After a human move, the Play tab shows the observation immediately after that move for one second
+before displaying the bot's reply. Both observations come from the server and respect fair-game
+visibility. The server computes the reply before sending the two snapshots; this is a display pause,
+not extra thinking time or a change to the bot's decisions.
+
 The bot is honest. It gets only the `AgentInput` of its own turn (its observation, its belief and
 its history), never the true board or anything from your side. `tracker.py` keeps its belief as a
 set of possible true boards (at most 256) from its own observations and moves alone. `bot.py` asks
