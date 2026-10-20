@@ -32,27 +32,43 @@ moves in those cases. The live evaluators preserve exact rule scores and full fo
 coverage. Values are converted from each child's side-to-move view when choosing a parent's move;
 the existing `choice_metrics` implementation chooses the minimum-valued child.
 
-## Run from the repository root
+## Run
 
 The baseline needs Python 3.12+, NumPy and python-chess; pytest for checks and Stockfish 19 for
 data generation/live evaluation/timing. The existing `pair_b` package declares torch because it
 also contains neural models. In an environment without torch, install the shared package and
-the baseline dependencies, then expose the existing source directory:
+the baseline dependencies from the repository root, then expose the existing source directory:
 
 ```sh
 python -m pip install -e . numpy pytest
 export PYTHONPATH="pair_b/src:."
-
-python pair_b/scripts/train_linear.py --data pair_b/data/d2-v2 --out pair_b/runs/linear-v1
-python pair_b/scripts/eval_linear.py --run pair_b/runs/linear-v1 \
-  --data pair_b/data/d2-v2 --split val --out pair_b/runs/linear-v1/eval-val.json
-python pair_b/scripts/benchmark_linear.py --run pair_b/runs/linear-v1 \
-  --data pair_b/data/d2-v2 --split val --out pair_b/runs/linear-v1/timing-val.json
 ```
 
 If already using the project's uv environment, use `uv run python ...` from `pair_b/` and paths
 relative to that directory. On PowerShell, the source-path setting from the root is
 `$env:PYTHONPATH = "pair_b/src;."`.
+
+`checkpoints/linear-v1/` holds the comparison: `best.npz` fitted on `d2-v2`, its `summary.json`,
+and the evaluation and timing on `d2-check`'s 959 train-bucket games, with Network 1 scored on
+the same rows. They were made from `pair_b/` with these commands (the Network 1 parts need torch):
+
+```sh
+python scripts/train_linear.py --data data/d2-v2 --out runs/linear-v1
+python scripts/eval_linear.py --run runs/linear-v1 --data data/d2-check --split train \
+  --net1-run checkpoints/net1-v2 --net1-splits runs/net1-v2-splits-reconstructed.json \
+  --out runs/linear-v1/eval-d2-check-train.json
+python scripts/benchmark_linear.py --run runs/linear-v1 --data data/d2-check --split train \
+  --limit 300 --repeats 4 --net1-run checkpoints/net1-v2 \
+  --out runs/linear-v1/timing-d2-check-train.json
+```
+
+`net1-v2` was trained before `train_net1.py` wrote `splits.json`, so the `--net1-splits` file
+holds its train and val game lists rebuilt, in that format, from the array cache it trained on;
+they match its summary's row counts and equal the linear run's lists. The evaluation needs no
+`--allow-seen-games`: `d2-check` reuses `d2-v2`'s game IDs (955 of the 959 evaluated), but
+compared by content none of its games is a `d2-v2` train or val game. The timing ran on an M5
+Pro with `OMP_NUM_THREADS=4 VECLIB_MAXIMUM_THREADS=4`. The run folder's name, `linear-v1`, is
+also the evaluator's name.
 
 Use Colin's original `d2-v2` dataset for fitting, and the same fresh evaluation records for all
 models, to obtain the intended comparison. Neither dataset is in Git. Generate a **pilot** with
@@ -84,8 +100,8 @@ The split file lists game IDs only: when its train and val games are the linear 
 (`same_games_as_linear`), the linear model's overlap holds for Network 1 too, by content on
 another dataset; otherwise its IDs are compared with the evaluated games' IDs.
 With evidence, overlaps require `--allow-seen-games`. Compare model quality only after checking
-both models' fitting/selection games. Existing published README numbers came from another
-dataset and machine and are not a direct comparison with this pilot.
+both models' fitting/selection games. The README's Network 1 numbers come from the same
+`d2-check` rows, so `checkpoints/linear-v1/` compares like with like; the pilot does not.
 
 Outputs refuse overwrites. `best.npz` stores numeric coefficients and JSON metadata, without
 pickle. `summary.json` retains the alpha sweep and depth-1 validation metrics; `splits.json`
@@ -104,7 +120,7 @@ timing. Dataset, source, engine binary and checkpoint hashes are retained for pr
 ```python
 from pairb.linear_evaluator import LinearEvaluator
 
-with LinearEvaluator.from_checkpoint("pair_b/runs/linear-v1/best.npz",
+with LinearEvaluator.from_checkpoint("pair_b/checkpoints/linear-v1/best.npz",
                                       new_game_each_call=False) as leaf:
     children = leaf.evaluate_children(fen)
     boards = leaf.evaluate_boards(fens, player="white")
@@ -121,7 +137,8 @@ repetition history; these methods retain the existing shared interface's limitat
 
 See [the pilot validation record](linear_baseline_validation.md). It exercises generation,
 fitting, prediction, move-choice metrics and complete evaluator timing. Its validation results
-are model-selection evidence, not an independent final result. The original dataset comparison,
-Network 1 execution and full-game playing-strength experiments remain separate follow-ups.
+are model-selection evidence, not an independent final result. The original dataset comparison
+and the Network 1 execution are in `checkpoints/linear-v1/` (see Run above); full-game
+playing-strength experiments remain a separate follow-up.
 
 Prepared with Codex assistance.
