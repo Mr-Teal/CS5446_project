@@ -4,11 +4,6 @@ Pair B (Colin and Bryan) builds the judge that the search asks to score position
 of its tree. Everything here answers `fow_shared`'s `LeafEvaluator` calls, so a search or a match
 swaps one evaluator for another by changing one argument.
 
-The [NumPy linear correction baseline](docs/linear_baseline.md) adds a ridge-regression
-comparison to Network 1 using the same board planes and depth-1 input. It includes independent
-training/evaluation commands and the shared evaluator interface; no PyTorch imports are needed
-unless explicitly comparing against Network 1. Its pilot is not a final playing-strength result.
-
 ## The evaluators
 
 | Evaluator | `name` | What it is | ms per node* |
@@ -42,19 +37,26 @@ rule checks, so a threefold-repetition draw is seen; Stockfish always gets the p
 
 On fresh games (`d2-check`: the 959 games of its training bucket, 94,963 positions after 3,818
 decisions), measured against careful Stockfish by `scripts/eval_net1.py`
-(`checkpoints/net1-v2/eval-d2-check-train.json`):
+(`checkpoints/net1-v2/eval-d2-check-train.json`), and the linear correction on the same rows by
+`scripts/eval_linear.py` (`checkpoints/linear-v1/eval-d2-check-train.json`):
 
 | Evaluator | Value error | Picks careful Stockfish's move | Average value lost by its pick |
 |---|---|---|---|
 | Piece values | 0.336 | 28% | 0.2108 |
 | Quick Stockfish | 0.095 | 43% | 0.0355 |
 | Network 1 | 0.076 | 42% | 0.0352 |
+| [Linear correction](docs/linear_baseline.md) | 0.084 | 42% | 0.0346 |
 
 Network 1's values are 20% more accurate than quick Stockfish's, but it picks moves no better: a
 tie (the paired difference in value lost is -0.0003, 95% CI -0.0017 to +0.0011, resampling the
 959 games whole, since decisions from one game are correlated). It needs the
 depth-1 call as input, so it is always slower than quick Stockfish. It is the warm-up; the
 belief network that scores a whole belief at once is next.
+
+The linear correction is a comparison, not a scorer for the search: on the same inputs it gets a
+bit over half of Network 1's value-error gain over quick Stockfish (0.084 vs 0.076 vs 0.095);
+neither picks moves better, and both are worse than quick Stockfish on close positions (careful
+Stockfish's value between -0.3 and 0.3).
 
 ## Use
 

@@ -115,7 +115,12 @@ it uses separate warmed engines with one thread, 16 MB hash and `new_game_each_c
 rotates evaluator order, and checks equal legal-move coverage. `--net1-run` also works for
 timing. Dataset, source, engine binary and checkpoint hashes are retained for provenance.
 
-## Use in the search
+## Evaluator interface (used for timing)
+
+`LinearEvaluator` answers the three `LeafEvaluator` calls, built like `NetworkEvaluator`, so that
+`benchmark_linear.py` can time the correction with its encoding and Stockfish call. It is not
+wired into the search or Fog Lab: the linear correction is a comparison for Network 1, not a
+scorer.
 
 ```python
 from pairb.linear_evaluator import LinearEvaluator
