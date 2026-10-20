@@ -11,7 +11,7 @@ import pytest
 
 from pairb.data import split_of
 from pairb.linear import LinearCorrection
-from pairb.linear_workflow import evaluate, load_dataset, mask_split, train
+from pairb.linear_workflow import evaluate, load_dataset, mask_split, network_split_evidence, train
 
 ROOT=Path(__file__).resolve().parents[2]
 
@@ -120,3 +120,84 @@ def test_missing_split_evidence_does_not_claim_independence(tmp_path):
     report=evaluate(model,arrays,source,'val',n_boot=10)
     assert report['independent_games'] is None
     assert not report['split_evidence_available']
+
+
+def distinct_games(path, first):
+    """Games fixture-0 ... fixture-59 (dataset()'s IDs), but each a different game: game i decides
+    at the position after opening `first + i` (one of 400 first-move pairs). Two folders with
+    different `first` reuse the IDs for other games, as two runs of make_d2.py do."""
+    path.mkdir()
+    records = []
+    for i in range(60):
+        parent = chess.Board()
+        parent.push(list(parent.legal_moves)[(first + i) % 20])
+        parent.push(list(parent.legal_moves)[(first + i) // 20 % 20])
+        for j, move in enumerate(list(parent.legal_moves)[:2]):
+            child = parent.copy()
+            child.push(move)
+            records.append(dict(game_id=f"fixture-{i}", fen=child.fen(), parent_fen=parent.fen(), rule=None,
+                                d1={"v": 0.1}, d11={"v": 0.15 if j == 0 else -0.1}))
+    (path / "part-00.jsonl").write_text("".join(json.dumps(r) + "\n" for r in records))
+    return records
+
+
+def fitted_model(tmp_path):
+    distinct_games(tmp_path / "fit", first=0)
+    train(tmp_path / "fit", tmp_path / "run", [0.01])
+    return LinearCorrection.load(tmp_path / "run" / "best.npz")
+
+
+# Catches: fresh games refused, or reported as not independent, because another dataset reuses
+# the game IDs (d2-check's g-000000 is not d2-v2's g-000000).
+def test_another_dataset_reusing_the_ids_for_other_games_is_independent(tmp_path):
+    model = fitted_model(tmp_path)
+    splits = model.metadata["splits"]
+    assert [len(splits["content_keys"][s]) for s in ("train", "val")] == [len(splits["train"]), len(splits["val"])]
+    distinct_games(tmp_path / "fresh", first=200)
+    arrays, source = load_dataset(tmp_path / "fresh")
+    report = evaluate(model, arrays, source, "train", n_boot=10)
+    assert report["overlap_basis"] == "content"
+    assert report["game_id_overlap"] == {"train": report["games"], "val": 0} and report["games"] > 0
+    assert report["fitting_game_overlap"] == report["selection_game_overlap"] == 0
+    assert report["independent_games"] is True
+
+
+# Catches: the content check letting a real overlap through: the fitting games themselves, from
+# the same folder (compared by ID) or from a copy with other bytes (compared by content).
+def test_the_fitting_games_are_still_refused_without_the_flag(tmp_path):
+    model = fitted_model(tmp_path)
+    arrays, source = load_dataset(tmp_path / "fit")
+    with pytest.raises(ValueError, match="overlap.*game_id"):
+        evaluate(model, arrays, source, "train")
+    copy = tmp_path / "copy"
+    shutil.copytree(tmp_path / "fit", copy)
+    (copy / "manifest.json").write_text('{"note": "the same games"}\n')
+    arrays, source = load_dataset(copy)
+    with pytest.raises(ValueError, match="overlap.*content"):
+        evaluate(model, arrays, source, "train")
+    with pytest.raises(ValueError, match="overlap.*content"):
+        evaluate(model, arrays, source, "val")
+    diagnostic = evaluate(model, arrays, source, "train", allow_seen_games=True, n_boot=10)
+    assert diagnostic["overlap_basis"] == "content"
+    assert diagnostic["fitting_game_overlap"] == diagnostic["games"] and diagnostic["independent_games"] is False
+
+
+# Catches: Network 1, whose split file lists game IDs only, called not independent on fresh games
+# when its games are the linear model's, or its guard not firing when its games are not.
+def test_network_1_follows_the_linear_evidence_when_the_splits_match(tmp_path):
+    model = fitted_model(tmp_path)
+    distinct_games(tmp_path / "fresh", first=200)
+    arrays, source = load_dataset(tmp_path / "fresh")
+    report = evaluate(model, arrays, source, "train", n_boot=10)
+    data = mask_split(arrays, "train")
+    same = json.loads((tmp_path / "run" / "splits.json").read_text())
+    evidence = network_split_evidence({"train": same["train"], "val": same["val"]}, model, data, report)
+    assert evidence["same_games_as_linear"] and evidence["overlap_basis"] == "content"
+    assert evidence["overlaps"] == {"train": 0, "val": 0} and evidence["independent_games"]
+    assert evidence["game_id_overlap"]["train"] == report["games"]
+    other = {"train": same["train"][1:], "val": same["val"]}  # not the linear model's games: IDs only
+    with pytest.raises(ValueError, match="Network 1 .*overlap.*game_id"):
+        network_split_evidence(other, model, data, report)
+    seen = network_split_evidence(other, model, data, report, allow_seen_games=True)
+    assert not seen["same_games_as_linear"] and seen["overlap_basis"] == "game_id"
+    assert seen["overlaps"]["train"] == report["games"] - 1 and not seen["independent_games"]

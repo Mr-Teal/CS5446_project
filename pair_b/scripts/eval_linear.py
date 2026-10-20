@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from pairb.linear import LinearCorrection
-from pairb.linear_workflow import evaluate, load_dataset, mask_split, metrics, write_json
+from pairb.linear_workflow import evaluate, load_dataset, mask_split, metrics, network_split_evidence, write_json
 from pairb.metrics import paired_regret_difference
 
 
@@ -45,22 +45,16 @@ def main():
             split_path = Path(args.net1_splits) if args.net1_splits else Path(args.net1_run) / "splits.json"
             net_evidence = None
             if args.net1_splits or split_path.exists():
-                splits = json.loads(split_path.read_text())
-                if not all(isinstance(splits.get(k), list) and all(isinstance(g, str) for g in splits[k])
-                           for k in ("train", "val")):
-                    raise ValueError("Network 1 split evidence must contain train and val game lists")
-                game_ids = set(data["game_id"].tolist())
-                overlaps = {k: len(game_ids & set(splits[k])) for k in ("train", "val")}
-                if any(overlaps.values()) and not args.allow_seen_games:
-                    raise ValueError("Network 1 evaluation overlaps fitting/selection games; "
-                                     "use --allow-seen-games for diagnostics only")
-                net_evidence = {"overlaps": overlaps, "independent_games": not any(overlaps.values()),
-                                "splits_sha256": hashlib.sha256(split_path.read_bytes()).hexdigest()}
+                net_evidence = network_split_evidence(json.loads(split_path.read_text()), model, data, report,
+                                                      allow_seen_games=args.allow_seen_games)
+                net_evidence["splits_sha256"] = hashlib.sha256(split_path.read_bytes()).hexdigest()
             pred = predict(net, torch.from_numpy(data["planes"]), torch.from_numpy(data["d1"])).numpy()
             report["network"] = metrics(pred, data)
             report["network_checkpoint_sha256"] = hashlib.sha256(ckpath.read_bytes()).hexdigest()
             report["network_split_evidence"] = net_evidence
-            report["independence_scope"] = "independent_games describes linear only; network_split_evidence is null when unavailable"
+            report["independence_scope"] = ("independent_games describes linear only; network_split_evidence is null "
+                                            "when unavailable, and takes the linear model's overlap when Network 1's "
+                                            "train and val games are the linear model's (same_games_as_linear)")
             linear = model.predict(data["planes"], data["d1"], packed=True)
             report["linear_minus_network_regret"] = paired_regret_difference(
                 data["parent"], linear, pred, data["y"], games=data["game_id"], n_boot=args.n_boot)

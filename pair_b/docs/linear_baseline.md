@@ -23,7 +23,8 @@ design matrix. The existing D2 record/packed-array loader still holds the datase
 The split is the existing SHA1 of `game_id` modulo ten: buckets 0–7 train, 8 validation, 9 test.
 All rows are read/encoded for bookkeeping, but test targets do not enter fitting or selection.
 Changing only test targets is covered by a regression test. The checkpoint records training and
-selection game IDs, file-content SHA256 hashes, encoding, source-code hash and runtime versions.
+selection game IDs with a content key per game, file-content SHA256 hashes, encoding,
+source-code hash and runtime versions.
 
 Training/evaluation exclude rule-decided rows exactly as the existing Network 1 array loader
 does. Move-choice metrics therefore compare **the remaining sibling candidates**, not all legal
@@ -62,17 +63,26 @@ python pair_b/scripts/make_d2.py --games 120 --parents-per-game 3 --max-plies 12
   --workers 4 --seed 5446 --out pair_b/data/linear-pilot-120
 ```
 
-Do not treat different seeds as proof of different game IDs: the existing generator restarts
-IDs at `g-000000` for each run. Use disjoint IDs with recorded provenance before comparing
-separate datasets. Evaluation rejects overlap with fitting games, and rejects selection-game
-overlap from a different dataset. `--allow-seen-games` permits diagnostic checks but reports
-the overlap explicitly. Validation on the original fitting dataset is allowed and marked as
-selection data. The test split requires `--final`; reserve it until the protocol is fixed.
+The existing generator restarts IDs at `g-000000` for each run, so the same ID in two datasets
+is usually two different games. Evaluation therefore compares games by ID only on the fitting
+dataset itself (same dataset hash). On any other dataset it compares them by content: training
+stores a content key per game next to the train and val game lists (the first 16 hex characters
+of the sha1 of the game's sorted unique parent FENs), and the evaluated games' keys are checked
+against them. A checkpoint without content keys is checked by ID. The report gives the overlaps
+used (`fitting_game_overlap`, `selection_game_overlap`), their `overlap_basis` (`game_id` or
+`content`) and the raw `game_id_overlap`. Evaluation rejects overlap with fitting games, and
+rejects selection-game overlap from a different dataset. `--allow-seen-games` permits diagnostic
+checks but reports the overlap explicitly. Validation on the original fitting dataset is allowed
+and marked as selection data. The test split requires `--final`; reserve it until the protocol
+is fixed.
 
 With torch installed, add `--net1-run pair_b/checkpoints/net1-v2` to `eval_linear.py` to score
 Network 1 on the **same rows** (CPU). Supply its original `splits.json` via `--net1-splits` if
 it is not alongside the checkpoint. Without that evidence, Network 1's split status is
 reported as unknown; the report's `independent_games` field refers to the linear model only.
+The split file lists game IDs only: when its train and val games are the linear model's
+(`same_games_as_linear`), the linear model's overlap holds for Network 1 too, by content on
+another dataset; otherwise its IDs are compared with the evaluated games' IDs.
 With evidence, overlaps require `--allow-seen-games`. Compare model quality only after checking
 both models' fitting/selection games. Existing published README numbers came from another
 dataset and machine and are not a direct comparison with this pilot.
