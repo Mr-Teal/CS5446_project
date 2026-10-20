@@ -306,8 +306,7 @@ def test_every_unusable_request_gets_a_json_message(lab, method, path, body, sta
     expect_error(lab.send(method, path, body), status)
 
 
-# Catches: a bad move or ply being played, crashing, or answered with a message that is not the session's own, and a
-# ply parsed so loosely that "٣" (Arabic-Indic three, which int() reads) or "1.5" gets through.
+# Catches: the move reply losing the observation between the two moves, or leaking hidden fields in a fair game.
 @pytest.mark.parametrize("fair", [False, True])
 def test_move_can_return_two_distinct_observations(lab, fair):
     game = new_game(lab, fair=fair)
@@ -322,6 +321,7 @@ def test_move_can_return_two_distinct_observations(lab, fair):
     assert status == 200 and current == reply["state"]
 
 
+# Catches: a non-boolean include_after_human being accepted, or a move being played before the flag is refused.
 def test_invalid_intermediate_flag_does_not_play_a_move(lab):
     game = new_game(lab)
     status, error = lab.post(f"/api/games/{game}/move", {"move": "e2e4", "include_after_human": "yes"})
@@ -329,6 +329,8 @@ def test_invalid_intermediate_flag_does_not_play_a_move(lab):
     assert lab.get(f"/api/games/{game}")[1]["ply"] == 0
 
 
+# Catches: a bad move or ply being played, crashing, or answered with a message that is not the session's own, and a
+# ply parsed so loosely that "٣" (Arabic-Indic three, which int() reads) or "1.5" gets through.
 def test_bad_moves_and_plies_are_refused_with_messages(lab):
     game = new_game(lab)
     for body in [{"move": 5}, {"move": None}, {}, {"move": "e2e4e5"}, {"move": "E2E4"}, {"move": "e7e5"},

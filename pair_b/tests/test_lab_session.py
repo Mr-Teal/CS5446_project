@@ -302,7 +302,7 @@ def test_inspection_uses_its_own_scorer():
     assert one.closes == 1  # the session owns what it is given, even when it refuses to start
 
 
-# Review Focus 2. Catches: a bot asked to move after the human has taken its king, and a game going on after it.
+# Catches: the post-human observation being taken after the bot has moved, or showing hidden fields in a fair game.
 @pytest.mark.parametrize("fair", [False, True])
 def test_human_move_can_capture_its_observation_before_the_bot_replies(fair):
     session = session_for(fair=fair)
@@ -324,6 +324,7 @@ def test_human_move_can_capture_its_observation_before_the_bot_replies(fair):
         session.close()
 
 
+# Review Focus 2. Catches: a bot asked to move after the human has taken its king, and a game going on after it.
 def test_human_capturing_the_king_ends_the_game():
     scorer, inspector = Spy(), Spy()
     session = session_for(start_fen=KING_CAPTURE, scorer=scorer, inspector=inspector)
