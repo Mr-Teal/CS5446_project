@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fog Lab</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/static/style.css">
+<script type="module" src="/static/app.js"></script>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <span class="brand">Fog Lab</span>
+    <nav class="tabs" role="tablist" aria-label="Fog Lab">
+      <button type="button" class="tab" role="tab" id="tab-play" data-tab="play" aria-controls="panel-play"
+              aria-selected="true">Play</button>
+      <button type="button" class="tab" role="tab" id="tab-tests" data-tab="tests" aria-controls="panel-tests"
+              aria-selected="false">Tests</button>
+    </nav>
+    <span class="grow"></span>
+    <span class="meta" id="status-line">Connecting to Fog Lab&hellip;</span>
+  </header>
+
+  <section class="tab-panel" id="panel-play" data-panel="play" role="tabpanel" aria-labelledby="tab-play">
+    <div class="controls">
+      <form class="card" id="new-game" autocomplete="off">
+        <h4>New game</h4>
+        <div class="fields">
+          <label>You play
+            <select name="human">
+              <option value="white">White</option>
+              <option value="black">Black</option>
+              <option value="random">Random</option>
+            </select>
+          </label>
+          <label>Bot's scorer <select name="scorer"></select></label>
+          <label>Guesses <input name="guesses" type="number" min="1" max="32" step="1" value="8" required></label>
+          <label>Seed <input name="seed" type="number" min="0" step="1" value="0" required></label>
+          <label class="check"><input name="testing" type="checkbox"> Testing mode</label>
+          <label class="check" title="Everything on the bot's side stays hidden until the game ends">
+            <input name="fair" type="checkbox"> Fair game</label>
+          <button type="submit" class="primary" id="new-game-button">New game</button>
+        </div>
+        <div class="note" id="unavailable" hidden></div>
+      </form>
+      <div class="card">
+        <h4>Saved games</h4>
+        <div class="fields">
+          <button type="button" id="save">Save this game</button>
+          <select id="saved-list" aria-label="Saved games"></select>
+          <button type="button" id="open-saved">Open</button>
+          <button type="button" id="open-file-button">Open a file&hellip;</button>
+          <input type="file" id="open-file" accept=".json,application/json" hidden>
+          <button type="button" id="back-to-game" hidden>Back to the game</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="banners" id="banners" aria-live="polite"></div>
+
+    <div class="row">
+      <div class="board-col">
+        <div class="cap main-caption" id="main-caption"></div>
+        <div class="board-wrap">
+          <div id="main-board"></div>
+          <div class="promotion" id="promotion" hidden></div>
+        </div>
+        <div class="stepbar" id="stepbar">
+          <button type="button" data-step="first" title="The start (Home)">&laquo; First</button>
+          <button type="button" data-step="back" title="One move back (left arrow)">&lsaquo; Back</button>
+          <span class="meta" id="step-where"></span>
+          <button type="button" data-step="forward" title="One move on (right arrow)">Forward &rsaquo;</button>
+          <button type="button" data-step="last" title="The latest move (End)">Last &raquo;</button>
+        </div>
+        <div class="log">
+          <span id="main-log"></span>
+          <span class="thinking" id="thinking" hidden><span class="spinner"></span><span id="thinking-text"></span></span>
+        </div>
+        <div class="switches" id="switches">
+          <button type="button" class="chip" data-switch="reasoning">Show bot's reasoning</button>
+          <button type="button" class="chip" data-switch="true">Reveal true board</button>
+          <button type="button" class="chip" data-switch="botview">Show bot's view</button>
+          <button type="button" class="chip" data-switch="stepping">Step through</button>
+          <button type="button" class="chip" data-switch="testing">Testing mode</button>
+        </div>
+        <div class="moves" id="move-list"></div>
+      </div>
+      <div class="panel" id="bot-panel" hidden></div>
+    </div>
+
+    <section class="testing" id="testing" hidden>
+      <h3>Testing mode</h3>
+      <div class="row">
+        <div><div class="cap" id="t-you-cap"></div><div id="t-you"></div></div>
+        <div><div class="cap">True board (referee only)</div><div id="t-true"></div></div>
+        <div><div class="cap" id="t-bot-cap"></div><div id="t-bot"></div></div>
+      </div>
+      <div class="panel" id="t-heat"></div>
+    </section>
+  </section>
+
+  <section class="tab-panel tests" id="panel-tests" data-panel="tests" role="tabpanel" aria-labelledby="tab-tests"
+           hidden>
+    <div class="run-bar">
+      <span class="spinner" id="t-spinner" hidden></span>
+      <span class="meta" id="t-last">Reading the last test run&hellip;</span>
+      <span class="grow"></span>
+      <label class="check"
+             title="A read-only git fetch from origin before the stages are merged. Untick it to work offline.">
+        <input type="checkbox" id="t-fetch" checked> fetch from GitHub first</label>
+      <button type="button" class="primary" id="t-run">Run again</button>
+    </div>
+    <div class="progress" id="t-progress" hidden></div>
+    <div class="banners" id="t-banners" aria-live="polite"></div>
+
+    <h3 class="sec">1. Health: the pull requests merged one by one, in merge order</h3>
+    <p class="why">Each card is the repo with one more pull request merged in. A failure turns its card red, and a
+      click on the check opens its output. Grey is never a failure: a check that cannot run here, or a stage that was
+      not built.</p>
+    <div class="stages" id="t-stages"></div>
+
+    <h3 class="sec">2. Fog rules: Pair A's <span id="t-fx-count"></span>rules positions, as the player sees them</h3>
+    <p class="why">Each position comes with what the player must and must not see, and which moves must or must not be
+      allowed. A fog-rules bug shows up here as a ring on the wrong kind of square.</p>
+    <div class="rules-choice" id="t-rules"></div>
+    <div class="legend" id="t-legend" hidden>
+      <span><span class="key fog"></span>hidden from this player</span>
+      <span><span class="key see"></span>must be seen</span>
+      <span><span class="key nosee"></span>must stay hidden</span>
+      <span><span class="key mv"></span>move here must be allowed</span>
+      <span><span class="key nomv"></span>move here must not be allowed</span>
+    </div>
+    <div class="fx" id="t-fixtures"></div>
+
+    <h3 class="sec">3. Scorer checks: Bryan's harness, run on every scorer</h3>
+    <p class="why">The same small positions go to each scorer. "Moves" checks the values it gives each move
+      (evaluate_children); "board" checks its value of the position itself, from the right side's view, with the rules
+      applied first (evaluate_boards).</p>
+    <div class="scroll"><table class="grid" id="t-grid" hidden></table></div>
+    <div class="note" id="t-grid-note"></div>
+
+    <h3 class="sec">4. Accuracy, and how sure we are</h3>
+    <p class="why">Errors against a deeper Stockfish, read from the saved evaluation files: Run again never recomputes
+      them. Lower is better. <span id="t-acc-from"></span></p>
+    <div class="acc" id="t-acc"></div>
+    <div class="card forest" id="t-forest-card" hidden>
+      <h4>Is the difference real? Paired difference, 95% interval, resampling whole games</h4>
+      <div id="t-forest"></div>
+    </div>
+
+    <dialog class="log-dialog" id="t-log" aria-labelledby="t-log-title">
+      <div class="log-head">
+        <h4 id="t-log-title">Log</h4>
+        <span class="grow"></span>
+        <a id="t-log-open" href="#" target="_blank" rel="noopener">Open in a new tab</a>
+        <button type="button" id="t-log-close">Close</button>
+      </div>
+      <pre id="t-log-text"></pre>
+    </dialog>
+  </section>
+</div>
+<noscript><p>Fog Lab needs JavaScript to draw its boards.</p></noscript>
+</body>
+</html>

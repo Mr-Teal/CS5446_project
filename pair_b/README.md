@@ -135,7 +135,8 @@ pip install -e . -e pair_b pytest
 cd pair_b; python -m pytest -q
 ```
 
-The 161 tests run Stockfish itself where they need it; those are skipped when it is not on `PATH`.
+The tests run Stockfish itself where they need it; those are skipped when it is not on `PATH`, and
+so are the ones that need torch where torch is not installed (Intel Macs).
 
 ## Rebuild Network 1, or retrain it on new labels
 
@@ -159,8 +160,10 @@ positions from one game never sit on both sides. `data/` and `runs/` stay out of
    the fresh check `--source data/d2-check --parents 100000 --seed 7 --out data/d6-check`.
 2. Training, about 2 minutes on an Apple GPU:
    `python scripts/train_belief_net.py --data data/d6-v1 --out runs/belief-v1-d1 --use-d1`. Point
-   `--data` at a folder of Pair A's labels to retrain on them. `--use-d1` needs quick Stockfish's
-   values as `d1:<i>` diagnostics in the records; train without it otherwise.
+   `--data` at a folder of Pair A's labels to retrain on them, after checking that folder with
+   `python scripts/validate_labels.py <folder>` (add `--require-played-policy` for a full label run;
+   [docs/label_validation.md](docs/label_validation.md) lists the checks). `--use-d1` needs quick
+   Stockfish's values as `d1:<i>` diagnostics in the records; train without it otherwise.
 3. Evaluation: `python scripts/eval_belief_net.py --run runs/belief-v1-d1 --data data/d6-check --split train`.
 
 A label folder holds JSONL files written with `fow_shared.recording.write_records` (`part-*.jsonl` by
@@ -171,16 +174,172 @@ encoded planes in main memory. One limit remains for Pair A's planned scale: eve
 encoded once and cached, about 10 GiB for 10,000 beliefs of 256 boards, so such a run will need
 fewer boards per belief per epoch or encoding on the fly.
 
+## Fog Lab: test and demo app
+
+Fog Lab runs on your own laptop and opens in your browser. It has two tabs:
+
+- **Play:** play fog-of-war chess against our bot. You see only what the fog rules let you see, and
+  the bot's reasoning sits beside the board. Testing mode adds the true board, the bot's own view
+  and the values it weighed.
+- **Tests:** one page that shows whether everything still works: the open pull requests merged one
+  by one, Pair A's 17 rules positions drawn as boards, Bryan's checks on every scorer, and how
+  accurate each scorer is.
+
+After a human move, the Play tab shows the observation immediately after that move for one second
+before displaying the bot's reply. Both observations come from the server and respect fair-game
+visibility. The server computes the reply before sending the two snapshots; this is a display pause,
+not extra thinking time or a change to the bot's decisions.
+
+The bot is honest. It gets only the `AgentInput` of its own turn (its observation, its belief and
+its history), never the true board or anything from your side. `tracker.py` keeps its belief as a
+set of possible true boards (at most 256) from its own observations and moves alone. `bot.py` asks
+the scorer you pick, one of the five evaluators above, for the value of every legal move on each of
+its guesses at your hidden pieces (8 by default), and plays the move with the best average.
+
+### Start it
+
+From the project root, on macOS and Linux:
+
+```bash
+cd pair_b && uv run python -m pairb.lab
+```
+
+On Windows PowerShell, give the path of your own Stockfish. With uv:
+
+```powershell
+cd pair_b; uv run python -m pairb.lab --stockfish "C:\path\to\stockfish.exe"
+```
+
+or with the `pair_b/.venv` that the pip set-up above makes:
+
+```powershell
+cd pair_b; .\.venv\Scripts\python -m pairb.lab --stockfish "C:\path\to\stockfish.exe"
+```
+
+If uv stops with a certificate error, as it does on Colin's Mac, add `--system-certs` after
+`uv run`. The app prints `Fog Lab: http://127.0.0.1:8765  (Ctrl+C to stop)`; open that address in a
+browser. It listens on 127.0.0.1 only, so nobody else on your network can reach it, and it needs no
+internet except the optional fetch on the Tests tab. It takes these flags:
+
+| Flag | What it does | Default |
+|---|---|---|
+| `--port` | the port to listen on; 0 takes any free one | 8765 |
+| `--stockfish` | the Stockfish command on the `PATH`, or the path of the engine | `stockfish` |
+| `--device` | where the two networks run: `cpu`, `mps` or `cuda` | the best one torch finds |
+| `--rules` | `auto` is Teal's `RulesAdapter` when this checkout has it, otherwise Pair B's stand-in; `teal` and `standin` force one | `auto` |
+
+The top right of the page says which rules, scorer and device are in use.
+
+**Intel Macs.** torch has no build for them, so `uv sync` leaves it out. The belief network and
+Network 1 are greyed out in the scorer list with the reason, quick Stockfish becomes the default
+scorer, and the tests that need torch skip: in grey on the Tests tab, never red. Everything else
+works.
+
+### Pair A's environment, for the Tests tab
+
+Pair A's tests need scipy, which Pair B's environment lacks, so the Tests tab runs them in Pair A's
+own environment, `pair_a_prep/.venv`. Set it up once, from the project root, as
+`pair_a_prep/README.md` does. On macOS and Linux:
+
+```bash
+python3 -m venv pair_a_prep/.venv
+pair_a_prep/.venv/bin/python -m pip install -r pair_a_prep/requirements.txt
+```
+
+On Windows PowerShell:
+
+```powershell
+python -m venv pair_a_prep/.venv
+pair_a_prep/.venv/Scripts/python -m pip install -r pair_a_prep/requirements.txt
+```
+
+Without it, Pair A's lines are grey ("Pair A's environment not set up here", with these commands)
+and never count as failures.
+
+### What a test run does
+
+Press Run again; a run takes about a minute per stage on Colin's Mac, and the cards fill in as it
+goes.
+
+1. It fetches from GitHub first (a read-only `git fetch origin`; untick the box to work offline).
+2. In a temporary git worktree outside your checkout, it builds the stages of
+   `pair_b/fog_lab_stages.json`: the first stage is checked out, each later one is merged on top,
+   and every stage runs the checks it has.
+3. The last stage is always "+ this checkout", the committed `HEAD` of the checkout the app runs
+   from ("contained" when an earlier stage already has it). Uncommitted changes are never part of a
+   run.
+4. The worktree is removed. A run never touches your checkout, branches or stash, and never pushes.
+
+The fog-rules, scorer and accuracy sections show the last stage that built. The accuracy numbers
+are read from saved evaluation files, and Run again never recomputes them.
+
+The stages file lists one git ref per stage, in merge order. Edit it as pull requests open and
+merge: add a line for a new pull request, such as
+
+```json
+{"label": "+ PR #9", "ref": "origin/pair-b/branch", "title": "What it adds"},
+```
+
+and delete the line of one that is in `origin/main`: it has nothing new to check, and its card
+only says "contained".
+
+Runs and saved games live in `pair_b/.fog_lab/` (git-ignored): `runs/` holds each run's summary and
+logs, and the last 10 runs are kept; `games/` holds saved games.
+
+### How fast the tracker is
+
+Measured on Colin's Mac with 256 particles, over 5 seeded random games of up to 40 plies (410
+updates; `uv run python scripts/bench_tracker.py --games 5 --plies 40 --particles 256`): one
+tracker update took a median of 26 ms and 733 ms at the 95th percentile, and the slowest took
+5.2 s. 18 of the 410 updates had to rebuild the belief. The slow ones follow a move you made that
+the bot could not see, because then every particle is expanded by every move. The scorer's time
+comes on top.
+
+### A demo in six steps
+
+1. **New game in Testing mode.** On the Play tab choose your colour and the bot's scorer (the
+   belief network is the default), tick "Testing mode" and press New game.
+2. **A few moves.** Click one of your pieces and its legal destinations light up; click one to
+   move. Hatched squares are hidden from you, and the fog rules let you move into check. The bot
+   replies after each move.
+3. **The panel.** Beside the board, "Bot (Black) played ..." lists its top 6 moves with their
+   average value over its guesses, a bar and the range over the guesses. The small boards are its
+   guesses at your hidden pieces. These are the numbers it chose by.
+4. **The true board and "lost by not knowing".** The Testing strip shows your view, the true board
+   (held only by the referee) and the bot's view, and a heatmap of the top moves on each guess with
+   a "True board" column that the app scores itself. "Lost by not knowing" is the best value on the
+   true board minus the true-board value of the move played; the belief-health line says how many
+   boards the tracker still thinks possible and whether the true one is among them.
+5. **A fair game.** Tick "Fair game" and press New game. Until the game ends the page gets only
+   your own view, your own moves, whose turn it is and whether the game is over: the bot's moves
+   show as "?", and its panel and the Testing strip stay hidden. When the game ends, the bot's
+   moves and its panel appear, and the "Testing mode" switch brings up the Testing strip.
+6. **Step through a saved game.** "Save this game" writes the record to `pair_b/.fog_lab/games/`
+   and downloads a copy. Pick it under "Saved games" and press Open (or "Open a file..." for one a
+   teammate sent). First, Back, Forward and Last, or the Home, arrow and End keys, step through it
+   ply by ply, with the bot's panel at every ply (and the Testing strip when Testing mode is on).
+   For a demo, save a good game in advance.
+
 ## Files
 
 - `src/pairb/`: the evaluators (`stockfish.py`, `network_evaluator.py`, `material.py`,
   `belief_evaluator.py`), Network 1 (`net1.py`, with its 19-plane board encoding in `encode.py`),
   practice data (`d2.py`), and training and evaluation helpers (`data.py`, `evaluate.py`,
-  `metrics.py`). The belief network: `belief_net.py`, `belief_data.py`, `belief_eval.py`, and the
-  practice beliefs `observe.py` and `standin_beliefs.py`.
+  `metrics.py`). The belief network: `belief_net.py`, `belief_data.py`, `belief_eval.py`, the
+  practice beliefs `observe.py` and `standin_beliefs.py`, and `label_validation.py` (the checks
+  behind `scripts/validate_labels.py`, for Pair A's label folders). Fog Lab: `tracker.py` (the honest belief
+  tracker), `bot.py` (the one-ply belief bot), `rules.py` (Teal's adapter or our stand-in, behind
+  one interface), `harness_adapter.py` (the belief network as a scorer for Bryan's harness) and
+  `lab/` (the server, the test runner and the page in `lab/static/`).
 - `scripts/`: `make_d2.py`, `train_net1.py`, `eval_net1.py`, `make_beliefs.py`,
-  `train_belief_net.py`, `eval_belief_net.py`.
+  `train_belief_net.py`, `eval_belief_net.py`, `eval_children.py`, `bench_tracker.py` and
+  `validate_labels.py`.
+  `eval_children.py` measures per-move accuracy against depth-16 Stockfish and writes only the
+  JSON file named by `--out`; the Tests tab reads `checkpoints/belief-v1-d1/eval-children-d16.json`.
+  `bench_tracker.py` times the belief tracker and writes nothing.
 - `checkpoints/net1-v2/`: the kept Network 1 (521k parameters, 2 MB), its training summary and its
   results on the fresh games. `checkpoints/belief-v1-d1/`: the kept belief network (562k
-  parameters), the same three files.
-- `tests/`: written before the code they test.
+  parameters), the same three files, and `eval-children-d16.json`, which `eval_children.py` wrote.
+- `tests/`: written before the code they test. `tests/js/` holds the page's JavaScript helper
+  tests, run from `pair_b/` with `node --test tests/js/`, which needs Node 20.19, or 22.7 or later.
+  The app itself needs no Node.

@@ -1,5 +1,7 @@
 """Network 1 (D3): one board plus Stockfish's depth-1 value in, a corrected value out."""
-import torch
+import pytest
+
+torch = pytest.importorskip("torch")  # Intel Macs have no torch build: skip this file there
 
 from pairb.net1 import Network1
 

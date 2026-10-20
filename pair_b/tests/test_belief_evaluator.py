@@ -9,7 +9,8 @@ import shutil
 
 import chess
 import pytest
-import torch
+
+torch = pytest.importorskip("torch")  # Intel Macs have no torch build: skip this file there
 
 from fow_shared.contracts import AgentInput, Belief, Hypothesis, Observation
 from fow_shared.values import fog_legal_moves, rule_score

@@ -1,0 +1,8 @@
+{
+  "stages": [
+    {"label": "main", "ref": "origin/main", "title": "Everything merged so far"},
+    {"label": "+ PR #8", "ref": "origin/pair-b/linear-baseline", "title": "Linear baseline"},
+    {"label": "+ PR #11", "ref": "origin/pair-b/loader-cache-key", "title": "Loader cache fix"},
+    {"label": "+ Teal's branch", "ref": "origin/pair-a/rules-interface", "title": "Rules adapter, PCFR+"}
+  ]
+}

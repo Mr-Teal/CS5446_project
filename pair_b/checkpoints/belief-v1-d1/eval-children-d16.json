@@ -1,0 +1,47 @@
+{
+  "data": "d2-check",
+  "split": "train",
+  "seed": 5,
+  "parents": 100,
+  "children": 2849,
+  "target_depth": 16,
+  "mae": {
+    "belief_children": 0.07039510408617017,
+    "belief_boards": 0.07039510408617017,
+    "net1_children": 0.07106137369602213,
+    "net1_boards": 0.068309064513236,
+    "sf_children": 0.10075348661946165,
+    "sf_boards": 0.08412197030541645
+  },
+  "belief_children - net1_children": {
+    "mean": -0.0006662696098519435,
+    "ci95": [
+      -0.00948430536220628,
+      0.007664201485859875
+    ],
+    "beliefs": 2849,
+    "games": 95,
+    "resampled": "games"
+  },
+  "belief_children - belief_boards": {
+    "mean": 0.0,
+    "ci95": [
+      0.0,
+      0.0
+    ],
+    "beliefs": 2849,
+    "games": 95,
+    "resampled": "games"
+  },
+  "net1_boards - net1_children": {
+    "mean": -0.0027523091827861158,
+    "ci95": [
+      -0.01155375475299972,
+      0.006315086578395931
+    ],
+    "beliefs": 2849,
+    "games": 95,
+    "resampled": "games"
+  },
+  "created": "2026-10-19T22:29:20+08:00"
+}
