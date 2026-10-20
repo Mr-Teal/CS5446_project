@@ -89,9 +89,12 @@ dataset and machine and are not a direct comparison with this pilot.
 
 Outputs refuse overwrites. `best.npz` stores numeric coefficients and JSON metadata, without
 pickle. `summary.json` retains the alpha sweep and depth-1 validation metrics; `splits.json`
-records the game split. Evaluation reports MAE/MSE, move-choice metrics and paired regret
-differences with a fixed-seed, whole-game bootstrap. The bootstrap does not account for model
-selection on the same validation games. Timing includes encoding, Stockfish and correction;
+records the game split. Evaluation reports MAE/MSE, move-choice metrics and paired differences,
+linear minus depth-1, in value error (`mae_difference`, the per-position absolute error) and in
+regret (`regret_difference`), each with a fixed-seed, whole-game bootstrap (2,000 resamples by
+default). With `--net1-run` it adds the same two for linear minus Network 1
+(`linear_minus_network_mae`, `linear_minus_network_regret`). The bootstrap does not account for
+model selection on the same validation games. Timing includes encoding, Stockfish and correction;
 it uses separate warmed engines with one thread, 16 MB hash and `new_game_each_call=False`,
 rotates evaluator order, and checks equal legal-move coverage. `--net1-run` also works for
 timing. Dataset, source, engine binary and checkpoint hashes are retained for provenance.

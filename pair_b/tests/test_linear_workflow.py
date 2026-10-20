@@ -201,3 +201,16 @@ def test_network_1_follows_the_linear_evidence_when_the_splits_match(tmp_path):
     seen = network_split_evidence(other, model, data, report, allow_seen_games=True)
     assert not seen["same_games_as_linear"] and seen["overlap_basis"] == "game_id"
     assert seen["overlaps"]["train"] == report["games"] - 1 and not seen["independent_games"]
+
+
+# Catches: a value-error interval that is not linear minus quick Stockfish on the evaluated rows,
+# or that resamples positions one by one instead of whole games.
+def test_the_report_has_the_value_error_difference_against_quick_stockfish(tmp_path):
+    model = fitted_model(tmp_path)
+    distinct_games(tmp_path / "fresh", first=200)
+    arrays, source = load_dataset(tmp_path / "fresh")
+    report = evaluate(model, arrays, source, "train", n_boot=200)
+    difference = report["mae_difference"]
+    assert difference["mean"] == pytest.approx(report["linear"]["mae"] - report["baseline"]["mae"], abs=1e-6)
+    assert difference["positions"] == report["n"] and difference["games"] == report["games"]
+    assert difference["resampled"] == "games" and difference["ci95"][0] <= difference["mean"] <= difference["ci95"][1]

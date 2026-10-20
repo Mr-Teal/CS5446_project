@@ -9,7 +9,7 @@ import numpy as np
 
 from .data import ENCODING, build_arrays, read_records, split_of
 from .linear import fit_candidates
-from .metrics import choice_metrics, paired_regret_difference
+from .metrics import choice_metrics, paired_difference, paired_regret_difference
 
 CONTENT_KEY = "sha1 of the game's sorted unique parent FENs, one per line; first 16 hex characters"
 
@@ -126,6 +126,16 @@ def train(folder, out, alphas):
     return summary
 
 
+def value_error_difference(pred, base, data, n_boot):
+    """Mean over positions of |pred - y| minus |base - y|, with paired_difference's 95% interval
+    resampling whole games (seed 0). Negative means pred errs less."""
+    y = data["y"].astype(np.float64)
+    d = paired_difference(np.abs(np.asarray(pred, dtype=np.float64) - y),
+                          np.abs(np.asarray(base, dtype=np.float64) - y), data["game_id"], n_boot=n_boot)
+    return {"mean": d["mean"], "ci95": d["ci95"], "positions": d["beliefs"], "games": d["games"],
+            "resampled": d["resampled"]}
+
+
 def evaluate(model, arrays, source, split, *, n_boot=2000, allow_seen_games=False):
     if n_boot < 1:
         raise ValueError("n_boot must be positive")
@@ -160,6 +170,7 @@ def evaluate(model, arrays, source, split, *, n_boot=2000, allow_seen_games=Fals
             "material": metrics(material_prediction(data["planes"]), data),
             "regret_difference": paired_regret_difference(data["parent"], pred, data["d1"], data["y"],
                                                           games=data["game_id"], n_boot=n_boot),
+            "mae_difference": value_error_difference(pred, data["d1"], data, n_boot),
             "runtime": runtime()}
 
 

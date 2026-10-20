@@ -5,7 +5,8 @@ import json
 from pathlib import Path
 
 from pairb.linear import LinearCorrection
-from pairb.linear_workflow import evaluate, load_dataset, mask_split, metrics, network_split_evidence, write_json
+from pairb.linear_workflow import (evaluate, load_dataset, mask_split, metrics, network_split_evidence,
+                                   value_error_difference, write_json)
 from pairb.metrics import paired_regret_difference
 
 
@@ -58,6 +59,7 @@ def main():
             linear = model.predict(data["planes"], data["d1"], packed=True)
             report["linear_minus_network_regret"] = paired_regret_difference(
                 data["parent"], linear, pred, data["y"], games=data["game_id"], n_boot=args.n_boot)
+            report["linear_minus_network_mae"] = value_error_difference(linear, pred, data, args.n_boot)
         write_json(args.out, report)
     except (ValueError, FileExistsError) as exc:
         ap.error(str(exc))
