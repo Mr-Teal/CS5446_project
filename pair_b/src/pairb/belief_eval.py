@@ -8,6 +8,7 @@ import numpy as np
 import torch
 
 from .belief_data import belief_batches, rows_of
+from .metrics import paired_difference  # noqa: F401  the evaluation scripts import it from here
 
 
 def require_d1(arrays: dict, beliefs: np.ndarray) -> None:
@@ -60,16 +61,3 @@ def baseline_pred(arrays: dict, beliefs: np.ndarray) -> np.ndarray | None:
     rows, _ = rows_of(arrays, beliefs)
     d1 = arrays["d1"][rows]
     return None if np.isnan(d1[~arrays["rule"][rows]]).any() else np.nan_to_num(d1)
-
-
-def paired_difference(a: np.ndarray, b: np.ndarray, groups: np.ndarray, n_boot: int = 2000, seed: int = 0) -> dict:
-    """Mean of a - b over beliefs, with a 95% bootstrap interval that resamples whole games
-    (`groups`, one game_id per belief): beliefs from one game are correlated, so resampling them
-    one by one would make the interval too narrow. Negative means a errs less."""
-    diff = a - b
-    keys, game = np.unique(groups, return_inverse=True)
-    sums, counts = np.bincount(game, weights=diff), np.bincount(game)
-    pick = np.random.default_rng(seed).integers(0, len(keys), size=(n_boot, len(keys)))
-    boots = sums[pick].sum(axis=1) / counts[pick].sum(axis=1)
-    return {"mean": float(diff.mean()), "ci95": [float(np.quantile(boots, 0.025)), float(np.quantile(boots, 0.975))],
-            "beliefs": int(len(diff)), "games": int(len(keys)), "resampled": "games"}
