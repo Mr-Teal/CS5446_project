@@ -11,6 +11,7 @@
 import {displaySquares, drawBoard, glyph, moveTargets, parseFen, topMoves, worstMoves} from "./board.js";
 import {bar, capitalise, cell, CHECK, enc, esc, exact, isNumber, NONE, signed} from "./panel.js";
 import {startTests} from "./tests.js";
+import {showMoveReply} from "./playback.js";
 
 const TOP_MOVES = 6;    // rows in the bot's table and the heatmap; the chosen move is added when it is not among them
 const WORST_MOVES = 2;
@@ -133,7 +134,13 @@ async function play(move) {
   if (!canMove(ui.state)) return;
   Object.assign(ui, {selected: null, promotion: null, pendingMove: move, notice: null, info: null});
   await work("Bot is thinking\u2026", async () => {
-    showLive(await api(`/api/games/${enc(ui.gameId)}/move`, {method: "POST", body: JSON.stringify({move})}));
+    const reply = await api(`/api/games/${enc(ui.gameId)}/move`,
+      {method: "POST", body: JSON.stringify({move, include_after_human: true})});
+    await showMoveReply(reply, state => {
+      showLive(state);
+      ui.busy = "Your move played; bot replies shortly\u2026";
+      render();
+    });
   }, error => {
     ui.notice = `${move} was not played: ${error.message}`;
   });
