@@ -76,3 +76,11 @@ def test_paired_regret_difference_can_resample_whole_games():
     assert by_game["mean"] == by_parent["mean"] == pytest.approx(0.5)
     assert by_game["games"] == 2 and by_game["ci95"][1] - by_game["ci95"][0] > 0.8   # mean can be 0, 0.5 or 1
     assert by_parent["ci95"][1] - by_parent["ci95"][0] < 0.4
+
+
+# Catches: eval_belief_net.py, which imports paired_difference from belief_eval, getting a different
+# copy from the one in metrics.py that the NumPy-only linear baseline uses.
+def test_belief_eval_still_gives_the_paired_difference_from_metrics():
+    pytest.importorskip("torch")  # belief_eval imports torch
+    from pairb import belief_eval, metrics
+    assert belief_eval.paired_difference is metrics.paired_difference

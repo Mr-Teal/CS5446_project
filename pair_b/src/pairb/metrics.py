@@ -52,3 +52,20 @@ def paired_regret_difference(parents, pred, base, y, games=None, n_boot: int = 2
     boots = sums[pick].sum(axis=1) / counts[pick].sum(axis=1)
     return {"mean": float(diff.mean()), "ci95": [float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))],
             "parents": int(len(diff)), "games": int(len(sums)), "resampled": "parents" if games is None else "games"}
+
+
+def paired_difference(a: np.ndarray, b: np.ndarray, groups: np.ndarray, n_boot: int = 2000, seed: int = 0) -> dict:
+    """Mean of a - b over beliefs, with a 95% bootstrap interval that resamples whole games
+    (`groups`, one game_id per belief): beliefs from one game are correlated, so resampling them
+    one by one would make the interval too narrow. Negative means a errs less.
+
+    It needs only NumPy, so torch-free code such as the linear baseline can use it, there with one
+    row per position; the count keeps the key "beliefs" whatever a row is. belief_eval re-exports
+    it, since the evaluation scripts import it from there."""
+    diff = a - b
+    keys, game = np.unique(groups, return_inverse=True)
+    sums, counts = np.bincount(game, weights=diff), np.bincount(game)
+    pick = np.random.default_rng(seed).integers(0, len(keys), size=(n_boot, len(keys)))
+    boots = sums[pick].sum(axis=1) / counts[pick].sum(axis=1)
+    return {"mean": float(diff.mean()), "ci95": [float(np.quantile(boots, 0.025)), float(np.quantile(boots, 0.975))],
+            "beliefs": int(len(diff)), "games": int(len(keys)), "resampled": "games"}

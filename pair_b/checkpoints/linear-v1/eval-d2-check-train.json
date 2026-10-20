@@ -1,0 +1,153 @@
+{
+  "source": {
+    "dataset": "d2-check",
+    "files_sha256": {
+      "part-00.jsonl": "617cc6d7eaeb27a5f9f347a7df656e4f14399eeb7bad1aa789c3189c28284ad8",
+      "part-01.jsonl": "7861ed0b2d9ab1eaabe8b32789ef3876ff94934a309847f3b0977130ad2f3d10",
+      "part-02.jsonl": "153aefe43e312fbdcc26d943c79f34bab9bd002aeb0dd067bc07909a42d935e8",
+      "part-03.jsonl": "cc15c71d468ba59752d25ecd94903fbfb1020a81b15d8bf30bf5609bf7c38d9b",
+      "part-04.jsonl": "8be85d9d7a4195d03955fdf0bcd253571210deb9d8232931f9651a9c6f937892",
+      "part-05.jsonl": "65524121357c98300d56b39987d6363b25dc6644206cb8601c08c7d756966dfe",
+      "part-06.jsonl": "aff33f7d6c121a904bf860da75001223cdce3d8eb245078d31ab87ab50cf2bf9",
+      "part-07.jsonl": "22241649c5d375a88b0ca6a3d296db6428e51f6ec29aaf78684a17b276de434f",
+      "part-08.jsonl": "3f80a26ae802294f41f13d65c049f7b2b3bc631972c852b656d64cf00673c4f3",
+      "part-09.jsonl": "b6b0a4a37cf0142d9781cd735c736f6df92dc1c2550ebd410c8865c7d3b58149",
+      "part-10.jsonl": "b37f753002994cf7c447ee40740d236dba29609b9f56feda0e3ce540d5e26e55",
+      "part-11.jsonl": "b2cfd12dc5190f9430774d6b21cb7164e15e9e7b88f6f047f901c9b07e76506c",
+      "manifest.json": "416a429b72d6ff7243772ad22d189be19ac5d7843b5579913e64667302161f02"
+    },
+    "sha256": "5475455ca72909b1481058b96d80a1f62aec890f25d1aafe8e2af5eff2983903",
+    "records": 119303,
+    "non_rule_rows": 119132,
+    "rule_rows_excluded": 171
+  },
+  "split": "train",
+  "n": 94963,
+  "games": 959,
+  "fitting_game_overlap": 0,
+  "selection_game_overlap": 0,
+  "overlap_basis": "content",
+  "game_id_overlap": {
+    "train": 955,
+    "val": 0
+  },
+  "independent_games": true,
+  "split_evidence_available": true,
+  "bootstrap": {
+    "resamples": 2000,
+    "seed": 0,
+    "unit": "whole games"
+  },
+  "linear": {
+    "mse": 0.02012529975700487,
+    "mae": 0.0841058301481069,
+    "mae_close": 0.0948586560523267,
+    "mae_decided": 0.052373681676054176,
+    "mae_close_by_d1": 0.12616518873315025,
+    "choice": {
+      "top1": 0.4154007333682556,
+      "regret": 0.03463556370907085,
+      "parents": 3818
+    }
+  },
+  "baseline": {
+    "mse": 0.023089954629540443,
+    "mae": 0.09488455951213837,
+    "mae_close": 0.09066960960626602,
+    "mae_decided": 0.07644137740135193,
+    "mae_close_by_d1": 0.1262427270412445,
+    "choice": {
+      "top1": 0.42875851231011003,
+      "regret": 0.03548126085822955,
+      "parents": 3818
+    }
+  },
+  "material": {
+    "mse": 0.23873064563323665,
+    "mae": 0.3355100007968462,
+    "mae_close": 0.21570890887522187,
+    "mae_decided": 0.23427207036811842,
+    "mae_close_by_d1": 0.2515503622894198,
+    "choice": {
+      "top1": 0.27710843373493976,
+      "regret": 0.2108373207217224,
+      "parents": 3818
+    }
+  },
+  "regret_difference": {
+    "mean": -0.0008456971491586989,
+    "ci95": [
+      -0.002563446871237329,
+      0.0007647065722715952
+    ],
+    "parents": 3818,
+    "games": 959,
+    "resampled": "games"
+  },
+  "mae_difference": {
+    "mean": -0.010778729290937056,
+    "ci95": [
+      -0.012094804537310723,
+      -0.009511867711930183
+    ],
+    "positions": 94963,
+    "games": 959,
+    "resampled": "games"
+  },
+  "runtime": {
+    "python": "3.14.6",
+    "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "numpy": "2.5.4",
+    "python_chess": "1.11.2",
+    "source_sha256": "094b79cf2ec6b2ca08832255fa4df8eeb7c9526cbf46f554b683eca394eb4c09"
+  },
+  "checkpoint_sha256": "27388ccb0ec0a67d8a5984cfb2e577b911b91e811a6e26d7191436d2819a2593",
+  "network": {
+    "mse": 0.01834862120449543,
+    "mae": 0.07567069679498672,
+    "mae_close": 0.10714759677648544,
+    "mae_decided": 0.03705437481403351,
+    "mae_close_by_d1": 0.12858115136623383,
+    "choice": {
+      "top1": 0.42430591932949185,
+      "regret": 0.03520516235495524,
+      "parents": 3818
+    }
+  },
+  "network_checkpoint_sha256": "ab470346acb5eb37947e3ab0eb43c005894ae72569ca016d7635fc2be6f9171f",
+  "network_split_evidence": {
+    "overlaps": {
+      "train": 0,
+      "val": 0
+    },
+    "overlap_basis": "content",
+    "game_id_overlap": {
+      "train": 955,
+      "val": 0
+    },
+    "same_games_as_linear": true,
+    "independent_games": true,
+    "splits_sha256": "4a53e126b0b1cfef36e7c1106bae3e9b903036569984b3135878ff7d2d28d7f6"
+  },
+  "independence_scope": "independent_games describes linear only; network_split_evidence is null when unavailable, and takes the linear model's overlap when Network 1's train and val games are the linear model's (same_games_as_linear)",
+  "linear_minus_network_regret": {
+    "mean": -0.0005695986458843876,
+    "ci95": [
+      -0.002200165166345099,
+      0.0010506204410515192
+    ],
+    "parents": 3818,
+    "games": 959,
+    "resampled": "games"
+  },
+  "linear_minus_network_mae": {
+    "mean": 0.008435132221224429,
+    "ci95": [
+      0.007506004105551907,
+      0.009401117446283783
+    ],
+    "positions": 94963,
+    "games": 959,
+    "resampled": "games"
+  }
+}
