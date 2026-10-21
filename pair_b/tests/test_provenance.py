@@ -1,4 +1,5 @@
 """Provenance: which data files, checkpoint and code a result came from, by SHA-256 (review T9)."""
+import gzip
 import hashlib
 import json
 import subprocess
@@ -30,6 +31,17 @@ def test_data_files_hashes_each_part_and_the_manifest(tmp_path):
     assert sorted(got["files_sha256"]) == ["manifest.json", "part-00.jsonl", "part-01.jsonl"]
     assert got["files_sha256"]["part-00.jsonl"] == hashlib.sha256(b'{"a": 1}\n').hexdigest()
     assert got["sha256"] == hashlib.sha256(json.dumps(got["files_sha256"], sort_keys=True).encode()).hexdigest()
+
+
+# Catches: the frozen evaluation rows (a gzipped part) hashed as a folder without records, or the
+# belief scripts' plain pattern hashing parts they do not read.
+def test_data_files_hashes_gzipped_parts_unless_a_pattern_says_otherwise(tmp_path):
+    folder = dataset(tmp_path / "d", {"seed": 7})
+    (folder / "part-02.jsonl.gz").write_bytes(gzip.compress(b'{"a": 3}\n'))
+    got = provenance.data_files(folder)
+    assert sorted(got["files_sha256"]) == ["manifest.json", "part-00.jsonl", "part-01.jsonl", "part-02.jsonl.gz"]
+    plain = provenance.data_files(folder, "part-*.jsonl")
+    assert "part-02.jsonl.gz" not in plain["files_sha256"] and "pattern" not in plain
 
 
 # Catches: a run that read some of the parts (the belief scripts' --pattern) recorded as if it

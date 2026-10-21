@@ -157,8 +157,14 @@ so are the ones that need torch where torch is not installed (Intel Macs).
    which writes `eval-d2-check-train.json`. The test
    split needs `--final`, for the final report only.
 
+The evaluation rows are in git: `data/d2-check-train/` holds the 95,104 records of d2-check's
+training bucket (2.8 MB, written by `scripts/freeze_split.py`; its `manifest.json` names the source
+and its SHA-256). `python scripts/eval_net1.py --run checkpoints/net1-v2 --data data/d2-check-train
+--split train` reruns the committed evaluation without Stockfish and gives the same digits.
+
 Data is split by whole game (sha1 of `game_id` modulo 10: 0–7 train, 8 validation, 9 test), so
-positions from one game never sit on both sides. `data/` and `runs/` stay out of git.
+positions from one game never sit on both sides. `data/` (except `data/d2-check-train/`) and
+`runs/` stay out of git.
 Fresh games can still reach positions the training games reached: 5 of the 3,818 d2-check
 evaluation parents are also d2-v2 training or validation parents, and 168 of its 94,963 rows (0.18%)
 share a position with a d2-v2 training or validation row

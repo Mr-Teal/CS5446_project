@@ -1,4 +1,5 @@
 """D2 records to training arrays (D3)."""
+import gzip
 import hashlib
 import json
 from pathlib import Path
@@ -11,6 +12,7 @@ from .encode import N_PLANES, encode_board, stm_sign
 ENCODING = "net1-planes-0-18-v1"
 CACHE_VERSION = 2  # bump whenever build_arrays changes what it returns
 HALFMOVE_PLANE = 18
+PARTS = ("part-*.jsonl", "part-*.jsonl.gz")  # a dataset's record files; a part may be gzipped
 
 
 def split_of(game_id: str) -> str:
@@ -19,8 +21,26 @@ def split_of(game_id: str) -> str:
     return "train" if bucket < 8 else ("val" if bucket == 8 else "test")
 
 
+def part_files(folder) -> list[Path]:
+    """A dataset folder's record files, plain or gzipped, in name order. A part kept both ways
+    (gzipped in place with the original left) would be read twice, so it is refused."""
+    parts = sorted(p for pattern in PARTS for p in Path(folder).glob(pattern))
+    names = [p.name.removesuffix(".gz") for p in parts]
+    twice = sorted({n for n in names if names.count(n) > 1})
+    if twice:
+        raise ValueError(f"{folder} has {', '.join(twice)} both plain and gzipped; keep one")
+    return parts
+
+
+def record_lines(folder):
+    """Each record's JSON line, as written, part by part."""
+    for path in part_files(folder):
+        data = path.read_bytes()
+        yield from (gzip.decompress(data) if path.suffix == ".gz" else data).decode().splitlines()
+
+
 def read_records(folder) -> list[dict]:
-    return [json.loads(line) for f in sorted(Path(folder).glob("part-*.jsonl")) for line in f.read_text().splitlines()]
+    return [json.loads(line) for line in record_lines(folder)]
 
 
 def pack(planes: np.ndarray) -> np.ndarray:
@@ -59,7 +79,7 @@ def load_arrays(folder, cache_dir) -> dict[str, np.ndarray]:
     are read again."""
     folder = Path(folder)
     manifest = json.loads((folder / "manifest.json").read_text())
-    parts = sorted(folder.glob("part-*.jsonl"))
+    parts = part_files(folder)
     files = "|".join(f"{p.name}:{p.stat().st_size}:{p.stat().st_mtime_ns}" for p in parts)
     stamp = f"{manifest['created']}|{manifest['records']}|{files}"
     key = hashlib.sha1(f"{folder.resolve()}|{stamp}|{ENCODING}|{CACHE_VERSION}".encode()).hexdigest()[:12]
