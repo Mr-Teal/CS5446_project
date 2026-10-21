@@ -1,0 +1,43 @@
+{
+  "fen": "r1bq1bn1/pppppkp1/n2r1p2/7p/2PP4/7N/PPQNPPPP/1RB1KB1R w K - 2 7",
+  "engine": "stockfish-19-d1",
+  "runs": [
+    {
+      "depth": 1,
+      "hash_kept_between_calls": true,
+      "moves": 30,
+      "changed": 9,
+      "max_abs_change": 0.020504263130069922,
+      "best_move_before": "e2e3",
+      "best_move_after": "e2e3"
+    },
+    {
+      "depth": 1,
+      "hash_kept_between_calls": false,
+      "moves": 30,
+      "changed": 0,
+      "max_abs_change": 0.0,
+      "best_move_before": "e2e3",
+      "best_move_after": "e2e3"
+    },
+    {
+      "depth": 11,
+      "hash_kept_between_calls": true,
+      "moves": 30,
+      "changed": 30,
+      "max_abs_change": 0.10046333017670095,
+      "best_move_before": "e2e3",
+      "best_move_after": "c2h7"
+    },
+    {
+      "depth": 11,
+      "hash_kept_between_calls": false,
+      "moves": 30,
+      "changed": 0,
+      "max_abs_change": 0.0,
+      "best_move_before": "e2e3",
+      "best_move_after": "e2e3"
+    }
+  ],
+  "note": "hash kept between calls is play_matches.py's within-game policy (cleared before every game); hash cleared before every call is pairb.match_experiment's policy"
+}

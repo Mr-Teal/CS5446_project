@@ -2,22 +2,36 @@
   "checkpoint": "checkpoints/belief-v1-d1/best.pt",
   "data": "d6-check",
   "split": "train",
+  "subset": "the first 300 train beliefs in file order",
   "beliefs": 300,
-  "boards_compared": 2386,
+  "boards_compared": 2385,
+  "rule_decided_boards_skipped": 1,
   "second_belief_seed": 11,
   "device": "mps",
   "value_shift_between_beliefs": {
-    "mean": 0.01412511227049081,
-    "median": 0.0030399858951568604,
-    "p95": 0.051754772663116455,
+    "mean": 0.01425054392648521,
+    "median": 0.002838134765625,
+    "p95": 0.05430672764778134,
     "max": 1.1754343807697296,
-    "share_above_0.01": 0.29044425817267394,
-    "share_above_0.05": 0.05280804694048617
+    "share_above_0.01": 0.28846960167714886,
+    "share_above_0.05": 0.05660377358490566
   },
   "board_error_on_the_same_boards": {
-    "mean": 0.08694199748639375,
-    "median": 0.04551664224991092
+    "mean": 0.08697845085264339,
+    "median": 0.04561223817076099
   },
-  "shift_over_error": 0.16246592761687312,
+  "board_error_in_the_second_belief": {
+    "mean": 0.08677710390678578,
+    "median": 0.04457343769548816
+  },
+  "share_second_belief_closer_to_label": 0.4243186582809224,
+  "quick_stockfish_error_on_the_same_boards": {
+    "mean": 0.09324031719897398,
+    "boards_with_d1": 2385
+  },
+  "shift_over_error": {
+    "of_means": 0.16383993721189757,
+    "of_medians": 0.06222309799838636
+  },
   "note": "practice labels are depth-11 values of each board alone, so the true value of a board does not depend on its belief; a shift is what the network reads from the company a board keeps, and here it has nothing to gain from doing so"
 }

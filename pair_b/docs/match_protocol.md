@@ -4,9 +4,9 @@ Status: proposed on 22 October 2026, pending the runner decision with Bryan on 2
 
 ## What the study measures
 
-One planner, five leaves. Every side is the one-ply belief bot (`pairb.bot.OnePlyBot`) on its own particle tracker (256 particles, 8 guesses), playing the move with the best weighted average value over its guesses. Only the leaf evaluator changes: piece values, quick Stockfish (depth 1, the paper's leaf), careful Stockfish (depth 11), Network 1, the belief network, the linear correction, and `random` as a floor. So a difference between two rows is a difference between leaves at equal search work: the same planner, the same number of guesses, the same tracker.
+One planner, five leaves, plus two comparison sides. Every side is the one-ply belief bot (`pairb.bot.OnePlyBot`) on its own particle tracker (256 particles, 8 guesses), playing the move with the best weighted average value over its guesses. Only the leaf evaluator changes: piece values, quick Stockfish (depth 1, the paper's leaf), careful Stockfish (depth 11), Network 1 and the belief network; beside them the linear correction and `random` as a floor. So a difference between two rows is a difference between leaves at equal search work: the same planner, the same number of guesses, the same tracker.
 
-It is not an equal-time comparison. The one-ply bot does not read the time budget and is not an anytime search, so "the same wall clock" has no meaning here; cost is reported beside strength instead (time per move per side, and the tracker's time separately). Equal-time comparisons belong inside an anytime search over beliefs, which is Pair A's player.
+It is not an equal-time comparison. The one-ply bot does not read the time budget and is not an anytime search, so "the same wall clock" has no meaning here; cost is reported beside strength instead: time per move per side (the bot's own call, which excludes its tracker), the game's wall clock, and each tracker's state after every update (particles, capped, rebuilt). Equal-time comparisons belong inside an anytime search over beliefs, which is Pair A's player.
 
 The bots are honest: through `fow_shared.evaluation.play_game` each one receives only its own observations and its own tracker's belief; the runner alone reads the true board, after the game, to measure the value lost by not knowing.
 
@@ -14,9 +14,9 @@ The bots are honest: through `fow_shared.evaluation.play_game` each one receives
 
 Stockfish 19, one thread, 16 MB hash. Every scorer, and the second copy used for the value-lost measurement, starts each game with `ucinewgame`; within a game the hash is kept between calls, as inside a search. The run file records this under `settings.engine`. A Stockfish that dies (a crash) is reopened after the game or measurement that found it dead, scorer and second copy, and the game records which side was reopened; a run stops after five failed games in a row.
 
-Bryan's runner (`pairb.match_experiment`, PR #14) clears the engine before every call and opens fresh engines per game. The two policies give different depth-1 values on the same position (9 of 30 moves in one probe, up to 0.08 in value), so results from the two runners are compared, not pooled.
+Bryan's runner (`pairb.match_experiment`, PR #14) clears the engine before every call and opens fresh engines per game. The two policies give different values on the same position: with the hash kept from one earlier search, 9 of 30 depth-1 values change (by up to 0.02) and all 30 depth-11 values (by up to 0.10, and the best move changes), none with the hash cleared (`experiments/matches/engine-policy-probe.json`). Results from the two runners are therefore compared, not pooled.
 
-The engine state matters. With identical openings and seeds, the pilot played before the per-game reset and the pilot played after it differ in the length of 7 of 10 games and in the winner of one (`experiments/matches/README.md`). No match number from before the reset (commit 44eec48) is cited anywhere.
+The engine state matters. With identical openings and seeds, the pilot played before the per-game reset and the pilot played after it differ in the length of 8 of 10 games and in the winner of one (`experiments/matches/README.md`). No match number from before the reset (commit 44eec48) is cited anywhere.
 
 ## Openings, pairing and seeds
 
@@ -24,7 +24,7 @@ Opening i is k random legal plies, k drawn from 2 to 8 by `random.Random(seed * 
 
 ## Rules
 
-One table, one set of rules. A run of more than two games must pin `--rules standin` or `--rules teal`; the runner refuses `auto`, which becomes Teal's adapter the moment his branch merges. The run file records the rules id and the SHA-256 of Pair A's rules files. If the rules of record change, every pairing of the table is rerun; a table never mixes the two.
+One table, one set of rules. A run of more than two games must pin `--rules standin` or `--rules teal`; the runner refuses `auto`, which becomes Teal's adapter the moment his branch merges. The run file records the rules id and the SHA-256 of every source file that plays, including `pair_a_prep/*.py`, where Teal's adapter will live. If the rules of record change, every pairing of the table is rerun; a table never mixes the two.
 
 Open question for 26 October: a position where a side has no fog-legal move and no rule result. Pair B's stand-in rules and Teal's adapter both leave it undecided; in play the bot raises and the game is recorded as an error with the text "no legal move"; inside the Stockfish evaluator such a child scores as a draw. Options: a draw, a loss for the blocked side, or a pass. Until it is decided, a table footnote states the count of games that failed for this reason, and the referee's `terminal()` and `pairb/stockfish.py` must agree afterwards.
 
@@ -48,7 +48,7 @@ for a in material stockfish-d1 stockfish-d11 network1 belief linear random; do
 done
 ```
 
-Time, from the pilot: about 40 minutes per quick pairing on an M5 Pro Mac; the careful-Stockfish pairing about 9 machine-hours at about 700 ms per depth-11 call, so a second machine or 100 games. The network sides need torch. Quick Stockfish against itself should score about 0.5 and `random` close to 0; those two rows check the runner.
+Time, from the pilot: about 40 minutes per quick pairing on an M5 Pro Mac; the careful-Stockfish pairing about 3 machine-hours at the measured 204 ms median per depth-11 call (`checkpoints/timing-stockfish-d11.json`; its 95th percentile of 667 ms would make it about 8), so a second machine or 100 games. The network sides need torch. Quick Stockfish against itself should score about 0.5 and `random` close to 0; those two rows check the runner.
 
 ## The cross-check against Bryan's runner
 

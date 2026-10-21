@@ -49,15 +49,15 @@ class StockfishEvaluator:
         try:
             self.engine.ping()
             return True
-        except chess.engine.EngineError:  # EngineTerminatedError: the process is gone
+        except (chess.engine.EngineError, TimeoutError):  # the process is gone, or hangs: not alive either way
             return False
 
     def close(self):
-        """Stop the engine. A dead engine (a crash) is let go without raising, so a run's clean-up
-        never ends with a traceback."""
+        """Stop the engine. A dead or hung engine (a crash) is let go without raising, so a run's
+        clean-up never ends with a traceback."""
         try:
             self.engine.quit()
-        except chess.engine.EngineError:
+        except (chess.engine.EngineError, TimeoutError):
             pass
 
     def __enter__(self):

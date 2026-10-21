@@ -1,0 +1,94 @@
+{
+  "run": "pure-s4",
+  "data": "d6-check",
+  "split": "train",
+  "network": {
+    "board_mae": 0.179546,
+    "board_mse": 0.092845,
+    "root_mae": 0.143627,
+    "beliefs": 3818,
+    "boards": 30406
+  },
+  "created": "2026-10-22T01:36:55+08:00",
+  "baseline": {
+    "board_mae": 0.079831,
+    "board_mse": 0.023998,
+    "root_mae": 0.054845,
+    "beliefs": 3818,
+    "boards": 30406
+  },
+  "root_mae_difference": {
+    "mean": 0.08878231633849494,
+    "ci95": [
+      0.08194106497740364,
+      0.09551382576622078
+    ],
+    "beliefs": 3818,
+    "games": 959,
+    "resampled": "games"
+  },
+  "bootstrap": {
+    "resamples": 2000,
+    "seed": 0,
+    "unit": "whole games"
+  },
+  "device": "cpu",
+  "source": {
+    "dataset": "d6-check",
+    "files_sha256": {
+      "part-00.jsonl": "1bbbe4303028d8d44330ff436d0525e6fcb29cf6d6f635bb2e25a9341f4958b8",
+      "part-01.jsonl": "5039f6b02e188e40f74f496aef7ddcf6d93898604b78d3e653c83a36dc0c8c11",
+      "part-02.jsonl": "616bbc6b49f9280de061d5a856f2eb18df155077145cbc060941bb0a65f9c7d9",
+      "part-03.jsonl": "4a882f920f39865fc70da2575faf46b1050794a35cb250230c21164eae92fcb2",
+      "part-04.jsonl": "258f4c4d26525dd6984ea2cc9ab2a9a1520a20adb9e4fccc66262a0dda6b8371",
+      "part-05.jsonl": "1867bc93e341a12d30cd6f670b1643d6c18dfcd1e229a2238b88a06707d8b83f",
+      "part-06.jsonl": "092f7cc184e95ef32c4f91f64bb2643a924ef424983880987ea407632627bc36",
+      "part-07.jsonl": "cf11527f1250c0c7b865c82b6dccb969ed3f466fa6c017763adb3a983ce8cd91",
+      "part-08.jsonl": "3f445c63516bf091cb1b100f5efd70c1a12285eaf118467128ad289c8407a5b4",
+      "part-09.jsonl": "64cbb81cc8dc29494cdb68fc16a0bf4f78165f84e785b1ce02c0a45aa49712c4",
+      "part-10.jsonl": "89d5f3a31c952eb97c4123365dee0fd98dad2befbac0ac4885b30da33116e99b",
+      "part-11.jsonl": "354acf6d4f50f2fae38e01a6e57f2cbe0e834bb9f4c228240da0182f55d6904c",
+      "manifest.json": "ec61f8edf90beddd738d9de3b515977f44a24ed2220e17aaf898943273aeb211"
+    },
+    "sha256": "e5f893231b219dbfa933e0b0d7357fe0391fca9e8eafb8461a8b038c941f225d",
+    "manifest": {
+      "code_sha256": "3ec028b38f92cc64ecb25943b021c2b2fe5943b039de4d84ed3aff7d0810389e",
+      "seed": 7,
+      "created": "2026-10-18T17:05:32+08:00",
+      "command": [
+        "make_beliefs.py",
+        "--source",
+        "~/Desktop/NUS/AY2627S1/CS5446/Project/Pair B/code/data/d2-check",
+        "--parents",
+        "100000",
+        "--hypotheses",
+        "8",
+        "--label-depth",
+        "11",
+        "--seed",
+        "7",
+        "--workers",
+        "12",
+        "--out",
+        "~/Desktop/NUS/AY2627S1/CS5446/Project/Pair B/code/data/d6-check"
+      ],
+      "stockfish": {
+        "name": "Stockfish 19",
+        "threads": 1,
+        "hash_mb": 16,
+        "label_depth": 11,
+        "new_game_before_each_call": true
+      }
+    }
+  },
+  "checkpoint_sha256": "5e7f4618e6e80467721bae9b97946e259845fc4374487ea0f0bb8d0ac90b4bee",
+  "git_commit": "d309cd8aeb8d5084cd8e5beddd6f77da34604276",
+  "runtime": {
+    "python": "3.14.6",
+    "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "numpy": "2.5.4",
+    "python_chess": "1.11.2",
+    "source_sha256": "e619088d9caa732e6580c1242b1c6743d00824240bf8041430698e20780ba898",
+    "torch": "2.14.1"
+  }
+}

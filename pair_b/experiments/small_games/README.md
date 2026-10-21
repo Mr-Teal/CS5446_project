@@ -4,7 +4,7 @@ Inputs for Section 3's half page on Pair A's small-game verification, produced f
 
 The control is "PCFR+ with zero predictions", not the published CFR+: `pcfr.py` keeps its quadratic averaging and the schedule when predictions are off. Cite Farina, Kroer and Sandholm (2021) for the predictive step only.
 
-What the figure shows: PCFR+'s last iterate reaches a gap of exactly zero by round 100 and its average by round 1,000; with zero predictions the last iterate stalls between 0.03 and 0.1 and the average is still at 2e-4 after 2,000 rounds. The four other toy games (matching pennies, the two coin games, the KLSS and KLUSS cuts) are solved exactly at the first update, so they are a sentence and an appendix table, not a figure.
+What the figure shows: PCFR+'s last iterate is below 1e-7 by round 100 and exactly zero from round 300; its average is at 4e-8 by round 1,000 and 5e-9 at 2,000. With zero predictions the last iterate drifts down slowly, from about 0.08 at round 10 to 0.026 at 2,000, never below 0.02, and the average is still at 1.7e-4 after 2,000 rounds. The four other toy games in Pair A's reference (matching pennies, hidden and revealed, and the coin game, hidden and revealed) are solved exactly at the first update, so they are a sentence and an appendix table, not a figure; the KLSS and KLUSS cut values (-0.5 and +0.5) come from Pair A's `knowledge.py` demo, not from this run.
 
 Commands, from the repository root with Pair A's environment (NumPy and SciPy) and their files on the path:
 

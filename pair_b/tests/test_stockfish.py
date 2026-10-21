@@ -187,9 +187,9 @@ def test_new_game_clears_what_earlier_searches_left():
 
 
 def kill(evaluator):
-    """SIGKILL the evaluator's Stockfish process, as a crash would."""
-    import os, signal, time
-    os.kill(evaluator.engine.protocol.transport.get_pid(), signal.SIGKILL)
+    """Kill the evaluator's Stockfish process, as a crash would (through the transport, so it works on Windows too)."""
+    import time
+    evaluator.engine.protocol.transport.kill()
     time.sleep(0.3)
 
 

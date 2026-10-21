@@ -132,8 +132,8 @@ read chess from scratch; it was also still improving when it reached the 30-epoc
 (context minus no context: -0.0028 on average over five seeds, every seed negative, range -0.0049
 to -0.0011; `experiments/belief_context/seeds.json`). The labels carry no information about the
 belief, so that gain is denoising, not belief-dependent value; the kept network's value of a board
-moves by 0.014 on average when the rest of its belief changes, about a sixth of its error
-(`experiments/belief_context/sensitivity.json`). Pair A's labels are the real test.
+moves by 0.014 on average when the rest of its belief changes, about a sixth of its error on those
+boards (`experiments/belief_context/sensitivity.json`). Pair A's labels are the real test.
 
 `checkpoints/belief-v1-d1/` is the kept network. A belief of 8 boards takes 3.4 ms on an Apple
 GPU when 200 are scored in one call, and 6.5 ms one at a time
@@ -390,8 +390,8 @@ one-ply belief bot on one of the five scorers or the linear correction (`linear`
 uniform random legal move, on its own particle tracker, and through `fow_shared`'s `play_game` it
 sees only its own observations. The protocol of record for the report's runs, what the study
 measures, the engine policy, the interval rules, failures, and the cross-check against Bryan's
-runner are in [docs/match_protocol.md](docs/match_protocol.md); the script's docstring lists every
-flag. Three rules it enforces: a run of more than two games must pin `--rules standin` or `teal`,
+runner are in [docs/match_protocol.md](docs/match_protocol.md); the script's docstring explains the
+protocol flags and `--help` lists every flag. Three rules it enforces: a run of more than two games must pin `--rules standin` or `teal`,
 one table is played by one set of rules, and a score gets a bootstrap interval only from 20 or more
 complete colour pairs that do not all score the same (Wilson's interval is always given).
 
@@ -403,8 +403,8 @@ game ended by a king capture, 49.7 plies on average; the 10 games took 128 s, 12
 took 14.2 ms for quick Stockfish and 4.0 ms for piece values (95th percentiles 20.6 and 7.4 ms), so
 most of a game's time is the two trackers (1,014 updates, 153 of them capped and 39 rebuilt). The
 same 10 games played before the per-game engine reset (`pilot-d1-vs-material-shared-engine-state/`)
-differ in the length of 7 games and the winner of one: engine state carried across games changes
-results, which is why no number from before the reset is cited.
+differ in the length of 8 games (only games 1 and 6 match) and the winner of one: engine state carried
+across games changes results, which is why no number from before the reset is cited.
 
 The runs for the report, for ZW, once the runner decision with Bryan is recorded (proposed, pending
 that decision): every scorer, the linear correction and `random` against quick Stockfish, 200 games
@@ -420,8 +420,9 @@ done
 
 At the pilot's rate a pairing of quick scorers takes about 40 minutes (200 games of about 12 s). A
 slower scorer adds 9 calls per move (8 guesses and the true-board measurement) at its time per
-node in the table at the top: about 1.8 s a move for careful Stockfish, so about 9 machine-hours
-for its 200 games; run it on a second machine or at 100 games. Quick Stockfish against itself
+node in the table at the top: about 1.8 s a move for careful Stockfish at its 204 ms median, so about
+3 machine-hours for its 200 games (at its 95th-percentile call time of 667 ms, about 8); run it on a
+second machine or at 100 games. Quick Stockfish against itself
 should score about 0.5 and `random` close to 0: those two check the runner. The network sides need
 torch. `experiments/matches/` holds the pilot, the superseded shared-engine-state pilot and the
 standard-start cross-check, each described in its README.

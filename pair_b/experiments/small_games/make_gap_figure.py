@@ -5,7 +5,7 @@
 `--curves` is the file run_kuhn_control.py writes. `--reference` is Pair A's committed
 pcfr_alternating_reference.json: with it, `--check` compares the PCFR+ curve with the reference at the
 checkpoints they share (rounds 1, 10, 100, 1000, 2000) and fails if any gap differs by more than 1e-9.
-Gaps of 0 are drawn at the floor of the log axis (1e-7) and marked as exact.
+Gaps at or below the floor of the log axis (1e-7) are drawn on the floor line; a gap of exactly 0 gets a hollow marker.
 """
 import argparse
 import json
@@ -39,7 +39,7 @@ def draw(curves: dict, out: Path) -> dict:
     for e in range(int(ylo), 1):
         y = Y(10 ** e)
         parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{width - right}" y2="{y:.1f}" stroke="#ddd"/>')
-        label = "0 (exact)" if e == int(ylo) else f"1e{e}"
+        label = "1e-7 or less" if e == int(ylo) else f"1e{e}"
         parts.append(f'<text x="{left - 6}" y="{y + 4:.1f}" text-anchor="end">{label}</text>')
     for r in (1, 10, 100, 1000):
         if r <= rounds[-1]:
@@ -55,13 +55,14 @@ def draw(curves: dict, out: Path) -> dict:
         d = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
         parts.append(f'<polyline points="{d}" fill="none" stroke="{colour}" stroke-width="2" stroke-dasharray="{dash}"/>')
         for (x, y), p in zip(pts, points):
-            exact = p[which]["nash_gap"] <= FLOOR
+            exact = p[which]["nash_gap"] == 0.0
             parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3" fill="{"white" if exact else colour}" stroke="{colour}"/>')
         drawn[f"{solver}/{which}"] = [(p["rounds"], p[which]["nash_gap"]) for p in points]
     for i, (_, _, label, colour, dash) in enumerate(SERIES):
-        y = top + 12 + i * 16
-        parts.append(f'<line x1="{width - 250}" y1="{y}" x2="{width - 222}" y2="{y}" stroke="{colour}" stroke-width="2" stroke-dasharray="{dash}"/>')
-        parts.append(f'<text x="{width - 216}" y="{y + 4}">{label}</text>')
+        y = height - bottom - 70 + i * 16
+        parts.append(f'<line x1="{left + 12}" y1="{y}" x2="{left + 40}" y2="{y}" stroke="{colour}" stroke-width="2" stroke-dasharray="{dash}"/>')
+        parts.append(f'<text x="{left + 46}" y="{y + 4}">{label}</text>')
+    parts.append(f'<text x="{left + 12}" y="{height - bottom - 78}" font-size="11" fill="#555">hollow marker: a gap of exactly 0</text>')
     parts.append('</svg>\n')
     out.write_text("\n".join(parts))
     return drawn

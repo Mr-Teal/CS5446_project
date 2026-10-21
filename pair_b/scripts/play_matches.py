@@ -1,6 +1,6 @@
 """Bot-against-bot fog-of-war games: two one-ply belief bots, each on its own particle tracker.
 
-    .venv/bin/python scripts/play_matches.py --a network1 --b stockfish-d1 --games 200 --out runs/matches/net1-vs-d1
+    .venv/bin/python scripts/play_matches.py --a network1 --b stockfish-d1 --games 200 --rules standin --out runs/matches/net1-vs-d1
 
 Each side is a scorer by its Fog Lab id (material, stockfish-d1, stockfish-d11, network1, belief),
 or `linear` (the linear correction, checkpoints/linear-v1), inside pairb.bot.OnePlyBot, or `random`,
@@ -37,11 +37,12 @@ Writes games.jsonl, one game per line as each one ends, and summary.json into --
 exist yet: games, wins, draws and losses per side, a's score (wins plus half the draws) over the
 openings whose two games both finished, with Wilson's 95% interval on that pair-level proportion
 and, when there are at least 20 complete pairs that do not all score the same, a 95% interval that
-resamples those pairs 2,000 times with seed 0 (otherwise the bootstrap collapses to a point and is
-withheld as degenerate), the count of incomplete pairs,
+resamples those pairs 2,000 times with seed 0 (fewer pairs are too few to resample meaningfully and
+identical pairs collapse to a point, so the bootstrap is then withheld and `degenerate` is true), the
+count of incomplete pairs,
 mean value lost per side, plies, time per move, the device each network ran on, and the settings,
 checkpoints and commit, with a record of uncommitted changes, the SHA-256 of every source file that
-plays (fow_shared, pairb, this script, Pair A's rules), of the Stockfish binary, and the library
+plays (fow_shared, pairb, this script, pair_a_prep), of the Stockfish binary, and the library
 versions. A game
 that raises is recorded with its error and left out of the score, and the run goes on. A value-lost
 measurement that fails after a game finished keeps the game and its result; the move records the
@@ -162,6 +163,8 @@ def opening(rules, seed: int, index: int, plies: tuple[int, int] = (2, 8)) -> li
     state, moves = rules.initial_state(), []
     for _ in range(rng.randint(*plies)):
         options = [m for m in sorted(rules.legal_moves(state)) if rules.terminal(rules.apply_move(state, m)) is None]
+        if not options:  # every move would end the game: the opening stops here
+            break
         moves.append(rng.choice(options))
         state = rules.apply_move(state, moves[-1])
     return moves
@@ -252,15 +255,15 @@ def wilson95(p: float, n: int, z: float = 1.959964) -> list[float]:
     n complete pairs, treated as a proportion (an approximation: a pair's score is 0, 0.5 or 1)."""
     centre = (p + z * z / (2 * n)) / (1 + z * z / n)
     half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / (1 + z * z / n)
-    return [max(0.0, centre - half), min(1.0, centre + half)]
+    return [0.0 if p <= 0 else max(0.0, centre - half), 1.0 if p >= 1 else min(1.0, centre + half)]
 
 
 def paired_score(games: list[dict]) -> dict:
     """a's score over the complete colour pairs (openings whose two games, one with each colour, both
     finished), the Wilson interval on that pair-level proportion, and a 95% bootstrap interval that
     resamples the pairs, given only when there are at least MIN_PAIRS of them and they are not all
-    equal: a percentile bootstrap over a handful of pairs, or over identical ones, collapses to a
-    point and says nothing about uncertainty (degenerate)."""
+    equal: fewer pairs are too few to resample meaningfully, and identical pairs collapse the percentile
+    bootstrap to a point. `degenerate` is true whenever no bootstrap interval is given; `note` says why."""
     by_opening = {}
     for g in games:
         by_opening.setdefault(g["opening"]["id"], []).append(g)
@@ -326,8 +329,18 @@ def run_record(stockfish: str, repo: Path) -> dict:
             "packages": {**versions, "torch": torch_version}}
 
 
+def engine_policy(scorers: dict, judges: dict) -> dict:
+    """The engine settings the run actually used, read from the opened engines where they differ from the constant."""
+    engines = [e for h in (*scorers.values(), *judges.values()) if h is not None for e in engines_of(h)]
+    policy = dict(ENGINE_POLICY)
+    if any(e.new_game_each_call for e in engines):
+        policy["within_game"] = "hash cleared before every call"
+    return policy
+
+
 def summarise(games: list[dict], args, names: dict, checkpoints: dict, seconds: float, rules,
-              devices: dict | None = None, record: dict | None = None, stopped_early: str | None = None) -> dict:
+              devices: dict | None = None, record: dict | None = None, stopped_early: str | None = None,
+              policy: dict | None = None) -> dict:
     played = [g for g in games if "error" not in g]
     sides = {}
     for side in ("a", "b"):
@@ -358,7 +371,8 @@ def summarise(games: list[dict], args, names: dict, checkpoints: dict, seconds: 
         "rules": rules.name,
         "settings": {k: getattr(args, k) for k in ("games", "max_plies", "seed", "particles", "guesses", "device",
                                                    "rules", "time_budget_ms")}
-        | {"opening_plies": list(args.opening_plies), "stockfish": portable(args.stockfish), "engine": ENGINE_POLICY,
+        | {"opening_plies": list(args.opening_plies), "stockfish": portable(args.stockfish),
+           "engine": policy or ENGINE_POLICY,
            "out": portable(str(Path(args.out).resolve()))},
         "openings_rule": f"opening i: k = randint({args.opening_plies[0]}, {args.opening_plies[1]}), then k random "
                          "legal plies that do not end the game, both from random.Random(seed * 1000 + i); game n has "
@@ -435,15 +449,22 @@ def main():
                     colours = {"white": "a", "black": "b"} if number % 2 == 0 else {"white": "b", "black": "a"}
                     game = play_one(rules, number, moves, colours, scorers, judges, args)
                     if "error" in game or game.get("diagnostic_errors"):
-                        reopened = reopen_dead(stack, scorers, judges, args, opts)
-                        if reopened:
-                            game["reopened"] = reopened
+                        try:
+                            reopened = reopen_dead(stack, scorers, judges, args, opts)
+                            if reopened:
+                                game["reopened"] = reopened
+                        except Exception as exc:  # the game is still recorded; the run cannot go on
+                            game["reopen_error"] = f"{type(exc).__name__}: {exc}"
+                            stopped_early = f"could not reopen a dead engine: {game['reopen_error']}"
                     games.append(game)
                     log.write(json.dumps(game) + "\n")
                     log.flush()
                     outcome = game.get("error") or f"{game['winner']} after {game['plies']} plies"
                     side = "white" if colours["white"] == "a" else "black"
                     print(f"game {number + 1}/{args.games}: {args.a} as {side}, {outcome}, {game['seconds']} s", flush=True)
+                    if stopped_early:
+                        print(f"stopping: {stopped_early}", file=sys.stderr)
+                        break
                     failed_in_a_row = failed_in_a_row + 1 if "error" in game else 0
                     if failed_in_a_row >= MAX_CONSECUTIVE_ERRORS:
                         stopped_early = f"{failed_in_a_row} consecutive games failed"
@@ -451,14 +472,14 @@ def main():
                         break
         finally:  # the games finished so far are summarised even if the run is interrupted
             summary = summarise(games, args, names, checkpoints, time.time() - started, rules, devices, record,
-                                stopped_early)
+                                stopped_early, engine_policy(scorers, judges))
             (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     s = summary["score_a"]
     if s["mean"] is None:
         print(f"{args.a} against {args.b}: no opening finished with both colours -> {out}")
     else:
         w = s["wilson95"]
-        spread = (f"bootstrap 95% CI {s['ci95'][0]:.3f} to {s['ci95'][1]:.3f}; Wilson {w[0]:.3f} to {w[1]:.3f}"
+        spread = (f"bootstrap 95% CI {s['ci95'][0]:.3f} to {s['ci95'][1]:.3f}; Wilson 95% {w[0]:.3f} to {w[1]:.3f}"
                   if s["ci95"] else f"no bootstrap interval ({s['note']}); Wilson 95% {w[0]:.3f} to {w[1]:.3f}")
         print(f"{args.a} against {args.b}: score {s['mean']:.3f} ({spread}) over {s['complete_pairs']} complete "
               f"colour pairs, {s['incomplete_pairs']} incomplete -> {out}")

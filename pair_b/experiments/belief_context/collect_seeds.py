@@ -7,7 +7,8 @@ scripts/train_belief_net.py with --use-d1, --use-d1 --no-context, and neither) p
 seed-0 runs under checkpoints/, takes each run's eval-d6-check-train.json, and writes per-variant board
 and position errors by seed with their mean, standard deviation and range, and the context effect
 (ctx minus noctx) per seed. Copies each run's summary.json and eval JSON next to the output, under
-runs/<variant>-s<seed>/, so the numbers are in the repository without the checkpoints.
+seed_runs/<variant>-s<seed>/ (runs/ is git-ignored), with home-folder paths written as ~, so the numbers
+are in the repository without the checkpoints. A folder without both files is skipped and named.
 """
 import argparse
 import json
@@ -25,7 +26,7 @@ def main():
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
     out = Path(args.out)
-    keep = out.parent / "runs"
+    keep = out.parent / "seed_runs"
     rows = {v: {} for v in COMMITTED}
     sources = {}
     for variant, name in COMMITTED.items():
@@ -34,15 +35,29 @@ def main():
         variant, seed = folder.name.rsplit("-s", 1)
         if variant in COMMITTED:
             sources[(variant, int(seed))] = folder
+    home = str(Path.home())
+
+    def tidy(obj):
+        if isinstance(obj, str):
+            return obj.replace(home, "~") if obj.startswith(home) else obj
+        if isinstance(obj, dict):
+            return {k: tidy(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [tidy(v) for v in obj]
+        return obj
     for (variant, seed), folder in sorted(sources.items()):
+        if not all((folder / f).is_file() for f in ("summary.json", "eval-d6-check-train.json")):
+            print(f"skipping {folder}: no summary or eval yet")
+            continue
         ev = json.loads((folder / "eval-d6-check-train.json").read_text())
         summary = json.loads((folder / "summary.json").read_text())
         rows[variant][seed] = {"board_mae": ev["network"]["board_mae"], "root_mae": ev["network"]["root_mae"],
-                              "best_epoch": summary["best_epoch"], "seconds": summary["seconds"]}
+                              "best_epoch": summary["best_epoch"], "seconds": summary["seconds"],
+                              "code": ev.get("git_commit") or summary.get("git_commit") or "the 18 October run"}
         target = keep / f"{variant}-s{seed}"
         target.mkdir(parents=True, exist_ok=True)
-        for f in ("summary.json", "eval-d6-check-train.json"):
-            shutil.copyfile(folder / f, target / f)
+        (target / "summary.json").write_text(json.dumps(tidy(summary), indent=2) + "\n")
+        (target / "eval-d6-check-train.json").write_text(json.dumps(tidy(ev), indent=2) + "\n")
     baseline = json.loads((ROOT / "checkpoints" / "belief-v1-d1" / "eval-d6-check-train.json").read_text())["baseline"]
 
     def stats(values):

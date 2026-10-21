@@ -437,13 +437,12 @@ def test_every_engine_of_every_scorer_is_cleared_before_each_game(monkeypatch, a
 # error, instead of that side's scorer and second copy being reopened and the run going on.
 @pytest.mark.skipif(__import__("shutil").which("stockfish") is None, reason="needs Stockfish on PATH")
 def test_a_dead_engine_is_reopened_and_the_run_goes_on(tmp_path, monkeypatch):
-    import os, signal, time
+    from test_stockfish import kill
     real = play_matches.play_one
 
     def kill_a_before_game_1(rules, number, moves, colours, scorers, judges, args):
         if number == 1:
-            os.kill(scorers["a"].engine.protocol.transport.get_pid(), signal.SIGKILL)
-            time.sleep(0.3)
+            kill(scorers["a"])
         return real(rules, number, moves, colours, scorers, judges, args)
     monkeypatch.setattr(play_matches, "play_one", kill_a_before_game_1)
     monkeypatch.setattr(sys, "argv", ["play_matches.py", "--a", "stockfish-d1", "--b", "material", "--games", "4",
@@ -491,11 +490,12 @@ def test_opening_plies_can_be_pinned_and_zero_means_the_standard_start(tmp_path)
     games = [json.loads(line) for line in (tmp_path / "std" / "games.jsonl").read_text().splitlines()]
     assert all(g["opening"]["moves"] == [] for g in games)
     summary = json.loads((tmp_path / "std" / "summary.json").read_text())
-    assert summary["settings"]["opening_plies"] == [0, 0] and "0" in summary["openings_rule"]
+    assert summary["settings"]["opening_plies"] == [0, 0] and "randint(0, 0)" in summary["openings_rule"]
     three = play(tmp_path / "three", "--games", "2", "--opening-plies", "3", "3")
     assert three.returncode == 0, three.stderr
     games = [json.loads(line) for line in (tmp_path / "three" / "games.jsonl").read_text().splitlines()]
     assert all(len(g["opening"]["moves"]) == 3 for g in games)
+    assert "randint(3, 3)" in json.loads((tmp_path / "three" / "summary.json").read_text())["openings_rule"]
     bad = play(tmp_path / "bad", "--games", "2", "--opening-plies", "5", "3")
     assert bad.returncode != 0 and not (tmp_path / "bad").exists()
 
@@ -520,4 +520,81 @@ def test_the_settings_name_the_engine_policy_and_the_output_folder(two_games):
     settings = two_games[1]["settings"]
     assert settings["engine"] == {"threads": 1, "hash_mb": 16, "new_game": "before every game",
                                   "within_game": "hash kept between calls"}
-    assert settings["out"].endswith("material") and "/Users/" not in settings["out"]
+    assert settings["out"].endswith("material")
+    # the home folder is written as ~ (summarise directly, since pytest's tmp_path is not under the home folder)
+    import argparse
+    args = argparse.Namespace(a="material", b="material", games=0, max_plies=20, seed=0, particles=256, guesses=8,
+                              device="auto", rules="standin", stockfish="stockfish", time_budget_ms=60000,
+                              opening_plies=[2, 8], out=str(Path.home() / "x" / "material"))
+    home = play_matches.summarise([], args, {"a": "m", "b": "m"}, {"a": None, "b": None}, 1.0,
+                                  play_matches.pick_rules("standin"))["settings"]["out"]
+    assert home == str(Path("~") / "x" / "material")
+
+
+# Catches: a judge (the second copy used for value lost) dying mid-batch: the game it died in must be
+# kept with its diagnostic errors, the side reopened, and the next games measured again.
+@pytest.mark.skipif(__import__("shutil").which("stockfish") is None, reason="needs Stockfish on PATH")
+def test_a_dead_judge_keeps_its_game_and_is_reopened(tmp_path, monkeypatch):
+    from test_stockfish import kill
+    real = play_matches.play_one
+
+    def kill_judge_a_before_game_1(rules, number, moves, colours, scorers, judges, args):
+        if number == 1:
+            kill(judges["a"])
+        return real(rules, number, moves, colours, scorers, judges, args)
+    monkeypatch.setattr(play_matches, "play_one", kill_judge_a_before_game_1)
+    monkeypatch.setattr(sys, "argv", ["play_matches.py", "--a", "stockfish-d1", "--b", "material", "--games", "4",
+                                      "--max-plies", "10", "--rules", "standin", "--out", str(tmp_path / "m")])
+    with pytest.raises(SystemExit) as stopped:
+        play_matches.main()
+    assert stopped.value.code == 1  # measurements failed in game 2
+    games = [json.loads(line) for line in (tmp_path / "m" / "games.jsonl").read_text().splitlines()]
+    assert "error" not in games[1] and games[1]["diagnostic_errors"] > 0 and games[1]["reopened"] == ["a"]
+    assert all("error" not in g and g["diagnostic_errors"] == 0 for g in (games[0], games[2], games[3]))
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert (summary["games"], summary["errors"], summary["reopened"]) == (4, 0, 1)
+
+
+# Catches: a reopen that fails (no engine to open) losing the game that triggered it, or ending the run
+# with a traceback and no reason in the summary.
+@pytest.mark.skipif(__import__("shutil").which("stockfish") is None, reason="needs Stockfish on PATH")
+def test_a_failed_reopen_keeps_the_game_and_stops_the_run_with_a_reason(tmp_path, monkeypatch):
+    from test_stockfish import kill
+    real_play = play_matches.play_one
+
+    def no_engine(sid, opts):
+        raise OSError("no engine")
+
+    def kill_a_before_game_1(rules, number, moves, colours, scorers, judges, args):
+        if number == 1:
+            kill(scorers["a"])
+            monkeypatch.setattr(play_matches, "open_side", no_engine)
+        return real_play(rules, number, moves, colours, scorers, judges, args)
+    monkeypatch.setattr(play_matches, "play_one", kill_a_before_game_1)
+    monkeypatch.setattr(sys, "argv", ["play_matches.py", "--a", "stockfish-d1", "--b", "material", "--games", "4",
+                                      "--max-plies", "10", "--rules", "standin", "--out", str(tmp_path / "m")])
+    with pytest.raises(SystemExit) as stopped:
+        play_matches.main()
+    assert stopped.value.code == 1
+    games = [json.loads(line) for line in (tmp_path / "m" / "games.jsonl").read_text().splitlines()]
+    assert len(games) == 2 and "EngineTerminatedError" in games[1]["error"] and "no engine" in games[1]["reopen_error"]
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert "reopen" in summary["stopped_early"] and summary["games"] == 1
+
+
+# Catches: a run stopping after five failures in total instead of five in a row.
+def test_a_success_resets_the_consecutive_failure_count(tmp_path, monkeypatch):
+    real = play_matches.play_one
+
+    def fail_some(rules, number, moves, colours, scorers, judges, args):
+        if number in (0, 1, 2, 3, 5, 6, 7, 8):  # four, a success, four more: never five in a row
+            return {"game": number, "opening": {"id": number // 2, "moves": moves}, "seed": 0, "colours": colours,
+                    "scorers": {}, "error": "RuntimeError: boom", "plies_played": 0, "seconds": 0.0}
+        return real(rules, number, moves, colours, scorers, judges, args)
+    monkeypatch.setattr(play_matches, "play_one", fail_some)
+    with pytest.raises(SystemExit) as stopped:
+        run_main(monkeypatch, tmp_path / "m", "--games", "12", "--rules", "standin")
+    assert stopped.value.code == 1
+    games = [json.loads(line) for line in (tmp_path / "m" / "games.jsonl").read_text().splitlines()]
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert len(games) == 12 and summary["errors"] == 8 and summary["stopped_early"] is None
