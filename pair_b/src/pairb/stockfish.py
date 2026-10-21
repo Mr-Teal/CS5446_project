@@ -44,8 +44,21 @@ class StockfishEvaluator:
         while separate games stay independent."""
         self._game = object()
 
+    def alive(self) -> bool:
+        """Whether the engine process still answers; False once it has died or been closed."""
+        try:
+            self.engine.ping()
+            return True
+        except chess.engine.EngineError:  # EngineTerminatedError: the process is gone
+            return False
+
     def close(self):
-        self.engine.quit()
+        """Stop the engine. A dead engine (a crash) is let go without raising, so a run's clean-up
+        never ends with a traceback."""
+        try:
+            self.engine.quit()
+        except chess.engine.EngineError:
+            pass
 
     def __enter__(self):
         return self

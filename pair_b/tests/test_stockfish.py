@@ -184,3 +184,21 @@ def test_new_game_clears_what_earlier_searches_left():
         used.evaluate_children(chess.STARTING_FEN)
         used.new_game()
         assert used.evaluate_children(fen) == want
+
+
+def kill(evaluator):
+    """SIGKILL the evaluator's Stockfish process, as a crash would."""
+    import os, signal, time
+    os.kill(evaluator.engine.protocol.transport.get_pid(), signal.SIGKILL)
+    time.sleep(0.3)
+
+
+# Catches: a dead engine (a crash mid-batch) making close() raise, so a run's exit stack ends with a
+# traceback instead of its summary line; and no way to ask whether the engine is still there.
+def test_a_dead_engine_is_reported_by_alive_and_closed_without_raising():
+    ev = StockfishEvaluator(depth=1, new_game_each_call=False)
+    assert ev.alive() is True
+    kill(ev)
+    assert ev.alive() is False
+    ev.close()  # must not raise
+    ev.close()  # nor twice
