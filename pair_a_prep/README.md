@@ -2,10 +2,11 @@
 
 This directory contains preparation tools and a rules adapter prototype.
 The standalone preparation tools run independently of `fow_shared`; the new
-adapter reuses the rule helpers merged from Pair B's PR. Changes remain under
-`pair_a_prep/`; it did not change the existing shared interfaces, encoder,
-root README or dependencies. Neither ZS21 nor Obscuro is implemented here,
-and agent ownership, team settings and delivery dates remain to be agreed.
+adapter reuses the merged shared rule helpers. The shared interfaces and
+encoder are unchanged by this branch. Agent ownership is agreed: the rules
+adapter and Obscuro belong to one Pair A member; ZS21 and the belief tracker
+belong to the other, with mutual review. Neither complete agent is implemented
+here yet. See [the PR handoff](docs/pr_handoff.md) for scope and remaining work.
 
 | Work | File | Contents |
 |---|---|---|
@@ -89,8 +90,9 @@ strategies into a behavioral strategy requires conditional reach
 probabilities; simply averaging actions independently at each information
 set is not generally equivalent.
 
-These examples do not yet validate KLSS/KLUSS gadget construction or
-implement PCFR+.
+The fixed-tree PCFR+, gadget and synchronized-cut knowledge restriction tests
+build on these examples. They do not establish correctness of a complete
+chess search or general history-based KLUSS construction.
 
 ## Connecting a future rules adapter to the fixtures
 
@@ -112,7 +114,7 @@ The example above illustrates the return format, not a complete correct
 observation for a particular fixture. Run the adapter checks with:
 
 ```powershell
-python -m pair_a_prep.fixtures --adapter your_adapter:inspect_case
+python -m pair_a_prep.fixtures --adapter pair_a_prep.rules_adapter:fixture_result
 ```
 
 Only expectations listed in each fixture are checked, so more assertions

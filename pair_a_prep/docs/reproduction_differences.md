@@ -1,7 +1,7 @@
 # Reproduction decisions and differences
 
-Status on 17 October 2026. **Proposed** is not team approval. This preparation
-does not accept or modify [Pair B PR #1](https://github.com/Mr-Teal/CS5446_project/pull/1).
+Updated 21 October 2026. **Proposed** is not team approval. Shared changes
+already merged to main are the integration baseline for this branch.
 
 | Item | Reference | This repository / preparation | Status and consequence |
 |---|---|---|---|
@@ -10,13 +10,13 @@ does not accept or modify [Pair B PR #1](https://github.com/Mr-Teal/CS5446_proje
 | Engine version | See source map in `paper_specs.md` | Stockfish 19 pilot; production choice pending | Version change must be reported |
 | Depth 11 | Project proposal comparison setting | Extra experimental condition | Do not present as the paper's leaf setting |
 | Full tracker versus search sample | Different purposes | Full tracking not implemented; sample budget not frozen | Never describe 256 as full exact belief size |
-| Engine/network input | Shared interface under review | Existing encoder 26 planes; PR proposes 32 | Avoid generating final teacher data before agreement |
-| Counter visibility | Profile-dependent | Existing mandatory `halfmove_clock` needs review | Do not expose hidden referee state by default |
-| Rules backend | Paper profile, Chess.com and OpenSpiel need comparison | 17 proposed acceptance fixtures | No production FoW adapter implemented |
+| Engine/network input | Shared contract | Merged encoder uses 32 planes | Keep feature metadata consistent with the evaluator |
+| Counter visibility | Profile-dependent | Adapter observations hide `halfmove_clock`; hypotheses retain their own clocks | Do not expose hidden referee state |
+| Rules backend | Paper profile, Chess.com and OpenSpiel need comparison | Rules adapter passes all 17 proposed fixtures | Passing fixtures does not prove backend equivalence |
 | Hardware | Record separately from published hardware | Pilot host reports 16 logical CPUs; engine uses one thread | Do not reuse proposal's desktop specifications as measurements |
 | Solve budget | Must specify included work | Pilot times UCI analysis; tracker/search absent | Engine call cost is not full move latency |
 | Training labels | Depend on a validated solver | No teacher-label run in this preparation | Raw engine benchmark rows are not TrainingRecord labels |
-| Agent ownership and dates | Team allocation | Still unassigned in this work | No schedule promised on teammates' behalf |
+| Agent ownership and dates | Team allocation | One member owns rules/Obscuro; partner owns ZS21/tracker; mutual review | Complete agents and delivery dates are not established by these prototypes |
 
 ## How to record later decisions
 
@@ -32,9 +32,10 @@ insert the true board, or recover an empty belief from referee state. An empty
 belief should produce a diagnostic failure until a documented recovery method
 is chosen.
 
-Game-level train/validation/test grouping and raw versus played policy need
-agreement with Pair B. The independent benchmark intentionally avoids both
-their `values.py` conversion and their proposed LeafEvaluator interface.
+The shared contract distinguishes raw root policy from the played action and
+provides game IDs for whole-game data splits. Final solver labels still require
+end-to-end validation. The independent engine benchmark retains its own raw
+score measurements rather than serving as a teacher-label generator.
 
 ## Rules profile caveats
 

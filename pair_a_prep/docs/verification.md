@@ -1,7 +1,35 @@
 # Verification and handoff
 
-Verified locally on 17 October 2026. Only `pair_a_prep/` was added. The existing
-tracked files, current branch, and Pair B PR were not changed.
+## Current branch validation: 21 October 2026
+
+Base `origin/main` was fetched and is an ancestor of this branch; no additional
+main merge was needed. The following checks passed:
+
+```powershell
+python -m pytest -q -p no:cacheprovider pair_a_prep/tests tests
+python -m pair_a_prep.fixtures --adapter pair_a_prep.rules_adapter:fixture_result
+```
+
+Results: **185 tests passed**, and **17 adapter fixtures passed**. Coverage
+includes shared contracts, rules and observation privacy, referee history,
+fixed-tree PCFR+, gadgets, synchronized-cut knowledge restriction, and viewer
+APIs/export. This does not validate a complete Obscuro agent or general KLUSS
+tree construction. Pair B's full training and app suites were not run here.
+
+This run used Python 3.11 from Anaconda with its existing numpy/scipy/pytest
+and chess from a temporary dependency directory on `PYTHONPATH`. The initial
+attempt without that directory failed collection because chess was missing;
+the complete rerun passed. For a portable setup, use the requirements and
+virtual environment commands in the Pair A README.
+
+Root ignore rules exclude installed package metadata and Python caches.
+Downloaded engines, environments and local Fog Lab records are not PR inputs.
+See [pr_handoff.md](pr_handoff.md) for current scope and remaining work.
+
+## Historical baseline: 17 October 2026
+
+The sections below record the initial preparation before the rules adapter and
+solver implementations. Their implementation gaps describe that date only.
 
 ## Executed checks
 
@@ -58,7 +86,7 @@ the machine and chess 1.11.2 in a temporary package directory. Teammates
 should use the independent requirements file and environment instructions,
 rather than depending on that temporary path.
 
-## Next integration gates
+## Initial integration gates (historical)
 
 1. Review the proposed rule profile and the observation fields with Pair A.
 2. Implement one rules adapter and run all fixture assertions against it.
