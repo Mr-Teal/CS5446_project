@@ -4,12 +4,16 @@ import json
 import pytest
 
 from pairb import match_experiment as m
+from pairb.rules import teal_available
 
 
-@pytest.fixture
-def config():
+@pytest.fixture(params=['standin', 'teal'])
+def config(request):
+    if request.param == 'teal' and not teal_available():
+        pytest.skip("Pair A's rules adapter is not in this checkout")
     c = json.loads((m.ROOT/'pair_b/experiments/pilot.json').read_text())
-    c.update(candidates=[{'kind': 'material'}], opponent={'kind': 'material'}, seeds=[7],
+    c.update(rules=request.param, candidates=[{'kind': 'material'}],
+             opponent={'kind': 'material'}, seeds=[7],
              max_plies=4, tracker=dict(n_particles=4, n_hypotheses=2, rebuild_tries=20))
     return c
 
@@ -59,11 +63,29 @@ def test_score_is_from_candidate_perspective(config, monkeypatch):
     assert m.summarize(records)['candidates'][0]['paired_score'] == .5
 
 
+def test_fifty_move_draw_is_not_a_ply_limit(config):
+    config['openings'] = ['7k/8/8/8/8/8/8/K7 w - - 99 80']
+    records = [m.run_game(config, j) for j in m.schedule(config)]
+    assert all(r['status'] == 'completed' for r in records)
+    assert all(r['termination'] == 'fifty_move' and r['score'] == .5 for r in records)
+    assert all(len(r['result']['plies']) == 1 for r in records)
+    summary = m.summarize(records)['candidates'][0]
+    assert summary['draws'] == 2
+    assert summary['ply_limit_draws'] == 0
+    assert summary['complete_pairs'] == 1
+    assert summary['paired_score'] == .5
+
+
 def test_output_cannot_overwrite_and_manifest_has_sources(config, tmp_path):
     out = tmp_path/'run'
     m.run(config, out)
     manifest = json.loads((out/'manifest.json').read_text())
     assert 'pair_b/src/pairb/match_experiment.py' in manifest['source_sha256']
+    assert all('\\' not in path for path in manifest['source_sha256'])
+    assert all(m.digest(m.ROOT/path) == digest
+               for path, digest in manifest['source_sha256'].items())
+    if config['rules'] == 'teal':
+        assert 'pair_a_prep/rules_adapter.py' in manifest['source_sha256']
     assert len((out/'games.jsonl').read_text().splitlines()) == 2
     with pytest.raises(FileExistsError):
         m.run(config, out)
