@@ -8,17 +8,21 @@ swaps one evaluator for another by changing one argument.
 
 | Evaluator | `name` | What it is | ms per node* |
 |---|---|---|---|
-| `StockfishEvaluator(depth=1)` | `stockfish-19-d1` | Obscuro's own leaf ([1] App. C.5): Stockfish at depth 1, one MultiPV call per node | 1.5 |
-| `StockfishEvaluator(depth=11)` | `stockfish-19-d11` | Careful Stockfish: our extra comparison, not used by the paper | about 230 |
-| `NetworkEvaluator.from_checkpoint(...)` | `net1-v2+stockfish-19-d1` | Network 1: the same depth-1 call, then a learned correction | 4.6 on an Apple GPU, 15 on CPU |
-| `MaterialEvaluator()` | `material-1-3-3-5-9` | Counts pieces: pawn 1, knight 3, bishop 3, rook 5, queen 9 | 0.7 |
+| `StockfishEvaluator(depth=1)` | `stockfish-19-d1` | Obscuro's own leaf ([1] App. C.5): Stockfish at depth 1, one MultiPV call per node | 1.4 |
+| `StockfishEvaluator(depth=11)` | `stockfish-19-d11` | Careful Stockfish: our extra comparison, not used by the paper | 204 |
+| `NetworkEvaluator.from_checkpoint(...)` | `net1-v2+stockfish-19-d1` | Network 1: the same depth-1 call, then a learned correction | 12.2 on CPU, 4.4 on an Apple GPU |
+| `MaterialEvaluator()` | `material-1-3-3-5-9` | Counts pieces: pawn 1, knight 3, bishop 3, rook 5, queen 9 | 0.6 |
+| `LinearEvaluator.from_checkpoint(...)` | `linear-v1+stockfish-d1-linear` | The [linear correction](docs/linear_baseline.md): a comparison, not one of the five | 1.7 |
 | `BeliefNetworkEvaluator.from_checkpoint(...)` | `belief-v1-d1+stockfish-19-d1` | The belief network: scores every board of a belief together; see below | see below |
 
-\* Median time of `evaluate_children` over 300 positions from real games (about 29 moves each) on
-an M5 Pro Mac, with `new_game_each_call=False` as inside a search. Careful Stockfish's time is
-from the practice-data runs.
+\* Median time of `evaluate_children` on an M5 Pro Mac, with `new_game_each_call=False` as inside a
+search, over the 300 positions of d2-check's training bucket that `scripts/benchmark_linear.py`
+picks (the first 300 sorted parent positions; about 30 moves each), 4 calls each:
+`checkpoints/linear-v1/timing-d2-check-train.json` (CPU) and, for Network 1 on the Apple GPU,
+`checkpoints/linear-v1/timing-d2-check-train-mps.json` (`--net1-device mps`). Careful Stockfish:
+one call on every 10th of those 300 (mean 239 ms), `checkpoints/timing-stockfish-d11.json`.
 
-All five:
+All six:
 
 - answer `evaluate_children(fen)`, `evaluate_boards(fens, player)` and `evaluate_beliefs(turns)`;
 - return values in [-1, 1] from the acting player's view, with Stockfish scores converted by
@@ -36,20 +40,30 @@ rule checks, so a threefold-repetition draw is seen; Stockfish always gets the p
 ## How good they are
 
 On fresh games (`d2-check`: the 959 games of its training bucket, 94,963 positions after 3,818
-decisions), measured against careful Stockfish by `scripts/eval_net1.py`
-(`checkpoints/net1-v2/eval-d2-check-train.json`), and the linear correction on the same rows by
-`scripts/eval_linear.py` (`checkpoints/linear-v1/eval-d2-check-train.json`):
+decisions; a position here is a child row the fog rules do not decide), measured against careful
+Stockfish by `scripts/eval_net1.py` (`checkpoints/net1-v2/eval-d2-check-train.json`), and the
+linear correction on the same rows by `scripts/eval_linear.py`
+(`checkpoints/linear-v1/eval-d2-check-train.json`). The check set is a separate generation of
+1,200 games (seed 7, against d2-v2's seed 2026). Only its hash buckets 0 to 7, the 959 games
+here, are used. That bucket also compared three candidate Network 1 runs on 16 October, and the
+kept run was the best on validation too (`experiments/net1_candidates/`). Bucket 9, the test
+bucket, stays sealed behind `--final` for the final report.
 
-| Evaluator | Value error | Picks careful Stockfish's move | Average value lost by its pick |
+| Evaluator | Value error | Picks careful Stockfish's move\* | Average value lost by its pick |
 |---|---|---|---|
-| Piece values | 0.336 | 28% | 0.2108 |
-| Quick Stockfish | 0.095 | 43% | 0.0355 |
-| Network 1 | 0.076 | 42% | 0.0352 |
-| [Linear correction](docs/linear_baseline.md) | 0.084 | 42% | 0.0346 |
+| Piece values | 0.336 | 27.7% | 0.2108 |
+| Quick Stockfish | 0.095 | 42.9% | 0.0355 |
+| Network 1 | 0.076 | 42.4% | 0.0352 |
+| [Linear correction](docs/linear_baseline.md) | 0.084 | 41.5% | 0.0346 |
 
-Network 1's values are 20% more accurate than quick Stockfish's, but it picks moves no better: a
-tie (the paired difference in value lost is -0.0003, 95% CI -0.0017 to +0.0011, resampling the
-959 games whole, since decisions from one game are correlated). It needs the
+\* Move choice is measured among the siblings of each parent that the rules do not decide. "Picks
+careful Stockfish's move" means the chosen child's depth-11 value equals the best sibling's. A
+tie in a scorer's values goes to the first child in UCI order.
+
+Network 1's values are 20% more accurate than quick Stockfish's (paired difference in value error
+-0.019, 95% CI -0.021 to -0.018), but it picks moves no better: a tie (the paired difference in
+value lost is -0.0003, 95% CI -0.0017 to +0.0011). Both intervals resample the 959 games whole,
+since decisions from one game are correlated. It needs the
 depth-1 call as input, so it is always slower than quick Stockfish. It is the warm-up; the
 belief network that scores a whole belief at once is next.
 
@@ -83,36 +97,42 @@ real use; `evaluate_boards` and `evaluate_children` score each board as a belief
 Until Pair A's player can label beliefs, it learns from practice data:
 
 - **What each player sees:** `observe.py`, a stand-in that passes all 17 `pair_a_prep` rules
-  fixtures and matches Pair A's `RulesAdapter.observe()` on 64,396 views, finished games included.
+  fixtures and matches Pair A's `RulesAdapter.observe()` on all 118,208 views of 500 seeded random
+  games, 968 of them game-ending views (`checkpoints/observe-agreement.json`, run against Teal's
+  branch at 8e914ef, whose adapter is unchanged since 219eb6a).
   Swap in Pair A's `observe()` once it is on `main`; a test compares the two until then.
 - **Beliefs:** `standin_beliefs.py` keeps the true board and moves some of the opponent's unseen
   pieces to other unseen squares, keeping only boards the player cannot tell from the truth (same
-  squares seen, same pieces on them, same legal moves): 8 boards for 99% of beliefs.
+  squares seen, same pieces on them, same legal moves): 8 boards for 99% of beliefs
+  (`experiments/data_manifests/d6-v1.json`).
 - **Labels:** careful Stockfish (depth 11) on each board. These are perfect-information values, so
   they cannot show what the fog changes; Pair A's solver labels can (`docs/label_definitions.md`).
 
 Records are written in Teal's `TrainingRecord` format, so the training script reads Pair A's labels
 unchanged. Trained on 9,585 practice beliefs and checked on 3,818 beliefs from fresh games, errors
-against careful Stockfish (a position's value is the weighted mean of its boards' values):
+against careful Stockfish (a position's value is the weighted mean of its boards' values), from
+each run's `eval-d6-check-train.json`:
 
-| Network | Board error | Position error |
-|---|---|---|
-| Quick Stockfish alone | 0.080 | 0.055 |
-| Belief network, board planes only | 0.178 | 0.141 |
-| Belief network that also reads quick Stockfish's value | 0.074 | 0.047 |
-| The same, ignoring the rest of the belief | 0.076 | 0.047 |
+| Network | Board error | Position error | File |
+|---|---|---|---|
+| Quick Stockfish alone | 0.080 | 0.055 | `checkpoints/belief-v1-d1/` (`baseline`) |
+| Belief network, board planes only | 0.178 | 0.141 | `checkpoints/belief-v1-pure/` |
+| Belief network that also reads quick Stockfish's value | 0.074 | 0.047 | `checkpoints/belief-v1-d1/` |
+| The same, ignoring the rest of the belief | 0.076 | 0.047 | `checkpoints/belief-v1-d1-noctx/` |
 
 The network that reads quick Stockfish errs 15% less on positions than quick Stockfish alone
 (paired difference -0.008, 95% CI -0.009 to -0.007, resampling the 959 games whole, since beliefs
 from one game are correlated). The planes-only network needs far more data to
-read chess from scratch. Reading the rest of the belief helps a little on these per-board labels,
+read chess from scratch; it was also still improving when it reached the 30-epoch cap (best epoch
+29, `checkpoints/belief-v1-pure/summary.json`). Reading the rest of the belief helps a little on these per-board labels,
 but too little to call from one run each; Pair A's labels are the real test.
 
 `checkpoints/belief-v1-d1/` is the kept network. A belief of 8 boards takes 3.7 ms on an Apple
 GPU when 200 are scored in one call, and 6.8 ms one at a time; building the 32 planes in Python
 is most of it. The `--use-d1` network also makes one quick Stockfish call per board, a node's
 children included: it trained on each board's own depth-1 value, and a parent's MultiPV score of a
-child differs from that by 0.07 on average. A rule-decided board with no recorded quick-Stockfish
+child differs from that by 0.066 on average (median 0.032; 7,529 children of the 300 timed
+parents, `checkpoints/belief-v1-d1/d1-parent-vs-own.json`). A rule-decided board with no recorded quick-Stockfish
 value takes its rule value, in training as in the evaluator.
 
 ```python
@@ -147,12 +167,16 @@ so are the ones that need torch where torch is not installed (Intel Macs).
 
 ## Rebuild Network 1, or retrain it on new labels
 
-1. Practice data, about 30 minutes on 12 cores:
+1. Practice data, about 30 minutes on 12 cores (`experiments/data_manifests/d2-v2.json`):
    `python scripts/make_d2.py --games 8000 --parents-per-game 4 --workers 12 --seed 2026 --out data/d2-v2`.
    Games use ordinary chess moves as a stand-in for real fog-of-war games; each record scores
    one move at depth 1 and depth 11 from a single MultiPV call at its parent, as Obscuro does.
 2. Training, about 3 minutes on an Apple GPU: `python scripts/train_net1.py --data data/d2-v2 --out runs/net1-v2`.
    This is also the retrain command: point `--data` at any folder of records in the same format.
+   The kept checkpoint is the epoch-1 model: validation error stopped improving after one pass
+   while training error kept falling (`best_epoch` 1, `epochs_run` 6, patience 5, in
+   `checkpoints/net1-v2/summary.json`; per epoch in its `metrics.jsonl`). The two other candidate
+   runs scored 0.0792 and 0.0787 on the check set against its 0.0757 (`experiments/net1_candidates/`).
 3. Evaluation: `python scripts/eval_net1.py --run runs/net1-v2 --data data/d2-check --split train`,
    which writes `eval-d2-check-train.json`. The test
    split needs `--final`, for the final report only.
@@ -170,12 +194,19 @@ evaluation parents are also d2-v2 training or validation parents, and 168 of its
 share a position with a d2-v2 training or validation row
 (`experiments/overlap/position-overlap-d2-check-train-vs-d2-v2.json`).
 
+The check set was made with `python scripts/make_d2.py --games 1200 --parents-per-game 4 --workers 12
+--seed 7 --out data/d2-check` (`experiments/data_manifests/d2-check.json`). Both datasets were made
+on 16 October, before the rule changes of 17 and 18 October renamed the rule results (`checkmate`,
+`stalemate` and `fifty-move` became `forced-loss`, `forced-draw`, `repetition` and
+`king-captured`). Made again with today's code, they would leave out a slightly different set of
+rule-decided rows, and the digits would shift a little.
+
 ## Rebuild the belief network, or retrain it on Pair A's labels
 
-1. Practice beliefs, about 3.5 minutes on 12 cores:
+1. Practice beliefs, about 3.5 minutes on 12 cores (`experiments/data_manifests/d6-v1.json`):
    `python scripts/make_beliefs.py --source data/d2-v2 --parents 12000 --out data/d6-v1`, and for
    the fresh check `--source data/d2-check --parents 100000 --seed 7 --out data/d6-check`.
-2. Training, about 2 minutes on an Apple GPU:
+2. Training, about a minute on an Apple GPU (54 s, `checkpoints/belief-v1-d1/summary.json`):
    `python scripts/train_belief_net.py --data data/d6-v1 --out runs/belief-v1-d1 --use-d1`. Point
    `--data` at a folder of Pair A's labels to retrain on them, after checking that folder with
    `python scripts/validate_labels.py <folder>` (add `--require-played-policy` for a full label run;
@@ -311,9 +342,9 @@ logs, and the last 10 runs are kept; `games/` holds saved games.
 ### How fast the tracker is
 
 Measured on Colin's Mac with 256 particles, over 5 seeded random games of up to 40 plies (410
-updates; `uv run python scripts/bench_tracker.py --games 5 --plies 40 --particles 256`): one
-tracker update took a median of 26 ms and 733 ms at the 95th percentile, and the slowest took
-5.2 s. 18 of the 410 updates had to rebuild the belief. The slow ones follow a move you made that
+updates; `uv run python scripts/bench_tracker.py --games 5 --plies 40 --particles 256 --out
+checkpoints/tracker-bench.json`): one tracker update took a median of 24 ms and 718 ms at the 95th
+percentile, and the slowest took 5.1 s. 18 of the 410 updates had to rebuild the belief. The slow ones follow a move you made that
 the bot could not see, because then every particle is expanded by every move. The scorer's time
 comes on top.
 
@@ -370,9 +401,9 @@ for a in material stockfish-d1 stockfish-d11 network1 belief random; do
 done
 ```
 
-At the pilot's rate a pairing of quick scorers takes about 45 minutes (200 games of 12.6 s). A
+At the pilot's rate a pairing of quick scorers takes about 40 minutes (200 games of 12.6 s). A
 slower scorer adds 9 calls per move (8 guesses and the true-board measurement) at its time per
-node in the table at the top: about 2 s a move for careful Stockfish, so several hours for its 200
+node in the table at the top: about 1.8 s a move for careful Stockfish, so several hours for its 200
 games; run the pairings on separate machines. Quick Stockfish against itself should score about
 0.5 and `random` close to 0: those two check the runner.
 
@@ -388,18 +419,32 @@ games; run the pairings on separate machines. Quick Stockfish against itself sho
   `tracker.py` (the honest belief tracker), `bot.py` (the one-ply belief bot), `rules.py` (Teal's
   adapter or our stand-in, behind one interface), `harness_adapter.py` (the belief network as a
   scorer for Bryan's harness) and `lab/` (the server, the test runner and the page in `lab/static/`).
+  `provenance.py` records which data files, checkpoint and code a result came from.
 - `scripts/`: `make_d2.py`, `train_net1.py`, `eval_net1.py`, `make_beliefs.py`,
   `train_belief_net.py`, `eval_belief_net.py`, `eval_children.py`, `bench_tracker.py`,
-  `validate_labels.py`, and the linear comparison's `train_linear.py`, `eval_linear.py` and
+  `validate_labels.py`, `play_matches.py` (see Matches), `write_provenance.py` (provenance for runs
+  trained before their summaries recorded it), `freeze_split.py` (one split of a dataset as one
+  gzipped part), and the linear comparison's `train_linear.py`, `eval_linear.py` and
   `benchmark_linear.py`.
   `eval_children.py` measures per-move accuracy against depth-16 Stockfish and writes only the
   JSON file named by `--out`; the Tests tab reads `checkpoints/belief-v1-d1/eval-children-d16.json`.
-  `bench_tracker.py` times the belief tracker and writes nothing.
-- `checkpoints/net1-v2/`: the kept Network 1 (521k parameters, 2 MB), its training summary and its
-  results on the fresh games. `checkpoints/belief-v1-d1/`: the kept belief network (562k
-  parameters), the same three files, and `eval-children-d16.json`, which `eval_children.py` wrote.
-  `checkpoints/linear-v1/`: the linear correction fitted on d2-v2 (`best.npz`, no pickle), its
-  summary, its comparison on the fresh games and its timing.
+  `bench_tracker.py` times the belief tracker and, with `--out`, writes the timings as JSON.
+- `checkpoints/net1-v2/`: the kept Network 1 (521k parameters, 2 MB), its training summary and
+  log, its results on the fresh games and `provenance.json` (the data and checkpoint hashes,
+  written after training). `checkpoints/belief-v1-d1/`: the kept belief network (562k
+  parameters), the same files, `eval-children-d16.json`, which `eval_children.py` wrote, and
+  `d1-parent-vs-own.json`. `checkpoints/belief-v1-pure/` and `checkpoints/belief-v1-d1-noctx/`: the
+  two ablations in the belief table. `checkpoints/linear-v1/`: the linear correction fitted on d2-v2
+  (`best.npz`, no pickle), its summary, its comparison on the fresh games and its timings (CPU, and
+  Network 1 on the Apple GPU). `checkpoints/timing-stockfish-d11.json`, `tracker-bench.json` and
+  `observe-agreement.json` back the timings and the observe comparison above.
+- `data/d2-check-train/`: the evaluation rows, so the evaluation reruns without Stockfish.
+- `experiments/`: studies and checks behind the report, each with a README: `tanh_linear/` (the
+  linear correction inside tanh, and Figure 1), `mc_td/` (learning the leaf from outcomes by MC and
+  TD against distillation), `overlap/` (positions shared by the check set and the training data),
+  `matches/` (the match pilot), `net1_candidates/` (the other two Network 1 runs),
+  `data_manifests/` (how the four datasets were made) and `readme_checks/` (the scripts behind
+  three of the README's measurements).
 - `tests/`: written before the code they test. `tests/js/` holds the page's JavaScript helper
   tests, run from `pair_b/` with `node --test tests/js/`, which needs Node 20.19, or 22.7 or later.
   The app itself needs no Node.

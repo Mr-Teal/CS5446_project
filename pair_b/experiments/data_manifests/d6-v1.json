@@ -1,0 +1,73 @@
+{
+  "copied_from": "d6-v1/manifest.json",
+  "original_sha256": "e5235f523171c31fdfa815b545df9fc6756bb91706e98274535b80370b81f885",
+  "note": "the manifest as written, with the home folder as ~",
+  "manifest": {
+    "dataset": "d6-v1",
+    "spec": "d6-standin-v1",
+    "created": "2026-10-18T17:03:59+08:00",
+    "run_by": "Pair B",
+    "command": [
+      "make_beliefs.py",
+      "--source",
+      "~/Desktop/NUS/AY2627S1/CS5446/Project/Pair B/code/data/d2-v2",
+      "--parents",
+      "12000",
+      "--hypotheses",
+      "8",
+      "--label-depth",
+      "11",
+      "--seed",
+      "2026",
+      "--workers",
+      "12",
+      "--out",
+      "~/Desktop/NUS/AY2627S1/CS5446/Project/Pair B/code/data/d6-v1"
+    ],
+    "code_sha256": "3ec028b38f92cc64ecb25943b021c2b2fe5943b039de4d84ed3aff7d0810389e",
+    "machine": "macOS-26.5.1-arm64-arm-64bit-Mach-O; Python 3.14.6; python-chess 1.11.2",
+    "source": {
+      "dataset": "d2-v2",
+      "created": "2026-10-16T20:43:53+08:00"
+    },
+    "format": "fow_shared TrainingRecord JSONL (fow_shared.recording)",
+    "beliefs": "pairb.standin_beliefs: the true board plus alternatives moving unseen opponent pieces; visibility from pairb.observe, a stand-in matching pair_a_prep's rules fixtures",
+    "labels": "hypothesis_values: Stockfish at label_depth per board, deciding player's view; root_value: their weighted mean; decision.diagnostics d1:<i>: Stockfish depth 1",
+    "stockfish": {
+      "name": "Stockfish 19",
+      "threads": 1,
+      "hash_mb": 16,
+      "label_depth": 11,
+      "new_game_before_each_call": true
+    },
+    "seed": 2026,
+    "decision_points": 12000,
+    "skipped_rule_decided": 1,
+    "records": 11999,
+    "hypotheses_per_belief": {
+      "1": 31,
+      "2": 2,
+      "3": 6,
+      "4": 11,
+      "5": 14,
+      "6": 18,
+      "7": 24,
+      "8": 11893
+    },
+    "files": [
+      "part-00.jsonl",
+      "part-01.jsonl",
+      "part-02.jsonl",
+      "part-03.jsonl",
+      "part-04.jsonl",
+      "part-05.jsonl",
+      "part-06.jsonl",
+      "part-07.jsonl",
+      "part-08.jsonl",
+      "part-09.jsonl",
+      "part-10.jsonl",
+      "part-11.jsonl"
+    ],
+    "seconds": 205.5
+  }
+}
