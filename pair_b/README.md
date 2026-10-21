@@ -13,7 +13,7 @@ swaps one evaluator for another by changing one argument.
 | `NetworkEvaluator.from_checkpoint(...)` | `net1-v2+stockfish-19-d1` | Network 1: the same depth-1 call, then a learned correction | 12.2 on CPU, 4.4 on an Apple GPU |
 | `MaterialEvaluator()` | `material-1-3-3-5-9` | Counts pieces: pawn 1, knight 3, bishop 3, rook 5, queen 9 | 0.6 |
 | `LinearEvaluator.from_checkpoint(...)` | `linear-v1+stockfish-d1-linear` | The [linear correction](docs/linear_baseline.md): a comparison, not one of the five | 1.7 |
-| `BeliefNetworkEvaluator.from_checkpoint(...)` | `belief-v1-d1+stockfish-19-d1` | The belief network: scores every board of a belief together; see below | see below |
+| `BeliefNetworkEvaluator.from_checkpoint(...)` | `belief-v1-d1+stockfish-19-d1` | The belief network: scores every board of a belief together in `evaluate_beliefs`; in play it is called board by board, see below | see below |
 
 \* Median time of `evaluate_children` on an M5 Pro Mac, with `new_game_each_call=False` as inside a
 search, over the 300 positions of d2-check's training bucket that `scripts/benchmark_linear.py`
@@ -91,8 +91,12 @@ network runs on CUDA or an Apple GPU when there is one (`device="cpu"` forces th
 `BeliefNetworkEvaluator` scores every board of a belief knowing the whole belief. One shared board
 reader turns each board into an embedding, the belief's weighted summary of all its boards sits
 next to each board's own embedding, and a value comes out per board (`belief_net.py`). That is what
-lets the same board be worth different amounts under different beliefs. `evaluate_beliefs` is its
-real use; `evaluate_boards` and `evaluate_children` score each board as a belief of its own.
+lets the same board be worth different amounts under different beliefs. `evaluate_beliefs` is the
+whole-belief pass; `evaluate_boards` and `evaluate_children` score each board as a belief of its own.
+In play, in Fog Lab and in the match runner, the one-ply bot scores each guess's children with one
+`evaluate_children` call, so there the belief network is used board by board, and the whole-belief
+pass is exercised in offline evaluation only; a search over beliefs (Pair A's player) is where a
+successor belief would reach it. The Fog Lab guide's scorer table predates this clarification.
 
 Until Pair A's player can label beliefs, it learns from practice data:
 
@@ -380,26 +384,12 @@ comes on top.
 `scripts/play_matches.py` plays bot against bot with Fog Lab's honest pieces: each side is the
 one-ply belief bot on one of the five scorers or the linear correction (`linear`), or `random`, a
 uniform random legal move, on its own particle tracker, and through `fow_shared`'s `play_game` it
-sees only its own observations. `--rules` picks the rules as Fog Lab does (`auto` is Teal's adapter
-when the checkout has it, else the stand-in); pin `standin` or `teal` so that every machine of a
-batch plays by the same rules.
-Each opening, 2 to 8 random plies, is played twice with the colours swapped. For every move a bot
-chooses, `games.jsonl` records the value lost by not knowing (the best true-board value minus the
-played move's, from a second copy of the bot's own scorer, so it is in that scorer's terms:
-compare it across games and settings, not across scorers), the time and the tracker's state.
-Every scorer starts each game with a clean Stockfish (`ucinewgame`), so a game does not depend
-on the games before it; within a game the hash is kept, as inside a search. `summary.json` gives
-the first-named side's score, wins plus half the draws, over the complete colour pairs (openings
-whose two games both finished), with a 95% interval that resamples those pairs (none with fewer
-than two), and counts the incomplete pairs; each side's wins, draws and losses count every
-finished game. A game that raises (a tracker that loses the position, a scorer that fails) is
-recorded with its error and left out of the score, and the run goes on. A value-lost measurement
-that fails after a game finished keeps the game and its result and is recorded as the move's
-`diagnostic_error`. `summary.json` counts both (`errors`, `diagnostic_errors`), is written even if
-the run is interrupted, and the run exits with status 1 if either is not zero. Its `record` block,
-read once before the first game, traces the run: the commit, uncommitted changes (`git status`,
-without Python's caches), the SHA-256 of every source file that plays and of the Stockfish binary,
-and the library versions; each side in `sides` also names the device its network ran on.
+sees only its own observations. The protocol of record for the report's runs, what the study
+measures, the engine policy, the interval rules, failures, and the cross-check against Bryan's
+runner are in [docs/match_protocol.md](docs/match_protocol.md); the script's docstring lists every
+flag. Three rules it enforces: a run of more than two games must pin `--rules standin` or `teal`,
+one table is played by one set of rules, and a score gets a bootstrap interval only from 20 or more
+complete colour pairs that do not all score the same (Wilson's interval is always given).
 
 The pilot (`experiments/matches/pilot-d1-vs-material/`: 10 games, 200-ply cap, seed 0, stand-in
 rules, on Colin's Mac): quick Stockfish won all 10 games against piece values, a score of 1.00 over
@@ -408,9 +398,11 @@ plies on average). The 10 games took 123 s, 12.3 s a game. A move took 13.5 ms f
 and 3.9 ms for piece values (95th percentiles 19.2 and 7.0 ms), so most of a game's time is the two
 trackers (1,014 updates, 153 of them capped and 39 rebuilt).
 
-The runs for the report, for ZW: every scorer, the linear correction and `random` against quick
-Stockfish, 200 games each, with the same seed so that every pairing plays the same openings, and
-the same pinned rules (`standin` until Teal's adapter is on `main`, then `teal` for every pairing).
+The runs for the report, for ZW, once the runner decision with Bryan is recorded (proposed, pending
+that decision): every scorer, the linear correction and `random` against quick Stockfish, 200 games
+each, with the same seed so that every pairing plays the same openings, and one rules id for the
+whole table (`standin` today; if Teal's adapter becomes the rules of record, every pairing is rerun
+under `teal`; a table never mixes the two).
 
 ```bash
 for a in material stockfish-d1 stockfish-d11 network1 belief linear random; do
@@ -418,11 +410,13 @@ for a in material stockfish-d1 stockfish-d11 network1 belief linear random; do
 done
 ```
 
-At the pilot's rate a pairing of quick scorers takes about 40 minutes (200 games of 12.3 s). A
+At the pilot's rate a pairing of quick scorers takes about 40 minutes (200 games of about 12 s). A
 slower scorer adds 9 calls per move (8 guesses and the true-board measurement) at its time per
-node in the table at the top: about 1.8 s a move for careful Stockfish, so several hours for its 200
-games; run the pairings on separate machines. Quick Stockfish against itself should score about
-0.5 and `random` close to 0: those two check the runner.
+node in the table at the top: about 1.8 s a move for careful Stockfish, so about 9 machine-hours
+for its 200 games; run it on a second machine or at 100 games. Quick Stockfish against itself
+should score about 0.5 and `random` close to 0: those two check the runner. The network sides need
+torch. `experiments/matches/` holds the pilot, the superseded shared-engine-state pilot and the
+standard-start cross-check, each described in its README.
 
 ## Files
 
@@ -460,7 +454,7 @@ games; run the pairings on separate machines. Quick Stockfish against itself sho
 - `experiments/`: studies and checks behind the report, each with a README: `tanh_linear/` (the
   linear correction inside tanh, and Figure 1), `mc_td/` (learning the leaf from outcomes by MC and
   TD against distillation), `overlap/` (positions shared by the check set and the training data),
-  `matches/` (the match pilot), `net1_candidates/` (the other two Network 1 runs),
+  `matches/` (the match pilot and the standard-start cross-check), `net1_candidates/` (the other two Network 1 runs),
   `data_manifests/` (how the four datasets were made) and `readme_checks/` (the scripts behind
   five of the README's measurements).
 - `tests/`: written before the code they test. `tests/js/` holds the page's JavaScript helper
