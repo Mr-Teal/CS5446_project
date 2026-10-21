@@ -44,7 +44,8 @@ use private midgame test positions as starts while claiming the original informa
 
 - `manifest.json`: full configuration, Git revision/status, Python source hashes, checkpoint and
   engine hashes, environment, planner and seed conventions. An uncommitted implementation is
-  identified by its source hashes; retain the checkout/diff with the results.
+  identified by its source hashes; retain the checkout/diff with the results. Source hash keys
+  are repository-relative paths with forward slashes on every platform, including Windows.
 - `games.jsonl`: flushed after each attempt; candidate colour, pair ID, winner, candidate score,
   termination, move records, search-node counts, act timing and budget flags, tracker timing,
   rebuild/capping/exactness diagnostics, and errors with partial event logs.
@@ -76,3 +77,16 @@ Choose the final game/seed budget after this throughput pilot, reserve untouched
 and freeze configurations before final evaluation. Report paired uncertainty at the game-pair level
 for the final study. Do not interpret an eight-ply smoke test or a few completed pairs as playing
 strength. Belief-context learning requires a separate successor-belief integration and target study.
+
+## Rules integration regression
+
+The runner tests exercise both `standin` and `teal` explicitly, including colour pairing,
+candidate score perspective, repeatability, rule draws versus ply caps, failure accounting
+and portable manifest paths. The `teal` cases are explicitly skipped when Pair A's adapter
+is absent; a combined-checkout validation should run them without skips.
+
+```powershell
+python -m pytest pair_b\tests\test_match_experiment.py pair_b\tests\test_rules.py `
+  pair_b\tests\test_bot.py pair_b\tests\test_tracker.py tests\test_match_loop.py `
+  pair_a_prep\tests\test_rules_adapter.py pair_a_prep\tests\test_observations.py -q
+```
