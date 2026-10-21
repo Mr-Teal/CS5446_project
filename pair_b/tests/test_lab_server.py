@@ -1067,6 +1067,28 @@ def test_start_command_wires_its_flags_and_cleans_up_on_ctrl_c(monkeypatch, caps
     assert capsys.readouterr() == ("Fog Lab: http://127.0.0.1:4321  (Ctrl+C to stop)\n", "")
 
 
+# Catches: --open opening the page before the server listens (the browser would get a refused connection), at the
+# port asked for rather than the one the server got (0 asks for any free one), or without being asked.
+def test_start_command_opens_the_page_only_with_open(monkeypatch, capsys):
+    calls = fake_start(monkeypatch)
+    monkeypatch.setattr(start_command.webbrowser, "open", lambda url: calls.append(("open", url)) or True)
+    assert start_command.main(["--port", "0"]) == 0
+    assert not [c for c in calls if c[0] == "open"]
+    calls.clear()
+    assert start_command.main(["--port", "0", "--open"]) == 0
+    assert calls[-5:] == [("server", 0), ("open", "http://127.0.0.1:4321"), "serve", "server_close", "app.close"]
+    assert capsys.readouterr().err == ""
+
+
+# Catches: a machine with no browser to open (a remote shell, say) stopping Fog Lab, or failing silently.
+def test_start_command_still_serves_when_no_browser_opens(monkeypatch, capsys):
+    calls = fake_start(monkeypatch)
+    monkeypatch.setattr(start_command.webbrowser, "open", lambda url: False)
+    assert start_command.main(["--open"]) == 0
+    assert "serve" in calls
+    assert capsys.readouterr().err == "Fog Lab: no browser opened; open the address above yourself\n"
+
+
 # Catches: a relative --stockfish path handed on as it is. The Play tab would find the engine, but the Tests tab's
 # harness and history checks run in a stage's worktree, where the path points nowhere. The scorers and the test runs
 # get the same absolute path.

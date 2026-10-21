@@ -192,6 +192,9 @@ Fog Lab runs on your own laptop and opens in your browser. It has two tabs:
   by one, Pair A's 17 rules positions drawn as boards, Bryan's checks on every scorer, and how
   accurate each scorer is.
 
+A step-by-step guide with screenshots, from starting it to a five-minute demo, is in
+[docs/fog_lab_guide.pdf](docs/fog_lab_guide.pdf).
+
 After a human move, the Play tab shows the observation immediately after that move for one second
 before displaying the bot's reply. Both observations come from the server and respect fair-game
 visibility. The server computes the reply before sending the two snapshots; this is a display pause,
@@ -208,25 +211,26 @@ its guesses at your hidden pieces (8 by default), and plays the move with the be
 From the project root, on macOS and Linux:
 
 ```bash
-cd pair_b && uv run python -m pairb.lab
+cd pair_b && uv run python -m pairb.lab --open
 ```
 
 On Windows PowerShell, give the path of your own Stockfish. With uv:
 
 ```powershell
-cd pair_b; uv run python -m pairb.lab --stockfish "C:\path\to\stockfish.exe"
+cd pair_b; uv run python -m pairb.lab --open --stockfish "C:\path\to\stockfish.exe"
 ```
 
 or with the `pair_b/.venv` that the pip set-up above makes:
 
 ```powershell
-cd pair_b; .\.venv\Scripts\python -m pairb.lab --stockfish "C:\path\to\stockfish.exe"
+cd pair_b; .\.venv\Scripts\python -m pairb.lab --open --stockfish "C:\path\to\stockfish.exe"
 ```
 
 If uv stops with a certificate error, as it does on Colin's Mac, add `--system-certs` after
 `uv run`. The app prints `Fog Lab: http://127.0.0.1:8765  (Ctrl+C to stop)`; open that address in a
-browser. It listens on 127.0.0.1 only, so nobody else on your network can reach it, and it needs no
-internet except the optional fetch on the Tests tab. It takes these flags:
+browser, or add `--open` and it opens the page itself. It listens on 127.0.0.1 only, so nobody else
+on your network can reach it, and it needs no internet except the optional fetch on the Tests tab.
+It takes these flags:
 
 | Flag | What it does | Default |
 |---|---|---|
@@ -234,6 +238,7 @@ internet except the optional fetch on the Tests tab. It takes these flags:
 | `--stockfish` | the Stockfish command on the `PATH`, or the path of the engine | `stockfish` |
 | `--device` | where the two networks run: `cpu`, `mps` or `cuda` | the best one torch finds |
 | `--rules` | `auto` is Teal's `RulesAdapter` when this checkout has it, otherwise Pair B's stand-in; `teal` and `standin` force one | `auto` |
+| `--open` | opens the page in your default browser once Fog Lab is listening | off |
 
 The top right of the page says which rules, scorer and device are in use.
 
@@ -334,19 +339,23 @@ comes on top.
   practice data (`d2.py`), and training and evaluation helpers (`data.py`, `evaluate.py`,
   `metrics.py`). The belief network: `belief_net.py`, `belief_data.py`, `belief_eval.py`, the
   practice beliefs `observe.py` and `standin_beliefs.py`, and `label_validation.py` (the checks
-  behind `scripts/validate_labels.py`, for Pair A's label folders). Fog Lab: `tracker.py` (the honest belief
-  tracker), `bot.py` (the one-ply belief bot), `rules.py` (Teal's adapter or our stand-in, behind
-  one interface), `harness_adapter.py` (the belief network as a scorer for Bryan's harness) and
-  `lab/` (the server, the test runner and the page in `lab/static/`).
+  behind `scripts/validate_labels.py`, for Pair A's label folders). The linear comparison:
+  `linear.py`, `linear_evaluator.py` and `linear_workflow.py`, which need only NumPy. Fog Lab:
+  `tracker.py` (the honest belief tracker), `bot.py` (the one-ply belief bot), `rules.py` (Teal's
+  adapter or our stand-in, behind one interface), `harness_adapter.py` (the belief network as a
+  scorer for Bryan's harness) and `lab/` (the server, the test runner and the page in `lab/static/`).
 - `scripts/`: `make_d2.py`, `train_net1.py`, `eval_net1.py`, `make_beliefs.py`,
-  `train_belief_net.py`, `eval_belief_net.py`, `eval_children.py`, `bench_tracker.py` and
-  `validate_labels.py`.
+  `train_belief_net.py`, `eval_belief_net.py`, `eval_children.py`, `bench_tracker.py`,
+  `validate_labels.py`, and the linear comparison's `train_linear.py`, `eval_linear.py` and
+  `benchmark_linear.py`.
   `eval_children.py` measures per-move accuracy against depth-16 Stockfish and writes only the
   JSON file named by `--out`; the Tests tab reads `checkpoints/belief-v1-d1/eval-children-d16.json`.
   `bench_tracker.py` times the belief tracker and writes nothing.
 - `checkpoints/net1-v2/`: the kept Network 1 (521k parameters, 2 MB), its training summary and its
   results on the fresh games. `checkpoints/belief-v1-d1/`: the kept belief network (562k
   parameters), the same three files, and `eval-children-d16.json`, which `eval_children.py` wrote.
+  `checkpoints/linear-v1/`: the linear correction fitted on d2-v2 (`best.npz`, no pickle), its
+  summary, its comparison on the fresh games and its timing.
 - `tests/`: written before the code they test. `tests/js/` holds the page's JavaScript helper
   tests, run from `pair_b/` with `node --test tests/js/`, which needs Node 20.19, or 22.7 or later.
   The app itself needs no Node.
