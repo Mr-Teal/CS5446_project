@@ -9,7 +9,7 @@ already merged to main are the integration baseline for this branch.
 | Source code and opponents | Original evaluation setting is not available here | We have interface code, not the original agents | No claim of exact result reproduction |
 | Engine version | See source map in `paper_specs.md` | Stockfish 19 pilot; production choice pending | Version change must be reported |
 | Depth 11 | Project proposal comparison setting | Extra experimental condition | Do not present as the paper's leaf setting |
-| Full tracker versus search sample | Different purposes | Full tracking not implemented; sample budget not frozen | Never describe 256 as full exact belief size |
+| Full tracker versus search sample | Different purposes | Exact history tracking implemented in `belief_tracker.py`; optional output sample leaves internal population intact; search budget not frozen | Never describe 256 as full exact belief size; see [tracker notes](belief_tracker.md) for identity and weighting |
 | Engine/network input | Shared contract | Merged encoder uses 32 planes | Keep feature metadata consistent with the evaluator |
 | Counter visibility | Profile-dependent | Adapter observations hide `halfmove_clock`; hypotheses retain their own clocks | Do not expose hidden referee state |
 | Rules backend | Paper profile, Chess.com and OpenSpiel need comparison | Rules adapter passes all 17 proposed fixtures | Passing fixtures does not prove backend equivalence |
