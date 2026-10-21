@@ -117,6 +117,20 @@ def test_eval_compares_the_network_with_quick_stockfish_on_the_same_beliefs(run)
     assert len(report["root_mae_difference"]["ci95"]) == 2
 
 
+# Catches: an evaluation that does not say which data, checkpoint, code, device and bootstrap
+# made it (review T9).
+def test_eval_reports_its_provenance(run):
+    from pairb.provenance import data_source, git_commit
+    data, out, _ = run
+    assert evaluate(run, "val", "--n-boot", "200").returncode == 0
+    report = json.loads((out / "eval-d6-val.json").read_text())
+    assert report["bootstrap"] == {"resamples": 200, "seed": 0, "unit": "whole games"}
+    assert report["device"] == "cpu" and report["runtime"]["torch"] == torch.__version__
+    assert report["source"] == data_source(data)
+    assert report["checkpoint_sha256"] == hashlib.sha256((out / "best.pt").read_bytes()).hexdigest()
+    assert report["git_commit"] == git_commit()
+
+
 # Catches: the test games being looked at during development by accident.
 def test_eval_refuses_the_test_split_without_final(run):
     result = evaluate(run, "test")

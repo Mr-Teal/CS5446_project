@@ -81,6 +81,25 @@ def test_eval_compares_the_network_with_the_depth1_baseline_on_the_same_parents(
     assert report["network"]["choice"]["parents"] == report["baseline"]["choice"]["parents"]
 
 
+# Catches: the value-error difference reported without its interval (review T3), or an evaluation
+# that does not say which data, checkpoint, code, device and bootstrap made it (review T9).
+def test_eval_reports_the_value_error_differences_and_their_provenance(run):
+    from pairb.provenance import data_source, git_commit
+    data, out = run
+    assert evaluate(run, "val", "--device", "cpu", "--n-boot", "200").returncode == 0
+    report = json.loads((out / "eval-d2-val.json").read_text())
+    for key, scorer in (("mae_difference", "network"), ("material_mae_difference", "material")):
+        d = report[key]
+        assert d["mean"] == pytest.approx(report[scorer]["mae"] - report["baseline"]["mae"], abs=2e-6)
+        assert d["ci95"][0] <= d["mean"] <= d["ci95"][1]
+        assert (d["positions"], d["games"], d["resampled"]) == (report["n"], report["regret_difference"]["games"], "games")
+    assert report["bootstrap"] == {"resamples": 200, "seed": 0, "unit": "whole games"}
+    assert report["device"] == "cpu" and report["runtime"]["torch"] == torch.__version__
+    assert report["source"] == data_source(data)
+    assert report["checkpoint_sha256"] == hashlib.sha256((out / "best.pt").read_bytes()).hexdigest()
+    assert report["git_commit"] == git_commit()
+
+
 # Catches: the test games being looked at during development by accident.
 def test_eval_refuses_the_test_split_without_final(run):
     result = evaluate(run, "test")
