@@ -84,3 +84,14 @@ def test_belief_eval_still_gives_the_paired_difference_from_metrics():
     pytest.importorskip("torch")  # belief_eval imports torch
     from pairb import belief_eval, metrics
     assert belief_eval.paired_difference is metrics.paired_difference
+
+
+# Catches: a tie in the scorer's values settled by anything but row order, which would make
+# top-1 and regret depend on how the children happen to be stored.
+def test_choice_metrics_settles_a_tie_in_predictions_by_row_order():
+    from pairb.metrics import choice_metrics
+    # Values are the child's side-to-move view, so the best child has the lowest y.
+    worse_first = choice_metrics(["p", "p"], [0.2, 0.2], [0.5, 0.1])
+    better_first = choice_metrics(["p", "p"], [0.2, 0.2], [0.1, 0.5])
+    assert (worse_first["top1"], worse_first["regret"]) == (0.0, pytest.approx(0.4))
+    assert (better_first["top1"], better_first["regret"]) == (1.0, 0.0)
