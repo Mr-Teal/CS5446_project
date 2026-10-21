@@ -9,10 +9,20 @@ one only its observations and its own tracker's belief. --rules picks the rules 
 `auto` is Teal's adapter when this checkout has it, else Pair B's stand-in; pin `teal` or `standin`
 so that every machine of a batch plays by the same rules.
 
-Openings: opening i is k plies, k from 2 to 8, of random legal moves drawn from
-random.Random(seed * 1000 + i), never one that ends the game. Each opening is played twice, a as
-White and then a as Black, and its plies go through the runner (each bot plays its colour's opening
-moves first), so both trackers see every ply from the start position.
+Openings: opening i is k plies, k from 2 to 8 (--opening-plies; 0 0 is the standard start), of random
+legal moves drawn from random.Random(seed * 1000 + i), never one that ends the game. Each opening is
+played twice, a as White and then a as Black, and its plies go through the runner (each bot plays its
+colour's opening moves first), so both trackers see every ply from the start position.
+
+A run of more than two games must pin --rules (standin or teal): auto becomes Teal's adapter when his
+branch merges, and one table must be played by one set of rules. Each ply records over_budget against
+--time-budget-ms (60 s by default); the one-ply bots do not read the budget, so the flag measures
+overruns and never cuts a move short. A game that fails because a side has no fog-legal move is a
+recorded error ("no legal move"), until Pair A's rules decide such positions.
+
+A Stockfish that dies (a crash) is reopened, scorer and second copy, after the game or measurement
+that found it dead, and the game records which side was reopened; a run stops after 5 failed games
+in a row.
 
 Value lost by not knowing, for each move a bot chooses: the best value on the true board minus the
 true-board value of the move it played, both from a second copy of that bot's scorer, so the
@@ -25,8 +35,10 @@ not depend on the games before it; within a game the hash is kept, as inside a s
 
 Writes games.jsonl, one game per line as each one ends, and summary.json into --out, which must not
 exist yet: games, wins, draws and losses per side, a's score (wins plus half the draws) over the
-openings whose two games both finished, with a 95% interval that resamples those complete colour
-pairs 2,000 times with seed 0 (none with fewer than two pairs), the count of incomplete pairs,
+openings whose two games both finished, with Wilson's 95% interval on that pair-level proportion
+and, when there are at least 20 complete pairs that do not all score the same, a 95% interval that
+resamples those pairs 2,000 times with seed 0 (otherwise the bootstrap collapses to a point and is
+withheld as degenerate), the count of incomplete pairs,
 mean value lost per side, plies, time per move, the device each network ran on, and the settings,
 checkpoints and commit, with a record of uncommitted changes, the SHA-256 of every source file that
 plays (fow_shared, pairb, this script, Pair A's rules), of the Stockfish binary, and the library
@@ -41,6 +53,7 @@ import contextlib
 import datetime
 import importlib.metadata
 import json
+import math
 import random
 import shutil
 import sys
@@ -62,8 +75,13 @@ from pairb.tracker import ParticleTracker
 
 ROOT = Path(__file__).resolve().parents[1]
 LINEAR = "linear-v1/best.npz"  # the linear correction, inside the checkpoints folder
-TIME_BUDGET_MS = 60_000  # recorded with each ply as over_budget; the one-ply bots do not use it
+TIME_BUDGET_MS = 60_000  # the default --time-budget-ms: each ply records over_budget against it; the one-ply
+# bots do not read the budget, so the flag only measures overruns, it never cuts a move short
+ENGINE_POLICY = {"threads": 1, "hash_mb": 16, "new_game": "before every game",
+                 "within_game": "hash kept between calls"}  # StockfishEvaluator's settings and this runner's use
 N_BOOT, BOOT_SEED = 2000, 0
+MIN_PAIRS = 20  # fewer complete colour pairs than this get no bootstrap interval, only Wilson's
+MAX_CONSECUTIVE_ERRORS = 5  # a run stops after this many failed games in a row
 
 
 class RandomAgent:
@@ -137,11 +155,12 @@ class WatchedReferee:
         return getattr(self._referee, name)
 
 
-def opening(rules, seed: int, index: int) -> list[str]:
-    """Opening `index`: k in 2..8 random legal plies, none of which ends the game."""
+def opening(rules, seed: int, index: int, plies: tuple[int, int] = (2, 8)) -> list[str]:
+    """Opening `index`: k random legal plies, k drawn from plies[0]..plies[1], none of which ends the
+    game; (0, 0) is the standard start, for runs that compare with a public-start protocol."""
     rng = random.Random(seed * 1000 + index)
     state, moves = rules.initial_state(), []
-    for _ in range(rng.randint(2, 8)):
+    for _ in range(rng.randint(*plies)):
         options = [m for m in sorted(rules.legal_moves(state)) if rules.terminal(rules.apply_move(state, m)) is None]
         moves.append(rng.choice(options))
         state = rules.apply_move(state, moves[-1])
@@ -158,11 +177,30 @@ def value_lost(judge, true_fen: str, move: str) -> dict:
     return {"best": best, "played": values[move], "value_lost": best - values[move]}
 
 
+def engines_of(scorer) -> list:
+    """The Stockfish a scorer holds: itself, or the one under a network or the linear correction."""
+    return [e for e in (scorer, getattr(scorer, "stockfish", None)) if isinstance(e, StockfishEvaluator)]
+
+
 def new_game(scorer) -> None:
-    """Clear the Stockfish a scorer holds (itself, or the one under a network or the linear correction)."""
-    for engine in (scorer, getattr(scorer, "stockfish", None)):
-        if isinstance(engine, StockfishEvaluator):
-            engine.new_game()
+    """Clear the Stockfish a scorer holds, so the next game starts with an empty hash."""
+    for engine in engines_of(scorer):
+        engine.new_game()
+
+
+def reopen_dead(stack, scorers: dict, judges: dict, args, opts: ScorerOptions) -> list[str]:
+    """After a failed game or measurement: any side whose scorer or second copy has a dead Stockfish
+    (a crash) gets both reopened, so one crash does not fail every later game. Returns the sides."""
+    reopened = []
+    for side in ("a", "b"):
+        holders = [h for h in (scorers.get(side), judges.get(side)) if h is not None]
+        if holders and not all(e.alive() for h in holders for e in engines_of(h)):
+            for h in holders:
+                h.close()
+            scorers[side] = stack.enter_context(open_side(getattr(args, side), opts))
+            judges[side] = stack.enter_context(open_side(getattr(args, side), opts))
+            reopened.append(side)
+    return reopened
 
 
 def play_one(rules, number: int, moves: list[str], colours: dict, scorers: dict, judges: dict, args) -> dict:
@@ -177,8 +215,8 @@ def play_one(rules, number: int, moves: list[str], colours: dict, scorers: dict,
                 for c in ("white", "black")}
     agents = {c: OpeningThenAgent(RandomAgent() if scorers[s] is None else OnePlyBot(scorers[s]), moves)
               for c, s in colours.items()}
-    config = MatchConfig(time_budget_ms=TIME_BUDGET_MS, max_plies=args.max_plies, seed=seed, rules_id=rules.name,
-                         engine_id=f"{args.a}-vs-{args.b}", leaf_depth=0)
+    config = MatchConfig(time_budget_ms=getattr(args, "time_budget_ms", TIME_BUDGET_MS), max_plies=args.max_plies,
+                         seed=seed, rules_id=rules.name, engine_id=f"{args.a}-vs-{args.b}", leaf_depth=0)
     game = {"game": number, "opening": {"id": number // 2, "moves": moves}, "seed": seed, "colours": colours,
             "scorers": {c: getattr(args, s) for c, s in colours.items()}}
     try:
@@ -191,6 +229,7 @@ def play_one(rules, number: int, moves: list[str], colours: dict, scorers: dict,
         side = colours[ply.player]
         entry = {"ply": ply.ply, "player": ply.player, "side": side, "move": ply.move,
                  "opening": ply.ply < len(moves), "elapsed_ms": round(ply.elapsed_ms, 3),
+                 "over_budget": bool(ply.over_budget),
                  "guesses": int(ply.search_nodes), "tracker": trackers[ply.player].log[ply.ply],
                  "best": None, "played": None, "value_lost": None}
         if not entry["opening"] and judges[side] is not None:
@@ -208,9 +247,20 @@ def play_one(rules, number: int, moves: list[str], colours: dict, scorers: dict,
             "trackers": {c: trackers[c].log for c in ("white", "black")}, "seconds": round(time.time() - started, 1)}
 
 
+def wilson95(p: float, n: int, z: float = 1.959964) -> list[float]:
+    """Wilson's 95% score interval for a proportion p seen in n trials; here the pair-level score over
+    n complete pairs, treated as a proportion (an approximation: a pair's score is 0, 0.5 or 1)."""
+    centre = (p + z * z / (2 * n)) / (1 + z * z / n)
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / (1 + z * z / n)
+    return [max(0.0, centre - half), min(1.0, centre + half)]
+
+
 def paired_score(games: list[dict]) -> dict:
     """a's score over the complete colour pairs (openings whose two games, one with each colour, both
-    finished), with a 95% interval that resamples those pairs; no interval with fewer than two pairs."""
+    finished), the Wilson interval on that pair-level proportion, and a 95% bootstrap interval that
+    resamples the pairs, given only when there are at least MIN_PAIRS of them and they are not all
+    equal: a percentile bootstrap over a handful of pairs, or over identical ones, collapses to a
+    point and says nothing about uncertainty (degenerate)."""
     by_opening = {}
     for g in games:
         by_opening.setdefault(g["opening"]["id"], []).append(g)
@@ -221,13 +271,22 @@ def paired_score(games: list[dict]) -> dict:
             pairs.append(sum(1.0 if g["winner_side"] == "a" else 0.5 if g["winner"] == "draw" else 0.0
                              for g in done) / 2)
     points = np.array(pairs, dtype=np.float64)
-    interval = None
-    if len(points) >= 2:
+    mean = float(points.mean()) if len(points) else None
+    interval, note = None, None
+    if not len(points):
+        note = "no complete colour pair"
+    elif len(points) < MIN_PAIRS:
+        note = f"fewer than {MIN_PAIRS} complete pairs"
+    elif len(set(points.tolist())) == 1:
+        note = "every pair scored the same, so the bootstrap would collapse to a point"
+    else:
         boots = points[np.random.default_rng(BOOT_SEED).integers(0, len(points), size=(N_BOOT, len(points)))].mean(axis=1)
         interval = [float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))]
-    return {"mean": float(points.mean()) if len(points) else None, "ci95": interval,
+    return {"mean": mean, "ci95": interval, "degenerate": interval is None, "note": note,
+            "wilson95": wilson95(mean, len(points)) if mean is not None else None,
             "complete_pairs": len(pairs), "incomplete_pairs": len(by_opening) - len(pairs),
-            "resamples": N_BOOT, "seed": BOOT_SEED, "unit": "complete colour pairs (both games of an opening)"}
+            "resamples": N_BOOT, "seed": BOOT_SEED, "min_pairs": MIN_PAIRS,
+            "unit": "complete colour pairs (both games of an opening)"}
 
 
 def open_side(sid: str, opts: ScorerOptions):
@@ -268,7 +327,7 @@ def run_record(stockfish: str, repo: Path) -> dict:
 
 
 def summarise(games: list[dict], args, names: dict, checkpoints: dict, seconds: float, rules,
-              devices: dict | None = None, record: dict | None = None) -> dict:
+              devices: dict | None = None, record: dict | None = None, stopped_early: str | None = None) -> dict:
     played = [g for g in games if "error" not in g]
     sides = {}
     for side in ("a", "b"):
@@ -289,6 +348,8 @@ def summarise(games: list[dict], args, names: dict, checkpoints: dict, seconds: 
         "a": args.a, "b": args.b, "games": len(played), "openings": len({g["opening"]["id"] for g in played}),
         "errors": len(games) - len(played),
         "diagnostic_errors": sum(g.get("diagnostic_errors", 0) for g in played),
+        "reopened": sum(len(g.get("reopened", [])) for g in games),
+        "stopped_early": stopped_early,
         "score_a": paired_score(games),
         "sides": sides,
         "plies_mean": float(np.mean([g["plies"] for g in played])) if played else None,
@@ -296,10 +357,12 @@ def summarise(games: list[dict], args, names: dict, checkpoints: dict, seconds: 
         "seconds_per_game_mean": float(np.mean([g["seconds"] for g in played])) if played else None,
         "rules": rules.name,
         "settings": {k: getattr(args, k) for k in ("games", "max_plies", "seed", "particles", "guesses", "device",
-                                                   "rules")} | {"stockfish": portable(args.stockfish),
-                                                                "time_budget_ms": TIME_BUDGET_MS},
-        "openings_rule": "opening i: k = randint(2, 8), then k random legal plies that do not end the game, both "
-                         "from random.Random(seed * 1000 + i); game n has match seed seed * 1000 + n",
+                                                   "rules", "time_budget_ms")}
+        | {"opening_plies": list(args.opening_plies), "stockfish": portable(args.stockfish), "engine": ENGINE_POLICY,
+           "out": portable(str(Path(args.out).resolve()))},
+        "openings_rule": f"opening i: k = randint({args.opening_plies[0]}, {args.opening_plies[1]}), then k random "
+                         "legal plies that do not end the game, both from random.Random(seed * 1000 + i); game n has "
+                         "match seed seed * 1000 + n",
         "git_commit": (record or {}).get("git_commit"), "runtime": (record or {}).get("runtime"), "record": record,
         "created": datetime.datetime.now().astimezone().isoformat(timespec="seconds"), "seconds": round(seconds, 1),
     }
@@ -318,12 +381,24 @@ def main():
     ap.add_argument("--device", default="auto", help="for the networks: auto, mps, cuda or cpu")
     ap.add_argument("--stockfish", default="stockfish")
     ap.add_argument("--rules", choices=("auto", "teal", "standin"), default="auto",
-                    help="auto is Teal's adapter when this checkout has it, else Pair B's stand-in; pin one for a batch")
+                    help="auto is Teal's adapter when this checkout has it, else Pair B's stand-in; a run of more than "
+                         "two games must pin teal or standin")
+    ap.add_argument("--opening-plies", nargs=2, type=int, default=[2, 8], metavar=("MIN", "MAX"),
+                    help="each opening is MIN to MAX random plies; 0 0 plays every pair from the standard start")
+    ap.add_argument("--time-budget-ms", type=int, default=TIME_BUDGET_MS,
+                    help="the budget each ply's over_budget flag is measured against; the bots do not read it")
     ap.add_argument("--checkpoints", default=str(ROOT / "checkpoints"))
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
     if args.games < 2 or args.games % 2:
         ap.error("--games must be even (each opening is played with both colours) and at least 2")
+    if args.rules == "auto" and args.games > 2:
+        ap.error("pin --rules standin or teal for a batch: auto becomes Teal's adapter when his branch merges, "
+                 "and a batch across machines or days could mix rules")
+    if not 0 <= args.opening_plies[0] <= args.opening_plies[1]:
+        ap.error("--opening-plies needs 0 <= MIN <= MAX")
+    if args.time_budget_ms <= 0:
+        ap.error("--time-budget-ms must be positive")
     out = Path(args.out)
     if out.exists():
         sys.exit(f"{out} exists; choose a new folder")
@@ -352,28 +427,39 @@ def main():
             devices[side] = str(scorers[side].device) if hasattr(scorers[side], "device") else None
         record = run_record(args.stockfish, repo)
         out.mkdir(parents=True)
-        games = []
+        games, failed_in_a_row, stopped_early = [], 0, None
         try:
             with open(out / "games.jsonl", "x") as log:
                 for number in range(args.games):
-                    moves = opening(rules, args.seed, number // 2)
+                    moves = opening(rules, args.seed, number // 2, tuple(args.opening_plies))
                     colours = {"white": "a", "black": "b"} if number % 2 == 0 else {"white": "b", "black": "a"}
                     game = play_one(rules, number, moves, colours, scorers, judges, args)
+                    if "error" in game or game.get("diagnostic_errors"):
+                        reopened = reopen_dead(stack, scorers, judges, args, opts)
+                        if reopened:
+                            game["reopened"] = reopened
                     games.append(game)
                     log.write(json.dumps(game) + "\n")
                     log.flush()
                     outcome = game.get("error") or f"{game['winner']} after {game['plies']} plies"
                     side = "white" if colours["white"] == "a" else "black"
                     print(f"game {number + 1}/{args.games}: {args.a} as {side}, {outcome}, {game['seconds']} s", flush=True)
+                    failed_in_a_row = failed_in_a_row + 1 if "error" in game else 0
+                    if failed_in_a_row >= MAX_CONSECUTIVE_ERRORS:
+                        stopped_early = f"{failed_in_a_row} consecutive games failed"
+                        print(f"stopping: {stopped_early}; see games.jsonl", file=sys.stderr)
+                        break
         finally:  # the games finished so far are summarised even if the run is interrupted
-            summary = summarise(games, args, names, checkpoints, time.time() - started, rules, devices, record)
+            summary = summarise(games, args, names, checkpoints, time.time() - started, rules, devices, record,
+                                stopped_early)
             (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     s = summary["score_a"]
     if s["mean"] is None:
         print(f"{args.a} against {args.b}: no opening finished with both colours -> {out}")
     else:
-        spread = (f"95% CI {s['ci95'][0]:.3f} to {s['ci95'][1]:.3f}" if s["ci95"]
-                  else "no interval: fewer than two complete pairs")
+        w = s["wilson95"]
+        spread = (f"bootstrap 95% CI {s['ci95'][0]:.3f} to {s['ci95'][1]:.3f}; Wilson {w[0]:.3f} to {w[1]:.3f}"
+                  if s["ci95"] else f"no bootstrap interval ({s['note']}); Wilson 95% {w[0]:.3f} to {w[1]:.3f}")
         print(f"{args.a} against {args.b}: score {s['mean']:.3f} ({spread}) over {s['complete_pairs']} complete "
               f"colour pairs, {s['incomplete_pairs']} incomplete -> {out}")
     if summary["errors"]:
