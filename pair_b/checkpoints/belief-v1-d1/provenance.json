@@ -1,0 +1,77 @@
+{
+  "note": "Written on 2026-10-21, after training, from the local data folder d6-v1: the run cannot be retrained, so this records the bytes it was trained on. files_last_modified is the newest data file's time; it should be earlier than training.created.",
+  "source": {
+    "dataset": "d6-v1",
+    "files_sha256": {
+      "part-00.jsonl": "f83b2d674b7e371c40838b67fe5c538b54fb4e6b2d6f1cf86671aec56f537496",
+      "part-01.jsonl": "c822424b03536e33138d6000d62dd5151009a79af72d86d71e6853ef0b32cd63",
+      "part-02.jsonl": "fa61243db1a70a0df8be6e4d1d1cb0eb50aaeeb814a5aa930816b2ed1a8e5833",
+      "part-03.jsonl": "0fa97d41f7e8c38731b28ee1a1ffdf2c8d15cf3650665af89090723b77f6933a",
+      "part-04.jsonl": "c147c980e90aaf86d7ba5ddd47ad27d4a28aadf46216745283ae6337ee30480d",
+      "part-05.jsonl": "4b31f46331c7983994706ba4c27c645b8f321d2f9930fe4fa529273caca6c96e",
+      "part-06.jsonl": "16c677cafc3d3970a7949c1f016f4427a9c462f86cb7c884c5f28941f1750395",
+      "part-07.jsonl": "97156cf807415e01c4c8ceeb7bb881f3ca728a9717ac529379e86ecbc4f39ca1",
+      "part-08.jsonl": "d5d28319a15771ddb562d8869a3074ec4a3b1dc069886ba721dc2fdd4030f566",
+      "part-09.jsonl": "e62ccda585348cc274e37edacfc96cff8abd3fe813116f9c5807e55b0ea5d0bd",
+      "part-10.jsonl": "8f78c00e070cabfcc165b4a6f381a8f9a931deda7c7b72d23141c93257c791c2",
+      "part-11.jsonl": "611a2ad6df00806baf7eb2965972905587915e630463ce2bc5bec7e477a307a0",
+      "manifest.json": "e5235f523171c31fdfa815b545df9fc6756bb91706e98274535b80370b81f885"
+    },
+    "sha256": "342aa5176aa43dc21d8607781039b5a4fe010d20a93bb8807bac0b0519bc577a",
+    "manifest": {
+      "code_sha256": "3ec028b38f92cc64ecb25943b021c2b2fe5943b039de4d84ed3aff7d0810389e",
+      "seed": 2026,
+      "created": "2026-10-18T17:03:59+08:00",
+      "command": [
+        "make_beliefs.py",
+        "--source",
+        "~/Desktop/NUS/AY2627S1/CS5446/Project/Pair B/code/data/d2-v2",
+        "--parents",
+        "12000",
+        "--hypotheses",
+        "8",
+        "--label-depth",
+        "11",
+        "--seed",
+        "2026",
+        "--workers",
+        "12",
+        "--out",
+        "~/Desktop/NUS/AY2627S1/CS5446/Project/Pair B/code/data/d6-v1"
+      ],
+      "stockfish": {
+        "name": "Stockfish 19",
+        "threads": 1,
+        "hash_mb": 16,
+        "label_depth": 11,
+        "new_game_before_each_call": true
+      }
+    },
+    "files_last_modified": "2026-10-18T17:03:59+08:00"
+  },
+  "checkpoint_sha256": "4df071a84de2a54716e499e4c6d5ae085d75ae054bd772aa54c9d2f70ee5aa96",
+  "training": {
+    "device": "mps",
+    "best_epoch": 10,
+    "epochs_run": 15,
+    "created": "2026-10-18T17:15:52+08:00",
+    "args": {
+      "data": "data/d6-v1",
+      "out": "runs/belief-v1-d1",
+      "blocks": 6,
+      "channels": 64,
+      "embed": 128,
+      "use_d1": true,
+      "no_context": false,
+      "epochs": 30,
+      "patience": 5,
+      "batch": 64,
+      "lr": 0.002,
+      "weight_decay": 0.0001,
+      "seed": 0,
+      "device": "auto",
+      "workers": 8,
+      "cache_dir": "data/cache"
+    }
+  }
+}

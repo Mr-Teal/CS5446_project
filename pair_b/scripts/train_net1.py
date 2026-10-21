@@ -4,7 +4,8 @@
 
 Trains on the training games, keeps the epoch with the lowest error on the validation games,
 and never reads the test games, which stay untouched until the final evaluation. Writes
-best.pt, metrics.jsonl and summary.json into --out, which must not exist yet.
+best.pt, metrics.jsonl and summary.json into --out, which must not exist yet. summary.json records
+the SHA-256 of the data files and of best.pt, the commit and the library versions.
 """
 import argparse
 import datetime
@@ -18,6 +19,7 @@ import torch
 from pairb.data import ENCODING, load_arrays, split_of
 from pairb.evaluate import as_float, errors, predict
 from pairb.net1 import Network1
+from pairb.provenance import data_source, git_commit, runtime, sha256_of
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -69,6 +71,7 @@ def main():
     torch.manual_seed(args.seed)
     started = time.time()
 
+    source = data_source(args.data)  # the bytes read below
     arrays = load_arrays(args.data, args.cache_dir)
     split = np.array([split_of(g) for g in arrays["game_id"]])
     tensors, used = {}, {}
@@ -138,6 +141,8 @@ def main():
         "epochs_run": epoch, "mae_improvement_pct": round(100 * (1 - best["mae"] / baseline["mae"]), 1),
         "ms_per_board": speed, "seconds": round(time.time() - started, 1),
         "created": datetime.datetime.now().astimezone().isoformat(timespec="seconds"), "args": vars(args),
+        "source": source, "checkpoint_sha256": sha256_of(out / "best.pt"), "git_commit": git_commit(),
+        "runtime": {**runtime(), "torch": torch.__version__},
     }
     (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     print(f"best epoch {best_epoch}: validation MAE {best['mae']} vs depth-1 baseline {baseline['mae']} "

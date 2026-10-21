@@ -1,4 +1,5 @@
 """End-to-end run of scripts/train_net1.py on a tiny dataset (D3, and the D7 retrain command)."""
+import hashlib
 import json
 import shutil
 import subprocess
@@ -96,3 +97,15 @@ def test_eval_refuses_a_checkpoint_for_other_input_planes(run):
     result = subprocess.run([sys.executable, str(ROOT / "scripts" / "eval_net1.py"), "--run", str(other), "--data", str(data),
                              "--split", "val", "--cache-dir", str(out.parent / "cache")], capture_output=True, text=True)
     assert result.returncode != 0 and "planes" in result.stderr
+
+
+# Catches: a trained network whose summary does not say which data files, checkpoint and code
+# made it (review T9).
+def test_summary_records_the_data_checkpoint_and_code_it_came_from(run):
+    from pairb.provenance import data_source, git_commit
+    data, out = run
+    summary = json.loads((out / "summary.json").read_text())
+    assert summary["source"] == data_source(data)
+    assert summary["checkpoint_sha256"] == hashlib.sha256((out / "best.pt").read_bytes()).hexdigest()
+    assert summary["git_commit"] == git_commit()
+    assert summary["runtime"]["torch"] == torch.__version__
