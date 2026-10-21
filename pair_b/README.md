@@ -342,6 +342,40 @@ comes on top.
    ply by ply, with the bot's panel at every ply (and the Testing strip when Testing mode is on).
    For a demo, save a good game in advance.
 
+## Matches
+
+`scripts/play_matches.py` plays bot against bot with Fog Lab's honest pieces: each side is the
+one-ply belief bot on one of the five scorers (or `random`, a uniform random legal move), on its
+own particle tracker, and through `fow_shared`'s `play_game` it sees only its own observations.
+Each opening, 2 to 8 random plies, is played twice with the colours swapped. For every move a bot
+chooses, `games.jsonl` records the value lost by not knowing (the best true-board value minus the
+played move's, from a second copy of the bot's own scorer, so it is in that scorer's terms:
+compare it across games and settings, not across scorers), the time and the tracker's state.
+`summary.json` gives the first-named side's score, wins plus half the draws over the games, with
+a 95% interval that resamples openings, both colours together.
+
+The pilot (`experiments/matches/pilot-d1-vs-material/`: 10 games, 200-ply cap, seed 0, on Colin's
+Mac): quick Stockfish scored 0.90 against piece values (95% CI 0.70 to 1.00; 9 wins and 1 loss,
+every game ended by a king capture, 51 plies on average). The 10 games took 126 s, 12.6 s a game.
+A move took 12.8 ms for quick Stockfish and 4.0 ms for piece values (95th percentiles 21.9 and
+7.2 ms), so most of a game's time is the two trackers (1,044 updates, 143 of them capped and 45
+rebuilt).
+
+The runs for the report, for ZW: every scorer, and `random`, against quick Stockfish, 200 games
+each, with the same seed so that every pairing plays the same openings.
+
+```bash
+for a in material stockfish-d1 stockfish-d11 network1 belief random; do
+  .venv/bin/python scripts/play_matches.py --a $a --b stockfish-d1 --games 200 --seed 0 --out runs/matches/$a-vs-d1
+done
+```
+
+At the pilot's rate a pairing of quick scorers takes about 45 minutes (200 games of 12.6 s). A
+slower scorer adds 9 calls per move (8 guesses and the true-board measurement) at its time per
+node in the table at the top: about 2 s a move for careful Stockfish, so several hours for its 200
+games; run the pairings on separate machines. Quick Stockfish against itself should score about
+0.5 and `random` close to 0: those two check the runner.
+
 ## Files
 
 - `src/pairb/`: the evaluators (`stockfish.py`, `network_evaluator.py`, `material.py`,
