@@ -20,15 +20,21 @@ runner's look at the true board never reaches the bot (a Stockfish scorer keeps 
 calls). It is 0 when the bot played what it would have played had it seen the board; `random` has
 no scorer and no value lost.
 
+Every scorer and second copy starts each game with a clean Stockfish (ucinewgame), so a game does
+not depend on the games before it; within a game the hash is kept, as inside a search.
+
 Writes games.jsonl, one game per line as each one ends, and summary.json into --out, which must not
-exist yet: games, wins, draws and losses per side, a's score (wins plus half the draws, over the
-games) with a 95% interval that resamples openings, both colours together, 2,000 times with seed 0,
+exist yet: games, wins, draws and losses per side, a's score (wins plus half the draws) over the
+openings whose two games both finished, with a 95% interval that resamples those complete colour
+pairs 2,000 times with seed 0 (none with fewer than two pairs), the count of incomplete pairs,
 mean value lost per side, plies, time per move, the device each network ran on, and the settings,
 checkpoints and commit, with a record of uncommitted changes, the SHA-256 of every source file that
 plays (fow_shared, pairb, this script, Pair A's rules), of the Stockfish binary, and the library
 versions. A game
-that raises is recorded with its error and left out of the score, and the run goes on; the
-summary is written even when the run is interrupted, and the exit status is 1 if any game failed.
+that raises is recorded with its error and left out of the score, and the run goes on. A value-lost
+measurement that fails after a game finished keeps the game and its result; the move records the
+measurement's error under diagnostic_error. The summary is written even when the run is
+interrupted, and the exit status is 1 if any game or measurement failed.
 """
 import argparse
 import contextlib
@@ -51,6 +57,7 @@ from pairb.lab.paths import ensure_repo_on_path
 from pairb.lab.scorers import CHECKPOINTS, SCORER_IDS, ScorerOptions, open_scorer
 from pairb.provenance import git_commit, git_status, portable, runtime, sha256_of
 from pairb.rules import GameReferee, pick_rules
+from pairb.stockfish import StockfishEvaluator
 from pairb.tracker import ParticleTracker
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -151,9 +158,19 @@ def value_lost(judge, true_fen: str, move: str) -> dict:
     return {"best": best, "played": values[move], "value_lost": best - values[move]}
 
 
+def new_game(scorer) -> None:
+    """Clear the Stockfish a scorer holds (itself, or the one under a network or the linear correction)."""
+    for engine in (scorer, getattr(scorer, "stockfish", None)):
+        if isinstance(engine, StockfishEvaluator):
+            engine.new_game()
+
+
 def play_one(rules, number: int, moves: list[str], colours: dict, scorers: dict, judges: dict, args) -> dict:
     """One game, colours {"white": side, "black": side}; the record of the game."""
     started = time.time()
+    for scorer in (*scorers.values(), *judges.values()):
+        if scorer is not None:
+            new_game(scorer)
     seed = args.seed * 1000 + number
     referee = WatchedReferee(GameReferee(rules))
     trackers = {c: WatchedTracker(ParticleTracker(rules, n_particles=args.particles, n_hypotheses=args.guesses))
@@ -166,38 +183,51 @@ def play_one(rules, number: int, moves: list[str], colours: dict, scorers: dict,
             "scorers": {c: getattr(args, s) for c, s in colours.items()}}
     try:
         result = play_game(referee, agents, trackers, config)
-        record = []
-        for ply in result.plies:
-            side = colours[ply.player]
-            entry = {"ply": ply.ply, "player": ply.player, "side": side, "move": ply.move,
-                     "opening": ply.ply < len(moves), "elapsed_ms": round(ply.elapsed_ms, 3),
-                     "guesses": int(ply.search_nodes), "tracker": trackers[ply.player].log[ply.ply],
-                     "best": None, "played": None, "value_lost": None}
-            if not entry["opening"] and judges[side] is not None:
-                entry.update(value_lost(judges[side], referee.before[ply.ply], ply.move))
-            record.append(entry)
     except Exception as exc:  # TrackerLost, a bot or scorer that raises: recorded, not scored
         return {**game, "error": f"{type(exc).__name__}: {exc}", "plies_played": len(referee.before),
                 "seconds": round(time.time() - started, 1)}
+    record, failed = [], 0
+    for ply in result.plies:
+        side = colours[ply.player]
+        entry = {"ply": ply.ply, "player": ply.player, "side": side, "move": ply.move,
+                 "opening": ply.ply < len(moves), "elapsed_ms": round(ply.elapsed_ms, 3),
+                 "guesses": int(ply.search_nodes), "tracker": trackers[ply.player].log[ply.ply],
+                 "best": None, "played": None, "value_lost": None}
+        if not entry["opening"] and judges[side] is not None:
+            try:
+                entry.update(value_lost(judges[side], referee.before[ply.ply], ply.move))
+            except Exception as exc:  # the measurement failed, not the game: keep the game
+                entry["diagnostic_error"] = f"{type(exc).__name__}: {exc}"
+                failed += 1
+        record.append(entry)
     ended = referee.result()
     winner_side = colours.get(result.winner)
     return {**game, "winner": result.winner, "winner_side": winner_side, "reason": ended[1] if ended else None,
-            "plies": len(result.plies), "stopped_at_ply_limit": result.stopped_at_ply_limit, "moves": record,
+            "plies": len(result.plies), "stopped_at_ply_limit": result.stopped_at_ply_limit,
+            "diagnostic_errors": failed, "moves": record,
             "trackers": {c: trackers[c].log for c in ("white", "black")}, "seconds": round(time.time() - started, 1)}
 
 
-def score_interval(games: list[dict]) -> list[float]:
-    """95% interval of a's score, resampling openings with both of their games together."""
+def paired_score(games: list[dict]) -> dict:
+    """a's score over the complete colour pairs (openings whose two games, one with each colour, both
+    finished), with a 95% interval that resamples those pairs; no interval with fewer than two pairs."""
     by_opening = {}
     for g in games:
-        points = 1.0 if g["winner_side"] == "a" else 0.5 if g["winner"] == "draw" else 0.0
-        total = by_opening.setdefault(g["opening"]["id"], [0.0, 0])
-        total[0] += points
-        total[1] += 1
-    points, counts = (np.array(v, dtype=np.float64) for v in zip(*by_opening.values()))
-    pick = np.random.default_rng(BOOT_SEED).integers(0, len(points), size=(N_BOOT, len(points)))
-    boots = points[pick].sum(axis=1) / counts[pick].sum(axis=1)
-    return [float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))]
+        by_opening.setdefault(g["opening"]["id"], []).append(g)
+    pairs = []
+    for pair in by_opening.values():
+        done = [g for g in pair if "error" not in g]
+        if len(pair) == len(done) == 2 and {g["colours"]["white"] for g in done} == {"a", "b"}:
+            pairs.append(sum(1.0 if g["winner_side"] == "a" else 0.5 if g["winner"] == "draw" else 0.0
+                             for g in done) / 2)
+    points = np.array(pairs, dtype=np.float64)
+    interval = None
+    if len(points) >= 2:
+        boots = points[np.random.default_rng(BOOT_SEED).integers(0, len(points), size=(N_BOOT, len(points)))].mean(axis=1)
+        interval = [float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))]
+    return {"mean": float(points.mean()) if len(points) else None, "ci95": interval,
+            "complete_pairs": len(pairs), "incomplete_pairs": len(by_opening) - len(pairs),
+            "resamples": N_BOOT, "seed": BOOT_SEED, "unit": "complete colour pairs (both games of an opening)"}
 
 
 def open_side(sid: str, opts: ScorerOptions):
@@ -255,13 +285,11 @@ def summarise(games: list[dict], args, names: dict, checkpoints: dict, seconds: 
             "ms_per_move_mean": float(ms.mean()) if len(ms) else None,
             "ms_per_move_p95": float(np.percentile(ms, 95)) if len(ms) else None,
         }
-    a = sides["a"]
-    score = (a["wins"] + 0.5 * a["draws"]) / len(played) if played else None
     return {
         "a": args.a, "b": args.b, "games": len(played), "openings": len({g["opening"]["id"] for g in played}),
         "errors": len(games) - len(played),
-        "score_a": {"mean": score, "ci95": score_interval(played) if played else None, "resamples": N_BOOT,
-                    "seed": BOOT_SEED, "unit": "openings, both colours together"},
+        "diagnostic_errors": sum(g.get("diagnostic_errors", 0) for g in played),
+        "score_a": paired_score(games),
         "sides": sides,
         "plies_mean": float(np.mean([g["plies"] for g in played])) if played else None,
         "stopped_at_ply_limit": sum(g["stopped_at_ply_limit"] for g in played),
@@ -341,13 +369,19 @@ def main():
             summary = summarise(games, args, names, checkpoints, time.time() - started, rules, devices, record)
             (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     s = summary["score_a"]
-    if summary["games"]:
-        print(f"{args.a} against {args.b}: score {s['mean']:.3f} (95% CI {s['ci95'][0]:.3f} to {s['ci95'][1]:.3f}) "
-              f"over {summary['games']} games -> {out}")
+    if s["mean"] is None:
+        print(f"{args.a} against {args.b}: no opening finished with both colours -> {out}")
     else:
-        print(f"{args.a} against {args.b}: no game finished -> {out}")
+        spread = (f"95% CI {s['ci95'][0]:.3f} to {s['ci95'][1]:.3f}" if s["ci95"]
+                  else "no interval: fewer than two complete pairs")
+        print(f"{args.a} against {args.b}: score {s['mean']:.3f} ({spread}) over {s['complete_pairs']} complete "
+              f"colour pairs, {s['incomplete_pairs']} incomplete -> {out}")
     if summary["errors"]:
         print(f"{summary['errors']} game(s) failed; their errors are in games.jsonl", file=sys.stderr)
+    if summary["diagnostic_errors"]:
+        print(f"{summary['diagnostic_errors']} value-lost measurement(s) failed; see diagnostic_error in games.jsonl",
+              file=sys.stderr)
+    if summary["errors"] or summary["diagnostic_errors"]:
         sys.exit(1)
 
 

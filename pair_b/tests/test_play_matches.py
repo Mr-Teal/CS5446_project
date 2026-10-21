@@ -39,7 +39,8 @@ def test_two_games_give_two_records_and_a_summary_with_both_colours(two_games):
     assert a["wins"] + a["draws"] + a["losses"] == 2 and (a["wins"], a["draws"]) == (b["losses"], b["draws"])
     score = summary["score_a"]
     assert score["mean"] == (a["wins"] + 0.5 * a["draws"]) / 2
-    assert score["ci95"][0] <= score["mean"] <= score["ci95"][1]
+    assert (score["complete_pairs"], score["incomplete_pairs"]) == (1, 0)
+    assert score["ci95"] is None  # one opening: no interval to speak of
     chosen = [m for g in games for m in g["moves"] if not m["opening"]]
     assert chosen and all(math.isfinite(m["value_lost"]) and m["value_lost"] >= 0 for m in chosen)
     assert all(m["value_lost"] == m["best"] - m["played"] for m in chosen)
@@ -132,6 +133,7 @@ def test_a_failing_game_is_recorded_and_the_run_still_writes_its_summary(tmp_pat
     assert len(games) == 2 and all(g["error"] == "RuntimeError: boom" for g in games)
     summary = json.loads((tmp_path / "m" / "summary.json").read_text())
     assert (summary["games"], summary["errors"], summary["score_a"]["mean"]) == (0, 2, None)
+    assert (summary["score_a"]["complete_pairs"], summary["score_a"]["incomplete_pairs"]) == (0, 1)
 
 
 # Catches: an interrupted run (Ctrl-C) leaving no summary of the games it did finish.
@@ -228,4 +230,106 @@ def test_the_settings_write_the_home_folder_as_a_tilde(tmp_path, monkeypatch):
     run_main(monkeypatch, tmp_path / "m", "--stockfish", engine)
     summary = json.loads((tmp_path / "m" / "summary.json").read_text())
     if engine != "stockfish":
-        assert summary["settings"]["stockfish"] == f"~/{Path(engine).name}"
+        assert summary["settings"]["stockfish"] == str(Path("~") / Path(engine).name)
+
+
+def synthetic(number, opening, white, winner=None, error=None):
+    """A finished (or failed) game record with only what summarise reads."""
+    colours = {"white": white, "black": "b" if white == "a" else "a"}
+    game = {"game": number, "opening": {"id": opening, "moves": []}, "colours": colours, "seconds": 1.0}
+    if error:
+        return {**game, "error": error}
+    return {**game, "winner": winner, "winner_side": colours.get(winner), "plies": 10,
+            "stopped_at_ply_limit": False, "moves": []}
+
+
+def summary_of(games):
+    import argparse
+    args = argparse.Namespace(a="material", b="material", games=len(games), max_plies=20, seed=0, particles=256,
+                              guesses=8, device="auto", rules="standin", stockfish="stockfish")
+    return play_matches.summarise(games, args, {"a": "m", "b": "m"}, {"a": None, "b": None}, 1.0,
+                                  play_matches.pick_rules("standin"))
+
+
+# Catches: a lone surviving game of an opening counted in a score labelled "both colours together"
+# (Bryan's case on #16: 0.667 where the complete pairs give 0.5), or raw results lost.
+def test_the_score_counts_complete_colour_pairs_only():
+    games = [synthetic(0, 0, "a", winner="white"), synthetic(1, 0, "b", error="TrackerLost: x"),
+             synthetic(2, 1, "a", winner="white"), synthetic(3, 1, "b", winner="white")]
+    summary = summary_of(games)
+    score = summary["score_a"]
+    assert score["mean"] == 0.5 and (score["complete_pairs"], score["incomplete_pairs"]) == (1, 1)
+    assert score["ci95"] is None
+    assert (summary["sides"]["a"]["wins"], summary["sides"]["a"]["losses"], summary["games"]) == (2, 1, 3)
+    # Pairs of 0.5 and 1.0: resampling the two pairs gives means 0.5, 0.75 or 1.0, so the interval is
+    # [0.5, 1.0]; resampling single games, or every opening, would reach lower.
+    two = summary_of(games + [synthetic(4, 2, "a", winner="white"), synthetic(5, 2, "b", winner="black")])["score_a"]
+    assert (two["complete_pairs"], two["mean"], two["ci95"]) == (2, 0.75, [0.5, 1.0])
+
+
+# Catches: a failing value-lost measurement erasing a game that was played to its end.
+def test_a_failing_measurement_keeps_the_game_and_reports_it_apart(tmp_path, monkeypatch):
+    def broken(*args):
+        raise RuntimeError("judge died")
+    monkeypatch.setattr(play_matches, "value_lost", broken)
+    with pytest.raises(SystemExit) as stopped:
+        run_main(monkeypatch, tmp_path / "m")
+    assert stopped.value.code == 1
+    games = [json.loads(line) for line in (tmp_path / "m" / "games.jsonl").read_text().splitlines()]
+    assert all("error" not in g and g["winner"] in ("white", "black", "draw") for g in games)
+    chosen = [m for g in games for m in g["moves"] if not m["opening"]]
+    assert chosen and all(m["diagnostic_error"] == "RuntimeError: judge died" and m["value_lost"] is None for m in chosen)
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert (summary["games"], summary["errors"], summary["diagnostic_errors"]) == (2, 0, len(chosen))
+
+
+# Catches: a game's scorer state (a Stockfish hash) depending on the games played before it, so
+# the same game gives different values depending on where it falls in a run.
+@pytest.mark.skipif(__import__("shutil").which("stockfish") is None, reason="needs Stockfish on PATH")
+def test_a_game_does_not_depend_on_the_games_before_it():
+    import argparse
+    from pairb.lab.scorers import ScorerOptions
+    args = argparse.Namespace(a="stockfish-d1", b="material", seed=0, particles=64, guesses=4, max_plies=16)
+    rules = play_matches.pick_rules("standin")
+    opts = ScorerOptions(ROOT / "checkpoints")
+
+    def run(numbers):
+        sides = {s: (play_matches.open_side(getattr(args, s), opts), play_matches.open_side(getattr(args, s), opts))
+                 for s in ("a", "b")}
+        try:
+            scorers, judges = {s: v[0] for s, v in sides.items()}, {s: v[1] for s, v in sides.items()}
+            out = [play_matches.play_one(rules, n, play_matches.opening(rules, 0, n // 2),
+                                         {"white": "a", "black": "b"}, scorers, judges, args) for n in numbers]
+        finally:
+            for pair in sides.values():
+                for scorer in pair:
+                    scorer.close()
+        return [(m["move"], m["best"], m["played"]) for m in out[-1]["moves"]]
+    assert run([0, 2]) == run([2])
+
+
+# Catches: a run that clears only some engines at a game's start (the second copies but not the
+# bots, or a bare Stockfish but not the one inside the linear correction or a network), so a game
+# still depends on the games before it.
+@pytest.mark.skipif(__import__("shutil").which("stockfish") is None, reason="needs Stockfish on PATH")
+def test_every_engine_of_every_scorer_is_cleared_before_each_game(monkeypatch):
+    import argparse
+    from pairb.lab.scorers import ScorerOptions
+    from pairb.stockfish import StockfishEvaluator
+    cleared = []
+    real = StockfishEvaluator.new_game
+    monkeypatch.setattr(StockfishEvaluator, "new_game", lambda self: (cleared.append(id(self)), real(self)))
+    args = argparse.Namespace(a="linear", b="stockfish-d1", seed=0, particles=16, guesses=2, max_plies=4)
+    rules, opts = play_matches.pick_rules("standin"), ScorerOptions(ROOT / "checkpoints")
+    scorers = {s: play_matches.open_side(getattr(args, s), opts) for s in ("a", "b")}
+    judges = {s: play_matches.open_side(getattr(args, s), opts) for s in ("a", "b")}
+    try:
+        engines = {id(x.stockfish if s == "a" else x) for d in (scorers, judges) for s, x in d.items()}
+        for number in (0, 1):
+            cleared.clear()
+            play_matches.play_one(rules, number, play_matches.opening(rules, 0, 0), {"white": "a", "black": "b"},
+                                  scorers, judges, args)
+            assert engines <= set(cleared[:4])  # all four engines, before the game's first call
+    finally:
+        for scorer in (*scorers.values(), *judges.values()):
+            scorer.close()

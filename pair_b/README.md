@@ -387,11 +387,16 @@ Each opening, 2 to 8 random plies, is played twice with the colours swapped. For
 chooses, `games.jsonl` records the value lost by not knowing (the best true-board value minus the
 played move's, from a second copy of the bot's own scorer, so it is in that scorer's terms:
 compare it across games and settings, not across scorers), the time and the tracker's state.
-`summary.json` gives the first-named side's score, wins plus half the draws over the games, with
-a 95% interval that resamples openings, both colours together. A game that raises (a tracker
-that loses the position, a scorer that fails) is recorded with its error and left out of the
-score, and the run goes on; `summary.json` counts such games under `errors`, is written even if
-the run is interrupted, and the run exits with status 1 if any game failed. Its `record` block,
+Every scorer starts each game with a clean Stockfish (`ucinewgame`), so a game does not depend
+on the games before it; within a game the hash is kept, as inside a search. `summary.json` gives
+the first-named side's score, wins plus half the draws, over the complete colour pairs (openings
+whose two games both finished), with a 95% interval that resamples those pairs (none with fewer
+than two), and counts the incomplete pairs; each side's wins, draws and losses count every
+finished game. A game that raises (a tracker that loses the position, a scorer that fails) is
+recorded with its error and left out of the score, and the run goes on. A value-lost measurement
+that fails after a game finished keeps the game and its result and is recorded as the move's
+`diagnostic_error`. `summary.json` counts both (`errors`, `diagnostic_errors`), is written even if
+the run is interrupted, and the run exits with status 1 if either is not zero. Its `record` block,
 read once before the first game, traces the run: the commit, uncommitted changes (`git status`,
 without Python's caches), the SHA-256 of every source file that plays and of the Stockfish binary,
 and the library versions; each side in `sides` also names the device its network ran on.

@@ -38,6 +38,12 @@ class StockfishEvaluator:
         self.name = f"{self.engine.id.get('name', 'stockfish').lower().replace(' ', '-')}-d{depth}"
         self._game = object()
 
+    def new_game(self) -> None:
+        """Start a new game: the next call sends ucinewgame, so nothing earlier searches left in the
+        hash carries over. With new_game_each_call=False this is how one game's calls share the hash
+        while separate games stay independent."""
+        self._game = object()
+
     def close(self):
         self.engine.quit()
 

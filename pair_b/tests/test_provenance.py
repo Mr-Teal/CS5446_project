@@ -15,8 +15,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def dataset(folder: Path, manifest=None) -> Path:
     folder.mkdir()
-    (folder / "part-00.jsonl").write_text('{"a": 1}\n')
-    (folder / "part-01.jsonl").write_text('{"a": 2}\n')
+    # Bytes, not text: on Windows write_text would write CRLF, and the hashes below are of LF bytes.
+    (folder / "part-00.jsonl").write_bytes(b'{"a": 1}\n')
+    (folder / "part-01.jsonl").write_bytes(b'{"a": 2}\n')
     (folder / "games.jsonl").write_text("not a data part\n")
     if manifest is not None:
         (folder / "manifest.json").write_text(json.dumps(manifest))

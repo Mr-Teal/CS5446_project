@@ -172,3 +172,15 @@ def test_a_board_with_no_move_and_no_rule_result_is_scored_as_a_draw(monkeypatch
     monkeypatch.setattr(sf, "fog_legal_moves", lambda board: [])
     with StockfishEvaluator(depth=1) as ev:
         assert ev.board_value(stalemated) == (0.0, True)
+
+
+# Catches: a search's leftovers (the engine's hash) changing the values of a later, unrelated game
+# when the evaluator keeps its hash between calls, as inside a search (Bryan's probe on #16).
+def test_new_game_clears_what_earlier_searches_left():
+    fen = "r1bq1bn1/pppppkp1/n2r1p2/7p/2PP4/7N/PPQNPPPP/1RB1KB1R w K - 2 7"
+    with StockfishEvaluator(depth=1, new_game_each_call=False) as fresh:
+        want = fresh.evaluate_children(fen)
+    with StockfishEvaluator(depth=1, new_game_each_call=False) as used:
+        used.evaluate_children(chess.STARTING_FEN)
+        used.new_game()
+        assert used.evaluate_children(fen) == want
