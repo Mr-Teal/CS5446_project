@@ -97,3 +97,53 @@ def test_value_lost_is_the_best_true_value_minus_the_played_move_s():
     assert play_matches.value_lost(judge, "fen", "e2e4")["value_lost"] == 0
     with pytest.raises(ValueError, match="a2a4"):
         play_matches.value_lost(judge, "fen", "a2a4")
+
+
+# Catches: the true board recorded without the en passant square of a capture that only fog rules
+# allow (python-chess's default FEN drops it), so the second scorer lacks a move the bot may play,
+# value_lost raises and the whole run stops.
+def test_the_true_board_keeps_an_en_passant_capture_only_fog_rules_allow():
+    from pairb.material import MaterialEvaluator
+    from pairb.rules import GameReferee, StandinRules
+    referee = play_matches.WatchedReferee(GameReferee(StandinRules(), "7b/3p4/8/4P3/8/8/8/K6k b - - 0 1"))
+    referee.reset(0)
+    referee.apply("d7d5")
+    referee.apply("e5d6")  # uncovers White's king on a1 to the bishop on h8: legal only under fog rules
+    assert "e5d6" in MaterialEvaluator().evaluate_children(referee.before[1])
+
+
+def run_main(monkeypatch, out, *extra):
+    monkeypatch.setattr(sys, "argv", ["play_matches.py", "--a", "material", "--b", "material", "--games", "2",
+                                      "--max-plies", "12", "--out", str(out), *map(str, extra)])
+    play_matches.main()
+
+
+# Catches: one failing game ending an unattended run with no summary, or a run where no game
+# finished crashing on its last line instead of saying so.
+def test_a_failing_game_is_recorded_and_the_run_still_writes_its_summary(tmp_path, monkeypatch):
+    class Failing(play_matches.OnePlyBot):
+        def act(self, turn):
+            raise RuntimeError("boom")
+    monkeypatch.setattr(play_matches, "OnePlyBot", Failing)
+    with pytest.raises(SystemExit) as stopped:
+        run_main(monkeypatch, tmp_path / "m")
+    assert stopped.value.code == 1
+    games = [json.loads(line) for line in (tmp_path / "m" / "games.jsonl").read_text().splitlines()]
+    assert len(games) == 2 and all(g["error"] == "RuntimeError: boom" for g in games)
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert (summary["games"], summary["errors"], summary["score_a"]["mean"]) == (0, 2, None)
+
+
+# Catches: an interrupted run (Ctrl-C) leaving no summary of the games it did finish.
+def test_an_interrupted_run_writes_the_summary_of_the_games_it_finished(tmp_path, monkeypatch):
+    real = play_matches.play_one
+
+    def second_game_interrupted(rules, number, *args):
+        if number == 1:
+            raise KeyboardInterrupt
+        return real(rules, number, *args)
+    monkeypatch.setattr(play_matches, "play_one", second_game_interrupted)
+    with pytest.raises(KeyboardInterrupt):
+        run_main(monkeypatch, tmp_path / "m")
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert (summary["games"], summary["errors"]) == (1, 0)

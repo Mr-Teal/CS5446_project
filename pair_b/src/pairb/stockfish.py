@@ -28,8 +28,9 @@ def _sign(player: str) -> float:
 class StockfishEvaluator:
     def __init__(self, depth: int, path: str = "stockfish", hash_mb: int = 16, new_game_each_call: bool = True):
         """new_game_each_call=True sends ucinewgame before every call, so no result depends on
-        earlier searches (needed for labels). Inside a search, False is about 3x faster (1.5 against
-        4.8 ms per expanded node on positions from real games)."""
+        earlier searches (needed for labels). Inside a search, False is about 3.4x faster (1.5 against
+        5.2 ms per expanded node on 300 positions from real games,
+        checkpoints/timing-new-game-each-call.json)."""
         self.depth = depth
         self.new_game_each_call = new_game_each_call
         self.engine = chess.engine.SimpleEngine.popen_uci(path)

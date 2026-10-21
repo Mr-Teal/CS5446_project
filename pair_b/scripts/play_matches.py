@@ -20,7 +20,9 @@ no scorer and no value lost.
 Writes games.jsonl, one game per line as each one ends, and summary.json into --out, which must not
 exist yet: games, wins, draws and losses per side, a's score (wins plus half the draws, over the
 games) with a 95% interval that resamples openings, both colours together, 2,000 times with seed 0,
-mean value lost per side, plies, time per move, and the settings, checkpoints and commit.
+mean value lost per side, plies, time per move, and the settings, checkpoints and commit. A game
+that raises is recorded with its error and left out of the score, and the run goes on; the
+summary is written even when the run is interrupted, and the exit status is 1 if any game failed.
 """
 import argparse
 import contextlib
@@ -35,11 +37,12 @@ import numpy as np
 
 from fow_shared.contracts import Decision
 from fow_shared.evaluation import MatchConfig, play_game
+from fow_shared.values import standard_fen
 from pairb.bot import OnePlyBot
 from pairb.lab.scorers import CHECKPOINTS, SCORER_IDS, ScorerOptions, open_scorer
 from pairb.provenance import git_commit, runtime, sha256_of
 from pairb.rules import GameReferee, pick_rules
-from pairb.tracker import ParticleTracker, TrackerLost
+from pairb.tracker import ParticleTracker
 
 ROOT = Path(__file__).resolve().parents[1]
 TIME_BUDGET_MS = 60_000  # recorded with each ply as over_budget; the one-ply bots do not use it
@@ -108,7 +111,9 @@ class WatchedReferee:
         self.before = []
 
     def apply(self, move):
-        self.before.append(self._referee.true_board().fen())
+        # standard_fen keeps the en passant square of a capture only fog rules allow; python-chess's
+        # default FEN drops it, and the second scorer would then miss a move the referee allows.
+        self.before.append(standard_fen(self._referee.true_board()))
         self._referee.apply(move)
 
     def __getattr__(self, name):  # current_player, is_terminal, winner, observe, result
@@ -151,18 +156,19 @@ def play_one(rules, number: int, moves: list[str], colours: dict, scorers: dict,
             "scorers": {c: getattr(args, s) for c, s in colours.items()}}
     try:
         result = play_game(referee, agents, trackers, config)
-    except TrackerLost as exc:
-        return {**game, "error": str(exc), "seconds": round(time.time() - started, 1)}
-    record = []
-    for ply in result.plies:
-        side = colours[ply.player]
-        entry = {"ply": ply.ply, "player": ply.player, "side": side, "move": ply.move,
-                 "opening": ply.ply < len(moves), "elapsed_ms": round(ply.elapsed_ms, 3),
-                 "guesses": int(ply.search_nodes), "tracker": trackers[ply.player].log[ply.ply],
-                 "best": None, "played": None, "value_lost": None}
-        if not entry["opening"] and judges[side] is not None:
-            entry.update(value_lost(judges[side], referee.before[ply.ply], ply.move))
-        record.append(entry)
+        record = []
+        for ply in result.plies:
+            side = colours[ply.player]
+            entry = {"ply": ply.ply, "player": ply.player, "side": side, "move": ply.move,
+                     "opening": ply.ply < len(moves), "elapsed_ms": round(ply.elapsed_ms, 3),
+                     "guesses": int(ply.search_nodes), "tracker": trackers[ply.player].log[ply.ply],
+                     "best": None, "played": None, "value_lost": None}
+            if not entry["opening"] and judges[side] is not None:
+                entry.update(value_lost(judges[side], referee.before[ply.ply], ply.move))
+            record.append(entry)
+    except Exception as exc:  # TrackerLost, a bot or scorer that raises: recorded, not scored
+        return {**game, "error": f"{type(exc).__name__}: {exc}", "plies_played": len(referee.before),
+                "seconds": round(time.time() - started, 1)}
     ended = referee.result()
     winner_side = colours.get(result.winner)
     return {**game, "winner": result.winner, "winner_side": winner_side, "reason": ended[1] if ended else None,
@@ -259,22 +265,30 @@ def main():
             checkpoints[side] = sha256_of(opts.checkpoints / CHECKPOINTS[sid]) if sid in CHECKPOINTS else None
         out.mkdir(parents=True)
         games = []
-        with open(out / "games.jsonl", "x") as log:
-            for number in range(args.games):
-                moves = opening(rules, args.seed, number // 2)
-                colours = {"white": "a", "black": "b"} if number % 2 == 0 else {"white": "b", "black": "a"}
-                game = play_one(rules, number, moves, colours, scorers, judges, args)
-                games.append(game)
-                log.write(json.dumps(game) + "\n")
-                log.flush()
-                outcome = game.get("error") or f"{game['winner']} after {game['plies']} plies"
-                print(f"game {number + 1}/{args.games}: {args.a} as {'white' if colours['white'] == 'a' else 'black'}, "
-                      f"{outcome}, {game['seconds']} s", flush=True)
-    summary = summarise(games, args, names, checkpoints, time.time() - started, rules)
-    (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+        try:
+            with open(out / "games.jsonl", "x") as log:
+                for number in range(args.games):
+                    moves = opening(rules, args.seed, number // 2)
+                    colours = {"white": "a", "black": "b"} if number % 2 == 0 else {"white": "b", "black": "a"}
+                    game = play_one(rules, number, moves, colours, scorers, judges, args)
+                    games.append(game)
+                    log.write(json.dumps(game) + "\n")
+                    log.flush()
+                    outcome = game.get("error") or f"{game['winner']} after {game['plies']} plies"
+                    side = "white" if colours["white"] == "a" else "black"
+                    print(f"game {number + 1}/{args.games}: {args.a} as {side}, {outcome}, {game['seconds']} s", flush=True)
+        finally:  # the games finished so far are summarised even if the run is interrupted
+            summary = summarise(games, args, names, checkpoints, time.time() - started, rules)
+            (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     s = summary["score_a"]
-    print(f"{args.a} against {args.b}: score {s['mean']:.3f} (95% CI {s['ci95'][0]:.3f} to {s['ci95'][1]:.3f}) "
-          f"over {summary['games']} games -> {out}")
+    if summary["games"]:
+        print(f"{args.a} against {args.b}: score {s['mean']:.3f} (95% CI {s['ci95'][0]:.3f} to {s['ci95'][1]:.3f}) "
+              f"over {summary['games']} games -> {out}")
+    else:
+        print(f"{args.a} against {args.b}: no game finished -> {out}")
+    if summary["errors"]:
+        print(f"{summary['errors']} game(s) failed; their errors are in games.jsonl", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

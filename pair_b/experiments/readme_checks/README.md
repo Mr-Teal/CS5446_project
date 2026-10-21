@@ -8,6 +8,8 @@ folder (`data/d2-check`).
 |---|---|---|
 | `time_stockfish_d11.py <d2-check> <out>` | `checkpoints/timing-stockfish-d11.json` | careful Stockfish's time per node, on 30 of the 300 parents the other timings use |
 | `d1_parent_vs_own.py <d2-check> <out>` | `checkpoints/belief-v1-d1/d1-parent-vs-own.json` | how far a parent's MultiPV depth-1 score of a child is from the child's own depth-1 value |
+| `time_new_game_each_call.py <d2-check> <out>` | `checkpoints/timing-new-game-each-call.json` | how much faster quick Stockfish and Network 1 are inside a search (`new_game_each_call=False`) |
+| `time_belief_evaluator.py <d6-check> <out>` | `checkpoints/belief-v1-d1/timing-beliefs.json` | the belief evaluator's time per belief, in one call and one at a time, and the share spent building planes |
 | `observe_agreement.py --games 500 --out <out>` | `checkpoints/observe-agreement.json` | the stand-in views against Teal's `RulesAdapter.observe()` on every view of 500 random games |
 
 `observe_agreement.py` needs Teal's adapter, which is on `pair-a/rules-interface`, not on main. It

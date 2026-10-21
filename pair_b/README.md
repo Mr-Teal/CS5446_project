@@ -82,8 +82,8 @@ with NetworkEvaluator.from_checkpoint("pair_b/checkpoints/net1-v2/best.pt", new_
 ```
 
 `new_game_each_call=True` (the default) clears Stockfish before every call, so no answer depends
-on earlier ones; use it for labels. Inside a search, `False` is faster: 3 times for Stockfish
-alone and 1.7 times for Network 1 here. The
+on earlier ones; use it for labels. Inside a search, `False` is faster: 3.4 times for Stockfish
+alone and 1.8 times for Network 1 on an Apple GPU (`checkpoints/timing-new-game-each-call.json`). The
 network runs on CUDA or an Apple GPU when there is one (`device="cpu"` forces the CPU).
 
 ## The belief network (D6)
@@ -127,9 +127,10 @@ read chess from scratch; it was also still improving when it reached the 30-epoc
 29, `checkpoints/belief-v1-pure/summary.json`). Reading the rest of the belief helps a little on these per-board labels,
 but too little to call from one run each; Pair A's labels are the real test.
 
-`checkpoints/belief-v1-d1/` is the kept network. A belief of 8 boards takes 3.7 ms on an Apple
-GPU when 200 are scored in one call, and 6.8 ms one at a time; building the 32 planes in Python
-is most of it. The `--use-d1` network also makes one quick Stockfish call per board, a node's
+`checkpoints/belief-v1-d1/` is the kept network. A belief of 8 boards takes 3.4 ms on an Apple
+GPU when 200 are scored in one call, and 6.5 ms one at a time
+(`checkpoints/belief-v1-d1/timing-beliefs.json`); building the 32 planes takes about a quarter of
+that, and the quick Stockfish call on each board most of the rest. The `--use-d1` network also makes one quick Stockfish call per board, a node's
 children included: it trained on each board's own depth-1 value, and a parent's MultiPV score of a
 child differs from that by 0.066 on average (median 0.032; 7,529 children of the 300 timed
 parents, `checkpoints/belief-v1-d1/d1-parent-vs-own.json`). A rule-decided board with no recorded quick-Stockfish
@@ -219,7 +220,8 @@ default; `--pattern` reads others) and, optionally, `manifest.json`. Empty files
 run writes `splits.json`, the games it trained and selected on. A step holds whole beliefs, at most
 `--batch` of them and `--max-boards` boards (4,096 by default), and `--planes-on host` keeps the
 encoded planes in main memory. One limit remains for Pair A's planned scale: every board is
-encoded once and cached, about 10 GiB for 10,000 beliefs of 256 boards, so such a run will need
+encoded once and cached, about 10 GiB for 10,000 beliefs of 256 boards (32 planes of 64 squares
+in float16 is 4 KiB a board), so such a run will need
 fewer boards per belief per epoch or encoding on the fly.
 
 ## Fog Lab: test and demo app
@@ -311,8 +313,8 @@ and never count as failures.
 
 ### What a test run does
 
-Press Run again; a run takes about a minute per stage on Colin's Mac, and the cards fill in as it
-goes.
+Press Run again; the cards fill in stage by stage as the run goes, and each shows how long its
+stage took.
 
 1. It fetches from GitHub first (a read-only `git fetch origin`; untick the box to work offline).
 2. In a temporary git worktree outside your checkout, it builds the stages of
@@ -383,7 +385,10 @@ chooses, `games.jsonl` records the value lost by not knowing (the best true-boar
 played move's, from a second copy of the bot's own scorer, so it is in that scorer's terms:
 compare it across games and settings, not across scorers), the time and the tracker's state.
 `summary.json` gives the first-named side's score, wins plus half the draws over the games, with
-a 95% interval that resamples openings, both colours together.
+a 95% interval that resamples openings, both colours together. A game that raises (a tracker
+that loses the position, a scorer that fails) is recorded with its error and left out of the
+score, and the run goes on; `summary.json` counts such games under `errors`, is written even if
+the run is interrupted, and the run exits with status 1 if any game failed.
 
 The pilot (`experiments/matches/pilot-d1-vs-material/`: 10 games, 200-ply cap, seed 0, on Colin's
 Mac): quick Stockfish scored 0.90 against piece values (95% CI 0.70 to 1.00; 9 wins and 1 loss,
@@ -437,14 +442,15 @@ games; run the pairings on separate machines. Quick Stockfish against itself sho
   two ablations in the belief table. `checkpoints/linear-v1/`: the linear correction fitted on d2-v2
   (`best.npz`, no pickle), its summary, its comparison on the fresh games and its timings (CPU, and
   Network 1 on the Apple GPU). `checkpoints/timing-stockfish-d11.json`, `tracker-bench.json` and
-  `observe-agreement.json` back the timings and the observe comparison above.
+  `observe-agreement.json`, `timing-new-game-each-call.json` and
+  `belief-v1-d1/timing-beliefs.json` back the timings and the observe comparison above.
 - `data/d2-check-train/`: the evaluation rows, so the evaluation reruns without Stockfish.
 - `experiments/`: studies and checks behind the report, each with a README: `tanh_linear/` (the
   linear correction inside tanh, and Figure 1), `mc_td/` (learning the leaf from outcomes by MC and
   TD against distillation), `overlap/` (positions shared by the check set and the training data),
   `matches/` (the match pilot), `net1_candidates/` (the other two Network 1 runs),
   `data_manifests/` (how the four datasets were made) and `readme_checks/` (the scripts behind
-  three of the README's measurements).
+  five of the README's measurements).
 - `tests/`: written before the code they test. `tests/js/` holds the page's JavaScript helper
   tests, run from `pair_b/` with `node --test tests/js/`, which needs Node 20.19, or 22.7 or later.
   The app itself needs no Node.
