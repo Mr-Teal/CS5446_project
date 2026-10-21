@@ -393,10 +393,14 @@ complete colour pairs that do not all score the same (Wilson's interval is alway
 
 The pilot (`experiments/matches/pilot-d1-vs-material/`: 10 games, 200-ply cap, seed 0, stand-in
 rules, on Colin's Mac): quick Stockfish won all 10 games against piece values, a score of 1.00 over
-5 complete colour pairs (so its interval is 1.00 to 1.00; every game ended by a king capture, 49.7
-plies on average). The 10 games took 123 s, 12.3 s a game. A move took 13.5 ms for quick Stockfish
-and 3.9 ms for piece values (95th percentiles 19.2 and 7.0 ms), so most of a game's time is the two
-trackers (1,014 updates, 153 of them capped and 39 rebuilt).
+5 complete colour pairs. Five identical pairs give no bootstrap interval; Wilson's interval on 5 of 5
+is 0.57 to 1.00, so the pilot says the quick leaf is the stronger one and not by how much. Every
+game ended by a king capture, 49.7 plies on average; the 10 games took 128 s, 12.7 s a game. A move
+took 14.2 ms for quick Stockfish and 4.0 ms for piece values (95th percentiles 20.6 and 7.4 ms), so
+most of a game's time is the two trackers (1,014 updates, 153 of them capped and 39 rebuilt). The
+same 10 games played before the per-game engine reset (`pilot-d1-vs-material-shared-engine-state/`)
+differ in the length of 7 games and the winner of one: engine state carried across games changes
+results, which is why no number from before the reset is cited.
 
 The runs for the report, for ZW, once the runner decision with Bryan is recorded (proposed, pending
 that decision): every scorer, the linear correction and `random` against quick Stockfish, 200 games
