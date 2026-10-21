@@ -2,9 +2,12 @@
 
     .venv/bin/python scripts/play_matches.py --a network1 --b stockfish-d1 --games 200 --out runs/matches/net1-vs-d1
 
-Each side is a scorer by its Fog Lab id (material, stockfish-d1, stockfish-d11, network1, belief)
-inside pairb.bot.OnePlyBot, or `random`, a seeded uniform random legal move. Both sides are honest:
-fow_shared.evaluation.play_game gives each one only its observations and its own tracker's belief.
+Each side is a scorer by its Fog Lab id (material, stockfish-d1, stockfish-d11, network1, belief),
+or `linear` (the linear correction, checkpoints/linear-v1), inside pairb.bot.OnePlyBot, or `random`,
+a seeded uniform random legal move. Both sides are honest: fow_shared.evaluation.play_game gives each
+one only its observations and its own tracker's belief. --rules picks the rules as Fog Lab does:
+`auto` is Teal's adapter when this checkout has it, else Pair B's stand-in; pin `teal` or `standin`
+so that every machine of a batch plays by the same rules.
 
 Openings: opening i is k plies, k from 2 to 8, of random legal moves drawn from
 random.Random(seed * 1000 + i), never one that ends the game. Each opening is played twice, a as
@@ -20,15 +23,20 @@ no scorer and no value lost.
 Writes games.jsonl, one game per line as each one ends, and summary.json into --out, which must not
 exist yet: games, wins, draws and losses per side, a's score (wins plus half the draws, over the
 games) with a 95% interval that resamples openings, both colours together, 2,000 times with seed 0,
-mean value lost per side, plies, time per move, and the settings, checkpoints and commit. A game
+mean value lost per side, plies, time per move, the device each network ran on, and the settings,
+checkpoints and commit, with a record of uncommitted changes, the SHA-256 of every source file that
+plays (fow_shared, pairb, this script, Pair A's rules), of the Stockfish binary, and the library
+versions. A game
 that raises is recorded with its error and left out of the score, and the run goes on; the
 summary is written even when the run is interrupted, and the exit status is 1 if any game failed.
 """
 import argparse
 import contextlib
 import datetime
+import importlib.metadata
 import json
 import random
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -39,12 +47,14 @@ from fow_shared.contracts import Decision
 from fow_shared.evaluation import MatchConfig, play_game
 from fow_shared.values import standard_fen
 from pairb.bot import OnePlyBot
+from pairb.lab.paths import ensure_repo_on_path
 from pairb.lab.scorers import CHECKPOINTS, SCORER_IDS, ScorerOptions, open_scorer
-from pairb.provenance import git_commit, runtime, sha256_of
+from pairb.provenance import git_commit, git_status, portable, runtime, sha256_of
 from pairb.rules import GameReferee, pick_rules
 from pairb.tracker import ParticleTracker
 
 ROOT = Path(__file__).resolve().parents[1]
+LINEAR = "linear-v1/best.npz"  # the linear correction, inside the checkpoints folder
 TIME_BUDGET_MS = 60_000  # recorded with each ply as over_budget; the one-ply bots do not use it
 N_BOOT, BOOT_SEED = 2000, 0
 
@@ -190,7 +200,45 @@ def score_interval(games: list[dict]) -> list[float]:
     return [float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))]
 
 
-def summarise(games: list[dict], args, names: dict, checkpoints: dict, seconds: float, rules) -> dict:
+def open_side(sid: str, opts: ScorerOptions):
+    """A new scorer for a side: Fog Lab's open_scorer for its five, and the linear correction, which
+    Fog Lab does not offer, opened the same way (no new game before each call, as inside a search)."""
+    if sid != "linear":
+        return open_scorer(sid, opts)
+    from pairb.linear_evaluator import LinearEvaluator
+    return LinearEvaluator.from_checkpoint(opts.checkpoints / LINEAR, stockfish_path=opts.stockfish,
+                                           new_game_each_call=False)
+
+
+def run_record(stockfish: str, repo: Path) -> dict:
+    """What a run's results can be traced to, read once before the first game: the commit, uncommitted
+    changes, the SHA-256 of each source file that plays (from where pairb, fow_shared and this script
+    were imported, and Pair A's rules under `repo`, the root put on the path for them), of the Stockfish
+    binary, and the library versions (torch's without importing it)."""
+    import fow_shared
+    import pairb
+    files = sorted({*Path(fow_shared.__file__).resolve().parent.glob("*.py"),
+                    *Path(pairb.__file__).resolve().parent.glob("**/*.py"), Path(__file__).resolve(),
+                    *repo.resolve().glob("pair_a_prep/*.py")})
+    root = repo.resolve()
+
+    def name(path):
+        return path.relative_to(root).as_posix() if path.is_relative_to(root) else portable(str(path))
+    engine = shutil.which(stockfish)
+    try:
+        torch_version = importlib.metadata.version("torch")
+    except importlib.metadata.PackageNotFoundError:
+        torch_version = None
+    now = runtime()
+    versions = {k: v for k, v in now.items() if k in ("python", "platform", "numpy", "python_chess")}
+    return {"git_commit": git_commit(), "runtime": now, "git_status": git_status(),
+            "source_sha256": {name(p): sha256_of(p) for p in files},
+            "stockfish": {"path": portable(engine) if engine else None, "sha256": sha256_of(engine) if engine else None},
+            "packages": {**versions, "torch": torch_version}}
+
+
+def summarise(games: list[dict], args, names: dict, checkpoints: dict, seconds: float, rules,
+              devices: dict | None = None, record: dict | None = None) -> dict:
     played = [g for g in games if "error" not in g]
     sides = {}
     for side in ("a", "b"):
@@ -199,6 +247,7 @@ def summarise(games: list[dict], args, names: dict, checkpoints: dict, seconds: 
         ms = np.array([m["elapsed_ms"] for m in mine], dtype=np.float64)
         sides[side] = {
             "scorer": getattr(args, side), "name": names[side], "checkpoint_sha256": checkpoints[side],
+            "device": (devices or {}).get(side),
             "wins": sum(g["winner_side"] == side for g in played), "draws": sum(g["winner"] == "draw" for g in played),
             "losses": sum(g["winner_side"] not in (side, None) for g in played),
             "as_white": sum(g["colours"]["white"] == side for g in played), "moves": len(mine),
@@ -219,17 +268,18 @@ def summarise(games: list[dict], args, names: dict, checkpoints: dict, seconds: 
         "seconds_per_game_mean": float(np.mean([g["seconds"] for g in played])) if played else None,
         "rules": rules.name,
         "settings": {k: getattr(args, k) for k in ("games", "max_plies", "seed", "particles", "guesses", "device",
-                                                   "stockfish")} | {"time_budget_ms": TIME_BUDGET_MS},
+                                                   "rules")} | {"stockfish": portable(args.stockfish),
+                                                                "time_budget_ms": TIME_BUDGET_MS},
         "openings_rule": "opening i: k = randint(2, 8), then k random legal plies that do not end the game, both "
                          "from random.Random(seed * 1000 + i); game n has match seed seed * 1000 + n",
-        "git_commit": git_commit(), "runtime": runtime(),
+        "git_commit": (record or {}).get("git_commit"), "runtime": (record or {}).get("runtime"), "record": record,
         "created": datetime.datetime.now().astimezone().isoformat(timespec="seconds"), "seconds": round(seconds, 1),
     }
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    choices = (*SCORER_IDS, "random")
+    choices = (*SCORER_IDS, "linear", "random")
     ap.add_argument("--a", required=True, choices=choices, help="the first-named side, whose score is reported")
     ap.add_argument("--b", required=True, choices=choices)
     ap.add_argument("--games", type=int, required=True, help="an even number: each opening is played twice")
@@ -239,6 +289,8 @@ def main():
     ap.add_argument("--guesses", type=int, default=8, help="the most guesses a belief gives a bot")
     ap.add_argument("--device", default="auto", help="for the networks: auto, mps, cuda or cpu")
     ap.add_argument("--stockfish", default="stockfish")
+    ap.add_argument("--rules", choices=("auto", "teal", "standin"), default="auto",
+                    help="auto is Teal's adapter when this checkout has it, else Pair B's stand-in; pin one for a batch")
     ap.add_argument("--checkpoints", default=str(ROOT / "checkpoints"))
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
@@ -248,21 +300,29 @@ def main():
     if out.exists():
         sys.exit(f"{out} exists; choose a new folder")
 
-    rules = pick_rules("auto")
+    repo = ensure_repo_on_path()  # before the rules are chosen: Teal's adapter is imported from the repo root
+    try:
+        rules = pick_rules(args.rules)
+    except ValueError as error:
+        ap.error(str(error))
+    print(f"rules: {rules.name}", flush=True)
     opts = ScorerOptions(Path(args.checkpoints), args.stockfish, None if args.device == "auto" else args.device)
     started = time.time()
     with contextlib.ExitStack() as stack:
-        scorers, judges, names, checkpoints = {}, {}, {}, {}
+        scorers, judges, names, checkpoints, devices = {}, {}, {}, {}, {}
         for side in ("a", "b"):
             sid = getattr(args, side)
             if sid == "random":
                 scorers[side] = judges[side] = None
-                names[side], checkpoints[side] = RandomAgent.name, None
+                names[side], checkpoints[side], devices[side] = RandomAgent.name, None, None
                 continue
-            scorers[side] = stack.enter_context(open_scorer(sid, opts))
-            judges[side] = stack.enter_context(open_scorer(sid, opts))
+            scorers[side] = stack.enter_context(open_side(sid, opts))
+            judges[side] = stack.enter_context(open_side(sid, opts))
             names[side] = scorers[side].name
-            checkpoints[side] = sha256_of(opts.checkpoints / CHECKPOINTS[sid]) if sid in CHECKPOINTS else None
+            checkpoint = LINEAR if sid == "linear" else CHECKPOINTS.get(sid)
+            checkpoints[side] = sha256_of(opts.checkpoints / checkpoint) if checkpoint else None
+            devices[side] = str(scorers[side].device) if hasattr(scorers[side], "device") else None
+        record = run_record(args.stockfish, repo)
         out.mkdir(parents=True)
         games = []
         try:
@@ -278,7 +338,7 @@ def main():
                     side = "white" if colours["white"] == "a" else "black"
                     print(f"game {number + 1}/{args.games}: {args.a} as {side}, {outcome}, {game['seconds']} s", flush=True)
         finally:  # the games finished so far are summarised even if the run is interrupted
-            summary = summarise(games, args, names, checkpoints, time.time() - started, rules)
+            summary = summarise(games, args, names, checkpoints, time.time() - started, rules, devices, record)
             (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     s = summary["score_a"]
     if summary["games"]:

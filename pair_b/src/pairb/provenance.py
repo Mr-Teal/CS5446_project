@@ -71,6 +71,19 @@ def git_commit() -> str | None:
     return result.stdout.strip() or None
 
 
+def git_status() -> list[str] | None:
+    """The checkout's uncommitted changes, one `git status --porcelain` line each ([] when clean), or
+    None outside git or without git. Python's own __pycache__ folders and *.egg-info folders are left
+    out: running the code writes them, and the root of the repository does not ignore them."""
+    try:
+        result = subprocess.run(["git", "status", "--porcelain"], cwd=ROOT, capture_output=True, text=True)
+    except OSError:
+        return None
+    if result.returncode != 0:
+        return None
+    return [line for line in result.stdout.splitlines() if "__pycache__" not in line and ".egg-info/" not in line]
+
+
 def runtime() -> dict:
     paths = sorted([*ROOT.glob("src/pairb/*.py"), *ROOT.glob("scripts/*.py"),
                     *ROOT.parent.glob("fow_shared/*.py")])

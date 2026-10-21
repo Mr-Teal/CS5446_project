@@ -86,6 +86,19 @@ def test_git_commit_is_head_or_none_without_git(monkeypatch):
     assert provenance.git_commit() is None
 
 
+# Catches: uncommitted changes left out of a run's record, Python's own caches listed as changes
+# (no clean checkout would ever record []), or a machine without git crashing it.
+def test_git_status_lists_the_uncommitted_changes_or_none_without_git(monkeypatch):
+    status = subprocess.run(["git", "status", "--porcelain"], cwd=ROOT, capture_output=True, text=True)
+    want = [line for line in status.stdout.splitlines() if "__pycache__" not in line and ".egg-info/" not in line]
+    assert provenance.git_status() == (want if status.returncode == 0 else None)
+
+    def no_git(*args, **kwargs):
+        raise FileNotFoundError("git")
+    monkeypatch.setattr(provenance.subprocess, "run", no_git)
+    assert provenance.git_status() is None
+
+
 def write_run(folder: Path, dataset_name: str) -> Path:
     folder.mkdir()
     (folder / "best.pt").write_bytes(b"checkpoint bytes")

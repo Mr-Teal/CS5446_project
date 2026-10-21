@@ -378,8 +378,11 @@ comes on top.
 ## Matches
 
 `scripts/play_matches.py` plays bot against bot with Fog Lab's honest pieces: each side is the
-one-ply belief bot on one of the five scorers (or `random`, a uniform random legal move), on its
-own particle tracker, and through `fow_shared`'s `play_game` it sees only its own observations.
+one-ply belief bot on one of the five scorers or the linear correction (`linear`), or `random`, a
+uniform random legal move, on its own particle tracker, and through `fow_shared`'s `play_game` it
+sees only its own observations. `--rules` picks the rules as Fog Lab does (`auto` is Teal's adapter
+when the checkout has it, else the stand-in); pin `standin` or `teal` so that every machine of a
+batch plays by the same rules.
 Each opening, 2 to 8 random plies, is played twice with the colours swapped. For every move a bot
 chooses, `games.jsonl` records the value lost by not knowing (the best true-board value minus the
 played move's, from a second copy of the bot's own scorer, so it is in that scorer's terms:
@@ -388,7 +391,10 @@ compare it across games and settings, not across scorers), the time and the trac
 a 95% interval that resamples openings, both colours together. A game that raises (a tracker
 that loses the position, a scorer that fails) is recorded with its error and left out of the
 score, and the run goes on; `summary.json` counts such games under `errors`, is written even if
-the run is interrupted, and the run exits with status 1 if any game failed.
+the run is interrupted, and the run exits with status 1 if any game failed. Its `record` block,
+read once before the first game, traces the run: the commit, uncommitted changes (`git status`,
+without Python's caches), the SHA-256 of every source file that plays and of the Stockfish binary,
+and the library versions; each side in `sides` also names the device its network ran on.
 
 The pilot (`experiments/matches/pilot-d1-vs-material/`: 10 games, 200-ply cap, seed 0, on Colin's
 Mac): quick Stockfish scored 0.90 against piece values (95% CI 0.70 to 1.00; 9 wins and 1 loss,
@@ -397,12 +403,13 @@ A move took 12.8 ms for quick Stockfish and 4.0 ms for piece values (95th percen
 7.2 ms), so most of a game's time is the two trackers (1,044 updates, 143 of them capped and 45
 rebuilt).
 
-The runs for the report, for ZW: every scorer, and `random`, against quick Stockfish, 200 games
-each, with the same seed so that every pairing plays the same openings.
+The runs for the report, for ZW: every scorer, the linear correction and `random` against quick
+Stockfish, 200 games each, with the same seed so that every pairing plays the same openings, and
+the same pinned rules (`standin` until Teal's adapter is on `main`, then `teal` for every pairing).
 
 ```bash
-for a in material stockfish-d1 stockfish-d11 network1 belief random; do
-  .venv/bin/python scripts/play_matches.py --a $a --b stockfish-d1 --games 200 --seed 0 --out runs/matches/$a-vs-d1
+for a in material stockfish-d1 stockfish-d11 network1 belief linear random; do
+  .venv/bin/python scripts/play_matches.py --a $a --b stockfish-d1 --games 200 --seed 0 --rules standin --out runs/matches/$a-vs-d1
 done
 ```
 

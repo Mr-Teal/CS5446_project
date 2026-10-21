@@ -147,3 +147,85 @@ def test_an_interrupted_run_writes_the_summary_of_the_games_it_finished(tmp_path
         run_main(monkeypatch, tmp_path / "m")
     summary = json.loads((tmp_path / "m" / "summary.json").read_text())
     assert (summary["games"], summary["errors"]) == (1, 0)
+
+
+def sha256(path):
+    import hashlib
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+# Catches: rules that change with whatever happens to be importable, unrecorded, so two machines
+# play the same command by different rules; or a request for Teal's rules quietly falling back.
+def test_the_rules_are_chosen_on_the_command_line_and_recorded(tmp_path):
+    from pairb.rules import pick_rules, teal_available
+    pinned = play(tmp_path / "standin", "--games", "2", "--max-plies", "8", "--rules", "standin")
+    assert pinned.returncode == 0, pinned.stderr
+    summary = json.loads((tmp_path / "standin" / "summary.json").read_text())
+    assert (summary["rules"], summary["settings"]["rules"]) == ("pairb-standin", "standin")
+    auto = play(tmp_path / "auto", "--games", "2", "--max-plies", "8")
+    assert json.loads((tmp_path / "auto" / "summary.json").read_text())["rules"] == pick_rules("auto").name
+    if not teal_available():
+        teal = play(tmp_path / "teal", "--games", "2", "--rules", "teal")
+        assert teal.returncode != 0 and "Teal" in teal.stderr and not (tmp_path / "teal").exists()
+
+
+# Catches: a run that cannot be traced to the code, engine and libraries that played it.
+def test_the_summary_records_the_code_engine_and_libraries(two_games):
+    import shutil
+    from pairb import provenance
+    record = two_games[1]["record"]
+    assert (record["git_status"] is None) == (provenance.git_status() is None)  # None only without git
+    assert not any("__pycache__" in line for line in record["git_status"] or [])
+    assert record["source_sha256"]["pair_b/scripts/play_matches.py"] == sha256(ROOT / "scripts" / "play_matches.py")
+    assert record["source_sha256"]["fow_shared/evaluation.py"] == sha256(ROOT.parent / "fow_shared" / "evaluation.py")
+    assert {"python", "numpy", "python_chess", "torch"} <= set(record["packages"])
+    engine = shutil.which("stockfish")
+    assert record["stockfish"]["sha256"] == (sha256(engine) if engine else None)
+    assert all(side["device"] is None for side in two_games[1]["sides"].values())
+
+
+# Catches: the linear correction missing from the players, or played without its checkpoint's hash.
+@pytest.mark.skipif(__import__("shutil").which("stockfish") is None, reason="needs Stockfish on PATH")
+def test_the_linear_correction_can_play(tmp_path):
+    result = play(tmp_path / "linear", "--games", "2", "--max-plies", "12", "--a", "linear")
+    assert result.returncode == 0, result.stderr
+    summary = json.loads((tmp_path / "linear" / "summary.json").read_text())
+    side = summary["sides"]["a"]
+    assert side["scorer"] == "linear" and side["name"].startswith("linear-v1")
+    assert side["checkpoint_sha256"] == sha256(ROOT / "checkpoints" / "linear-v1" / "best.npz")
+    assert math.isfinite(side["value_lost_mean"]) and side["value_lost_mean"] >= 0
+
+
+# Catches: the device a network ran on recorded as "auto" instead of the one torch actually chose.
+@pytest.mark.skipif(__import__("shutil").which("stockfish") is None, reason="needs Stockfish on PATH")
+def test_the_summary_records_the_device_a_network_ran_on(tmp_path):
+    pytest.importorskip("torch")
+    from pairb.network_evaluator import pick_device
+    result = play(tmp_path / "net", "--games", "2", "--max-plies", "12", "--a", "network1")
+    assert result.returncode == 0, result.stderr
+    summary = json.loads((tmp_path / "net" / "summary.json").read_text())
+    assert summary["settings"]["device"] == "auto"
+    assert (summary["sides"]["a"]["device"], summary["sides"]["b"]["device"]) == (pick_device(None), None)
+    assert summary["sides"]["a"]["moves"] > 0
+
+
+# Catches: a summary whose commit and code hash are read when the run ends, while its record of
+# uncommitted changes and file hashes was read when it started: one summary, two code states.
+def test_the_commit_is_read_once_when_the_run_starts(tmp_path, monkeypatch):
+    commits = iter(["c1", "c2", "c3", "c4"])
+    monkeypatch.setattr(play_matches, "git_commit", lambda: next(commits))
+    run_main(monkeypatch, tmp_path / "m")
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert summary["git_commit"] == summary["record"]["git_commit"] == "c1"
+    assert summary["runtime"] == summary["record"]["runtime"]
+
+
+# Catches: the raw --stockfish path, home folder and all, written into the summary.
+def test_the_settings_write_the_home_folder_as_a_tilde(tmp_path, monkeypatch):
+    import shutil
+    engine = shutil.which("stockfish") or "stockfish"
+    monkeypatch.setattr(Path, "home", lambda: Path(engine).parent)
+    run_main(monkeypatch, tmp_path / "m", "--stockfish", engine)
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    if engine != "stockfish":
+        assert summary["settings"]["stockfish"] == f"~/{Path(engine).name}"
