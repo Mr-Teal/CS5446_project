@@ -1,6 +1,7 @@
 # Independent Pair A preparation
 
-This directory contains preparation tools and a rules adapter prototype.
+This directory contains preparation tools, a rules adapter prototype, and an
+exact history-preserving belief tracker with optional output sampling.
 The standalone preparation tools run independently of `fow_shared`; the new
 adapter reuses the merged shared rule helpers. The shared interfaces and
 encoder are unchanged by this branch. Agent ownership is agreed: the rules
@@ -13,6 +14,7 @@ here yet. See [the PR handoff](docs/pr_handoff.md) for scope and remaining work.
 | Chessboard viewer | [launch instructions](docs/board_viewer.md), [server](board_viewer.py) | Click-to-move chessboard, both fog perspectives, sample games and step-by-step replay using the rules adapter |
 | Pair A interface draft | [interface_draft.py](interface_draft.py), [interface_draft.md](docs/interface_draft.md) | Proposed rules/tracker signatures, private observation fields and update sequence; pending review |
 | Rules adapter and referee | [rules_adapter.py](rules_adapter.py) | History-preserving states, private observations, actual terminal outcomes and shared-protocol referee; see [implementation notes](docs/rules_adapter.md) |
+| Belief tracker | [belief_tracker.py](belief_tracker.py), [implementation and usage](docs/belief_tracker.md) | Exact observation-only history tracking, optional output sampling, explicit capacity errors, and shared-runner integration |
 | Paper implementation specifications | [paper_specs.md](docs/paper_specs.md) | Pinned v2 sources, parameters, section references, implementation checks and open questions |
 | Small-game validation | [toy_games.py](toy_games.py) | Information sets, chance nodes, LP reference solutions and behavioral best-response/Nash-gap checks |
 | Fixed-tree PCFR+ | [pcfr.py](pcfr.py), [algorithm notes](docs/pcfr.md) | Predictive RM+, counterfactual updates and separate last/average diagnostics on toy games; simultaneous and alternating schedules |
