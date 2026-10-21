@@ -401,12 +401,12 @@ read once before the first game, traces the run: the commit, uncommitted changes
 without Python's caches), the SHA-256 of every source file that plays and of the Stockfish binary,
 and the library versions; each side in `sides` also names the device its network ran on.
 
-The pilot (`experiments/matches/pilot-d1-vs-material/`: 10 games, 200-ply cap, seed 0, on Colin's
-Mac): quick Stockfish scored 0.90 against piece values (95% CI 0.70 to 1.00; 9 wins and 1 loss,
-every game ended by a king capture, 51 plies on average). The 10 games took 126 s, 12.6 s a game.
-A move took 12.8 ms for quick Stockfish and 4.0 ms for piece values (95th percentiles 21.9 and
-7.2 ms), so most of a game's time is the two trackers (1,044 updates, 143 of them capped and 45
-rebuilt).
+The pilot (`experiments/matches/pilot-d1-vs-material/`: 10 games, 200-ply cap, seed 0, stand-in
+rules, on Colin's Mac): quick Stockfish won all 10 games against piece values, a score of 1.00 over
+5 complete colour pairs (so its interval is 1.00 to 1.00; every game ended by a king capture, 49.7
+plies on average). The 10 games took 123 s, 12.3 s a game. A move took 13.5 ms for quick Stockfish
+and 3.9 ms for piece values (95th percentiles 19.2 and 7.0 ms), so most of a game's time is the two
+trackers (1,014 updates, 153 of them capped and 39 rebuilt).
 
 The runs for the report, for ZW: every scorer, the linear correction and `random` against quick
 Stockfish, 200 games each, with the same seed so that every pairing plays the same openings, and
@@ -418,7 +418,7 @@ for a in material stockfish-d1 stockfish-d11 network1 belief linear random; do
 done
 ```
 
-At the pilot's rate a pairing of quick scorers takes about 40 minutes (200 games of 12.6 s). A
+At the pilot's rate a pairing of quick scorers takes about 40 minutes (200 games of 12.3 s). A
 slower scorer adds 9 calls per move (8 guesses and the true-board measurement) at its time per
 node in the table at the top: about 1.8 s a move for careful Stockfish, so several hours for its 200
 games; run the pairings on separate machines. Quick Stockfish against itself should score about
