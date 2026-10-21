@@ -52,7 +52,7 @@ class BeliefNetworkEvaluator:
     @classmethod
     def from_checkpoint(cls, path, **kwargs) -> "BeliefNetworkEvaluator":
         """A best.pt written by scripts/train_belief_net.py, labelled with its run folder's name."""
-        ckpt = torch.load(path, map_location="cpu")
+        ckpt = torch.load(path, map_location="cpu", weights_only=True)
         if ckpt.get("encoding") != ENCODING:
             raise ValueError(f"checkpoint was trained on {ckpt.get('encoding')!r}, not {ENCODING!r}")
         net = BeliefNetwork(**ckpt["config"])

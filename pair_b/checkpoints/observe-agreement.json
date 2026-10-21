@@ -1,0 +1,35 @@
+{
+  "games": 500,
+  "plies_cap": 300,
+  "seed": 0,
+  "seeds": "game g plays random legal moves from random.Random(seed + g)",
+  "views_compared": 118208,
+  "game_ending_views": 968,
+  "endings": {
+    "king_capture": 484,
+    "ply cap": 16
+  },
+  "fields_compared": [
+    "side_to_move",
+    "ply",
+    "visible_squares",
+    "visible_pieces",
+    "legal_moves",
+    "terminal",
+    "outcome",
+    "result (winner, reason) after every ply"
+  ],
+  "games_with_a_difference": 0,
+  "first_differences": [],
+  "rules": {
+    "standin": "pairb-standin",
+    "teal": "teal-rules-adapter"
+  },
+  "checkout_commit": "8e914efa6f9feb109a6f2f8bb2e646afc868f144",
+  "rules_adapter_sha256": "6d994f81ff096f963aeebb0c6ff55c415fb890e77411ce15ced650cdb295cdba",
+  "seconds": 27.5,
+  "runtime": {
+    "python": "3.14.6",
+    "python_chess": "1.11.2"
+  }
+}

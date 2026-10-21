@@ -3,9 +3,10 @@
     .venv/bin/python scripts/eval_net1.py --run runs/net1-v2 --data data/d2-v2 --split val
 
 Network 1, the depth-1 value and the piece-value baseline are scored on the same positions.
-Move choice is compared parent by parent, with a 95% bootstrap interval that resamples whole
-games. The test split is for the final evaluation only and needs --final. Writes
-eval-<dataset>-<split>.json into the run folder.
+Value error is compared position by position and move choice parent by parent, each against the
+depth-1 value with a 95% bootstrap interval that resamples whole games. The test split is for the
+final evaluation only and needs --final. Writes eval-<dataset>-<split>.json into the run folder,
+with the SHA-256 of the data files and of best.pt, the commit, the device and library versions.
 """
 import argparse
 import datetime
@@ -17,8 +18,10 @@ import torch
 
 from pairb.data import ENCODING, load_arrays, split_of
 from pairb.evaluate import errors, material_pred, predict
+from pairb.linear_workflow import value_error_difference
 from pairb.metrics import paired_regret_difference
 from pairb.net1 import Network1
+from pairb.provenance import data_source, git_commit, runtime, sha256_of
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -40,32 +43,41 @@ def main():
         args.device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
     device = torch.device(args.device)
     run = Path(args.run)
-    ckpt = torch.load(run / "best.pt", map_location="cpu")
+    ckpt = torch.load(run / "best.pt", map_location="cpu", weights_only=True)
     if ckpt.get("encoding") != ENCODING:
         ap.error(f"the checkpoint was trained on input planes {ckpt.get('encoding')!r}, this reader makes {ENCODING!r}")
     net = Network1(**ckpt["config"])
     net.load_state_dict(ckpt["state_dict"])
     net.to(device)
 
+    source = data_source(args.data)  # the bytes read below
     arrays = load_arrays(args.data, args.cache_dir)
     m = np.array([split_of(g) for g in arrays["game_id"]]) == args.split
     planes, d1, y = (torch.from_numpy(arrays[k][m]).to(device) for k in ("planes", "d1", "y"))
     parents, games = arrays["parent"][m], arrays["game_id"][m]
     pred = predict(net, planes, d1)
+    material = material_pred(planes).to(device)
+    rows = {"y": y.cpu().numpy(), "game_id": games}
 
     report = {
         "run": run.name, "data": Path(args.data).name, "split": args.split, "n": int(m.sum()),
         "checkpoint_epoch": ckpt["epoch"],
         "network": errors(pred, y, parents, d1),
         "baseline": errors(d1, y, parents, d1),
-        "material": errors(material_pred(planes).to(device), y, parents, d1),
+        "material": errors(material, y, parents, d1),
         "regret_difference": paired_regret_difference(parents, pred.cpu().numpy(), d1.cpu().numpy(),
                                                       y.cpu().numpy(), games=games, n_boot=args.n_boot),
+        "mae_difference": value_error_difference(pred.cpu().numpy(), d1.cpu().numpy(), rows, args.n_boot),
+        "material_mae_difference": value_error_difference(material.cpu().numpy(), d1.cpu().numpy(), rows, args.n_boot),
+        "bootstrap": {"resamples": args.n_boot, "seed": 0, "unit": "whole games"},
+        "device": device.type, "source": source, "checkpoint_sha256": sha256_of(run / "best.pt"),
+        "git_commit": git_commit(), "runtime": {**runtime(), "torch": torch.__version__},
         "created": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
     }
     (run / f"eval-{Path(args.data).name}-{args.split}.json").write_text(json.dumps(report, indent=2) + "\n")
-    rd = report["regret_difference"]
-    print(f"{args.split}: MAE network {report['network']['mae']} vs depth-1 {report['baseline']['mae']}; "
+    rd, md = report["regret_difference"], report["mae_difference"]
+    print(f"{args.split}: MAE network {report['network']['mae']} vs depth-1 {report['baseline']['mae']}, "
+          f"difference {md['mean']:+.4f} (95% CI {md['ci95'][0]:+.4f} to {md['ci95'][1]:+.4f}); "
           f"top-1 move {report['network']['choice']['top1']:.3f} vs {report['baseline']['choice']['top1']:.3f}; "
           f"regret difference {rd['mean']:+.4f} (95% CI {rd['ci95'][0]:+.4f} to {rd['ci95'][1]:+.4f}) "
           f"over {rd['parents']} parents from {rd['games']} games")

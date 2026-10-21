@@ -28,13 +28,20 @@ def _sign(player: str) -> float:
 class StockfishEvaluator:
     def __init__(self, depth: int, path: str = "stockfish", hash_mb: int = 16, new_game_each_call: bool = True):
         """new_game_each_call=True sends ucinewgame before every call, so no result depends on
-        earlier searches (needed for labels). Inside a search, False is about 3x faster (1.5 against
-        4.8 ms per expanded node on positions from real games)."""
+        earlier searches (needed for labels). Inside a search, False is about 3.4x faster (1.5 against
+        5.2 ms per expanded node on 300 positions from real games,
+        checkpoints/timing-new-game-each-call.json)."""
         self.depth = depth
         self.new_game_each_call = new_game_each_call
         self.engine = chess.engine.SimpleEngine.popen_uci(path)
         self.engine.configure({"Threads": 1, "Hash": hash_mb})
         self.name = f"{self.engine.id.get('name', 'stockfish').lower().replace(' ', '-')}-d{depth}"
+        self._game = object()
+
+    def new_game(self) -> None:
+        """Start a new game: the next call sends ucinewgame, so nothing earlier searches left in the
+        hash carries over. With new_game_each_call=False this is how one game's calls share the hash
+        while separate games stay independent."""
         self._game = object()
 
     def close(self):
@@ -91,13 +98,18 @@ class StockfishEvaluator:
 
     def board_value(self, board: chess.Board) -> tuple[float, bool]:
         """One board's value from White's view, and whether a rule decided it: by rule; one move
-        ahead when orthodox chess has no move but fog rules do (castling out of check); otherwise
-        Stockfish."""
+        ahead when orthodox chess has no move but fog rules do (castling out of check); a draw,
+        flagged as decided, when there is no fog-legal move either; otherwise Stockfish."""
         rule = rule_value(board)
         if rule is not None:
             return rule[1], True
         if not any(board.generate_legal_moves()):
             children = [v for v, _ in self.children_values(board).values()]
+            if not children:
+                # No fog-legal move and no rule result (every piece blocked). Scored as a draw here,
+                # an explicit choice until Pair A's rules adapter decides such positions: its
+                # rules_adapter.md says it does not silently declare them ordinary-chess draws.
+                return 0.0, True
             return (max(children) if board.turn == chess.WHITE else min(children)), False
         # Send the position alone: python-chess would otherwise replay the moves that led here,
         # and a fog-only move (castling out of check) from an orthodox-illegal start kills Stockfish.

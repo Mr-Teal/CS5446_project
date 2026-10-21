@@ -1,0 +1,43 @@
+{
+  "alpha": 1e-06,
+  "methods": {
+    "distil": {
+      "iterations": 12,
+      "val_mse": 0.020963384095794343,
+      "value_mae": 0.07898748127114823,
+      "choice": {
+        "top1": 0.4360921948664222,
+        "regret": 0.034689487537053,
+        "parents": 3818
+      },
+      "outcome_mse": 0.5131864674803586,
+      "seconds": 7.1
+    },
+    "mc": {
+      "iterations": 7,
+      "val_mse": 0.49182839544105533,
+      "value_mae": 0.21750940548389489,
+      "choice": {
+        "top1": 0.3858040859088528,
+        "regret": 0.05105253213473448,
+        "parents": 3818
+      },
+      "outcome_mse": 0.4811546770224083,
+      "seconds": 4.9
+    },
+    "tdlambda": {
+      "rounds_run": 15,
+      "best_round": 15,
+      "val_mse": 0.490253746828546,
+      "value_mae": 0.20406127477747638,
+      "choice": {
+        "top1": 0.41566265060240964,
+        "regret": 0.04229490745368947,
+        "parents": 3818
+      },
+      "outcome_mse": 0.4767128705964318,
+      "seconds": 48.8
+    }
+  },
+  "seconds": 104.6
+}

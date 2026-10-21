@@ -4,7 +4,8 @@
 
 Writes eval-<dataset>-<split>.json into the run folder: the network's and quick Stockfish's board
 and position errors on the same beliefs, and the paired difference in position error with a 95%
-bootstrap interval. The test split needs --final: keep it for the final report.
+bootstrap interval, with the SHA-256 of the data files and of best.pt, the commit, the device and
+library versions. The test split needs --final: keep it for the final report.
 """
 import argparse
 import datetime
@@ -19,6 +20,7 @@ from pairb.belief_data import ENCODING, load_arrays
 from pairb.belief_eval import baseline_pred, errors, paired_difference, predict
 from pairb.belief_net import BeliefNetwork
 from pairb.data import split_of
+from pairb.provenance import data_source, git_commit, runtime, sha256_of
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -40,7 +42,7 @@ def main():
         sys.exit("the test split is for the final evaluation: pass --final to use it")
 
     run = Path(args.run)
-    ckpt = torch.load(run / "best.pt", map_location="cpu")
+    ckpt = torch.load(run / "best.pt", map_location="cpu", weights_only=True)
     if ckpt.get("encoding") != ENCODING:
         sys.exit(f"checkpoint was trained on {ckpt.get('encoding')!r}, this reader makes {ENCODING!r}")
     net = BeliefNetwork(**ckpt["config"])
@@ -48,6 +50,7 @@ def main():
     device = torch.device(args.device)
     net.to(device)
 
+    source = data_source(args.data, args.pattern)  # the bytes read below
     arrays = load_arrays(args.data, args.cache_dir, args.workers, args.pattern)
     beliefs = np.flatnonzero(np.array([split_of(g) for g in arrays["game_id"]]) == args.split)
     if not len(beliefs):
@@ -62,6 +65,9 @@ def main():
     if d1 is not None:
         report["baseline"], base_err = errors(d1, arrays, beliefs)
         report["root_mae_difference"] = paired_difference(net_err, base_err, arrays["game_id"][beliefs], args.n_boot)
+        report["bootstrap"] = {"resamples": args.n_boot, "seed": 0, "unit": "whole games"}
+    report.update({"device": device.type, "source": source, "checkpoint_sha256": sha256_of(run / "best.pt"),
+                   "git_commit": git_commit(), "runtime": {**runtime(), "torch": torch.__version__}})
     (run / f"eval-{Path(args.data).name}-{args.split}.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report, indent=2))
 

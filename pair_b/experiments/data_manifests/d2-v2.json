@@ -1,0 +1,78 @@
+{
+  "copied_from": "d2-v2/manifest.json",
+  "original_sha256": "bc6fca7cf0f924188f23d307edad55942684ed7e4c6dcbea64f8492b9a1f6b81",
+  "note": "the manifest as written, with the home folder as ~",
+  "manifest": {
+    "dataset": "d2-v2",
+    "spec_version": "0.2",
+    "created": "2026-10-16T20:43:53+08:00",
+    "run_by": "Pair B",
+    "command": [
+      "make_d2.py",
+      "--games",
+      "8000",
+      "--parents-per-game",
+      "4",
+      "--workers",
+      "12",
+      "--seed",
+      "2026",
+      "--out",
+      "data/d2-v2"
+    ],
+    "code_sha256": "73f761da40e1482050595a1c4f2dc340c496f43525187669bb7d75d3fdd1e81a",
+    "machine": "macOS-26.5.1-arm64-arm-64bit-Mach-O; Python 3.14.6; python-chess 1.11.2",
+    "stockfish": {
+      "name": "Stockfish 19",
+      "threads": 1,
+      "hash_mb": 16,
+      "label_depths": [
+        1,
+        11
+      ],
+      "label_mode": "MultiPV at the parent: one score per child, as in [1] App. C.5",
+      "new_game_before_each_label": true
+    },
+    "value_conversion": "v = tanh(cp / 600); a forced mate is exactly +1 or -1; White's view",
+    "games": {
+      "count": 8000,
+      "rules": "ordinary chess moves (a stand-in); results scored with fog-of-war rules where they differ",
+      "policy": "2-8 random opening moves, then Stockfish depth-1 moves with a random move at rate eps, eps drawn per game from U(0.02, 0.15)",
+      "terminations": {
+        "checkmate": 6783,
+        "repetition": 561,
+        "stalemate": 308,
+        "max-plies": 223,
+        "fifty-move": 125
+      }
+    },
+    "parents": {
+      "per_game": 4,
+      "min_ply": 8,
+      "count": 31777
+    },
+    "seed": 2026,
+    "records": 795945,
+    "rule_counts": {
+      "checkmate": 652,
+      "stalemate": 444,
+      "fifty-move": 19
+    },
+    "files": [
+      "part-00.jsonl",
+      "part-01.jsonl",
+      "part-02.jsonl",
+      "part-03.jsonl",
+      "part-04.jsonl",
+      "part-05.jsonl",
+      "part-06.jsonl",
+      "part-07.jsonl",
+      "part-08.jsonl",
+      "part-09.jsonl",
+      "part-10.jsonl",
+      "part-11.jsonl",
+      "games.jsonl"
+    ],
+    "seconds": 1781.0
+  }
+}

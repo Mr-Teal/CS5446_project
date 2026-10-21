@@ -3,6 +3,7 @@
 The dataset needs no Stockfish: positions from seeded random games, beliefs from
 pairb.standin_beliefs, labels from the piece-value evaluator, and "d1" a shifted copy of them.
 """
+import hashlib
 import json
 import random
 import subprocess
@@ -116,6 +117,20 @@ def test_eval_compares_the_network_with_quick_stockfish_on_the_same_beliefs(run)
     assert len(report["root_mae_difference"]["ci95"]) == 2
 
 
+# Catches: an evaluation that does not say which data, checkpoint, code, device and bootstrap
+# made it (review T9).
+def test_eval_reports_its_provenance(run):
+    from pairb.provenance import data_source, git_commit
+    data, out, _ = run
+    assert evaluate(run, "val", "--n-boot", "200").returncode == 0
+    report = json.loads((out / "eval-d6-val.json").read_text())
+    assert report["bootstrap"] == {"resamples": 200, "seed": 0, "unit": "whole games"}
+    assert report["device"] == "cpu" and report["runtime"]["torch"] == torch.__version__
+    assert report["source"] == data_source(data)
+    assert report["checkpoint_sha256"] == hashlib.sha256((out / "best.pt").read_bytes()).hexdigest()
+    assert report["git_commit"] == git_commit()
+
+
 # Catches: the test games being looked at during development by accident.
 def test_eval_refuses_the_test_split_without_final(run):
     result = evaluate(run, "test")
@@ -153,3 +168,15 @@ def test_trains_with_planes_kept_on_the_host_and_steps_capped_by_boards(tmp_path
     result = train(tmp_path / "d6", tmp_path / "run", "--planes-on", "host", "--max-boards", "6")
     assert result.returncode == 0, result.stderr[-500:]
     assert (tmp_path / "run" / "best.pt").exists()
+
+
+# Catches: a trained belief network whose summary does not say which data files, checkpoint and
+# code made it (review T9).
+def test_summary_records_the_data_checkpoint_and_code_it_came_from(run):
+    from pairb.provenance import data_source, git_commit
+    data, out, _ = run
+    summary = json.loads((out / "summary.json").read_text())
+    assert summary["source"] == data_source(data)
+    assert summary["checkpoint_sha256"] == hashlib.sha256((out / "best.pt").read_bytes()).hexdigest()
+    assert summary["git_commit"] == git_commit()
+    assert summary["runtime"]["torch"] == torch.__version__

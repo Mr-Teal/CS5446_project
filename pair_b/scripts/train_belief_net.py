@@ -8,7 +8,8 @@ the epoch with the lowest board error on the validation games, and never reads t
 A step holds whole beliefs, at most --batch of them and --max-boards boards, so large beliefs
 (Pair A plans 256 or more boards) keep steps bounded; --planes-on host keeps the encoded planes
 in main memory when they would not fit on the GPU. Writes best.pt, metrics.jsonl, splits.json
-(the games used) and summary.json into --out, which must not exist yet.
+(the games used) and summary.json into --out, which must not exist yet. summary.json records the
+SHA-256 of the data files and of best.pt, the commit and the library versions.
 """
 import argparse
 import datetime
@@ -23,6 +24,7 @@ from pairb.belief_data import ENCODING, belief_batches, load_arrays, rows_of
 from pairb.belief_eval import baseline_pred, errors, predict, require_d1
 from pairb.belief_net import BeliefNetwork
 from pairb.data import split_of
+from pairb.provenance import data_source, git_commit, runtime, sha256_of
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -88,6 +90,7 @@ def main():
     torch.manual_seed(args.seed)
     started = time.time()
 
+    source = data_source(args.data, args.pattern)  # the bytes read below
     arrays = load_arrays(args.data, args.cache_dir, args.workers, args.pattern)
     split = np.array([split_of(g) for g in arrays["game_id"]])
     ids = {name: np.flatnonzero(split == name) for name in ("train", "val", "test")}
@@ -164,7 +167,7 @@ def main():
                 if waited >= args.patience:
                     break
 
-    ckpt = torch.load(out / "best.pt", map_location="cpu")
+    ckpt = torch.load(out / "best.pt", map_location="cpu", weights_only=True)
     net = BeliefNetwork(**ckpt["config"])
     net.load_state_dict(ckpt["state_dict"])
     speed = {f"{device.type}_64_beliefs": ms_per_belief(net, device, 64), f"{device.type}_1_belief": ms_per_belief(net, device, 1)}
@@ -176,6 +179,8 @@ def main():
         "val": best, "best_epoch": best_epoch,
         "epochs_run": epoch, "ms_per_belief_of_8_boards": speed, "seconds": round(time.time() - started, 1),
         "created": datetime.datetime.now().astimezone().isoformat(timespec="seconds"), "args": vars(args),
+        "source": source, "checkpoint_sha256": sha256_of(out / "best.pt"), "git_commit": git_commit(),
+        "runtime": {**runtime(), "torch": torch.__version__},
     }
     if baseline:
         summary["board_mae_vs_quick_stockfish_pct"] = round(100 * (1 - best["board_mae"] / baseline["board_mae"]), 1)

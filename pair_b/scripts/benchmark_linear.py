@@ -1,7 +1,8 @@
 """Time complete evaluate_children calls on D2 parents, including encoding and Stockfish.
 
 Uses search mode (new_game_each_call=False). Reports wall time, not playing strength.
-Optional Network 1 runs on CPU so timings have an explicit device and need no GPU sync.
+Optional Network 1 runs on --net1-device, CPU by default so timings have an explicit device and
+need no GPU sync; each call returns plain floats, so a GPU's work is inside the time.
 """
 import argparse
 import hashlib
@@ -30,6 +31,7 @@ def main():
     ap.add_argument("--repeats", type=int, default=3)
     ap.add_argument("--stockfish-path", default="stockfish")
     ap.add_argument("--net1-run")
+    ap.add_argument("--net1-device", default="cpu", help="where Network 1 runs: cpu, mps or cuda")
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
     if args.limit < 1 or args.repeats < 1:
@@ -61,9 +63,11 @@ def main():
         report["engine_binary_sha256"] = hashlib.sha256(Path(binary).read_bytes()).hexdigest() if binary else None
         if args.net1_run:
             from pairb.network_evaluator import NetworkEvaluator
-            evaluators["network_cpu"] = stack.enter_context(NetworkEvaluator.from_checkpoint(
+            network = stack.enter_context(NetworkEvaluator.from_checkpoint(
                 Path(args.net1_run) / "best.pt", stockfish_path=args.stockfish_path,
-                new_game_each_call=False, device="cpu"))
+                new_game_each_call=False, device=args.net1_device))
+            evaluators[f"network_{args.net1_device}"] = network
+            report["network_device"] = str(network.device)
             report["network_checkpoint_sha256"] = hashlib.sha256(
                 (Path(args.net1_run) / "best.pt").read_bytes()).hexdigest()
         samples = {name: [] for name in evaluators}

@@ -1,0 +1,48 @@
+{
+  "source": {
+    "dataset": "d2-check",
+    "files_sha256": {
+      "part-00.jsonl": "617cc6d7eaeb27a5f9f347a7df656e4f14399eeb7bad1aa789c3189c28284ad8",
+      "part-01.jsonl": "7861ed0b2d9ab1eaabe8b32789ef3876ff94934a309847f3b0977130ad2f3d10",
+      "part-02.jsonl": "153aefe43e312fbdcc26d943c79f34bab9bd002aeb0dd067bc07909a42d935e8",
+      "part-03.jsonl": "cc15c71d468ba59752d25ecd94903fbfb1020a81b15d8bf30bf5609bf7c38d9b",
+      "part-04.jsonl": "8be85d9d7a4195d03955fdf0bcd253571210deb9d8232931f9651a9c6f937892",
+      "part-05.jsonl": "65524121357c98300d56b39987d6363b25dc6644206cb8601c08c7d756966dfe",
+      "part-06.jsonl": "aff33f7d6c121a904bf860da75001223cdce3d8eb245078d31ab87ab50cf2bf9",
+      "part-07.jsonl": "22241649c5d375a88b0ca6a3d296db6428e51f6ec29aaf78684a17b276de434f",
+      "part-08.jsonl": "3f80a26ae802294f41f13d65c049f7b2b3bc631972c852b656d64cf00673c4f3",
+      "part-09.jsonl": "b6b0a4a37cf0142d9781cd735c736f6df92dc1c2550ebd410c8865c7d3b58149",
+      "part-10.jsonl": "b37f753002994cf7c447ee40740d236dba29609b9f56feda0e3ce540d5e26e55",
+      "part-11.jsonl": "b2cfd12dc5190f9430774d6b21cb7164e15e9e7b88f6f047f901c9b07e76506c",
+      "manifest.json": "416a429b72d6ff7243772ad22d189be19ac5d7843b5579913e64667302161f02"
+    },
+    "sha256": "5475455ca72909b1481058b96d80a1f62aec890f25d1aafe8e2af5eff2983903"
+  },
+  "split": "train",
+  "parents": 300,
+  "repeats": 2,
+  "parent_selection": "sorted unique parent FENs, first 300 (as scripts/benchmark_linear.py)",
+  "parent_fens_sha256": "e763c82191e0c69569a430482e7d2aadf7a9d22dfc7e0645981440ae953cd9b2",
+  "network_device": "mps",
+  "engine_options": {
+    "threads": 1,
+    "hash_mb": 16,
+    "depth": 1
+  },
+  "median_ms": {
+    "stockfish_d1_new_game_true": 5.145687493495643,
+    "network1_new_game_true": 8.888666983693838,
+    "stockfish_d1_new_game_false": 1.5163540374487638,
+    "network1_new_game_false": 4.972021037247032
+  },
+  "speedup_stockfish_d1": 3.3934604758616675,
+  "speedup_network1": 1.7877372032632068,
+  "git_commit": "d6920be414779e634152ad2e19f00d1845eb14a7",
+  "runtime": {
+    "python": "3.14.6",
+    "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "numpy": "2.5.4",
+    "python_chess": "1.11.2",
+    "source_sha256": "d5c5a4b798aa4ec3a47846e0686b9ff033b088679c030a505a04a55cdc2f5580"
+  }
+}

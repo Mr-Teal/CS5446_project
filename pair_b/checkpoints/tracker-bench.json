@@ -1,0 +1,64 @@
+{
+  "settings": {
+    "games": 5,
+    "plies": 40,
+    "particles": 256,
+    "guesses": 8,
+    "seed": 0,
+    "rules": "pairb-standin"
+  },
+  "games": [
+    {
+      "seed": 0,
+      "updates": 82,
+      "rebuilds": 4,
+      "seconds": 4.8
+    },
+    {
+      "seed": 1,
+      "updates": 82,
+      "rebuilds": 1,
+      "seconds": 11.9
+    },
+    {
+      "seed": 2,
+      "updates": 82,
+      "rebuilds": 2,
+      "seconds": 12.9
+    },
+    {
+      "seed": 3,
+      "updates": 82,
+      "rebuilds": 2,
+      "seconds": 15.9
+    },
+    {
+      "seed": 4,
+      "updates": 82,
+      "rebuilds": 9,
+      "seconds": 9.7
+    }
+  ],
+  "every_update": {
+    "updates": 410,
+    "median_ms": 24.354292021598667,
+    "p95_ms": 717.9548974148929,
+    "max_ms": 5102.765041985549
+  },
+  "after_unseen_move": {
+    "updates": 210,
+    "median_ms": 55.63991650706157,
+    "p95_ms": 895.0858079479076,
+    "max_ms": 5102.765041985549
+  },
+  "rebuilds": 18,
+  "machine": "arm64",
+  "git_commit": "1fa74d45f2c4cf1ca98783b64d2b0402d6ff4d9b",
+  "runtime": {
+    "python": "3.14.6",
+    "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "numpy": "2.5.4",
+    "python_chess": "1.11.2",
+    "source_sha256": "52f0cac9aab9b47e606648c98c016a4b4043bbce48019f4cb97eaf39eab87d5a"
+  }
+}

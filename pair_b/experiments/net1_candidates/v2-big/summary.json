@@ -1,0 +1,64 @@
+{
+  "dataset": "d2-v2",
+  "encoding": "net1-planes-0-18-v1",
+  "config": {
+    "blocks": 10,
+    "channels": 128,
+    "in_planes": 19
+  },
+  "params": 3043345,
+  "device": "mps",
+  "n": {
+    "train": 638451,
+    "val": 76765,
+    "test_held_out": 79614
+  },
+  "baseline": {
+    "mse": 0.025973,
+    "mae": 0.097483,
+    "mae_close": 0.09192,
+    "mae_decided": 0.082294,
+    "mae_close_by_d1": 0.125502,
+    "choice": {
+      "top1": 0.418158,
+      "regret": 0.035953,
+      "parents": 3073
+    }
+  },
+  "val": {
+    "mse": 0.021426,
+    "mae": 0.081569,
+    "mae_close": 0.110853,
+    "mae_decided": 0.044386,
+    "mae_close_by_d1": 0.131596,
+    "choice": {
+      "top1": 0.421412,
+      "regret": 0.0355,
+      "parents": 3073
+    }
+  },
+  "best_epoch": 2,
+  "epochs_run": 6,
+  "mae_improvement_pct": 16.3,
+  "ms_per_board": {
+    "mps_batch_32": 0.07488,
+    "mps_batch_1024": 0.05888,
+    "cpu_batch_32": 1.81577
+  },
+  "seconds": 821.9,
+  "created": "2026-10-16T21:01:55+08:00",
+  "args": {
+    "data": "data/d2-v2",
+    "out": "runs/sweep-v2/v2-big",
+    "blocks": 10,
+    "channels": 128,
+    "epochs": 20,
+    "patience": 4,
+    "batch": 512,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "seed": 0,
+    "device": "auto",
+    "cache_dir": "data/cache"
+  }
+}
