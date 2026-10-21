@@ -128,8 +128,12 @@ The network that reads quick Stockfish errs 15% less on positions than quick Sto
 (paired difference -0.008, 95% CI -0.009 to -0.007, resampling the 959 games whole, since beliefs
 from one game are correlated). The planes-only network needs far more data to
 read chess from scratch; it was also still improving when it reached the 30-epoch cap (best epoch
-29, `checkpoints/belief-v1-pure/summary.json`). Reading the rest of the belief helps a little on these per-board labels,
-but too little to call from one run each; Pair A's labels are the real test.
+29, `checkpoints/belief-v1-pure/summary.json`). Reading the rest of the belief lowers board error by 0.003 on these per-board labels
+(context minus no context: -0.0028 on average over five seeds, every seed negative, range -0.0049
+to -0.0011; `experiments/belief_context/seeds.json`). The labels carry no information about the
+belief, so that gain is denoising, not belief-dependent value; the kept network's value of a board
+moves by 0.014 on average when the rest of its belief changes, about a sixth of its error
+(`experiments/belief_context/sensitivity.json`). Pair A's labels are the real test.
 
 `checkpoints/belief-v1-d1/` is the kept network. A belief of 8 boards takes 3.4 ms on an Apple
 GPU when 200 are scored in one call, and 6.5 ms one at a time
@@ -458,7 +462,9 @@ standard-start cross-check, each described in its README.
 - `experiments/`: studies and checks behind the report, each with a README: `tanh_linear/` (the
   linear correction inside tanh, and Figure 1), `mc_td/` (learning the leaf from outcomes by MC and
   TD against distillation), `overlap/` (positions shared by the check set and the training data),
-  `matches/` (the match pilot and the standard-start cross-check), `net1_candidates/` (the other two Network 1 runs),
+  `matches/` (the match pilot and the standard-start cross-check), `belief_context/` (five seeds per belief
+  variant, and the sensitivity of a board's value to its belief), `small_games/` (the Kuhn-poker
+  convergence figure from Pair A's solver), `net1_candidates/` (the other two Network 1 runs),
   `data_manifests/` (how the four datasets were made) and `readme_checks/` (the scripts behind
   five of the README's measurements).
 - `tests/`: written before the code they test. `tests/js/` holds the page's JavaScript helper

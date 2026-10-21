@@ -1,0 +1,23 @@
+{
+  "checkpoint": "checkpoints/belief-v1-d1/best.pt",
+  "data": "d6-check",
+  "split": "train",
+  "beliefs": 300,
+  "boards_compared": 2386,
+  "second_belief_seed": 11,
+  "device": "mps",
+  "value_shift_between_beliefs": {
+    "mean": 0.01412511227049081,
+    "median": 0.0030399858951568604,
+    "p95": 0.051754772663116455,
+    "max": 1.1754343807697296,
+    "share_above_0.01": 0.29044425817267394,
+    "share_above_0.05": 0.05280804694048617
+  },
+  "board_error_on_the_same_boards": {
+    "mean": 0.08694199748639375,
+    "median": 0.04551664224991092
+  },
+  "shift_over_error": 0.16246592761687312,
+  "note": "practice labels are depth-11 values of each board alone, so the true value of a board does not depend on its belief; a shift is what the network reads from the company a board keeps, and here it has nothing to gain from doing so"
+}
