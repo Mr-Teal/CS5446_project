@@ -126,7 +126,7 @@ def main():
                 if waited >= args.patience:
                     break
 
-    ckpt = torch.load(out / "best.pt", map_location="cpu")
+    ckpt = torch.load(out / "best.pt", map_location="cpu", weights_only=True)
     net = Network1(**ckpt["config"])
     net.load_state_dict(ckpt["state_dict"])
     speed = {f"{device.type}_batch_{b}": ms_per_board(net, device, b) for b in (32, 1024)}

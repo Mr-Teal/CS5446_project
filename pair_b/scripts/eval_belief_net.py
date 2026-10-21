@@ -40,7 +40,7 @@ def main():
         sys.exit("the test split is for the final evaluation: pass --final to use it")
 
     run = Path(args.run)
-    ckpt = torch.load(run / "best.pt", map_location="cpu")
+    ckpt = torch.load(run / "best.pt", map_location="cpu", weights_only=True)
     if ckpt.get("encoding") != ENCODING:
         sys.exit(f"checkpoint was trained on {ckpt.get('encoding')!r}, this reader makes {ENCODING!r}")
     net = BeliefNetwork(**ckpt["config"])

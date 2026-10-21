@@ -40,7 +40,7 @@ def main():
         args.device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
     device = torch.device(args.device)
     run = Path(args.run)
-    ckpt = torch.load(run / "best.pt", map_location="cpu")
+    ckpt = torch.load(run / "best.pt", map_location="cpu", weights_only=True)
     if ckpt.get("encoding") != ENCODING:
         ap.error(f"the checkpoint was trained on input planes {ckpt.get('encoding')!r}, this reader makes {ENCODING!r}")
     net = Network1(**ckpt["config"])

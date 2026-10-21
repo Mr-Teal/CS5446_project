@@ -164,7 +164,7 @@ def main():
                 if waited >= args.patience:
                     break
 
-    ckpt = torch.load(out / "best.pt", map_location="cpu")
+    ckpt = torch.load(out / "best.pt", map_location="cpu", weights_only=True)
     net = BeliefNetwork(**ckpt["config"])
     net.load_state_dict(ckpt["state_dict"])
     speed = {f"{device.type}_64_beliefs": ms_per_belief(net, device, 64), f"{device.type}_1_belief": ms_per_belief(net, device, 1)}

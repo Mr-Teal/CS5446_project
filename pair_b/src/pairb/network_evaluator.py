@@ -42,7 +42,7 @@ class NetworkEvaluator:
     @classmethod
     def from_checkpoint(cls, path, **kwargs) -> "NetworkEvaluator":
         """A best.pt written by scripts/train_net1.py, labelled with its run folder's name."""
-        ckpt = torch.load(path, map_location="cpu")
+        ckpt = torch.load(path, map_location="cpu", weights_only=True)
         if ckpt.get("encoding") != ENCODING:
             raise ValueError(f"checkpoint was trained on input planes {ckpt.get('encoding')!r}, not {ENCODING!r}")
         net = Network1(**ckpt["config"])
