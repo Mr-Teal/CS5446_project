@@ -160,3 +160,15 @@ def test_a_position_reached_by_a_fog_only_move_is_sent_to_stockfish_alone():
         values = ev.children_values(board)
     assert sorted(values) == sorted(m.uci() for m in fog_legal_moves(board))
     assert all(-1 <= v <= 1 for v, _ in values.values())
+
+
+# Catches: a board with no orthodox move, no fog-legal move and no rule result (every piece blocked)
+# crashing a search with max() of no children. It is scored as a draw, and flagged as decided.
+def test_a_board_with_no_move_and_no_rule_result_is_scored_as_a_draw(monkeypatch):
+    import pairb.stockfish as sf
+    stalemated = chess.Board("7k/5Q2/6K1/8/8/8/8/8 b - - 0 1")
+    assert not any(stalemated.generate_legal_moves())
+    monkeypatch.setattr(sf, "rule_value", lambda board: None)
+    monkeypatch.setattr(sf, "fog_legal_moves", lambda board: [])
+    with StockfishEvaluator(depth=1) as ev:
+        assert ev.board_value(stalemated) == (0.0, True)

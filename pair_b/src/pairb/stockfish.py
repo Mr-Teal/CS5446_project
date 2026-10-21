@@ -91,13 +91,18 @@ class StockfishEvaluator:
 
     def board_value(self, board: chess.Board) -> tuple[float, bool]:
         """One board's value from White's view, and whether a rule decided it: by rule; one move
-        ahead when orthodox chess has no move but fog rules do (castling out of check); otherwise
-        Stockfish."""
+        ahead when orthodox chess has no move but fog rules do (castling out of check); a draw,
+        flagged as decided, when there is no fog-legal move either; otherwise Stockfish."""
         rule = rule_value(board)
         if rule is not None:
             return rule[1], True
         if not any(board.generate_legal_moves()):
             children = [v for v, _ in self.children_values(board).values()]
+            if not children:
+                # No fog-legal move and no rule result (every piece blocked). Scored as a draw here,
+                # an explicit choice until Pair A's rules adapter decides such positions: its
+                # rules_adapter.md says it does not silently declare them ordinary-chess draws.
+                return 0.0, True
             return (max(children) if board.turn == chess.WHITE else min(children)), False
         # Send the position alone: python-chess would otherwise replay the moves that led here,
         # and a fog-only move (castling out of check) from an orthodox-illegal start kills Stockfish.
