@@ -217,7 +217,7 @@ def run(config, out):
         except importlib.metadata.PackageNotFoundError:
             packages[name] = None
     manifest = dict(config=config, git_head=git('rev-parse', 'HEAD'), git_status=git('status', '--porcelain'),
-                    source_sha256={str(p.relative_to(ROOT)): digest(p) for p in source_files},
+                    source_sha256={p.relative_to(ROOT).as_posix(): digest(p) for p in source_files},
                     checkpoint_sha256={s['checkpoint']: digest(ROOT/s['checkpoint']) for s in [*config['candidates'], config['opponent']] if 'checkpoint' in s},
                     engine_path=engine, engine_sha256=digest(engine) if engine else None,
                     python=sys.version, platform=platform.platform(), packages=packages,
