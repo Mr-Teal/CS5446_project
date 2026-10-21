@@ -206,9 +206,11 @@ def test_one_run_at_a_time(make_manager, serve):
     assert len(runner.calls) == 1
     runner.release.set()
     finish(manager)
+    runner.entered.clear()  # the second run's thread sets it again once it has called the runner
     answer = lab.send("POST", "/api/tests/run", {"fetch": False})
     assert answer.status == 202, answer.body
     second = answer.data()["id"]
+    assert runner.entered.wait(30), "the second run never called the runner"
     assert second > first and len(runner.calls) == 2
 
 
