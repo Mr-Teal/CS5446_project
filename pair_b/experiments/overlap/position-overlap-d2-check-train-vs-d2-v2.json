@@ -1,0 +1,20 @@
+{
+  "fit": "d2-v2",
+  "eval": "d2-check",
+  "eval_split": "train",
+  "eval_rows": 94963,
+  "eval_parents": 3818,
+  "eval_games": 959,
+  "id_string_overlap_with_fit_train": 955,
+  "id_string_overlap_with_fit_val": 0,
+  "rows_whose_position_is_in_fit_train_val": 168,
+  "parents_whose_position_is_a_fit_parent": 5,
+  "games_with_such_a_parent": 5,
+  "overlapping_parent_keys": [
+    "g-000239|rn1qk2r/1p3ppp/2pbpn2/pB1p1b2/P2P1B1N/2P1P3/1P3PPP/RN1QK2R w KQkq - 0 9",
+    "g-000441|8/8/3K4/6k1/8/8/8/8 w - - 4 98",
+    "g-000762|r2qk2r/1bpn1ppp/1p1bp3/pP2P3/3P4/P4N2/3BQPPP/RN2K2R b KQkq - 0 13",
+    "g-000898|rn1qkbnr/ppp1ppp1/7p/5b2/3PN3/8/PPP2PPP/R1BQKBNR w KQkq - 1 5",
+    "g-000975|r2qkb1r/ppp1pppp/2n5/3p1b1n/P2P1B2/2P2N2/1P2PPPP/RN1QKB1R w KQkq - 3 6"
+  ]
+}
