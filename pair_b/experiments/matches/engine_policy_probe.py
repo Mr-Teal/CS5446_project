@@ -2,7 +2,9 @@
 
     .venv/bin/python experiments/matches/engine_policy_probe.py --out experiments/matches/engine-policy-probe.json
 
-Bryan's probe on PR #16, committed: the position is scored fresh, then after one search of the start
+A rerun of the probe Bryan described in his PR #16 review, on his position (his run, on his machine,
+changed 18 depth-1 values; the committed output is this script's run on Colin's Mac, 9 of 30). The
+position is scored fresh, then after one search of the start
 position with the hash kept (new_game_each_call=False, as inside a search and in play_matches.py within
 a game), then the same with the hash cleared before every call (new_game_each_call=True, Bryan's runner).
 Reports how many of the position's moves change value and by how much, at depth 1 and depth 11. A few

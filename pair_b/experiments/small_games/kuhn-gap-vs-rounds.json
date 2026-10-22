@@ -317,5 +317,48 @@
   ]
  },
  "note": "zero_predictions is PCFR+ with predictive=False: the same quadratic averaging and alternating schedule, so not the published CFR+",
- "oracle_value": -0.05555555555555558
+ "oracle_value": -0.05555555555555558,
+ "last_gap_every_round": {
+  "pcfr_plus": {
+   "rounds": 2000,
+   "min": 0.0,
+   "min_round": 242,
+   "below": {
+    "0.02": {
+     "rounds": 1977,
+     "stays_below_from_round": 24
+    },
+    "1e-12": {
+     "rounds": 1843,
+     "stays_below_from_round": 158
+    }
+   },
+   "exactly_zero_rounds": 1759
+  },
+  "zero_predictions": {
+   "rounds": 2000,
+   "min": 0.012637656289803983,
+   "min_round": 1532,
+   "below": {
+    "0.02": {
+     "rounds": 139,
+     "stays_below_from_round": null
+    },
+    "1e-12": {
+     "rounds": 0,
+     "stays_below_from_round": null
+    }
+   },
+   "exactly_zero_rounds": 0
+  }
+ },
+ "provenance": {
+  "pair_a_sha256": {
+   "pair_a_prep/pcfr.py": "4eaf941b9f13667e54ca406ea3e887bf13dc8b4ec57d0c17a37dbb13f1fb8c19",
+   "pair_a_prep/toy_games.py": "12bb5aedaf052b3e7513c677909ef8207663b7e8376059b04e0d4c8a97720b68"
+  },
+  "python": "3.14.6",
+  "numpy": "2.5.4",
+  "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O"
+ }
 }

@@ -14,8 +14,8 @@ legal moves drawn from random.Random(seed * 1000 + i), never one that ends the g
 played twice, a as White and then a as Black, and its plies go through the runner (each bot plays its
 colour's opening moves first), so both trackers see every ply from the start position.
 
-A run of more than two games must pin --rules (standin or teal): auto becomes Teal's adapter when his
-branch merges, and one table must be played by one set of rules. Each ply records over_budget against
+A run of more than two games must pin --rules (standin or teal): what auto picks depends on whether
+the checkout has Teal's adapter, and one table must be played by one set of rules. Each ply records over_budget against
 --time-budget-ms (60 s by default); the one-ply bots do not read the budget, so the flag measures
 overruns and never cuts a move short. A game that fails because a side has no fog-legal move is a
 recorded error ("no legal move"), until Pair A's rules decide such positions.
@@ -407,8 +407,8 @@ def main():
     if args.games < 2 or args.games % 2:
         ap.error("--games must be even (each opening is played with both colours) and at least 2")
     if args.rules == "auto" and args.games > 2:
-        ap.error("pin --rules standin or teal for a batch: auto becomes Teal's adapter when his branch merges, "
-                 "and a batch across machines or days could mix rules")
+        ap.error("pin --rules standin or teal for a batch: auto is Teal's adapter only where the checkout has it, "
+                 "so a batch across machines or days could mix rules")
     if not 0 <= args.opening_plies[0] <= args.opening_plies[1]:
         ap.error("--opening-plies needs 0 <= MIN <= MAX")
     if args.time_budget_ms <= 0:

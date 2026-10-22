@@ -24,9 +24,9 @@ Opening i is k random legal plies, k drawn from 2 to 8 by `random.Random(seed * 
 
 ## Rules
 
-One table, one set of rules. A run of more than two games must pin `--rules standin` or `--rules teal`; the runner refuses `auto`, which becomes Teal's adapter the moment his branch merges. The run file records the rules id and the SHA-256 of every source file that plays, including `pair_a_prep/*.py`, where Teal's adapter will live. If the rules of record change, every pairing of the table is rerun; a table never mixes the two.
+One table, one set of rules. A run of more than two games must pin `--rules standin` or `--rules teal`; the runner refuses `auto`, which picks Teal's adapter wherever the checkout has it (on `main` once #15 merges) and the stand-in elsewhere. The run file records the rules id and the SHA-256 of every source file that plays, including `pair_a_prep/*.py`, where Teal's adapter lives. If the rules of record change, every pairing of the table is rerun; a table never mixes the two.
 
-Open question for 26 October: a position where a side has no fog-legal move and no rule result. Pair B's stand-in rules and Teal's adapter both leave it undecided; in play the bot raises and the game is recorded as an error with the text "no legal move"; inside the Stockfish evaluator such a child scores as a draw. Options: a draw, a loss for the blocked side, or a pass. Until it is decided, a table footnote states the count of games that failed for this reason, and the referee's `terminal()` and `pairb/stockfish.py` must agree afterwards.
+Open question for 26 October: a position where a side has no fog-legal move and no rule result. Pair B's stand-in rules and Teal's adapter both leave it undecided; in the match runner the bot raises and the game is recorded as an error with the text "no legal move"; inside the Stockfish evaluator such a child scores as a draw; Fog Lab ends such a game as a draw (`pairb/lab/session.py`, reason `no_legal_moves`). Options: a draw, a loss for the blocked side, or a pass. Until it is decided, a table footnote states the count of games that failed for this reason, and afterwards the referee's `terminal()`, `pairb/stockfish.py`, the bot and Fog Lab must all agree.
 
 ## Score and intervals
 

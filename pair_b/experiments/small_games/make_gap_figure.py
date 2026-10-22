@@ -5,7 +5,8 @@
 `--curves` is the file run_kuhn_control.py writes. `--reference` is Pair A's committed
 pcfr_alternating_reference.json: with it, `--check` compares the PCFR+ curve with the reference at the
 checkpoints they share (rounds 1, 10, 100, 1000, 2000) and fails if any gap differs by more than 1e-9.
-Gaps at or below the floor of the log axis (1e-7) are drawn on the floor line; a gap of exactly 0 gets a hollow marker.
+Gaps at or below the floor of the log axis (1e-7) are drawn on the floor line; a gap below 1e-12 (zero up to
+rounding: one machine prints 0, another about 3e-17) gets a hollow marker.
 """
 import argparse
 import json
@@ -14,6 +15,7 @@ import sys
 from pathlib import Path
 
 FLOOR = 1e-7
+ZERO = 1e-12  # below this a gap is zero up to rounding, and gets a hollow marker
 SERIES = [("pcfr_plus", "last", "PCFR+, last iterate", "#1f4e9c", ""),
           ("pcfr_plus", "average", "PCFR+, average iterate", "#1f4e9c", "6 4"),
           ("zero_predictions", "last", "zero predictions, last iterate", "#b5531c", ""),
@@ -55,14 +57,14 @@ def draw(curves: dict, out: Path) -> dict:
         d = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
         parts.append(f'<polyline points="{d}" fill="none" stroke="{colour}" stroke-width="2" stroke-dasharray="{dash}"/>')
         for (x, y), p in zip(pts, points):
-            exact = p[which]["nash_gap"] == 0.0
+            exact = p[which]["nash_gap"] < ZERO
             parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3" fill="{"white" if exact else colour}" stroke="{colour}"/>')
         drawn[f"{solver}/{which}"] = [(p["rounds"], p[which]["nash_gap"]) for p in points]
     for i, (_, _, label, colour, dash) in enumerate(SERIES):
         y = height - bottom - 70 + i * 16
         parts.append(f'<line x1="{left + 12}" y1="{y}" x2="{left + 40}" y2="{y}" stroke="{colour}" stroke-width="2" stroke-dasharray="{dash}"/>')
         parts.append(f'<text x="{left + 46}" y="{y + 4}">{label}</text>')
-    parts.append(f'<text x="{left + 12}" y="{height - bottom - 78}" font-size="11" fill="#555">hollow marker: a gap of exactly 0</text>')
+    parts.append(f'<text x="{left + 12}" y="{height - bottom - 78}" font-size="11" fill="#555">hollow marker: a gap below 1e-12 (zero up to rounding)</text>')
     parts.append('</svg>\n')
     out.write_text("\n".join(parts))
     return drawn

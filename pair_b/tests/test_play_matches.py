@@ -171,6 +171,22 @@ def test_the_rules_are_chosen_on_the_command_line_and_recorded(tmp_path):
         assert teal.returncode != 0 and "Teal" in teal.stderr and not (tmp_path / "teal").exists()
 
 
+def _teal_available():
+    from pairb.rules import teal_available
+    return teal_available()
+
+
+# Catches: `--rules teal` failing on a checkout that has Teal's adapter, or playing (and recording) the
+# stand-in instead. Without the adapter the test above checks the refusal instead.
+@pytest.mark.skipif(not _teal_available(), reason="Teal's rules adapter is not in this checkout")
+def test_rules_teal_plays_and_records_teals_adapter(tmp_path):
+    teal = play(tmp_path / "teal", "--games", "2", "--max-plies", "8", "--rules", "teal")
+    assert teal.returncode == 0, teal.stderr
+    summary = json.loads((tmp_path / "teal" / "summary.json").read_text())
+    assert (summary["rules"], summary["settings"]["rules"]) == ("teal-rules-adapter", "teal")
+    assert "pair_a_prep/rules_adapter.py" in summary["record"]["source_sha256"]
+
+
 # Catches: a run that cannot be traced to the code, engine and libraries that played it.
 def test_the_summary_records_the_code_engine_and_libraries(two_games):
     import shutil
@@ -473,8 +489,8 @@ def test_five_consecutive_failed_games_stop_the_run(tmp_path, monkeypatch):
     assert summary["errors"] == 5 and summary["stopped_early"] == "5 consecutive games failed"
 
 
-# Catches: a batch played under whatever rules happen to be importable (`auto` becomes Teal's adapter
-# the moment #15 merges), so two machines, or two halves of one table, play by different rules.
+# Catches: a batch played under whatever rules happen to be importable (`auto` is Teal's adapter
+# wherever the checkout has it), so two machines, or two halves of one table, play by different rules.
 def test_a_batch_must_pin_its_rules(tmp_path):
     batch = play(tmp_path / "auto4", "--games", "4")
     assert batch.returncode != 0 and "pin --rules" in batch.stderr and not (tmp_path / "auto4").exists()

@@ -403,7 +403,7 @@ game ended by a king capture, 49.7 plies on average; the 10 games took 128 s, 12
 took 14.2 ms for quick Stockfish and 4.0 ms for piece values (95th percentiles 20.6 and 7.4 ms), so
 most of a game's time is the two trackers (1,014 updates, 153 of them capped and 39 rebuilt). The
 same 10 games played before the per-game engine reset (`pilot-d1-vs-material-shared-engine-state/`)
-differ in the length of 8 games (only games 1 and 6 match) and the winner of one: engine state carried
+differ in the length of 8 games (only game ids 0 and 5 match) and the winner of one (game id 7): engine state carried
 across games changes results, which is why no number from before the reset is cited.
 
 The runs for the report, for ZW, once the runner decision with Bryan is recorded (proposed, pending
