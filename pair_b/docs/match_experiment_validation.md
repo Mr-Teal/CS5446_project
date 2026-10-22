@@ -3,6 +3,9 @@
 Validated on 21 October 2026 using Python 3.12 on an Intel Mac, CPU Network 1 and Stockfish 19.
 This is a workflow pilot, not a final playing-strength comparison.
 
+Both pilot validations below were run before PR #16 was merged. Their source revisions,
+test counts and results describe those historical runs, not a fresh validation of current main.
+
 ## Checks
 
 From the repository root, with Pair B dependencies installed:
@@ -15,7 +18,7 @@ PYTHONPATH=pair_b/src:. python -m pytest \
 ```
 
 **114 passed, 4 skipped** in 121.05 seconds. The four skips need Pair A's rules adapter,
-which is absent from main. Eight tests cover the new runner, including colour pairing,
+which was absent from that baseline. Eight tests covered the new runner, including colour pairing,
 score perspective, failures, repeatability and protection against overwriting output.
 This is a selected regression run, not a full-repository or Pair A solver validation.
 
@@ -46,9 +49,9 @@ historical consistency: investigate its effect before expanding the experiment.
 ## Provenance
 
 The executed source base was `deb84b021ac80017f141540bb5e2b68d9f7167b7` plus this
-runner. Latest main `849b64d95b74c7efb06abe622f2f6b3a8ddea1c8` changes only the Fog Lab
-guide/README relative to that base. This PR applies the new files directly on latest
-main. The pilot's raw records and machine-specific manifest remain local; they are
+runner. The then-current main `849b64d95b74c7efb06abe622f2f6b3a8ddea1c8` changed only the Fog Lab
+guide/README relative to that base. The original PR applied the new files directly on that historical
+main baseline. The pilot's raw records and machine-specific manifest remain local; they are
 not included as portable fixtures. The following hashes identify the executed runner,
 engine and checkpoints.
 
