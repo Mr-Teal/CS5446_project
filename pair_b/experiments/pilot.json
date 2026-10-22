@@ -1,0 +1,17 @@
+{
+  "rules": "standin",
+  "seeds": [4246, 5446],
+  "openings": [null],
+  "candidates": [
+    {"kind": "material"},
+    {"kind": "stockfish-d1"},
+    {"kind": "linear", "checkpoint": "pair_b/checkpoints/linear-v1/best.npz"},
+    {"kind": "net1", "checkpoint": "pair_b/checkpoints/net1-v2/best.pt"}
+  ],
+  "opponent": {"kind": "stockfish-d1"},
+  "tracker": {"n_particles": 32, "n_hypotheses": 4, "rebuild_tries": 200},
+  "max_plies": 80,
+  "time_budget_ms": 1000,
+  "stockfish_path": "stockfish",
+  "device": "cpu"
+}
