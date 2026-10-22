@@ -27,7 +27,8 @@ def _arrays(parents, *values):
 
 def choice_metrics(parents, pred, y) -> dict:
     """top1: share of parents where the chosen child is as good as the best one;
-    regret: mean value lost by the choice."""
+    regret: mean value lost by the choice. A tie in `pred` goes to the first child in row order
+    (D2 writes each parent's children in UCI order)."""
     group, pred, y = _arrays(parents, pred, y)
     regret = _per_parent_regret(group, pred, y)
     return {"top1": float(np.mean(regret <= 1e-9)), "regret": float(np.mean(regret)), "parents": int(len(regret))}

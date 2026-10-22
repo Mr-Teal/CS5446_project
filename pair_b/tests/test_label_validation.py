@@ -280,8 +280,9 @@ def test_the_checker_and_everything_it_imports_stay_python_39_safe():
     code = ("import json, sys; sys.modules['torch'] = None; import pairb.label_validation; "
             "print(json.dumps([getattr(m, '__file__', None) for m in list(sys.modules.values())]))")
     result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
-    ours = sorted({Path(f).resolve() for f in json.loads(result.stdout)
-                   if f and Path(f).resolve().is_relative_to(root)})
+    # Only our own source: a venv inside the repo (the README's set-up) also holds numpy's compiled modules.
+    ours = sorted({p for p in (Path(f).resolve() for f in json.loads(result.stdout) if f)
+                   if p.is_relative_to(root) and p.suffix == ".py" and ".venv" not in p.parts})
     assert any(p.name == "label_validation.py" for p in ours)
     problems = []
     for path in ours:

@@ -1,0 +1,30 @@
+{
+  "run": "belief-v1-pure",
+  "data": "d6-check",
+  "split": "train",
+  "network": {
+    "board_mae": 0.178051,
+    "board_mse": 0.091588,
+    "root_mae": 0.141411,
+    "beliefs": 3818,
+    "boards": 30406
+  },
+  "created": "2026-10-18T18:06:17+08:00",
+  "baseline": {
+    "board_mae": 0.079831,
+    "board_mse": 0.023998,
+    "root_mae": 0.054845,
+    "beliefs": 3818,
+    "boards": 30406
+  },
+  "root_mae_difference": {
+    "mean": 0.08656627200752898,
+    "ci95": [
+      0.07983635398782304,
+      0.09327516759316662
+    ],
+    "beliefs": 3818,
+    "games": 959,
+    "resampled": "games"
+  }
+}

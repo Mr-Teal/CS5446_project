@@ -214,3 +214,24 @@ def test_the_report_has_the_value_error_difference_against_quick_stockfish(tmp_p
     assert difference["mean"] == pytest.approx(report["linear"]["mae"] - report["baseline"]["mae"], abs=1e-6)
     assert difference["positions"] == report["n"] and difference["games"] == report["games"]
     assert difference["resampled"] == "games" and difference["ci95"][0] <= difference["mean"] <= difference["ci95"][1]
+
+
+# Catches: the Apple-GPU timing of Network 1 run on another device than asked, or the committed CPU
+# run's evaluator name changing under it.
+@pytest.mark.skipif(shutil.which('stockfish') is None, reason='needs Stockfish on PATH')
+def test_benchmark_times_network1_on_the_device_asked_for(tmp_path):
+    pytest.importorskip('torch')
+    folder=tmp_path/'data';dataset(folder)
+    def run(script,*args):
+        return subprocess.run([sys.executable,str(ROOT/'pair_b'/'scripts'/script),*map(str,args)],
+                              text=True,capture_output=True)
+    assert run('train_linear.py','--data',folder,'--out',tmp_path/'run','--alphas',0.01).returncode==0
+    net1=ROOT/'pair_b'/'checkpoints'/'net1-v2'
+    for extra,key in (((),'network_cpu'),(('--net1-device','cpu'),'network_cpu')):
+        timing=tmp_path/f'timing-{len(extra)}.json'
+        benchmark=run('benchmark_linear.py','--run',tmp_path/'run','--data',folder,'--limit',1,'--repeats',1,
+                      '--net1-run',net1,*extra,'--out',timing)
+        assert benchmark.returncode==0,benchmark.stderr
+        timed=json.loads(timing.read_text())
+        assert set(timed['evaluators'])=={'material','d1','linear',key}
+        assert timed['network_device']=='cpu'

@@ -1,15 +1,14 @@
 """Training/evaluation helpers for the NumPy baseline; no torch imports."""
 import hashlib
 import json
-import platform
 from pathlib import Path
 
-import chess
 import numpy as np
 
 from .data import ENCODING, build_arrays, read_records, split_of
 from .linear import fit_candidates
 from .metrics import choice_metrics, paired_difference, paired_regret_difference
+from .provenance import data_files as provenance, runtime
 
 CONTENT_KEY = "sha1 of the game's sorted unique parent FENs, one per line; first 16 hex characters"
 
@@ -17,19 +16,6 @@ CONTENT_KEY = "sha1 of the game's sorted unique parent FENs, one per line; first
 def write_json(path, value):
     with open(path, "x") as f:
         f.write(json.dumps(value, indent=2, allow_nan=False) + "\n")
-
-
-def provenance(folder):
-    folder = Path(folder)
-    files = sorted(folder.glob("part-*.jsonl"))
-    if not files:
-        raise ValueError("no part-*.jsonl records found")
-    manifest = folder / "manifest.json"
-    if manifest.exists():
-        files.append(manifest)
-    hashes = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
-    return {"dataset": folder.name, "files_sha256": hashes,
-            "sha256": hashlib.sha256(json.dumps(hashes, sort_keys=True).encode()).hexdigest()}
 
 
 def load_dataset(folder):
@@ -81,19 +67,6 @@ def metrics(pred, arrays):
 def material_prediction(planes):
     counts = planes[:, :12].astype(np.float64).sum(axis=(2, 3))
     return np.tanh(((counts[:, :6] - counts[:, 6:]) @ np.array([100,300,300,500,900,0])) / 600)
-
-
-def runtime():
-    root = Path(__file__).resolve().parents[2]
-    paths = sorted([*root.glob("src/pairb/*.py"), *root.glob("scripts/*.py"),
-                    *root.parent.glob("fow_shared/*.py")])
-    digest = hashlib.sha256()
-    for path in paths:
-        digest.update(str(path.relative_to(root.parent)).encode())
-        digest.update(path.read_bytes())
-    return {"python": platform.python_version(), "platform": platform.platform(),
-            "numpy": np.__version__, "python_chess": chess.__version__,
-            "source_sha256": digest.hexdigest()}
 
 
 def train(folder, out, alphas):

@@ -1,4 +1,5 @@
 """Turning D2 records into training arrays, the split by game (D1 spec §6), and the array cache."""
+import gzip
 import json
 import os
 import subprocess
@@ -8,7 +9,7 @@ import chess
 import numpy as np
 import pytest
 
-from pairb.data import build_arrays, load_arrays, pack, split_of, unpack
+from pairb.data import build_arrays, load_arrays, pack, read_records, split_of, unpack
 from pairb.encode import encode_board
 
 WHITE_TO_MOVE = "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3"
@@ -93,3 +94,21 @@ def test_load_arrays_reuses_its_cache_while_the_files_are_unchanged(tmp_path, mo
     load_arrays(tmp_path / "d2", tmp_path / "cache")
     monkeypatch.setattr("pairb.data.build_arrays", lambda records: pytest.fail("rebuilt unchanged files"))
     assert load_arrays(tmp_path / "d2", tmp_path / "cache")["y"].tolist() == pytest.approx([0.3])
+
+
+# Catches: the frozen evaluation rows (a gzipped part) read as an empty or partial dataset.
+def test_readers_take_gzipped_parts_alongside_plain_ones(tmp_path):
+    a, b = record(WHITE_TO_MOVE, "g-000000", 0.2, 0.3), record(BLACK_TO_MOVE, "g-000001", -0.1, 0.4)
+    write_d2(tmp_path / "d2", [a], {"created": "x", "records": 2})
+    (tmp_path / "d2" / "part-01.jsonl.gz").write_bytes(gzip.compress((json.dumps(b) + "\n").encode()))
+    assert read_records(tmp_path / "d2") == [a, b]
+    assert load_arrays(tmp_path / "d2", tmp_path / "cache")["game_id"].tolist() == ["g-000000", "g-000001"]
+
+
+# Catches: a part gzipped in place with the original kept, which would be read twice.
+def test_readers_refuse_a_part_kept_both_plain_and_gzipped(tmp_path):
+    a = record(WHITE_TO_MOVE, "g-000000", 0.2, 0.3)
+    write_d2(tmp_path / "d2", [a], {"created": "x", "records": 1})
+    (tmp_path / "d2" / "part-00.jsonl.gz").write_bytes(gzip.compress((json.dumps(a) + "\n").encode()))
+    with pytest.raises(ValueError, match="part-00.jsonl"):
+        read_records(tmp_path / "d2")

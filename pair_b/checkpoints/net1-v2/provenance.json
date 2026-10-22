@@ -1,0 +1,73 @@
+{
+  "note": "Written on 2026-10-21, after training, from the local data folder d2-v2: the run cannot be retrained, so this records the bytes it was trained on. files_last_modified is the newest data file's time; it should be earlier than training.created.",
+  "source": {
+    "dataset": "d2-v2",
+    "files_sha256": {
+      "part-00.jsonl": "ebbc3a11da2a3853291a9d50364366fb479c8192860d2d61af99cc6a2f543286",
+      "part-01.jsonl": "a941a0074a09e90926cbd5bdbed7aef7b3e2c2e5d497f43f91499e549ffbc78a",
+      "part-02.jsonl": "1a6a8d5de1064a23000002c9ecfee7c53f01c196264e431d696eb330fc748aad",
+      "part-03.jsonl": "8ce4d36052ca9b1f3904055f1e52aa09a7503fa2fa3f4c801aa657b01804c705",
+      "part-04.jsonl": "30f757c568a67c331cf04715ab99540288838cc72b6ed9cb219b44b4cf4ab3a1",
+      "part-05.jsonl": "66e025c21fc1415d1518c85f58db217d240fb4b4da0fd60faddf2614de0cba28",
+      "part-06.jsonl": "a3e3672cc91a2058e7207be40f8e7b906f385751f195ed7968d286f3d55c8ff1",
+      "part-07.jsonl": "6c746a348c7ef7980790a6f1118128dc9170cfe3873d23072e42eeb07539567e",
+      "part-08.jsonl": "8de5e952889a641223375508b3db03cf886b131965b1a39ad62fc4fce0c621b2",
+      "part-09.jsonl": "f6122cef324024993dd622116282657d2c45083e940d568c8eb9a36317251a30",
+      "part-10.jsonl": "5c25294f207c972917f67199084aca4efc65d32e81fe4686342a60a95fb8a682",
+      "part-11.jsonl": "cb5f5bf4edb5e4badfe027d1c589034447a535ca4cf0f5b6865a2671ebffb77f",
+      "manifest.json": "bc6fca7cf0f924188f23d307edad55942684ed7e4c6dcbea64f8492b9a1f6b81"
+    },
+    "sha256": "b6f05233a5c2f9737a84410f382a3cbc9fa67d4e8b5f8f25b7289f3f281bd758",
+    "manifest": {
+      "code_sha256": "73f761da40e1482050595a1c4f2dc340c496f43525187669bb7d75d3fdd1e81a",
+      "seed": 2026,
+      "created": "2026-10-16T20:43:53+08:00",
+      "command": [
+        "make_d2.py",
+        "--games",
+        "8000",
+        "--parents-per-game",
+        "4",
+        "--workers",
+        "12",
+        "--seed",
+        "2026",
+        "--out",
+        "data/d2-v2"
+      ],
+      "stockfish": {
+        "name": "Stockfish 19",
+        "threads": 1,
+        "hash_mb": 16,
+        "label_depths": [
+          1,
+          11
+        ],
+        "label_mode": "MultiPV at the parent: one score per child, as in [1] App. C.5",
+        "new_game_before_each_label": true
+      }
+    },
+    "files_last_modified": "2026-10-16T20:43:53+08:00"
+  },
+  "checkpoint_sha256": "ab470346acb5eb37947e3ab0eb43c005894ae72569ca016d7635fc2be6f9171f",
+  "training": {
+    "device": "mps",
+    "best_epoch": 1,
+    "epochs_run": 6,
+    "created": "2026-10-16T20:47:23+08:00",
+    "args": {
+      "data": "data/d2-v2",
+      "out": "runs/net1-v2",
+      "blocks": 6,
+      "channels": 64,
+      "epochs": 30,
+      "patience": 5,
+      "batch": 512,
+      "lr": 0.002,
+      "weight_decay": 0.0001,
+      "seed": 0,
+      "device": "auto",
+      "cache_dir": "data/cache"
+    }
+  }
+}

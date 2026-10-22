@@ -14,7 +14,8 @@ checkpoint. The networks need all three; torch comes first because nothing the u
 others helps on a machine that cannot run it.
 
 Stockfish-based scorers are opened with new_game_each_call=False, as inside a search: no ucinewgame
-before each call, so the engine keeps its hash and answers faster (StockfishEvaluator measured about 3x).
+before each call, so the engine keeps its hash and answers faster (about 3.4x for quick Stockfish,
+checkpoints/timing-new-game-each-call.json).
 Only labelling needs every answer to ignore the earlier ones.
 """
 import importlib.util
