@@ -1,6 +1,36 @@
 # Verification and handoff
 
-## Current branch validation: 21 October 2026
+## Current chess integration validation: 22 October 2026
+
+Using `pair_b/.venv/Scripts/python.exe` (Python 3.12.15), with the declared
+Pair A requirements installed into that environment:
+
+```powershell
+.\pair_b\.venv\Scripts\python.exe -m pytest -q tests pair_a_prep/tests pair_b_prep
+```
+
+Result: **309 tests and 2 subtests passed**, including 18 new chess bridge and
+pilot tests. The full Pair B app/training suite was not part of this run.
+
+The new tests check private-stream information sets (including hidden actions
+that must share a key), same-FEN histories, complete path validation, retained
+repetition history, Black/White payoff signs, shared-profile root labels,
+explicit tree capacity and no-move failures, shared match integration, JSONL
+round trips and a chess-tree value checked against the independent LP oracle.
+
+Two small real-evaluator pilots passed: Material plus D1 features (12 records
+from two capped games) and Stockfish D1 (one Black king-capture record). Both
+passed Pair B's strict label checker with D1 and played policies required, with
+zero errors/warnings, and repeated fixed-work runs identically. The Material
+export also matched a separate-process run after excluding elapsed times and
+over-budget flags. See [chess_search.md](chess_search.md) for settings and limits
+and [the compact reference](../results/chess_search_reference.json) for hashes.
+
+Raw pilot files are local and ignored under `pair_a_prep/local_runs/`. These
+checks establish a small end-to-end pipeline, not production teacher quality,
+long-game scalability, full KLUSS or a complete Obscuro reproduction.
+
+## Previous branch validation: 21 October 2026
 
 Base `origin/main` was fetched and is an ancestor of this branch; no additional
 main merge was needed. The following checks passed:

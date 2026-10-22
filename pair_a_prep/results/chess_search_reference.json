@@ -1,0 +1,134 @@
+{
+  "date": "2026-10-22",
+  "purpose": "Small pipeline validation, not production teacher data or agent strength",
+  "tests_passed": 309,
+  "subtests_passed": 2,
+  "fresh_process_material_repeat": true,
+  "runs": [
+    {
+      "evaluator": "material",
+      "initial_fen": "7k/8/8/8/8/8/8/K7 w - - 0 1",
+      "seed": 17,
+      "config": {
+        "depth": 2,
+        "rounds": 16,
+        "max_nodes": 5000,
+        "schedule": "alternating",
+        "stop_on_time": false
+      },
+      "sample_size": 4,
+      "max_candidates": 2000,
+      "records": 12,
+      "game_outcomes": [
+        {
+          "outcome": null,
+          "stopped_at_ply_limit": true,
+          "records": 6
+        },
+        {
+          "outcome": null,
+          "stopped_at_ply_limit": true,
+          "records": 6
+        }
+      ],
+      "max_search_nodes": 269.0,
+      "max_population": 105,
+      "python_peak_bytes": 1773252,
+      "engine": {
+        "name": {
+          "name": "Stockfish 19",
+          "author": "the Stockfish developers (see AUTHORS file)"
+        },
+        "threads": 1,
+        "hash_mb": 16,
+        "depth": 1,
+        "new_game_each_call": true,
+        "sha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0"
+      },
+      "source_sha256": {
+        "pair_a_prep/label_pilot.py": "3015c9a06bc563713fed5c73d8b9cfdeed03f9014fc7150fbdce93a1e0bf3f0b",
+        "pair_a_prep/search_agent.py": "25d6e50ae1f320ca911ae8f3604c31aed9bbf00ecf0a7df5f834a8394eafd609",
+        "pair_a_prep/chess_search.py": "447e09f3f0f8312b19e3daadca08759a4711ce90b7260f6d821255a3f7a3c8af",
+        "pair_a_prep/pcfr.py": "b380c6129d09aabcb59bab9c66633cbd49731c28e4a092c37beb79d427edb4ea",
+        "pair_a_prep/toy_games.py": "12bb5aedaf052b3e7513c677909ef8207663b7e8376059b04e0d4c8a97720b68",
+        "pair_a_prep/rules_adapter.py": "f8a0830713f5e3aa5bb5c025fbb7b8adf4be4ac0e271b1f18a13f82dd580ac17",
+        "pair_a_prep/belief_tracker.py": "319dc80fb887d353245e5a765a3625e2a36a98ebac5dc73811265b82bde7134f",
+        "fow_shared/contracts.py": "f60af16a63085e1dbeb1001b4075f1886604ef0dac5e0ff25d86015b1a9e0225",
+        "fow_shared/values.py": "88ebc30a9149ab3b782ac96e568d7168b39a0d5cae90b2fd4747baa8d9496459",
+        "fow_shared/evaluation.py": "183ae4741df5cb90a1ac2a8805b57f0c9d1dc0014320514d15a52bedb8cd607b",
+        "fow_shared/recording.py": "e9574f1a4544486f2340fc57bf838554bc25c045e696f006402df649ba0aa641",
+        "pair_b/src/pairb/material.py": "61955b56b3381107cb840421082ac5c7aca93e1d73c0d561334556d34002efcf",
+        "pair_b/src/pairb/stockfish.py": "435001e5c28d698d632c84659f7bb54b99bc5092a810cc1e25adec2d3b55ffac"
+      },
+      "data_sha256": "35963df9d3d2e596b77dde451337f583fb216200ce038de6e829113201876c3c",
+      "repeat_semantics_identical": true,
+      "validation": {
+        "errors": [],
+        "warnings": []
+      }
+    },
+    {
+      "evaluator": "stockfish-d1",
+      "initial_fen": "4k3/4r3/8/8/8/8/8/4K3 b - - 0 1",
+      "seed": 17,
+      "config": {
+        "depth": 2,
+        "rounds": 16,
+        "max_nodes": 5000,
+        "schedule": "alternating",
+        "stop_on_time": false
+      },
+      "sample_size": 2,
+      "max_candidates": 2000,
+      "records": 1,
+      "game_outcomes": [
+        {
+          "outcome": "black",
+          "stopped_at_ply_limit": false,
+          "records": 1
+        }
+      ],
+      "max_search_nodes": 99.0,
+      "max_population": 1,
+      "python_peak_bytes": 289887,
+      "engine": {
+        "name": {
+          "name": "Stockfish 19",
+          "author": "the Stockfish developers (see AUTHORS file)"
+        },
+        "threads": 1,
+        "hash_mb": 16,
+        "depth": 1,
+        "new_game_each_call": true,
+        "sha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0"
+      },
+      "source_sha256": {
+        "pair_a_prep/label_pilot.py": "3015c9a06bc563713fed5c73d8b9cfdeed03f9014fc7150fbdce93a1e0bf3f0b",
+        "pair_a_prep/search_agent.py": "25d6e50ae1f320ca911ae8f3604c31aed9bbf00ecf0a7df5f834a8394eafd609",
+        "pair_a_prep/chess_search.py": "447e09f3f0f8312b19e3daadca08759a4711ce90b7260f6d821255a3f7a3c8af",
+        "pair_a_prep/pcfr.py": "b380c6129d09aabcb59bab9c66633cbd49731c28e4a092c37beb79d427edb4ea",
+        "pair_a_prep/toy_games.py": "12bb5aedaf052b3e7513c677909ef8207663b7e8376059b04e0d4c8a97720b68",
+        "pair_a_prep/rules_adapter.py": "f8a0830713f5e3aa5bb5c025fbb7b8adf4be4ac0e271b1f18a13f82dd580ac17",
+        "pair_a_prep/belief_tracker.py": "319dc80fb887d353245e5a765a3625e2a36a98ebac5dc73811265b82bde7134f",
+        "fow_shared/contracts.py": "f60af16a63085e1dbeb1001b4075f1886604ef0dac5e0ff25d86015b1a9e0225",
+        "fow_shared/values.py": "88ebc30a9149ab3b782ac96e568d7168b39a0d5cae90b2fd4747baa8d9496459",
+        "fow_shared/evaluation.py": "183ae4741df5cb90a1ac2a8805b57f0c9d1dc0014320514d15a52bedb8cd607b",
+        "fow_shared/recording.py": "e9574f1a4544486f2340fc57bf838554bc25c045e696f006402df649ba0aa641",
+        "pair_b/src/pairb/stockfish.py": "435001e5c28d698d632c84659f7bb54b99bc5092a810cc1e25adec2d3b55ffac"
+      },
+      "data_sha256": "1eb759e9f1f2c3bf8eddb7e4c5cb6a4c58439708e537380f9d175b34356b94f6",
+      "repeat_semantics_identical": true,
+      "validation": {
+        "errors": [],
+        "warnings": []
+      }
+    }
+  ],
+  "limitations": [
+    "Fixed-depth full-width sampled-root game; no KLUSS gadget, growth, gifts, persistence or purification.",
+    "Separated-kings material labels have little value diversity; these are not a training-quality dataset.",
+    "Capped games are unfinished, not referee draws.",
+    "Python allocation peaks include pilot bookkeeping and repeated runs; not process RSS.",
+    "Engine reset on every call; timing is not production-search performance."
+  ]
+}

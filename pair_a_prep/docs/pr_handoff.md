@@ -12,6 +12,12 @@ PCFR+ with simultaneous and alternating updates, Resolve/Maxmargin gadgets,
 a synchronized-cut KLSS/KLUSS prototype, and an offline toy solver explorer.
 Tests and reference outputs accompany the implementations.
 
+The branch also contains the exact history-preserving belief tracker and a
+runnable fixed-depth chess search prototype. The prototype reconstructs private
+information sets from candidate paths, calls a pluggable leaf evaluator, and
+exports small validated label pilots. See [chess_search.md](chess_search.md).
+It is a sampled-root game without the paper's KLUSS gadgets.
+
 The shared contracts and encoder are unchanged. Pair B can use
 `pair_a_prep.rules_adapter.RulesReferee` and the existing `RulesAdapter`
 without waiting for the complete Obscuro agent. Run from the repository root:
@@ -33,11 +39,12 @@ the similarly named template is not the generated viewer.
 
 ## Remaining work
 
-- General observation/history-based subgames and opponent information sets.
+- General KLUSS subgames beyond the current private-history sampled-root tree.
 - Incremental tree growth, initialization, persistent search and root sampling.
-- Integration with the partner's belief tracker and end-to-end agent decisions.
+- Full-game scalability beyond the small exact-tracker integration fixtures.
 - Paper-specific gifts, alternative values and policy purification.
-- Validated solver labels and controlled complete-agent comparisons.
+- Production teacher labels and controlled complete-agent comparisons beyond
+  the current pipeline-validation pilots.
 
 The fixed-tree tests do not establish a complete Obscuro reproduction.
 The rules fixtures implement the documented proposed profile, not a proof of

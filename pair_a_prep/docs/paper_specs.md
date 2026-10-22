@@ -1,7 +1,8 @@
 # Pair A implementation specifications
 
 Prepared 17 October 2026. These are build checklists, not claims that either
-agent has been implemented. Agent ownership remains unassigned. Items marked
+agent has been implemented. Ownership is now agreed: rules/Obscuro and
+tracker/ZS21 are split between the Pair A members with mutual review. Items marked
 **proposal** are our engineering choices and require review.
 
 ## Fixed primary references
