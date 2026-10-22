@@ -285,6 +285,14 @@ def test_the_score_counts_complete_colour_pairs_only():
     assert two["wilson95"][0] < 0.75 < two["wilson95"][1]
 
 
+# Catches: a pair with one draw scored as anything but a quarter point (Bryan's #18 review: a win and a
+# draw is 0.75, a loss and a draw 0.25; the protocol used to list only 0, 0.5 and 1).
+def test_a_pair_with_one_draw_scores_a_quarter_point():
+    win_and_draw = summary_of([synthetic(0, 0, "a", winner="white"), synthetic(1, 0, "b", winner="draw")])
+    loss_and_draw = summary_of([synthetic(0, 0, "a", winner="black"), synthetic(1, 0, "b", winner="draw")])
+    assert (win_and_draw["score_a"]["mean"], loss_and_draw["score_a"]["mean"]) == (0.75, 0.25)
+
+
 def pairs_of(outcomes):
     """Synthetic complete colour pairs: one winner string per pair ('a', 'b' or 'draw'), played as both colours."""
     games = []

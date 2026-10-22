@@ -252,7 +252,8 @@ def play_one(rules, number: int, moves: list[str], colours: dict, scorers: dict,
 
 def wilson95(p: float, n: int, z: float = 1.959964) -> list[float]:
     """Wilson's 95% score interval for a proportion p seen in n trials; here the pair-level score over
-    n complete pairs, treated as a proportion (an approximation: a pair's score is 0, 0.5 or 1)."""
+    n complete pairs, treated as a proportion. An approximation: a pair's score is 0, 0.25, 0.5, 0.75 or
+    1 (a draw in either game gives a quarter point), not a 0-or-1 outcome."""
     centre = (p + z * z / (2 * n)) / (1 + z * z / n)
     half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / (1 + z * z / n)
     return [0.0 if p <= 0 else max(0.0, centre - half), 1.0 if p >= 1 else min(1.0, centre + half)]

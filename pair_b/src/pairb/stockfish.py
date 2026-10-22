@@ -53,12 +53,17 @@ class StockfishEvaluator:
             return False
 
     def close(self):
-        """Stop the engine. A dead or hung engine (a crash) is let go without raising, so a run's
-        clean-up never ends with a traceback."""
+        """Stop the engine. If quit() fails or times out (a crash, or an engine that has stopped
+        answering), the engine is shut down anyway: python-chess closes the transport, which kills
+        the process, and stops its event loop, so nothing is left running beside a replacement.
+        Never raises, so a run's clean-up never ends with a traceback."""
         try:
             self.engine.quit()
         except (chess.engine.EngineError, TimeoutError):
-            pass
+            try:
+                self.engine.close()
+            except RuntimeError:  # its event loop already ended with the process
+                pass
 
     def __enter__(self):
         return self
