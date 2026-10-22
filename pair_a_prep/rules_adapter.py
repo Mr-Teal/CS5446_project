@@ -56,7 +56,8 @@ class RulesAdapter:
         actual side to move and reveals both target and capturable pawn.
         """
         color = self._color(player)
-        board = state.board_copy()
+        # Visibility depends on the position, never its repetition history.
+        board = state._board.copy(stack=False)
         if board.turn != color:
             board.ep_square = None
         board.turn = color
@@ -119,7 +120,7 @@ class RulesAdapter:
         if move not in self.legal_moves(state):
             raise ValueError("unavailable UCI move: {!r}".format(move))
         action = chess.Move.from_uci(move)
-        board = state.board_copy()
+        board = state._board
         captured_square = action.to_square
         if board.is_en_passant(action):
             captured_square += -8 if board.turn == chess.WHITE else 8
@@ -127,11 +128,14 @@ class RulesAdapter:
         # Castling is not a capture. Validated FoW actions never capture own pieces.
         captured = piece is not None and piece.color != board.turn
         captured_player = ("white" if piece.color else "black") if captured else None
-        board.push(action)
-        return RuleState(
+        # RuleState makes the one defensive history-preserving copy. Finish the
+        # move on that privately owned copy before publishing the successor.
+        successor = RuleState(
             board, ply=state.ply + 1, captured_player=captured_player,
             captured_square=chess.square_name(captured_square) if captured else None,
         )
+        successor._board.push(action)
+        return successor
 
 
 class RulesReferee:

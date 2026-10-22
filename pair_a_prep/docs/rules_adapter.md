@@ -15,6 +15,12 @@ states belong to the runner or to inferred tracker candidates, never agent input
 opponent visibility calculation through a caller-owned wrapper. Its player
 argument always identifies the viewer, independent of the side to move.
 
+Visibility uses a position-only copy (`stack=False`), since it does not consult
+repetition history. `apply_move` reads capture metadata from the parent, makes
+one defensive copy through `RuleState`, and pushes on that successor's private
+board before returning it. Full history is retained for terminal checks, and
+parents, siblings and boards returned by `board_copy()` remain independent.
+
 ## Observation construction
 
 1. Include every square occupied by the viewer's pieces.

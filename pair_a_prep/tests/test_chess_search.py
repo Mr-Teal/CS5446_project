@@ -180,7 +180,8 @@ def test_tree_and_clock_limits_fail_without_publishing_partial_labels():
 
 
 def test_blocked_custom_position_does_not_silently_become_a_draw():
-    fen = "KBBBBBBB/PPPPPPPP/8/8/8/8/8/7k w - - 0 1"
+    # The blocked position supplied in Colin's PR #15 review.
+    fen = "7k/8/8/8/1p6/pPp5/PRP5/KB6 w - - 0 1"
     turn = turn_after(fen)
     assert not turn.observation.legal_moves and not turn.observation.terminal
     with pytest.raises(UnresolvedNoMoveError):

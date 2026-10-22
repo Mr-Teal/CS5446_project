@@ -2,6 +2,8 @@
 
 import numpy as np
 import pytest
+import json
+from pathlib import Path
 
 from pair_a_prep.pcfr import PCFRPlus, PredictiveRMPlus
 from pair_a_prep.toy_games import (Node, terminal, hidden_coin, matching_pennies,
@@ -133,3 +135,20 @@ def test_alternating_chance_and_hidden_information(factory, expected):
 def test_schedule_validation():
     with pytest.raises(ValueError, match="schedule"):
         PCFRPlus(matching_pennies(), schedule="unknown")
+
+
+def test_alternating_kuhn_replays_committed_early_checkpoints():
+    # Early transients pin the predictor/schedule. Equilibrium-only tests also
+    # pass with stale local utilities or ancestor-first predictor preparation.
+    path = Path(__file__).resolve().parents[1] / "results/pcfr_alternating_reference.json"
+    reference = json.loads(path.read_text(encoding="utf-8"))["games"]["kuhn"]["trace"]
+    solver = PCFRPlus(kuhn_poker(), schedule="alternating")
+    for expected in reference:
+        if expected["rounds"] > 100:
+            break
+        solver.run(expected["rounds"] - solver.rounds)
+        actual = solver.metrics()
+        for profile in ("last", "average"):
+            for metric in ("value", "nash_gap"):
+                assert actual[profile][metric] == pytest.approx(
+                    expected[profile][metric], abs=1e-12, rel=0)

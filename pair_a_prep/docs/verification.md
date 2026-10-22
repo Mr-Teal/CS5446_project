@@ -9,8 +9,22 @@ Pair A requirements installed into that environment:
 .\pair_b\.venv\Scripts\python.exe -m pytest -q tests pair_a_prep/tests pair_b_prep
 ```
 
-Result: **309 tests and 2 subtests passed**, including 18 new chess bridge and
-pilot tests. The full Pair B app/training suite was not part of this run.
+Result after the PR #15 review fixes: **310 tests and 2 subtests passed**,
+including 18 chess bridge/pilot tests and the new alternating Kuhn checkpoint
+regression. This command includes the belief tracker's 95 tests. The full
+Pair B app/training suite was not part of this run.
+
+The Kuhn regression compares last/average values and Nash gaps at rounds 1,
+10 and 100 against the committed alternating reference at absolute tolerance
+`1e-12`. Separate runtime mutation probes confirmed that stale-local-utility
+prediction and ancestor-first preparation each fail at round 10 (largest metric
+difference about 0.0687). The production solver algorithm was not changed.
+
+After removing unnecessary move-stack copies, all 17 adapter fixtures passed.
+The pre-change and optimized adapters also produced identical observations for
+302 views through a synthetic 150-ply knight-cycle history, including terminal
+views. This comparison is a semantic check, not a representative speed benchmark.
+Existing sibling-isolation and repetition-history tests still pass.
 
 The new tests check private-stream information sets (including hidden actions
 that must share a key), same-FEN histories, complete path validation, retained
@@ -30,31 +44,17 @@ Raw pilot files are local and ignored under `pair_a_prep/local_runs/`. These
 checks establish a small end-to-end pipeline, not production teacher quality,
 long-game scalability, full KLUSS or a complete Obscuro reproduction.
 
-## Previous branch validation: 21 October 2026
+## Earlier snapshots
 
-Base `origin/main` was fetched and is an ancestor of this branch; no additional
-main merge was needed. The following checks passed:
+The former 21 October entry described preparation before the exact tracker was
+integrated and has been superseded by the current validation above. The tracker
+integration baseline had 280 shared/Pair A tests, or 291 with `pair_b_prep`.
+Commit `f297e37` then added 18 chess integration tests, and the review follow-up
+adds the Kuhn checkpoint regression. Historical reports retain their original
+source hashes and counts; they do not identify the current source snapshot.
 
-```powershell
-python -m pytest -q -p no:cacheprovider pair_a_prep/tests tests
-python -m pair_a_prep.fixtures --adapter pair_a_prep.rules_adapter:fixture_result
-```
-
-Results: **185 tests passed**, and **17 adapter fixtures passed**. Coverage
-includes shared contracts, rules and observation privacy, referee history,
-fixed-tree PCFR+, gadgets, synchronized-cut knowledge restriction, and viewer
-APIs/export. This does not validate a complete Obscuro agent or general KLUSS
-tree construction. Pair B's full training and app suites were not run here.
-
-This run used Python 3.11 from Anaconda with its existing numpy/scipy/pytest
-and chess from a temporary dependency directory on `PYTHONPATH`. The initial
-attempt without that directory failed collection because chess was missing;
-the complete rerun passed. For a portable setup, use the requirements and
-virtual environment commands in the Pair A README.
-
-Root ignore rules exclude installed package metadata and Python caches.
-Downloaded engines, environments and local Fog Lab records are not PR inputs.
-See [pr_handoff.md](pr_handoff.md) for current scope and remaining work.
+Environments, downloaded engines, caches and raw local pilot records remain
+excluded from commits. See [pr_handoff.md](pr_handoff.md) for remaining work.
 
 ## Historical baseline: 17 October 2026
 

@@ -120,7 +120,7 @@ class StaleRevision(ValueError):
     pass
 
 
-def make_server(port=8765):
+def make_server(port=8766):
     session = BoardSession()
     assets = Path(__file__).with_name("board_viewer_assets")
 
@@ -184,14 +184,14 @@ def make_server(port=8765):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--port", type=int, default=8766)
     args = parser.parse_args()
     if not 0 <= args.port <= 65535:
         parser.error("port must be between 0 and 65535")
     try:
         server = make_server(args.port)
     except OSError as exc:
-        parser.exit(1, "Cannot start viewer: {}. Try --port 8766.\n".format(exc))
+        parser.exit(1, "Cannot start viewer: {}. Try --port 8767.\n".format(exc))
     print("Chessboard viewer: http://127.0.0.1:{}/".format(server.server_port), flush=True)
     print("Press Ctrl+C to stop. This is a local rules inspector, not an Obscuro agent.", flush=True)
     try:

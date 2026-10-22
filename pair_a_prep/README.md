@@ -46,7 +46,7 @@ After setup, run from the repository root:
 pair_a_prep/.venv/Scripts/python -m pair_a_prep.board_viewer
 ```
 
-Keep the terminal running and open **http://127.0.0.1:8765/** in a browser.
+Keep the terminal running and open **http://127.0.0.1:8766/** in a browser.
 Each teammate must start the viewer on their own computer; this loopback
 address does not connect to another teammate's server. Open the URL, not the
 HTML asset or a VS Code preview. Ctrl+C stops the server.

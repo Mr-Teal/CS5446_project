@@ -84,6 +84,10 @@ separate; the measured last-iterate results are not a general convergence claim.
 Tests independently check local arithmetic, predictive versus zero-prediction
 behavior, chance-weighted hidden nodes, zero own reach, recall validation, a
 nonuniform matrix equilibrium, deterministic continuation and Kuhn poker.
+An alternating Kuhn replay also pins last/average values and Nash gaps at rounds
+1, 10 and 100 against `pcfr_alternating_reference.json` with absolute tolerance
+`1e-12`. These transient checkpoints detect stale-local-utility prediction and
+ancestor-first preparation, which final equilibrium checks alone can miss.
 
 ## Next integration steps
 

@@ -24,7 +24,7 @@ shared package are first-time steps; an existing environment with the shared
 dependencies can be reused. No PowerShell environment activation is necessary.
 If the viewer has since merged into `main`, use that branch instead.
 
-Once the terminal prints the viewer address, open **http://127.0.0.1:8765/**
+Once the terminal prints the viewer address, open **http://127.0.0.1:8766/**
 in your browser. `127.0.0.1` always means **your own computer**: a teammate
 must start their own server and cannot use this address to reach someone
 else's running viewer. Each locally started server has an independent game.
@@ -46,8 +46,9 @@ If using the preparation virtual environment:
 pair_a_prep/.venv/Scripts/python -m pair_a_prep.board_viewer
 ```
 
-Open **http://127.0.0.1:8765/** in Edge, Chrome or Firefox. Keep the terminal
-running; Ctrl+C stops the server. Use `--port 8766` if the default port is busy.
+Open **http://127.0.0.1:8766/** in Edge, Chrome or Firefox. Keep the terminal
+running; Ctrl+C stops the server. Use `--port 8767` if the default port is busy.
+Fog Lab defaults to 8765, so both apps can run with their respective defaults.
 Do not open the asset HTML directly: it needs the local Python rules API.
 No Stockfish, PyTorch, external service, new UI package or internet is required.
 
