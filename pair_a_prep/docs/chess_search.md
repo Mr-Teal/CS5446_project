@@ -144,6 +144,20 @@ Output directories cannot be overwritten. A pilot writes:
   repeat agreement and label acceptance results. A failed run records its error;
   it must not be used as an accepted export.
 
+Git is optional: a source ZIP or a machine without the Git command can run the
+same pilot. The report retains source hashes, sets unknown `commit` and
+`git_status` to `null`, sets `git_metadata_available=false`, and records the
+reason under `git_errors`. An archive inside another repository does not inherit
+that repository's commit or status. If only part of the Git metadata can be
+read, the known fields are retained and the unknown fields remain `null`.
+
+Setup after creating the output directory is covered by failure reporting,
+including configuration validation, Pair B imports and engine startup. Such
+failures write `status="failed"` and the error to `report.json`; they do not
+leave an unexplained empty output directory. Existing outputs, including failed
+runs, are still protected from overwrite. Choose a new path for a retry and
+retain the failed report for diagnosis.
+
 Each pilot repeats its fixed work in-process and compares hypotheses, policies,
 values, moves and numerical work counters exactly, excluding measured elapsed
 times and over-budget flags. A JSONL round trip is checked too. Stockfish is

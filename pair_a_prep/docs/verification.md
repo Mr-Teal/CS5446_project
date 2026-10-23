@@ -1,6 +1,6 @@
 # Verification and handoff
 
-## Current chess integration validation: 22 October 2026
+## Current chess integration validation: 23 October 2026
 
 Using `pair_b/.venv/Scripts/python.exe` (Python 3.12.15), with the declared
 Pair A requirements installed into that environment:
@@ -9,10 +9,16 @@ Pair A requirements installed into that environment:
 .\pair_b\.venv\Scripts\python.exe -m pytest -q tests pair_a_prep/tests pair_b_prep
 ```
 
-Result after the PR #15 review fixes: **310 tests and 2 subtests passed**,
+Result after the PR #15 review fixes: **316 tests and 2 subtests passed**,
 including 18 chess bridge/pilot tests and the new alternating Kuhn checkpoint
 regression. This command includes the belief tracker's 95 tests. The full
 Pair B app/training suite was not part of this run.
+
+The archive-portability follow-up adds six CLI/provenance cases: real source
+copies without `.git`, execution without Git on PATH, invalid configuration and
+engine-startup failures with retained reports, partially unavailable Git
+metadata, and an archive enclosed by an unrelated Git repository. Archive CLI
+successes retain source hashes without inventing a commit or clean status.
 
 The Kuhn regression compares last/average values and Nash gaps at rounds 1,
 10 and 100 against the committed alternating reference at absolute tolerance
@@ -52,6 +58,7 @@ integration baseline had 280 shared/Pair A tests, or 291 with `pair_b_prep`.
 Commit `f297e37` then added 18 chess integration tests, and the review follow-up
 adds the Kuhn checkpoint regression. Historical reports retain their original
 source hashes and counts; they do not identify the current source snapshot.
+The later CLI portability follow-up adds six tests to that 310-test snapshot.
 
 Environments, downloaded engines, caches and raw local pilot records remain
 excluded from commits. See [pr_handoff.md](pr_handoff.md) for remaining work.

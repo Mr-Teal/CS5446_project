@@ -26,6 +26,43 @@ from .search_agent import FixedDepthPCFRAgent, SearchConfig
 KINGS = "7k/8/8/8/8/8/8/K7 w - - 0 1"
 
 
+def git_metadata(root):
+    """Optional provenance; an archive is not a clean Git checkout.
+
+    Reject metadata from an enclosing repository as well. Source hashes remain
+    the provenance available for ZIP downloads or machines without Git.
+    """
+    metadata = dict(commit=None, git_status=None, git_metadata_available=False, git_errors={})
+
+    def read(arguments):
+        return subprocess.check_output(["git", *arguments], cwd=root, text=True,
+                                       stderr=subprocess.PIPE, timeout=5)
+
+    def unavailable(key, exc):
+        detail = getattr(exc, "stderr", None) or str(exc)
+        if isinstance(detail, bytes):
+            detail = detail.decode("utf-8", errors="replace")
+        metadata["git_errors"][key] = detail.strip()
+
+    try:
+        repository = Path(read(["rev-parse", "--show-toplevel"]).strip()).resolve()
+        if repository != root.resolve():
+            metadata["git_errors"]["repository"] = "source root is not the Git repository root"
+            return metadata
+    except (OSError, subprocess.SubprocessError) as exc:
+        unavailable("repository", exc)
+        return metadata
+    for key, arguments in (("commit", ["rev-parse", "HEAD"]),
+                           ("git_status", ["status", "--short"])):
+        try:
+            value = read(arguments)
+            metadata[key] = value.strip() if key == "commit" else value
+        except (OSError, subprocess.SubprocessError) as exc:
+            unavailable(key, exc)
+    metadata["git_metadata_available"] = not metadata["git_errors"]
+    return metadata
+
+
 def semantic_records(records):
     """Ignore measured runtime only; keep hypotheses, policies, values and moves."""
     objects = [asdict(record) for record in records]
@@ -96,7 +133,7 @@ def collect(evaluator, *, initial_fen=KINGS, config=None, games=2, max_plies=6,
     return records, summaries
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--evaluator", choices=("material", "stockfish-d1"), default="material")
@@ -111,35 +148,40 @@ def main():
     parser.add_argument("--max-nodes", type=int, default=5000)
     parser.add_argument("--sample-size", type=int, default=4)
     parser.add_argument("--max-candidates", type=int, default=2000)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if args.out.exists():
         parser.error("output already exists; choose a fresh directory")
-    from contextlib import ExitStack
-    from pairb.label_validation import validate
-    from pairb.material import MaterialEvaluator
-    from pairb.stockfish import StockfishEvaluator
-
-    config = SearchConfig(args.depth, args.rounds, args.max_nodes, stop_on_time=False)
-    settings = dict(initial_fen=args.initial_fen, config=config, games=args.games,
-                    max_plies=args.max_plies, seed=args.seed, sample_size=args.sample_size,
-                    max_candidates=args.max_candidates)
     args.out.mkdir(parents=True)
-    root = Path(__file__).resolve().parents[1]
-    source_paths = [root / "pair_a_prep" / name for name in (
-        "label_pilot.py", "search_agent.py", "chess_search.py", "pcfr.py", "toy_games.py",
-        "rules_adapter.py", "belief_tracker.py")]
-    source_paths += [root / "fow_shared" / name for name in (
-        "contracts.py", "values.py", "evaluation.py", "recording.py")]
     report = dict(status="running", created=datetime.now(timezone.utc).isoformat(),
-                  settings={**vars(args), "out": str(args.out), "config": asdict(config)},
-                  python=sys.version, platform=platform.platform(),
-                  commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip(),
-                  git_status=subprocess.check_output(["git", "status", "--short"], cwd=root, text=True),
+                  settings={**vars(args), "out": str(args.out)},
+                  commit=None, git_status=None, git_metadata_available=False, git_errors={},
+                  source_sha256={},
                   limitations=["Fixed-depth sampled-root game, not complete Obscuro or KLUSS.",
                                "Small public-start fixtures, not a strength or training-quality study.",
                                "Exact tracker capacity does not bound rejected-successor work.",
                                "Peak memory below is Python allocations, not process RSS."])
     try:
+        # All fallible setup after creating the output belongs under reporting.
+        from contextlib import ExitStack
+
+        root = Path(__file__).resolve().parents[1]
+        report.update(python=sys.version, platform=platform.platform(), **git_metadata(root))
+        source_paths = [root / "pair_a_prep" / name for name in (
+            "label_pilot.py", "search_agent.py", "chess_search.py", "pcfr.py", "toy_games.py",
+            "rules_adapter.py", "belief_tracker.py")]
+        source_paths += [root / "fow_shared" / name for name in (
+            "contracts.py", "values.py", "evaluation.py", "recording.py")]
+        report["source_sha256"] = {p.relative_to(root).as_posix(): sha256(p.read_bytes()).hexdigest()
+                                    for p in source_paths}
+        from pairb.label_validation import validate
+        from pairb.material import MaterialEvaluator
+        from pairb.stockfish import StockfishEvaluator
+
+        config = SearchConfig(args.depth, args.rounds, args.max_nodes, stop_on_time=False)
+        report["settings"]["config"] = asdict(config)
+        settings = dict(initial_fen=args.initial_fen, config=config, games=args.games,
+                        max_plies=args.max_plies, seed=args.seed, sample_size=args.sample_size,
+                        max_candidates=args.max_candidates)
         with ExitStack() as stack:
             d1 = (stack.enter_context(StockfishEvaluator(1, args.stockfish, new_game_each_call=True))
                   if args.include_d1 or args.evaluator == "stockfish-d1" else None)
