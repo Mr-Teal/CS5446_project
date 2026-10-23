@@ -1,4 +1,4 @@
-"""Full-tree PCFR+ on small perfect-recall two-player zero-sum games.
+"""PCFR+ on small perfect-recall two-player zero-sum trees with explicit growth.
 
 Local PRM+ follows Farina, Kroer & Sandholm (AAAI 2021), Algorithm 5,
 using utilities (the negative of their losses). See docs/pcfr.md for scheduling.
@@ -7,8 +7,11 @@ using utilities (the negative of their losses). See docs/pcfr.md for scheduling.
 from __future__ import annotations
 
 import argparse
+from copy import deepcopy
+from dataclasses import replace
 import json
 from pathlib import Path
+from typing import Mapping
 
 import numpy as np
 
@@ -62,8 +65,9 @@ class PCFRPlus:
 
     Simultaneous rounds produce both strategies before observing either utility
     vector. Alternating rounds feed back and publish player 0, then player 1.
-    The tree must remain fixed after construction. No sampling,
-    pruning, dynamic growth or chess-specific subgame gadgets are implemented.
+    Expand explicit cutoff leaves between complete rounds with expand().
+    Existing information-set actions stay fixed. No sampling, pruning or
+    chess-specific expansion policy is implemented.
     """
 
     def __init__(self, root: Node, predictive: bool = True, averaging_power: int = 2,
@@ -74,12 +78,9 @@ class PCFRPlus:
         if averaging_power not in (0, 1, 2):
             raise ValueError("averaging_power must be 0, 1 or 2")
         self.root = root
-        self.sets = information_sets(root)
-        histories = {}
-        self._check_recall(root, ((), ()), histories)
-        self._order = tuple(sorted(sets, key=lambda key: len(histories[(p, key)]), reverse=True)
-                            for p, sets in enumerate(self.sets))
+        self.sets, self._order = self._index_tree(root)
         self._previous_opponent = [None, None]
+        self.predictive = predictive
         self.averaging_power = averaging_power
         self.rounds = 0
         self.minimizers = tuple({key: PredictiveRMPlus(len(actions), predictive)
@@ -88,6 +89,79 @@ class PCFRPlus:
                                 for key, actions in sets.items()} for sets in self.sets)
         self._sums = tuple({key: np.zeros(len(actions)) for key, actions in sets.items()}
                            for sets in self.sets)
+
+    def _index_tree(self, root):
+        sets = information_sets(root)
+        histories = {}
+        self._check_recall(root, ((), ()), histories)
+        order = tuple(sorted(player_sets, key=lambda key: len(histories[(p, key)]), reverse=True)
+                      for p, player_sets in enumerate(sets))
+        return sets, order
+
+    def expand(self, replacements: Mapping[tuple[str, ...], Node]) -> None:
+        """Atomically replace cutoff leaves by subtrees at root-relative paths.
+
+        Call only between run()/step() calls, never mutate nodes directly.
+        Use one batch for related hidden histories. Existing action orders and
+        perfect recall must be preserved. Empty batches are no-ops.
+        """
+        if not isinstance(replacements, Mapping):
+            raise ValueError("expansion needs a mapping from action paths to subtrees")
+        if not replacements:
+            return
+        for path, subtree in replacements.items():
+            if not isinstance(path, tuple) or not all(isinstance(a, str) for a in path):
+                raise ValueError("expansion paths must be tuples of action names")
+            leaf = self.root
+            for action in path:
+                if action not in leaf.children:
+                    raise ValueError("unknown expansion path: " + repr(path))
+                leaf = leaf.children[action]
+            if not leaf.cutoff or leaf.payoff is None:
+                raise ValueError("expansion target must be a cutoff leaf: " + repr(path))
+            information_sets(subtree)
+            if subtree.payoff is not None:
+                raise ValueError("expansion must introduce a nonterminal subtree")
+
+        def graft(node, path, subtree):
+            if not path:
+                return deepcopy(subtree)
+            children = dict(node.children)
+            children[path[0]] = graft(children[path[0]], path[1:], subtree)
+            return replace(node, children=children)
+
+        root = self.root
+        for path, subtree in replacements.items():
+            root = graft(root, path, subtree)
+        sets, order = self._index_tree(root)
+        for player in (0, 1):
+            for key, actions in self.sets[player].items():
+                if sets[player].get(key) != actions:
+                    raise ValueError("expansion must preserve existing infoset actions: " + key)
+
+        added = tuple({key: PredictiveRMPlus(len(actions), self.predictive)
+                       for key, actions in sets[player].items()
+                       if key not in self.sets[player]} for player in (0, 1))
+        strategies = ({}, {})
+        sums = ({}, {})
+        for player in (0, 1):
+            for key, minimizer in added[player].items():
+                # Alternating mode holds a published strategy awaiting feedback.
+                strategies[player][key] = (
+                    minimizer.next_strategy()
+                    if self.schedule == "alternating" and self.rounds else minimizer.strategy.copy())
+                sums[player][key] = np.zeros_like(minimizer.regrets)
+        previous_opponent = [
+            None if previous is None else {
+                **previous, **{key: value.copy() for key, value in strategies[1 - player].items()}}
+            for player, previous in enumerate(self._previous_opponent)]
+
+        self.root, self.sets, self._order = root, sets, order
+        for player in (0, 1):
+            self.minimizers[player].update(added[player])
+            self._strategy[player].update(strategies[player])
+            self._sums[player].update(sums[player])
+        self._previous_opponent = previous_opponent
 
     def _check_recall(self, node, histories, seen):
         if node.payoff is not None:

@@ -1,7 +1,7 @@
 # Fog-of-war chess: shared code
 
 This repository contains shared contracts, Pair B's evaluation and training
-tools, and Pair A's rules adapter and fixed-tree solver prototypes. Pair A's
+tools, and Pair A's rules adapter and toy-tree solver prototypes. Pair A's
 agent ownership is agreed; complete ZS21 and Obscuro agents are still pending.
 See [Pair A preparation](pair_a_prep/README.md) and [Pair B](pair_b/README.md)
 for setup and current scope.

@@ -25,7 +25,7 @@ implement the paper's full Obscuro search or generate production teacher data.
 | Label pilot | [label_pilot.py](label_pilot.py), [usage and limits](docs/chess_search.md) | Shared-runner games, JSONL export, repeated-run checks, tracker diagnostics and Pair B label acceptance |
 | Paper implementation specifications | [paper_specs.md](docs/paper_specs.md) | Pinned v2 sources, parameters, section references, implementation checks and open questions |
 | Small-game validation | [toy_games.py](toy_games.py) | Information sets, chance nodes, LP reference solutions and behavioral best-response/Nash-gap checks |
-| Fixed-tree PCFR+ | [pcfr.py](pcfr.py), [algorithm notes](docs/pcfr.md) | Predictive RM+, counterfactual updates and separate last/average diagnostics on toy games; simultaneous and alternating schedules |
+| PCFR+ with incremental toy-tree expansion | [pcfr.py](pcfr.py), [algorithm notes](docs/pcfr.md), [expansion handoff](docs/incremental_tree_handoff.md) | Predictive RM+, explicit cutoff-leaf expansion preserving solver state, and separate last/average diagnostics; simultaneous and alternating schedules |
 | Fixed-tree gadgets | [gadgets.py](gadgets.py), [gadget notes](docs/gadgets.md) | Resolve enter/exit, Maxmargin offsets, hidden-root grouping and separate continuation label values |
 | Knowledge restriction | [knowledge.py](knowledge.py), [notes](docs/knowledge.md) | Explicit synchronized-cut knowledge graph, I^2 restriction, frozen KLSS control and unfrozen KLUSS |
 | Interactive toy explorer | [open HTML](results/toy_explorer.html), [generator](toy_visualizer.py) | Recorded PCFR+ checkpoints, tree/action probabilities, shared information sets and convergence charts; fully offline |
@@ -100,7 +100,7 @@ strategies into a behavioral strategy requires conditional reach
 probabilities; simply averaging actions independently at each information
 set is not generally equivalent.
 
-The fixed-tree PCFR+, gadget and synchronized-cut knowledge restriction tests
+The PCFR+ (fixed-tree and incremental), gadget and synchronized-cut knowledge restriction tests
 build on these examples. They do not establish correctness of a complete
 chess search or general history-based KLUSS construction.
 
