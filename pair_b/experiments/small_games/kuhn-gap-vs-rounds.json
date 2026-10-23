@@ -1,0 +1,364 @@
+{
+ "game": "kuhn_poker",
+ "schedule": "alternating",
+ "averaging_power": 2,
+ "solvers": {
+  "pcfr_plus": [
+   {
+    "rounds": 1,
+    "last": {
+     "value": -0.3333333333333333,
+     "nash_gap": 0.5
+    },
+    "average": {
+     "value": -0.3333333333333333,
+     "nash_gap": 0.5
+    }
+   },
+   {
+    "rounds": 2,
+    "last": {
+     "value": -0.0976158344579397,
+     "nash_gap": 0.2236842105263158
+    },
+    "average": {
+     "value": -0.09081748660696032,
+     "nash_gap": 0.1789473684210527
+    }
+   },
+   {
+    "rounds": 3,
+    "last": {
+     "value": -0.22181654599818837,
+     "nash_gap": 0.5356092815254232
+    },
+    "average": {
+     "value": -0.10252104747599691,
+     "nash_gap": 0.29209616071142475
+    }
+   },
+   {
+    "rounds": 5,
+    "last": {
+     "value": -0.06575379495425687,
+     "nash_gap": 0.08685448974023574
+    },
+    "average": {
+     "value": -0.06676054310370474,
+     "nash_gap": 0.0701783669374487
+    }
+   },
+   {
+    "rounds": 10,
+    "last": {
+     "value": -0.0618476908434164,
+     "nash_gap": 0.07890946720370781
+    },
+    "average": {
+     "value": -0.06044396913294664,
+     "nash_gap": 0.03172978148630501
+    }
+   },
+   {
+    "rounds": 20,
+    "last": {
+     "value": -0.05681867327208931,
+     "nash_gap": 0.035522171317439774
+    },
+    "average": {
+     "value": -0.05615202943200279,
+     "nash_gap": 0.0051699041307517735
+    }
+   },
+   {
+    "rounds": 30,
+    "last": {
+     "value": -0.05559508052552578,
+     "nash_gap": 0.006371168808181317
+    },
+    "average": {
+     "value": -0.05573488738738616,
+     "nash_gap": 0.0014926329418616172
+    }
+   },
+   {
+    "rounds": 50,
+    "last": {
+     "value": -0.05555558811918762,
+     "nash_gap": 0.0001831705557709118
+    },
+    "average": {
+     "value": -0.055594995298207994,
+     "nash_gap": 0.00030525371439672766
+    }
+   },
+   {
+    "rounds": 100,
+    "last": {
+     "value": -0.05555555555555616,
+     "nash_gap": 2.561044723514705e-08
+    },
+    "average": {
+     "value": -0.055560558422837886,
+     "nash_gap": 3.845177837083491e-05
+    }
+   },
+   {
+    "rounds": 200,
+    "last": {
+     "value": -0.055555555555555525,
+     "nash_gap": 7.28583859910259e-16
+    },
+    "average": {
+     "value": -0.055556185582306405,
+     "nash_gap": 4.84241171617994e-06
+    }
+   },
+   {
+    "rounds": 300,
+    "last": {
+     "value": -0.055555555555555525,
+     "nash_gap": 0.0
+    },
+    "average": {
+     "value": -0.055555742695495014,
+     "nash_gap": 1.4383676771520526e-06
+    }
+   },
+   {
+    "rounds": 500,
+    "last": {
+     "value": -0.055555555555555525,
+     "nash_gap": 0.0
+    },
+    "average": {
+     "value": -0.05555559605850635,
+     "nash_gap": 3.113080346284214e-07
+    }
+   },
+   {
+    "rounds": 1000,
+    "last": {
+     "value": -0.055555555555555525,
+     "nash_gap": 0.0
+    },
+    "average": {
+     "value": -0.055555560626014355,
+     "nash_gap": 3.897184551460153e-08
+    }
+   },
+   {
+    "rounds": 2000,
+    "last": {
+     "value": -0.055555555555555525,
+     "nash_gap": 0.0
+    },
+    "average": {
+     "value": -0.055555556189837985,
+     "nash_gap": 4.875133415016553e-09
+    }
+   }
+  ],
+  "zero_predictions": [
+   {
+    "rounds": 1,
+    "last": {
+     "value": -0.3333333333333333,
+     "nash_gap": 0.5
+    },
+    "average": {
+     "value": -0.3333333333333333,
+     "nash_gap": 0.5
+    }
+   },
+   {
+    "rounds": 2,
+    "last": {
+     "value": -0.09557109557109558,
+     "nash_gap": 0.2622377622377623
+    },
+    "average": {
+     "value": -0.11893439893439892,
+     "nash_gap": 0.25221445221445216
+    }
+   },
+   {
+    "rounds": 3,
+    "last": {
+     "value": -0.09141791044776118,
+     "nash_gap": 0.33730158730158727
+    },
+    "average": {
+     "value": -0.05953939514135978,
+     "nash_gap": 0.21235312306740886
+    }
+   },
+   {
+    "rounds": 5,
+    "last": {
+     "value": -0.11220995222961383,
+     "nash_gap": 0.21591950528415504
+    },
+    "average": {
+     "value": -0.07317425432940883,
+     "nash_gap": 0.10383460819078506
+    }
+   },
+   {
+    "rounds": 10,
+    "last": {
+     "value": -0.054669014247481856,
+     "nash_gap": 0.07794693211788445
+    },
+    "average": {
+     "value": -0.0586425963039193,
+     "nash_gap": 0.05259350128563148
+    }
+   },
+   {
+    "rounds": 20,
+    "last": {
+     "value": -0.06045726300256779,
+     "nash_gap": 0.0839927562545466
+    },
+    "average": {
+     "value": -0.05551510034627205,
+     "nash_gap": 0.015659679600127333
+    }
+   },
+   {
+    "rounds": 30,
+    "last": {
+     "value": -0.06901284525687315,
+     "nash_gap": 0.11478247198496094
+    },
+    "average": {
+     "value": -0.0554763035845022,
+     "nash_gap": 0.00907272437139077
+    }
+   },
+   {
+    "rounds": 50,
+    "last": {
+     "value": -0.06274113690794417,
+     "nash_gap": 0.08049738148722912
+    },
+    "average": {
+     "value": -0.05549536932824084,
+     "nash_gap": 0.006146118129826766
+    }
+   },
+   {
+    "rounds": 100,
+    "last": {
+     "value": -0.05241959678368341,
+     "nash_gap": 0.08124804728130611
+    },
+    "average": {
+     "value": -0.05557613402843353,
+     "nash_gap": 0.004281400491304245
+    }
+   },
+   {
+    "rounds": 200,
+    "last": {
+     "value": -0.058761822728181534,
+     "nash_gap": 0.051624205611594726
+    },
+    "average": {
+     "value": -0.055557055736560695,
+     "nash_gap": 0.0014023355490461326
+    }
+   },
+   {
+    "rounds": 300,
+    "last": {
+     "value": -0.058381139266717286,
+     "nash_gap": 0.049970861701463615
+    },
+    "average": {
+     "value": -0.055552277637609365,
+     "nash_gap": 0.0010737424105369958
+    }
+   },
+   {
+    "rounds": 500,
+    "last": {
+     "value": -0.05385343676636381,
+     "nash_gap": 0.051667623071560795
+    },
+    "average": {
+     "value": -0.05555622714124056,
+     "nash_gap": 0.0007160128046961242
+    }
+   },
+   {
+    "rounds": 1000,
+    "last": {
+     "value": -0.05514673350274418,
+     "nash_gap": 0.038863747243534544
+    },
+    "average": {
+     "value": -0.05555566247890162,
+     "nash_gap": 0.00031592173884630037
+    }
+   },
+   {
+    "rounds": 2000,
+    "last": {
+     "value": -0.05625537387188126,
+     "nash_gap": 0.025806016718186144
+    },
+    "average": {
+     "value": -0.05555557268009914,
+     "nash_gap": 0.00017082834456783047
+    }
+   }
+  ]
+ },
+ "note": "zero_predictions is PCFR+ with predictive=False: the same quadratic averaging and alternating schedule, so not the published CFR+",
+ "oracle_value": -0.05555555555555558,
+ "last_gap_every_round": {
+  "pcfr_plus": {
+   "rounds": 2000,
+   "min": 0.0,
+   "min_round": 242,
+   "below": {
+    "0.02": {
+     "rounds": 1977,
+     "stays_below_from_round": 24
+    },
+    "1e-12": {
+     "rounds": 1843,
+     "stays_below_from_round": 158
+    }
+   },
+   "exactly_zero_rounds": 1759
+  },
+  "zero_predictions": {
+   "rounds": 2000,
+   "min": 0.012637656289803983,
+   "min_round": 1532,
+   "below": {
+    "0.02": {
+     "rounds": 139,
+     "stays_below_from_round": null
+    },
+    "1e-12": {
+     "rounds": 0,
+     "stays_below_from_round": null
+    }
+   },
+   "exactly_zero_rounds": 0
+  }
+ },
+ "provenance": {
+  "pair_a_sha256": {
+   "pair_a_prep/pcfr.py": "4eaf941b9f13667e54ca406ea3e887bf13dc8b4ec57d0c17a37dbb13f1fb8c19",
+   "pair_a_prep/toy_games.py": "12bb5aedaf052b3e7513c677909ef8207663b7e8376059b04e0d4c8a97720b68"
+  },
+  "python": "3.14.6",
+  "numpy": "2.5.4",
+  "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O"
+ }
+}

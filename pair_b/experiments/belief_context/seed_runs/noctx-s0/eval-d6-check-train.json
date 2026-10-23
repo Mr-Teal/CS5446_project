@@ -1,0 +1,30 @@
+{
+  "run": "belief-v1-d1-noctx",
+  "data": "d6-check",
+  "split": "train",
+  "network": {
+    "board_mae": 0.075648,
+    "board_mse": 0.022603,
+    "root_mae": 0.047433,
+    "beliefs": 3818,
+    "boards": 30406
+  },
+  "created": "2026-10-18T18:06:22+08:00",
+  "baseline": {
+    "board_mae": 0.079831,
+    "board_mse": 0.023998,
+    "root_mae": 0.054845,
+    "beliefs": 3818,
+    "boards": 30406
+  },
+  "root_mae_difference": {
+    "mean": -0.007411517330356833,
+    "ci95": [
+      -0.008555798014563413,
+      -0.006338388640072142
+    ],
+    "beliefs": 3818,
+    "games": 959,
+    "resampled": "games"
+  }
+}

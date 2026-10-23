@@ -1,0 +1,69 @@
+{
+  "dataset": "d6-v1",
+  "encoding": "fow-shared-features-32+pairb-observe-v1",
+  "config": {
+    "blocks": 6,
+    "channels": 64,
+    "embed": 128,
+    "in_planes": 32,
+    "use_d1": false,
+    "use_context": true
+  },
+  "params": 561681,
+  "device": "mps",
+  "n": {
+    "train": {
+      "beliefs": 9585,
+      "boards": 76363
+    },
+    "val": {
+      "beliefs": 1147,
+      "boards": 9140
+    },
+    "test_held_out": {
+      "beliefs": 1267
+    }
+  },
+  "baseline": {
+    "board_mae": 0.081226,
+    "board_mse": 0.024462,
+    "root_mae": 0.057146,
+    "beliefs": 1147,
+    "boards": 9128
+  },
+  "val": {
+    "board_mae": 0.172954,
+    "board_mse": 0.08802,
+    "root_mae": 0.133214,
+    "beliefs": 1147,
+    "boards": 9128
+  },
+  "best_epoch": 29,
+  "epochs_run": 30,
+  "ms_per_belief_of_8_boards": {
+    "mps_64_beliefs": 0.0677,
+    "mps_1_belief": 0.8926,
+    "cpu_1_belief": 1.979
+  },
+  "seconds": 103.2,
+  "created": "2026-10-18T17:14:39+08:00",
+  "args": {
+    "data": "data/d6-v1",
+    "out": "runs/belief-v1-pure",
+    "blocks": 6,
+    "channels": 64,
+    "embed": 128,
+    "use_d1": false,
+    "no_context": false,
+    "epochs": 30,
+    "patience": 5,
+    "batch": 64,
+    "lr": 0.002,
+    "weight_decay": 0.0001,
+    "seed": 0,
+    "device": "auto",
+    "workers": 8,
+    "cache_dir": "data/cache"
+  },
+  "board_mae_vs_quick_stockfish_pct": -112.9
+}

@@ -5,16 +5,22 @@
   "openings": 5,
   "errors": 0,
   "diagnostic_errors": 0,
+  "reopened": 0,
+  "stopped_early": null,
   "score_a": {
     "mean": 1.0,
-    "ci95": [
-      1.0,
+    "ci95": null,
+    "degenerate": true,
+    "note": "fewer than 20 complete pairs",
+    "wilson95": [
+      0.5655175313406071,
       1.0
     ],
     "complete_pairs": 5,
     "incomplete_pairs": 0,
     "resamples": 2000,
     "seed": 0,
+    "min_pairs": 20,
     "unit": "complete colour pairs (both games of an opening)"
   },
   "sides": {
@@ -29,8 +35,8 @@
       "as_white": 5,
       "moves": 226,
       "value_lost_mean": 0.04216918364406927,
-      "ms_per_move_mean": 13.46567256637168,
-      "ms_per_move_p95": 19.16775
+      "ms_per_move_mean": 14.184977876106196,
+      "ms_per_move_p95": 20.55675
     },
     "b": {
       "scorer": "material",
@@ -43,13 +49,13 @@
       "as_white": 5,
       "moves": 221,
       "value_lost_mean": 0.008557764210500958,
-      "ms_per_move_mean": 3.8575927601809954,
-      "ms_per_move_p95": 6.993
+      "ms_per_move_mean": 3.9964796380090495,
+      "ms_per_move_p95": 7.359
     }
   },
   "plies_mean": 49.7,
   "stopped_at_ply_limit": 0,
-  "seconds_per_game_mean": 12.27,
+  "seconds_per_game_mean": 12.7,
   "rules": "pairb-standin",
   "settings": {
     "games": 10,
@@ -59,26 +65,37 @@
     "guesses": 8,
     "device": "auto",
     "rules": "standin",
+    "time_budget_ms": 60000,
+    "opening_plies": [
+      2,
+      8
+    ],
     "stockfish": "stockfish",
-    "time_budget_ms": 60000
+    "engine": {
+      "threads": 1,
+      "hash_mb": 16,
+      "new_game": "before every game",
+      "within_game": "hash kept between calls"
+    },
+    "out": "~/Desktop/NUS/AY2627S1/CS5446/Project/CS5446_project/pair_b/experiments/matches/pilot-d1-vs-material"
   },
   "openings_rule": "opening i: k = randint(2, 8), then k random legal plies that do not end the game, both from random.Random(seed * 1000 + i); game n has match seed seed * 1000 + n",
-  "git_commit": "44eec4878aeb0205f67ee191795c20cde30d2262",
+  "git_commit": "00639cb48227133a7d5ab92e4f11b8df1c48a01d",
   "runtime": {
     "python": "3.14.6",
     "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
     "numpy": "2.5.4",
     "python_chess": "1.11.2",
-    "source_sha256": "fea3388e9d49a0af48b093d423f5c2e757e4a66d9adca67829de95aed66112a2"
+    "source_sha256": "e619088d9caa732e6580c1242b1c6743d00824240bf8041430698e20780ba898"
   },
   "record": {
-    "git_commit": "44eec4878aeb0205f67ee191795c20cde30d2262",
+    "git_commit": "00639cb48227133a7d5ab92e4f11b8df1c48a01d",
     "runtime": {
       "python": "3.14.6",
       "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
       "numpy": "2.5.4",
       "python_chess": "1.11.2",
-      "source_sha256": "fea3388e9d49a0af48b093d423f5c2e757e4a66d9adca67829de95aed66112a2"
+      "source_sha256": "e619088d9caa732e6580c1242b1c6743d00824240bf8041430698e20780ba898"
     },
     "git_status": [],
     "source_sha256": {
@@ -93,7 +110,7 @@
       "pair_a_prep/benchmark_stockfish.py": "54d357c15ad91f7834e2b7bd4c2ae5c6a16535c4a3103f44b0af22625efcf741",
       "pair_a_prep/fixtures.py": "6325f62556d9c1b815f5235e27165abf67156d323095811b52d01ff89ac8fe24",
       "pair_a_prep/toy_games.py": "12bb5aedaf052b3e7513c677909ef8207663b7e8376059b04e0d4c8a97720b68",
-      "pair_b/scripts/play_matches.py": "6a6fb2decc19141db75c1e9f00de428f246f21e4778f9982125c2fdbc98ca170",
+      "pair_b/scripts/play_matches.py": "c07e0a1d1c20cfcda0bf6a634826f92144cf79d8d898e48223b6570996670b60",
       "pair_b/src/pairb/__init__.py": "662b9dc404bf2d8b66f652c82fb2e5053cccb6ab12d0e0e2a16e3fe7071f089d",
       "pair_b/src/pairb/belief_data.py": "34206f5e945a9e4f5f77a53d531c59c9b4fbe3d5f3bea6b462da84ea1d6d872d",
       "pair_b/src/pairb/belief_eval.py": "320001d119c233c948f38a9691ab83b0c08e3c31d6801abc0006a76750dbb497",
@@ -130,7 +147,7 @@
       "pair_b/src/pairb/provenance.py": "6814fe39835155392ce6cd3f90104b8973d7143481b0864994cf7fa15328e883",
       "pair_b/src/pairb/rules.py": "3de1f4e88bac238bdef3789101dc9dcb095e2bd43ef68f04caa06cc7fa145b1d",
       "pair_b/src/pairb/standin_beliefs.py": "d97cf83fc6c652aba7712da21e5e2f034443caba1f35557e01657dc1a29d2e14",
-      "pair_b/src/pairb/stockfish.py": "2f243d2038db6ac0d876797c00a879eef6b196c63576a5e0faa968d6d286e080",
+      "pair_b/src/pairb/stockfish.py": "95ac58d911fef4377e05f283a859aff97f2a17a7d5ae947ba9d97e8ebcab056e",
       "pair_b/src/pairb/tracker.py": "88ee0f4c4d8c0a55d893ec15a369c6740c8b0c4ffbc1b145fb35b17c514218d4",
       "pair_b/src/pairb/values.py": "e9ce2ae7015fdce58f0fc6d8b00a38481ce5982ff4f3ba33d13da43baf1a5b26"
     },
@@ -146,6 +163,6 @@
       "torch": "2.14.1"
     }
   },
-  "created": "2026-10-21T20:26:43+08:00",
-  "seconds": 122.9
+  "created": "2026-10-22T01:14:05+08:00",
+  "seconds": 127.5
 }

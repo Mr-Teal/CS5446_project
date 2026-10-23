@@ -1,0 +1,230 @@
+{
+  "data": "d6-check train bucket (3,818 beliefs, 30,406 boards)",
+  "training": "d6-v1, scripts/train_belief_net.py",
+  "quick_stockfish_alone": {
+    "board_mae": 0.079831,
+    "root_mae": 0.054845
+  },
+  "variants": {
+    "ctx": {
+      "flags": "--use-d1",
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "by_seed": {
+        "0": {
+          "board_mae": 0.07371,
+          "root_mae": 0.046656,
+          "best_epoch": 10,
+          "seconds": 54.4,
+          "code": "7b6b44e099189614f476ea3794654840238e62f1"
+        },
+        "1": {
+          "board_mae": 0.072635,
+          "root_mae": 0.045634,
+          "best_epoch": 12,
+          "seconds": 64.0,
+          "code": "e9166dda5ae7a395bbccfd4a264129db295e3ded"
+        },
+        "2": {
+          "board_mae": 0.074838,
+          "root_mae": 0.047325,
+          "best_epoch": 11,
+          "seconds": 67.7,
+          "code": "d309cd8aeb8d5084cd8e5beddd6f77da34604276"
+        },
+        "3": {
+          "board_mae": 0.072488,
+          "root_mae": 0.045468,
+          "best_epoch": 16,
+          "seconds": 77.3,
+          "code": "d309cd8aeb8d5084cd8e5beddd6f77da34604276"
+        },
+        "4": {
+          "board_mae": 0.073477,
+          "root_mae": 0.046088,
+          "best_epoch": 15,
+          "seconds": 73.5,
+          "code": "d309cd8aeb8d5084cd8e5beddd6f77da34604276"
+        }
+      },
+      "board_mae": {
+        "mean": 0.07342960000000001,
+        "sd": 0.0009463695367032903,
+        "min": 0.072488,
+        "max": 0.074838,
+        "n": 5
+      },
+      "root_mae": {
+        "mean": 0.0462342,
+        "sd": 0.0007642703710075378,
+        "min": 0.045468,
+        "max": 0.047325,
+        "n": 5
+      }
+    },
+    "noctx": {
+      "flags": "--use-d1 --no-context",
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "by_seed": {
+        "0": {
+          "board_mae": 0.075648,
+          "root_mae": 0.047433,
+          "best_epoch": 7,
+          "seconds": 39.2,
+          "code": "the 18 October run"
+        },
+        "1": {
+          "board_mae": 0.077564,
+          "root_mae": 0.04956,
+          "best_epoch": 17,
+          "seconds": 70.0,
+          "code": "d309cd8aeb8d5084cd8e5beddd6f77da34604276"
+        },
+        "2": {
+          "board_mae": 0.07598,
+          "root_mae": 0.048138,
+          "best_epoch": 12,
+          "seconds": 64.7,
+          "code": "d309cd8aeb8d5084cd8e5beddd6f77da34604276"
+        },
+        "3": {
+          "board_mae": 0.075053,
+          "root_mae": 0.047052,
+          "best_epoch": 7,
+          "seconds": 43.8,
+          "code": "d309cd8aeb8d5084cd8e5beddd6f77da34604276"
+        },
+        "4": {
+          "board_mae": 0.076835,
+          "root_mae": 0.049115,
+          "best_epoch": 17,
+          "seconds": 81.1,
+          "code": "d309cd8aeb8d5084cd8e5beddd6f77da34604276"
+        }
+      },
+      "board_mae": {
+        "mean": 0.07621599999999999,
+        "sd": 0.0009913568983973414,
+        "min": 0.075053,
+        "max": 0.077564,
+        "n": 5
+      },
+      "root_mae": {
+        "mean": 0.0482596,
+        "sd": 0.0010699417273851881,
+        "min": 0.047052,
+        "max": 0.04956,
+        "n": 5
+      }
+    },
+    "pure": {
+      "flags": "(planes only)",
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "by_seed": {
+        "0": {
+          "board_mae": 0.178051,
+          "root_mae": 0.141411,
+          "best_epoch": 29,
+          "seconds": 103.2,
+          "code": "the 18 October run"
+        },
+        "1": {
+          "board_mae": 0.196747,
+          "root_mae": 0.1583,
+          "best_epoch": 11,
+          "seconds": 67.4,
+          "code": "d309cd8aeb8d5084cd8e5beddd6f77da34604276"
+        },
+        "2": {
+          "board_mae": 0.176634,
+          "root_mae": 0.14051,
+          "best_epoch": 30,
+          "seconds": 108.8,
+          "code": "d309cd8aeb8d5084cd8e5beddd6f77da34604276"
+        },
+        "3": {
+          "board_mae": 0.207225,
+          "root_mae": 0.170419,
+          "best_epoch": 7,
+          "seconds": 44.1,
+          "code": "d309cd8aeb8d5084cd8e5beddd6f77da34604276"
+        },
+        "4": {
+          "board_mae": 0.179546,
+          "root_mae": 0.143627,
+          "best_epoch": 27,
+          "seconds": 109.0,
+          "code": "d309cd8aeb8d5084cd8e5beddd6f77da34604276"
+        }
+      },
+      "board_mae": {
+        "mean": 0.1876406,
+        "sd": 0.013648291698963644,
+        "min": 0.176634,
+        "max": 0.207225,
+        "n": 5
+      },
+      "root_mae": {
+        "mean": 0.1508534,
+        "sd": 0.01310181526735894,
+        "min": 0.14051,
+        "max": 0.170419,
+        "n": 5
+      }
+    }
+  },
+  "context_effect_ctx_minus_noctx": {
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "board_mae_by_seed": [
+      -0.0019380000000000092,
+      -0.004928999999999989,
+      -0.0011420000000000041,
+      -0.002564999999999998,
+      -0.003358
+    ],
+    "board_mae": {
+      "mean": -0.0027864,
+      "sd": 0.001448301867705756,
+      "min": -0.004928999999999989,
+      "max": -0.0011420000000000041,
+      "n": 5
+    },
+    "root_mae_by_seed": [
+      -0.0007769999999999999,
+      -0.003925999999999999,
+      -0.0008130000000000012,
+      -0.0015839999999999951,
+      -0.003027000000000002
+    ],
+    "root_mae": {
+      "mean": -0.0020253999999999992,
+      "sd": 0.0013998868882877647,
+      "min": -0.003925999999999999,
+      "max": -0.0007769999999999999,
+      "n": 5
+    }
+  }
+}

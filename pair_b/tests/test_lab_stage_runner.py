@@ -940,7 +940,7 @@ def test_run_check_reads_pytest_counts(tmp_path):
         "fail", "1 failed, 1 passed, 1 skipped", {"passed": 1, "failed": 1, "errors": 0, "skipped": 1})
 
 
-# Catches: a pytest check that ran but whose every test skipped (Teal's observe test where her adapter is missing,
+# Catches: a pytest check that ran but whose every test skipped (Teal's observe test where Teal's adapter is missing,
 # say) shown as a green pass, when it checked nothing. It is "skipped", greyed out with pytest's own words, and its log
 # is kept like any other.
 def test_a_pytest_check_whose_tests_all_skipped_is_skipped(tmp_path):

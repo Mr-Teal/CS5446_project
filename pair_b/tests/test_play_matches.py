@@ -171,6 +171,22 @@ def test_the_rules_are_chosen_on_the_command_line_and_recorded(tmp_path):
         assert teal.returncode != 0 and "Teal" in teal.stderr and not (tmp_path / "teal").exists()
 
 
+def _teal_available():
+    from pairb.rules import teal_available
+    return teal_available()
+
+
+# Catches: `--rules teal` failing on a checkout that has Teal's adapter, or playing (and recording) the
+# stand-in instead. Without the adapter the test above checks the refusal instead.
+@pytest.mark.skipif(not _teal_available(), reason="Teal's rules adapter is not in this checkout")
+def test_rules_teal_plays_and_records_teals_adapter(tmp_path):
+    teal = play(tmp_path / "teal", "--games", "2", "--max-plies", "8", "--rules", "teal")
+    assert teal.returncode == 0, teal.stderr
+    summary = json.loads((tmp_path / "teal" / "summary.json").read_text())
+    assert (summary["rules"], summary["settings"]["rules"]) == ("teal-rules-adapter", "teal")
+    assert "pair_a_prep/rules_adapter.py" in summary["record"]["source_sha256"]
+
+
 # Catches: a run that cannot be traced to the code, engine and libraries that played it.
 def test_the_summary_records_the_code_engine_and_libraries(two_games):
     import shutil
@@ -246,7 +262,8 @@ def synthetic(number, opening, white, winner=None, error=None):
 def summary_of(games):
     import argparse
     args = argparse.Namespace(a="material", b="material", games=len(games), max_plies=20, seed=0, particles=256,
-                              guesses=8, device="auto", rules="standin", stockfish="stockfish")
+                              guesses=8, device="auto", rules="standin", stockfish="stockfish", time_budget_ms=60000,
+                              opening_plies=[2, 8], out="m")
     return play_matches.summarise(games, args, {"a": "m", "b": "m"}, {"a": None, "b": None}, 1.0,
                                   play_matches.pick_rules("standin"))
 
@@ -261,34 +278,129 @@ def test_the_score_counts_complete_colour_pairs_only():
     assert score["mean"] == 0.5 and (score["complete_pairs"], score["incomplete_pairs"]) == (1, 1)
     assert score["ci95"] is None
     assert (summary["sides"]["a"]["wins"], summary["sides"]["a"]["losses"], summary["games"]) == (2, 1, 3)
-    # Pairs of 0.5 and 1.0: resampling the two pairs gives means 0.5, 0.75 or 1.0, so the interval is
-    # [0.5, 1.0]; resampling single games, or every opening, would reach lower.
+    # Pairs of 0.5 and 1.0: two pairs are too few for a bootstrap interval, so none is given; the
+    # Wilson interval on the pair-level proportion is, and it contains the mean.
     two = summary_of(games + [synthetic(4, 2, "a", winner="white"), synthetic(5, 2, "b", winner="black")])["score_a"]
-    assert (two["complete_pairs"], two["mean"], two["ci95"]) == (2, 0.75, [0.5, 1.0])
+    assert (two["complete_pairs"], two["mean"], two["ci95"], two["degenerate"]) == (2, 0.75, None, True)
+    assert two["wilson95"][0] < 0.75 < two["wilson95"][1]
 
 
-# Catches: a failing value-lost measurement erasing a game that was played to its end.
+# Catches: a pair with one draw scored as anything but a quarter point (Bryan's #18 review: a win and a
+# draw is 0.75, a loss and a draw 0.25; the protocol used to list only 0, 0.5 and 1).
+def test_a_pair_with_one_draw_scores_a_quarter_point():
+    win_and_draw = summary_of([synthetic(0, 0, "a", winner="white"), synthetic(1, 0, "b", winner="draw")])
+    loss_and_draw = summary_of([synthetic(0, 0, "a", winner="black"), synthetic(1, 0, "b", winner="draw")])
+    assert (win_and_draw["score_a"]["mean"], loss_and_draw["score_a"]["mean"]) == (0.75, 0.25)
+
+
+def pairs_of(outcomes):
+    """Synthetic complete colour pairs: one winner string per pair ('a', 'b' or 'draw'), played as both colours."""
+    games = []
+    for i, who in enumerate(outcomes):
+        for white in ("a", "b"):
+            winner = "draw" if who == "draw" else ("white" if white == who else "black")
+            games.append(synthetic(len(games), i, white, winner=winner))
+    return games
+
+
+# Catches: a percentile bootstrap over identical pair scores presented as a 95% interval (the pilot:
+# five pairs all won gave "1.00 to 1.00"), which Bryan's #16 review asked not to present; the Wilson
+# interval on 5 of 5 pairs runs from about 0.57 to 1.
+def test_identical_pairs_give_no_bootstrap_interval_but_a_wilson_one():
+    score = summary_of(pairs_of(["a"] * 5))["score_a"]
+    assert (score["complete_pairs"], score["mean"], score["ci95"], score["degenerate"]) == (5, 1.0, None, True)
+    assert 0.56 < score["wilson95"][0] < 0.58 and score["wilson95"][1] == 1.0
+    assert "fewer than 20" in score["note"]
+    same = summary_of(pairs_of(["a"] * 25))["score_a"]
+    assert same["ci95"] is None and "scored the same" in same["note"] and 0.86 < same["wilson95"][0] < 0.87
+
+
+# Catches: a bootstrap interval printed from too few pairs to resample meaningfully (the floor is 20
+# complete pairs), or a Wilson interval missing when the bootstrap is fine.
+def test_the_bootstrap_interval_needs_twenty_varied_pairs():
+    nineteen = summary_of(pairs_of(["a", "b", "draw"] * 6 + ["a"]))["score_a"]
+    assert nineteen["complete_pairs"] == 19 and nineteen["ci95"] is None and nineteen["degenerate"] is True
+    twenty = summary_of(pairs_of(["a", "b", "draw"] * 6 + ["a", "a"]))["score_a"]
+    assert twenty["complete_pairs"] == 20 and twenty["degenerate"] is False
+    assert twenty["ci95"][0] <= twenty["mean"] <= twenty["ci95"][1]
+    assert twenty["wilson95"][0] <= twenty["mean"] <= twenty["wilson95"][1]
+    assert twenty["note"] is None
+    same = summary_of(pairs_of(["draw"] * 20))["score_a"]
+    assert same["mean"] == 0.5 and same["ci95"] is None and same["degenerate"] is True
+
+
+# Catches: the console line printing a collapsed bootstrap as a 95% CI (the pilot printed
+# "95% CI 1.000 to 1.000"); with no bootstrap interval it must say so and give the Wilson one.
+def test_the_console_names_the_wilson_interval_when_the_bootstrap_is_degenerate(two_games, capsys, tmp_path):
+    result = play(tmp_path / "console", "--games", "2")
+    assert result.returncode == 0, result.stderr
+    last = result.stdout.strip().splitlines()[-1]
+    assert "95% CI" not in last and "no bootstrap interval" in last and "Wilson" in last
+
+
+# Catches: a failing value-lost measurement erasing a game that was played to its end, or a run in
+# which some measurements fail and the rest are lost with them. The failure is injected in the second
+# copy of the scorer (the judge), where Bryan's probe put it, not in the runner's helper.
 def test_a_failing_measurement_keeps_the_game_and_reports_it_apart(tmp_path, monkeypatch):
-    def broken(*args):
-        raise RuntimeError("judge died")
-    monkeypatch.setattr(play_matches, "value_lost", broken)
+    opened, real_open = [], play_matches.open_side
+
+    class FlakyJudge:
+        """Every second measurement fails; the bot's own copy is untouched."""
+        def __init__(self, inner):
+            self.inner, self.name, self.calls = inner, inner.name, 0
+
+        def evaluate_children(self, fen):
+            self.calls += 1
+            if self.calls % 2:
+                raise RuntimeError("judge died")
+            return self.inner.evaluate_children(fen)
+
+        def close(self):
+            self.inner.close()
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            self.close()
+
+    def open_side(sid, opts):
+        opened.append(sid)
+        scorer = real_open(sid, opts)
+        return FlakyJudge(scorer) if opened.count(sid) % 2 == 0 else scorer  # the second copy is the judge
+    monkeypatch.setattr(play_matches, "open_side", open_side)
     with pytest.raises(SystemExit) as stopped:
         run_main(monkeypatch, tmp_path / "m")
     assert stopped.value.code == 1
     games = [json.loads(line) for line in (tmp_path / "m" / "games.jsonl").read_text().splitlines()]
     assert all("error" not in g and g["winner"] in ("white", "black", "draw") for g in games)
     chosen = [m for g in games for m in g["moves"] if not m["opening"]]
-    assert chosen and all(m["diagnostic_error"] == "RuntimeError: judge died" and m["value_lost"] is None for m in chosen)
+    failed = [m for m in chosen if "diagnostic_error" in m]
+    measured = [m for m in chosen if "diagnostic_error" not in m]
+    assert failed and measured, "both outcomes must occur for the partial-failure case"
+    assert all(m["diagnostic_error"] == "RuntimeError: judge died" and m["value_lost"] is None for m in failed)
+    assert all(math.isfinite(m["value_lost"]) for m in measured)
     summary = json.loads((tmp_path / "m" / "summary.json").read_text())
-    assert (summary["games"], summary["errors"], summary["diagnostic_errors"]) == (2, 0, len(chosen))
+    assert (summary["games"], summary["errors"], summary["diagnostic_errors"]) == (2, 0, len(failed))
+    assert all(math.isfinite(side["value_lost_mean"]) for side in summary["sides"].values())
+    assert summary["reopened"] == 0  # a failing judge is not a dead engine
 
 
 # Catches: a game's scorer state (a Stockfish hash) depending on the games played before it, so
-# the same game gives different values depending on where it falls in a run.
+# the same game gives different values depending on where it falls in a run; seen in both the bot's
+# own averages and the second copy's measurements.
 @pytest.mark.skipif(__import__("shutil").which("stockfish") is None, reason="needs Stockfish on PATH")
-def test_a_game_does_not_depend_on_the_games_before_it():
+def test_a_game_does_not_depend_on_the_games_before_it(monkeypatch):
     import argparse
     from pairb.lab.scorers import ScorerOptions
+    averages = []
+
+    class Recording(play_matches.OnePlyBot):
+        def act(self, turn):
+            decision = super().act(turn)
+            averages.append(dict(self.last_explanation.averages))
+            return decision
+    monkeypatch.setattr(play_matches, "OnePlyBot", Recording)
     args = argparse.Namespace(a="stockfish-d1", b="material", seed=0, particles=64, guesses=4, max_plies=16)
     rules = play_matches.pick_rules("standin")
     opts = ScorerOptions(ROOT / "checkpoints")
@@ -298,38 +410,215 @@ def test_a_game_does_not_depend_on_the_games_before_it():
                  for s in ("a", "b")}
         try:
             scorers, judges = {s: v[0] for s, v in sides.items()}, {s: v[1] for s, v in sides.items()}
-            out = [play_matches.play_one(rules, n, play_matches.opening(rules, 0, n // 2),
-                                         {"white": "a", "black": "b"}, scorers, judges, args) for n in numbers]
+            out = []
+            for n in numbers:
+                averages.clear()
+                out.append(play_matches.play_one(rules, n, play_matches.opening(rules, 0, n // 2),
+                                                 {"white": "a", "black": "b"}, scorers, judges, args))
         finally:
             for pair in sides.values():
                 for scorer in pair:
                     scorer.close()
-        return [(m["move"], m["best"], m["played"]) for m in out[-1]["moves"]]
+        return [(m["move"], m["best"], m["played"]) for m in out[-1]["moves"]], list(averages)
     assert run([0, 2]) == run([2])
 
 
 # Catches: a run that clears only some engines at a game's start (the second copies but not the
-# bots, or a bare Stockfish but not the one inside the linear correction or a network), so a game
-# still depends on the games before it.
+# bots, or a bare Stockfish but not the one inside the linear correction or a network), or clears
+# them after the game's first search, so a game still depends on the games before it.
 @pytest.mark.skipif(__import__("shutil").which("stockfish") is None, reason="needs Stockfish on PATH")
-def test_every_engine_of_every_scorer_is_cleared_before_each_game(monkeypatch):
+@pytest.mark.parametrize("a, b", [("linear", "stockfish-d1"),
+                                  pytest.param("network1", "belief", marks=pytest.mark.skipif(
+                                      importlib.util.find_spec("torch") is None, reason="needs torch"))])
+def test_every_engine_of_every_scorer_is_cleared_before_each_game(monkeypatch, a, b):
     import argparse
     from pairb.lab.scorers import ScorerOptions
     from pairb.stockfish import StockfishEvaluator
-    cleared = []
-    real = StockfishEvaluator.new_game
-    monkeypatch.setattr(StockfishEvaluator, "new_game", lambda self: (cleared.append(id(self)), real(self)))
-    args = argparse.Namespace(a="linear", b="stockfish-d1", seed=0, particles=16, guesses=2, max_plies=4)
+    events = []
+    real_new_game, real_search = StockfishEvaluator.new_game, StockfishEvaluator.children_scores
+    monkeypatch.setattr(StockfishEvaluator, "new_game", lambda self: (events.append(id(self)), real_new_game(self)))
+    monkeypatch.setattr(StockfishEvaluator, "children_scores",
+                        lambda self, board: (events.append("search"), real_search(self, board))[1])
+    args = argparse.Namespace(a=a, b=b, seed=0, particles=16, guesses=2, max_plies=6)
     rules, opts = play_matches.pick_rules("standin"), ScorerOptions(ROOT / "checkpoints")
     scorers = {s: play_matches.open_side(getattr(args, s), opts) for s in ("a", "b")}
     judges = {s: play_matches.open_side(getattr(args, s), opts) for s in ("a", "b")}
     try:
-        engines = {id(x.stockfish if s == "a" else x) for d in (scorers, judges) for s, x in d.items()}
+        engines = {id(e) for d in (scorers, judges) for x in d.values() for e in play_matches.engines_of(x)}
+        assert len(engines) == 4
         for number in (0, 1):
-            cleared.clear()
-            play_matches.play_one(rules, number, play_matches.opening(rules, 0, 0), {"white": "a", "black": "b"},
+            events.clear()
+            play_matches.play_one(rules, number, play_matches.opening(rules, 0, 0, (2, 2)), {"white": "a", "black": "b"},
                                   scorers, judges, args)
-            assert engines <= set(cleared[:4])  # all four engines, before the game's first call
+            assert set(events[:4]) == engines, "all four engines are cleared first"
+            assert "search" in events[4:] and "search" not in events[:4], "and before the game's first search"
     finally:
         for scorer in (*scorers.values(), *judges.values()):
             scorer.close()
+
+
+# Catches: a Stockfish process dying mid-batch (a crash) turning every later game of a pairing into an
+# error, instead of that side's scorer and second copy being reopened and the run going on.
+@pytest.mark.skipif(__import__("shutil").which("stockfish") is None, reason="needs Stockfish on PATH")
+def test_a_dead_engine_is_reopened_and_the_run_goes_on(tmp_path, monkeypatch):
+    from test_stockfish import kill
+    real = play_matches.play_one
+
+    def kill_a_before_game_1(rules, number, moves, colours, scorers, judges, args):
+        if number == 1:
+            kill(scorers["a"])
+        return real(rules, number, moves, colours, scorers, judges, args)
+    monkeypatch.setattr(play_matches, "play_one", kill_a_before_game_1)
+    monkeypatch.setattr(sys, "argv", ["play_matches.py", "--a", "stockfish-d1", "--b", "material", "--games", "4",
+                                      "--max-plies", "10", "--rules", "standin", "--out", str(tmp_path / "m")])
+    with pytest.raises(SystemExit) as stopped:
+        play_matches.main()
+    assert stopped.value.code == 1  # one game did fail
+    games = [json.loads(line) for line in (tmp_path / "m" / "games.jsonl").read_text().splitlines()]
+    assert len(games) == 4
+    assert "EngineTerminatedError" in games[1]["error"] and games[1]["reopened"] == ["a"]
+    assert all("error" not in g and g["diagnostic_errors"] == 0 for g in (games[0], games[2], games[3]))
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert (summary["games"], summary["errors"], summary["reopened"]) == (3, 1, 1)
+
+
+# Catches: an unattended run spending its whole budget on games that all fail the same way.
+def test_five_consecutive_failed_games_stop_the_run(tmp_path, monkeypatch):
+    class Failing(play_matches.OnePlyBot):
+        def act(self, turn):
+            raise RuntimeError("boom")
+    monkeypatch.setattr(play_matches, "OnePlyBot", Failing)
+    with pytest.raises(SystemExit) as stopped:
+        run_main(monkeypatch, tmp_path / "m", "--games", "20", "--rules", "standin")
+    assert stopped.value.code == 1
+    games = [json.loads(line) for line in (tmp_path / "m" / "games.jsonl").read_text().splitlines()]
+    assert len(games) == 5 and all("error" in g for g in games)
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert summary["errors"] == 5 and summary["stopped_early"] == "5 consecutive games failed"
+
+
+# Catches: a batch played under whatever rules happen to be importable (`auto` is Teal's adapter
+# wherever the checkout has it), so two machines, or two halves of one table, play by different rules.
+def test_a_batch_must_pin_its_rules(tmp_path):
+    batch = play(tmp_path / "auto4", "--games", "4")
+    assert batch.returncode != 0 and "pin --rules" in batch.stderr and not (tmp_path / "auto4").exists()
+    smoke = play(tmp_path / "auto2", "--games", "2")  # a two-game smoke run may still use auto
+    assert smoke.returncode == 0, smoke.stderr
+
+
+# Catches: no way to play from the standard start (for the cross-check against Bryan's runner), or an
+# opening length that is not recorded with the run.
+def test_opening_plies_can_be_pinned_and_zero_means_the_standard_start(tmp_path):
+    standard = play(tmp_path / "std", "--games", "2", "--opening-plies", "0", "0")
+    assert standard.returncode == 0, standard.stderr
+    games = [json.loads(line) for line in (tmp_path / "std" / "games.jsonl").read_text().splitlines()]
+    assert all(g["opening"]["moves"] == [] for g in games)
+    summary = json.loads((tmp_path / "std" / "summary.json").read_text())
+    assert summary["settings"]["opening_plies"] == [0, 0] and "randint(0, 0)" in summary["openings_rule"]
+    three = play(tmp_path / "three", "--games", "2", "--opening-plies", "3", "3")
+    assert three.returncode == 0, three.stderr
+    games = [json.loads(line) for line in (tmp_path / "three" / "games.jsonl").read_text().splitlines()]
+    assert all(len(g["opening"]["moves"]) == 3 for g in games)
+    assert "randint(3, 3)" in json.loads((tmp_path / "three" / "summary.json").read_text())["openings_rule"]
+    bad = play(tmp_path / "bad", "--games", "2", "--opening-plies", "5", "3")
+    assert bad.returncode != 0 and not (tmp_path / "bad").exists()
+
+
+# Catches: the time budget hard-wired and the runner's over-budget flag dropped from the record, so
+# a slow scorer's overruns are invisible.
+def test_each_move_records_whether_it_overran_the_budget(two_games, tmp_path):
+    games, summary = two_games
+    assert summary["settings"]["time_budget_ms"] == 60000
+    assert all(m["over_budget"] is False for g in games for m in g["moves"])
+    tight = play(tmp_path / "tight", "--games", "2", "--time-budget-ms", "1")
+    assert tight.returncode == 0, tight.stderr
+    games = [json.loads(line) for line in (tmp_path / "tight" / "games.jsonl").read_text().splitlines()]
+    summary = json.loads((tmp_path / "tight" / "summary.json").read_text())
+    assert summary["settings"]["time_budget_ms"] == 1
+    assert any(m["over_budget"] is True for g in games for m in g["moves"])
+
+
+# Catches: a run file that does not say which engine policy played it (Bryan's runner resets the engine
+# every call; this one once per game), or which folder it was written to.
+def test_the_settings_name_the_engine_policy_and_the_output_folder(two_games):
+    settings = two_games[1]["settings"]
+    assert settings["engine"] == {"threads": 1, "hash_mb": 16, "new_game": "before every game",
+                                  "within_game": "hash kept between calls"}
+    assert settings["out"].endswith("material")
+    # the home folder is written as ~ (summarise directly, since pytest's tmp_path is not under the home folder)
+    import argparse
+    args = argparse.Namespace(a="material", b="material", games=0, max_plies=20, seed=0, particles=256, guesses=8,
+                              device="auto", rules="standin", stockfish="stockfish", time_budget_ms=60000,
+                              opening_plies=[2, 8], out=str(Path.home() / "x" / "material"))
+    home = play_matches.summarise([], args, {"a": "m", "b": "m"}, {"a": None, "b": None}, 1.0,
+                                  play_matches.pick_rules("standin"))["settings"]["out"]
+    assert home == str(Path("~") / "x" / "material")
+
+
+# Catches: a judge (the second copy used for value lost) dying mid-batch: the game it died in must be
+# kept with its diagnostic errors, the side reopened, and the next games measured again.
+@pytest.mark.skipif(__import__("shutil").which("stockfish") is None, reason="needs Stockfish on PATH")
+def test_a_dead_judge_keeps_its_game_and_is_reopened(tmp_path, monkeypatch):
+    from test_stockfish import kill
+    real = play_matches.play_one
+
+    def kill_judge_a_before_game_1(rules, number, moves, colours, scorers, judges, args):
+        if number == 1:
+            kill(judges["a"])
+        return real(rules, number, moves, colours, scorers, judges, args)
+    monkeypatch.setattr(play_matches, "play_one", kill_judge_a_before_game_1)
+    monkeypatch.setattr(sys, "argv", ["play_matches.py", "--a", "stockfish-d1", "--b", "material", "--games", "4",
+                                      "--max-plies", "10", "--rules", "standin", "--out", str(tmp_path / "m")])
+    with pytest.raises(SystemExit) as stopped:
+        play_matches.main()
+    assert stopped.value.code == 1  # measurements failed in game 2
+    games = [json.loads(line) for line in (tmp_path / "m" / "games.jsonl").read_text().splitlines()]
+    assert "error" not in games[1] and games[1]["diagnostic_errors"] > 0 and games[1]["reopened"] == ["a"]
+    assert all("error" not in g and g["diagnostic_errors"] == 0 for g in (games[0], games[2], games[3]))
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert (summary["games"], summary["errors"], summary["reopened"]) == (4, 0, 1)
+
+
+# Catches: a reopen that fails (no engine to open) losing the game that triggered it, or ending the run
+# with a traceback and no reason in the summary.
+@pytest.mark.skipif(__import__("shutil").which("stockfish") is None, reason="needs Stockfish on PATH")
+def test_a_failed_reopen_keeps_the_game_and_stops_the_run_with_a_reason(tmp_path, monkeypatch):
+    from test_stockfish import kill
+    real_play = play_matches.play_one
+
+    def no_engine(sid, opts):
+        raise OSError("no engine")
+
+    def kill_a_before_game_1(rules, number, moves, colours, scorers, judges, args):
+        if number == 1:
+            kill(scorers["a"])
+            monkeypatch.setattr(play_matches, "open_side", no_engine)
+        return real_play(rules, number, moves, colours, scorers, judges, args)
+    monkeypatch.setattr(play_matches, "play_one", kill_a_before_game_1)
+    monkeypatch.setattr(sys, "argv", ["play_matches.py", "--a", "stockfish-d1", "--b", "material", "--games", "4",
+                                      "--max-plies", "10", "--rules", "standin", "--out", str(tmp_path / "m")])
+    with pytest.raises(SystemExit) as stopped:
+        play_matches.main()
+    assert stopped.value.code == 1
+    games = [json.loads(line) for line in (tmp_path / "m" / "games.jsonl").read_text().splitlines()]
+    assert len(games) == 2 and "EngineTerminatedError" in games[1]["error"] and "no engine" in games[1]["reopen_error"]
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert "reopen" in summary["stopped_early"] and summary["games"] == 1
+
+
+# Catches: a run stopping after five failures in total instead of five in a row.
+def test_a_success_resets_the_consecutive_failure_count(tmp_path, monkeypatch):
+    real = play_matches.play_one
+
+    def fail_some(rules, number, moves, colours, scorers, judges, args):
+        if number in (0, 1, 2, 3, 5, 6, 7, 8):  # four, a success, four more: never five in a row
+            return {"game": number, "opening": {"id": number // 2, "moves": moves}, "seed": 0, "colours": colours,
+                    "scorers": {}, "error": "RuntimeError: boom", "plies_played": 0, "seconds": 0.0}
+        return real(rules, number, moves, colours, scorers, judges, args)
+    monkeypatch.setattr(play_matches, "play_one", fail_some)
+    with pytest.raises(SystemExit) as stopped:
+        run_main(monkeypatch, tmp_path / "m", "--games", "12", "--rules", "standin")
+    assert stopped.value.code == 1
+    games = [json.loads(line) for line in (tmp_path / "m" / "games.jsonl").read_text().splitlines()]
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert len(games) == 12 and summary["errors"] == 8 and summary["stopped_early"] is None
