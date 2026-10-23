@@ -21,6 +21,7 @@ implement the paper's full Obscuro search or generate production teacher data.
 | Rules adapter and referee | [rules_adapter.py](rules_adapter.py) | History-preserving states, private observations, actual terminal outcomes and shared-protocol referee; see [implementation notes](docs/rules_adapter.md) |
 | Belief tracker | [belief_tracker.py](belief_tracker.py), [implementation and usage](docs/belief_tracker.md) | Exact observation-only history tracking, optional output sampling, explicit capacity errors, and shared-runner integration |
 | Chess search prototype | [chess_search.py](chess_search.py), [search_agent.py](search_agent.py) | Candidate replay, private-history information sets, fixed-depth PCFR+ and per-root continuation values |
+| Chess gadget bridge | [chess_gadgets.py](chess_gadgets.py), [usage and semantics](docs/chess_gadgets.md) | Opponent root groups, explicit Resolve/Maxmargin inputs, shared policies and unshifted continuation labels |
 | Label pilot | [label_pilot.py](label_pilot.py), [usage and limits](docs/chess_search.md) | Shared-runner games, JSONL export, repeated-run checks, tracker diagnostics and Pair B label acceptance |
 | Paper implementation specifications | [paper_specs.md](docs/paper_specs.md) | Pinned v2 sources, parameters, section references, implementation checks and open questions |
 | Small-game validation | [toy_games.py](toy_games.py) | Information sets, chance nodes, LP reference solutions and behavioral best-response/Nash-gap checks |

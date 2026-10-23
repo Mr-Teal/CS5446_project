@@ -16,7 +16,10 @@ The branch also contains the exact history-preserving belief tracker and a
 runnable fixed-depth chess search prototype. The prototype reconstructs private
 information sets from candidate paths, calls a pluggable leaf evaluator, and
 exports small validated label pilots. See [chess_search.md](chess_search.md).
-It is a sampled-root game without the paper's KLUSS gadgets.
+The default agent remains a sampled-root game. An optional
+[chess gadget bridge](chess_gadgets.md) now groups reconstructed roots by opponent
+memory and connects Resolve/Maxmargin using externally supplied parameters.
+Paper-derived gadget values/priors and full KLUSS construction remain pending.
 
 The shared contracts and encoder are unchanged. Pair B can use
 `pair_a_prep.rules_adapter.RulesReferee` and the existing `RulesAdapter`

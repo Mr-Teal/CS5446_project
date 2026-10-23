@@ -9,7 +9,7 @@ Pair A requirements installed into that environment:
 .\pair_b\.venv\Scripts\python.exe -m pytest -q tests pair_a_prep/tests pair_b_prep
 ```
 
-Result after the PR #15 review fixes: **316 tests and 2 subtests passed**,
+Result with the chess gadget bridge: **328 tests and 2 subtests passed**,
 including 18 chess bridge/pilot tests and the new alternating Kuhn checkpoint
 regression. This command includes the belief tracker's 95 tests. The full
 Pair B app/training suite was not part of this run.
@@ -19,6 +19,19 @@ copies without `.git`, execution without Git on PATH, invalid configuration and
 engine-startup failures with retained reports, partially unavailable Git
 metadata, and an archive enclosed by an unrelated Git repository. Archive CLI
 successes retain source hashes without inventing a commit or clean status.
+
+The chess gadget bridge adds 12 tests for opponent root grouping, shared and
+distinct private-history strategies, Black/White perspectives, explicit external
+parameters, root-order stability, independent LP objectives and continuation
+labels excluding gadget priors, opt-outs and Maxmargin offsets. See
+[chess_gadgets.md](chess_gadgets.md) for the analytic two-root example.
+
+Four real-leaf fixture records (Material and Stockfish D1, each in Resolve and
+Maxmargin) passed label acceptance with played policies required, repeated solves
+and JSONL round trips. On the public Black king-capture fixture, all four chose
+`e7e1`; continuation labels were 1.0 while the Maxmargin objective was 0.75.
+These bridge records do not include optional D1 input features. The settings and
+source hashes are in [chess_gadgets_reference.json](../results/chess_gadgets_reference.json).
 
 The Kuhn regression compares last/average values and Nash gaps at rounds 1,
 10 and 100 against the committed alternating reference at absolute tolerance
@@ -59,6 +72,7 @@ Commit `f297e37` then added 18 chess integration tests, and the review follow-up
 adds the Kuhn checkpoint regression. Historical reports retain their original
 source hashes and counts; they do not identify the current source snapshot.
 The later CLI portability follow-up adds six tests to that 310-test snapshot.
+The optional chess gadget bridge adds twelve more to the resulting 316 tests.
 
 Environments, downloaded engines, caches and raw local pilot records remain
 excluded from commits. See [pr_handoff.md](pr_handoff.md) for remaining work.

@@ -4,6 +4,10 @@ This is a runnable integration prototype, **not a complete Obscuro or KLUSS
 reproduction**. It connects the exact tracker, private histories, a fixed-depth
 chess tree, the existing PCFR+ solver and the shared TrainingRecord format.
 
+For the optional Resolve/Maxmargin bridge with externally supplied parameters,
+see [chess_gadgets.md](chess_gadgets.md). That bridge does not change the default
+agent or pilot CLI described here.
+
 ## Files and data flow
 
 | File | Responsibility |

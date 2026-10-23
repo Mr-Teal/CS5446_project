@@ -105,6 +105,8 @@ class ChessTree:
     frontier_leaves: int
     terminal_leaves: int
     evaluator_calls: int
+    # Internal sampled histories aligned with continuations and the input belief.
+    history_roots: tuple[HistoryRoot, ...] = ()
 
 
 def build_chess_tree(turn: AgentInput, evaluator: LeafEvaluator, *,
@@ -194,4 +196,4 @@ def build_chess_tree(turn: AgentInput, evaluator: LeafEvaluator, *,
     keys = {n.infoset for n in branches}
     if len(keys) != 1:
         raise ValueError("root policy is not shared across sampled hypotheses")
-    return ChessTree(root, branches, branches[0].infoset, **stats)
+    return ChessTree(root, branches, branches[0].infoset, history_roots=roots, **stats)
