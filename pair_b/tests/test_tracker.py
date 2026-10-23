@@ -33,7 +33,7 @@ SHUFFLE_MOVES = ["a1b1", "e8d8", "b1a1", "d8e8"] * 2
 KNIGHT_TAKES_E2 = "4k3/8/8/8/8/2n5/4P3/4K3 b - - 0 1"  # Nc3xe2 takes the pawn on e2, which White sees
 PAWN_ON_E2 = "4k3/8/8/8/8/8/4P3/4K3 b - - 0 1"  # as KNIGHT_TAKES_E2 to White's eyes, until the knight takes
 # Each rules implementation this checkout has: Teal's adapter only where it can be imported, as in the Tests tab's
-# stages that hold her branch.
+# stages that hold Teal's branch.
 RULES = [pytest.param(StandinRules, id="standin"),
          pytest.param(TealRules, id="teal", marks=pytest.mark.skipif(
              not teal_available(), reason="Teal's rules adapter is not in this checkout"))]

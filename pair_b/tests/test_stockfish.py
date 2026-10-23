@@ -3,7 +3,11 @@
 Values follow fow_shared's rule: from the acting player's point of view. For evaluate_children
 that is the player to move at the node; for evaluate_boards it is the player named in the call.
 """
+import os
 import shutil
+import signal
+import sys
+import time
 
 import chess
 import pytest
@@ -184,3 +188,68 @@ def test_new_game_clears_what_earlier_searches_left():
         used.evaluate_children(chess.STARTING_FEN)
         used.new_game()
         assert used.evaluate_children(fen) == want
+
+
+def kill(evaluator):
+    """Kill the evaluator's Stockfish process, as a crash would (through the transport, so it works on Windows too)."""
+    import time
+    evaluator.engine.protocol.transport.kill()
+    time.sleep(0.3)
+
+
+# Catches: a dead engine (a crash mid-batch) making close() raise, so a run's exit stack ends with a
+# traceback instead of its summary line; and no way to ask whether the engine is still there.
+def test_a_dead_engine_is_reported_by_alive_and_closed_without_raising():
+    ev = StockfishEvaluator(depth=1, new_game_each_call=False)
+    assert ev.alive() is True
+    kill(ev)
+    assert ev.alive() is False
+    ev.close()  # must not raise
+    ev.close()  # nor twice
+
+
+def engine_exited(evaluator, seconds=5.0) -> bool:
+    """Whether the engine process has exited within `seconds` (python-chess resolves returncode then)."""
+    import concurrent.futures
+    try:
+        evaluator.engine.returncode.result(timeout=seconds)
+        return True
+    except concurrent.futures.TimeoutError:
+        return False
+
+
+# Catches: close() giving up when quit() times out (Bryan's review of #18), so the engine process and
+# python-chess's event loop live on beside the replacement a recovery opens. Portable: the timeout is
+# injected, as in Bryan's probe.
+def test_close_shuts_the_engine_down_when_quit_times_out(monkeypatch):
+    ev = StockfishEvaluator(depth=1, new_game_each_call=False)
+    try:
+        def quit_times_out():
+            raise TimeoutError
+        monkeypatch.setattr(ev.engine, "quit", quit_times_out)
+        ev.close()  # must not raise
+        assert ev.alive() is False
+        assert engine_exited(ev)
+    finally:
+        ev.engine.close()
+
+
+# Catches: an engine that has stopped answering (not a dead process) surviving close(), or close()
+# hanging on it. The process is paused, so quit() really times out.
+@pytest.mark.skipif(sys.platform == "win32", reason="pauses the process with SIGSTOP")
+def test_close_ends_an_engine_that_has_stopped_answering():
+    ev = StockfishEvaluator(depth=1, new_game_each_call=False)
+    pid = ev.engine.transport.get_pid()
+    ev.engine.timeout = 0.5  # quit()'s wait, normally 10 s
+    os.kill(pid, signal.SIGSTOP)
+    try:
+        start = time.monotonic()
+        ev.close()
+        assert time.monotonic() - start < 5
+        assert engine_exited(ev)
+    finally:
+        try:
+            os.kill(pid, signal.SIGCONT)
+        except ProcessLookupError:
+            pass
+        ev.engine.close()

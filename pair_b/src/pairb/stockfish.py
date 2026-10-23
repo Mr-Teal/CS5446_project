@@ -44,8 +44,26 @@ class StockfishEvaluator:
         while separate games stay independent."""
         self._game = object()
 
+    def alive(self) -> bool:
+        """Whether the engine process still answers; False once it has died or been closed."""
+        try:
+            self.engine.ping()
+            return True
+        except (chess.engine.EngineError, TimeoutError):  # the process is gone, or hangs: not alive either way
+            return False
+
     def close(self):
-        self.engine.quit()
+        """Stop the engine. If quit() fails or times out (a crash, or an engine that has stopped
+        answering), the engine is shut down anyway: python-chess closes the transport, which kills
+        the process, and stops its event loop, so nothing is left running beside a replacement.
+        Never raises, so a run's clean-up never ends with a traceback."""
+        try:
+            self.engine.quit()
+        except (chess.engine.EngineError, TimeoutError):
+            try:
+                self.engine.close()
+            except RuntimeError:  # its event loop already ended with the process
+                pass
 
     def __enter__(self):
         return self
