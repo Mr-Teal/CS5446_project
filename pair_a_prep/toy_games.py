@@ -26,16 +26,29 @@ class Node:
     children: Dict[str, "Node"] = field(default_factory=dict)
     probabilities: Dict[str, float] = field(default_factory=dict)
     payoff: Optional[float] = None  # Player 0 maximizes; player 1 gets -payoff.
+    cutoff: bool = False
 
 
 def terminal(payoff: float) -> Node:
     return Node(payoff=payoff)
 
 
+def frontier(estimate: float) -> Node:
+    """An expandable cutoff with an estimated payoff from player 0's perspective."""
+    return Node(payoff=estimate, cutoff=True)
+
+
 def information_sets(root: Node) -> Tuple[dict, dict]:
     sets = ({}, {})
+    active = set()
 
     def visit(node: Node) -> None:
+        if not isinstance(node, Node):
+            raise ValueError("tree children must be Nodes")
+        if id(node) in active:
+            raise ValueError("tree must be finite and acyclic")
+        if not isinstance(node.cutoff, bool) or (node.cutoff and node.payoff is None):
+            raise ValueError("cutoff must mark a payoff leaf")
         if node.payoff is not None:
             if node.children or not np.isfinite(node.payoff):
                 raise ValueError("invalid terminal")
@@ -55,8 +68,10 @@ def information_sets(root: Node) -> Tuple[dict, dict]:
             old = sets[node.player].setdefault(node.infoset, actions)
             if old != actions:
                 raise ValueError("nodes in one infoset need the same action order")
+        active.add(id(node))
         for child in node.children.values():
             visit(child)
+        active.remove(id(node))
 
     visit(root)
     return sets
