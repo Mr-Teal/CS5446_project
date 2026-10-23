@@ -1,4 +1,4 @@
-# Fixed-tree PCFR+ verification
+# PCFR+ verification and incremental toy-tree expansion
 
 Implementation: [pcfr.py](../pcfr.py). This is a solver for the existing finite
 toy trees, not a complete Obscuro reproduction. It does not touch shared code.
@@ -54,12 +54,65 @@ average = solver.policy(average=True)
 print(solver.metrics())             # separate value and gap for each policy
 ```
 
-Trees must be finite, fixed, and have perfect recall. The constructor rejects
+Trees must be finite, acyclic, and have perfect recall. The constructor rejects
 information sets whose nodes have different own action/information histories.
-Do not mutate the tree after construction. Zero-reach information sets still
+Do not mutate the tree after construction; use the expansion API below.
+Zero-reach information sets still
 receive counterfactual updates; an average with zero own reach falls back to
 the current local strategy. Terminal utilities need not be restricted to [-1,1]
 (Kuhn poker uses +/-2). Metrics use player 0's payoff perspective.
+
+### Expanding cutoff leaves
+
+`terminal(value)` is a true terminal and cannot be expanded. `frontier(estimate)`
+is an explicit cutoff leaf: its finite estimate is used as player 0's payoff
+until it is replaced by a nonterminal subtree. A cutoff is a search boundary,
+not an additional player action or information set.
+
+```python
+from pair_a_prep.pcfr import PCFRPlus
+from pair_a_prep.toy_games import Node, frontier, matching_pennies
+
+full = matching_pennies()
+partial = Node(player=0, infoset="p0",
+               children={"H": frontier(0), "T": frontier(0)})
+solver = PCFRPlus(partial, schedule="alternating")
+solver.run(10)
+solver.expand({("H",): full.children["H"], ("T",): full.children["T"]})
+solver.run(1000)
+print(solver.metrics())  # rounds == 1010, now measured on the complete game
+```
+
+`expand({path: subtree, ...})` accepts tuples of root-relative action names;
+`()` denotes the root. Call it between complete `step()`/`run()` calls.
+Use one batch for related hidden histories. The caller is responsible for
+choosing information-consistent expansion boundaries and correct information
+set IDs; the solver cannot infer hidden information from a numeric estimate.
+
+The complete candidate tree is validated before any solver state changes.
+Existing information sets must keep their action labels and order, and all
+occurrences must retain perfect recall. Missing paths, non-cutoff targets,
+cycles, malformed chance distributions and inconsistent information sets raise
+`ValueError` without changing the tree, policies, regret state or round count.
+Empty batches do nothing. Expansion does not mutate the input tree or supplied
+subtrees; use `solver.root` to access the resulting tree. Continue to treat all
+nodes as immutable outside this API.
+
+Existing minimizer objects, regrets, previous local utilities, held policies and
+averaging sums are retained exactly. New information sets start with zero
+regrets/utilities/sums and a uniform policy. An additional hidden occurrence of
+an existing information set reuses its minimizer. Own-decision traversal order
+is rebuilt. Cached opponent profiles retain existing entries and gain uniform
+entries for new opponent information sets; future predictions are recomputed on
+the expanded tree. Alternating mode also marks new uniform policies as awaiting
+feedback when rounds have already run, without republishing existing policies.
+
+The round counter and `t**averaging_power` weighting continue globally. New
+information sets receive no retrospective average mass. Existing averages
+retain earlier, approximate-game play; they are not reset or reweighted.
+While cutoffs remain, values and Nash gaps describe only the current estimated
+game, not the unknown complete game. These are warm-start semantics, not a
+convergence theorem for changing games.
 
 This reference implementation recomputes full-tree prediction traversals for
 each own information set. It prioritizes readability over speed and is not
@@ -69,7 +122,7 @@ also limited to small games. No seed is needed: there is no sampling.
 ## Reproduce the verification report
 
 ```powershell
-python -m pytest -q pair_a_prep/tests/test_pcfr.py
+python -m pytest -q pair_a_prep/tests/test_pcfr.py pair_a_prep/tests/test_pcfr_expansion.py
 python -m pair_a_prep.pcfr --rounds 2000 --output pair_a_prep/results/pcfr_new.json
 python -m pair_a_prep.pcfr --schedule alternating --rounds 2000 --output pair_a_prep/results/pcfr_alt_new.json
 ```
@@ -89,8 +142,22 @@ An alternating Kuhn replay also pins last/average values and Nash gaps at rounds
 `1e-12`. These transient checkpoints detect stale-local-utility prediction and
 ancestor-first preparation, which final equilibrium checks alone can miss.
 
+Expansion tests additionally check atomic rejection, state retention, chance
+and hidden-history aggregation, zero reach, initialization/averaging at birth,
+both schedules, CFR+ control, and exact fixed-tree equivalence when growth
+finishes before the first round. Progressive expansion tests compare average
+strategies against the complete-game LP oracle and require Nash gap < 0.002
+after 2000 further rounds on pennies, coin guessing (hidden/revealed) and Kuhn.
+They check last-iterate gap separately for alternating mode; simultaneous
+last-iterate convergence is not guaranteed by these tests.
+
+See [the expansion handoff](incremental_tree_handoff.md) for measured results
+and the deliberately bounded scope.
+
 ## Next integration steps
 
-Before integrating chess, implement/test gadget values, KLUSS information sets,
-one-sided tree expansion, persistence,
-and purification separately. The report does not validate any of those parts.
+The API supplies incremental leaf expansion on toy trees. Before integrating
+chess, separately implement/test an information-consistent one-sided expansion
+policy, evaluator/budget integration, persistence across moves, and purification,
+alongside the gadget and KLUSS components. This report does not validate a
+complete Obscuro search.
