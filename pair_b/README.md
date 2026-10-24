@@ -300,9 +300,10 @@ works.
 
 ### Pair A's environment, for the Tests tab
 
-Pair A's tests need scipy, which Pair B's environment lacks, so the Tests tab runs them in Pair A's
-own environment, `pair_a_prep/.venv`. Set it up once, from the project root, as
-`pair_a_prep/README.md` does. On macOS and Linux:
+Pair A's code needs scipy. Pair B's environment now has it too (`uv sync` or the pip line above
+installs it), so `pair_a_prep.toy_games` imports there from the project root. The Tests tab still
+runs Pair A's tests in Pair A's own environment, `pair_a_prep/.venv`, with Pair A's own requirements.
+Set it up once, from the project root, as `pair_a_prep/README.md` does. On macOS and Linux:
 
 ```bash
 python3 -m venv pair_a_prep/.venv
