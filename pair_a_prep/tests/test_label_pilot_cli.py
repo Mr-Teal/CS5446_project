@@ -55,6 +55,11 @@ def test_archive_cli_exports_labels_without_inventing_git_provenance(archive, tm
     assert report["source_sha256"]["pair_a_prep/label_pilot.py"]
     assert report["validation"] == {"errors": [], "warnings": []}
     assert (output / "part-000.jsonl").is_file()
+    manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    record = json.loads((output / "part-000.jsonl").read_text(encoding="utf-8"))
+    assert manifest["config_id"] == report["config_id"] == record["config_id"]
+    assert manifest["pilot_configuration"] == report["pilot_configuration"]
+    assert report["pilot_configuration"]["tracker"]["sample_size"] == 4
 
 
 @pytest.mark.parametrize("extra,exception", [

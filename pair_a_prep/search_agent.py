@@ -57,6 +57,7 @@ class FixedDepthPCFRAgent:
 
     @property
     def config_id(self):
+        """Search identity; label_pilot separately identifies tracker/run settings."""
         configuration = dict(version=1, search=asdict(self.config), leaf=self.evaluator.name,
                              initial_fen=self.initial_fen, root_prior="input_belief_weights",
                              infosets="complete_private_stream", policy="raw_last_iterate",

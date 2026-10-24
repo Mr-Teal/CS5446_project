@@ -1,6 +1,6 @@
 # Verification and handoff
 
-## Current chess integration validation: 23 October 2026
+## Current chess integration validation: 24 October 2026
 
 Using `pair_b/.venv/Scripts/python.exe` (Python 3.12.15), with the declared
 Pair A requirements installed into that environment:
@@ -9,10 +9,23 @@ Pair A requirements installed into that environment:
 .\pair_b\.venv\Scripts\python.exe -m pytest -q tests pair_a_prep/tests pair_b_prep
 ```
 
-Result with the chess gadget bridge: **328 tests and 2 subtests passed**,
+Result on the working tree based on merged branch `90a7908`, with the pilot-ID
+fix: **405 tests and 2 subtests passed**,
 including 18 chess bridge/pilot tests and the new alternating Kuhn checkpoint
 regression. This command includes the belief tracker's 95 tests. The full
 Pair B app/training suite was not part of this run.
+
+This includes #21's 70 expansion tests and seven new pilot-identity tests.
+The new tests distinguish tracker sample/cap, ply cap and D1 feature settings;
+keep identical reruns stable; preserve existing game IDs when extending a batch;
+and check canonical configuration hashing. Archive CLI tests additionally check
+that manifest, report and records agree on the full pilot ID/configuration.
+The agent's search-only ID remains separate from exported pilot protocol IDs.
+
+A two-ply Material pilot with real Stockfish D1 input features passed its repeat
+and round-trip checks. Pair B's CLI validator accepted both records with D1 and
+played policies required, with zero errors and zero warnings. Its local output
+is `pair_a_prep/local_runs/pilot-id-v2-20261024/` (ignored by Git).
 
 The archive-portability follow-up adds six CLI/provenance cases: real source
 copies without `.git`, execution without Git on PATH, invalid configuration and

@@ -180,9 +180,27 @@ Recheck an export independently:
 .\pair_b\.venv\Scripts\python.exe pair_b/scripts/validate_labels.py pair_a_prep/local_runs/material-with-d1 --require-d1 --require-played-policy
 ```
 
-Use fresh game IDs/seeds for separate datasets. The pilot identifier includes
-the search configuration, evaluator name, public start and seed; it deliberately
-repeats in exact reruns, which must not be concatenated as independent games.
+## Pilot and game identity (v2)
+
+The agent's `config_id` identifies search settings only; the agent does not own
+a tracker. Every **pilot-exported** record instead uses `pcfr-pilot-v2:<digest>`
+for the complete pilot protocol: agent/search configuration, public start,
+known evaluator settings, optional D1 feature generation, tracker implementation,
+`sample_size`, `max_candidates`, rules, ply cap and seed convention. The full
+`pilot_configuration` and its ID are written to both the report and manifest.
+
+Game IDs combine that protocol digest with the game's seed. Changing either
+tracker limit now changes both the record configuration and game ID. Changing
+the seed changes the game ID while preserving the configuration ID. Output
+paths and requested batch size do not enter the digest: extending a batch keeps
+the existing games' identities stable. Exact reruns intentionally repeat IDs
+and must not be concatenated as independent games. Old v1 exports remain
+historical artifacts and are not silently relabelled.
+
+Distinct configurations are distinct experiments. If a future dataset combines
+related conditions or matched openings across configurations, its split policy
+must also keep those related scenarios together rather than relying on game ID
+hashing alone. Source/engine hashes remain provenance alongside protocol identity.
 
 ## Verified scope on 22 October 2026
 

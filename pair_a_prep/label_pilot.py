@@ -73,6 +73,36 @@ def semantic_records(records):
     return objects
 
 
+def pilot_configuration(evaluator, *, initial_fen, config, max_plies,
+                        sample_size, max_candidates, d1=None):
+    """Identify the whole pilot protocol, separate from the agent configuration.
+
+    Output paths, batch size and base seed are not protocol identity: extending
+    a batch retains its existing game IDs; each game's seed identifies that game.
+    Optional D1 feature generation is part of the exported-data configuration.
+    """
+    def leaf_settings(leaf):
+        if leaf is None:
+            return None
+        return {"name": leaf.name, **{key: getattr(leaf, key) for key in (
+            "depth", "new_game_each_call", "call_timeout_s") if hasattr(leaf, key)}}
+
+    return dict(version=2,
+                agent_config_id=FixedDepthPCFRAgent(evaluator, config, initial_fen).config_id,
+                search=asdict(config), initial_fen=initial_fen,
+                leaf=leaf_settings(evaluator), d1_features=leaf_settings(d1),
+                tracker=dict(implementation="exact-history-v1", sample_size=sample_size,
+                             max_candidates=max_candidates, weighting="uniform_feasible_histories"),
+                match=dict(rules_id="paper_fow_v1_proposed", max_plies=max_plies,
+                           time_budget_ms=1000,
+                           seeds="game=base+2*index; white=game; black=game+1"))
+
+
+def pilot_config_id(configuration):
+    payload = json.dumps(configuration, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    return "pcfr-pilot-v2:" + sha256(payload.encode("utf-8")).hexdigest()[:16]
+
+
 def collect(evaluator, *, initial_fen=KINGS, config=None, games=2, max_plies=6,
             seed=17, sample_size=4, max_candidates=2000, d1=None):
     """Use the shared runner; each agent receives its own tracker and history."""
@@ -83,16 +113,19 @@ def collect(evaluator, *, initial_fen=KINGS, config=None, games=2, max_plies=6,
                             sample_size=sample_size, max_candidates=max_candidates).items():
         if type(value) is not int or value < 1:
             raise ValueError(name + " must be a positive integer")
+    protocol = pilot_configuration(evaluator, initial_fen=initial_fen, config=config,
+                                    max_plies=max_plies, sample_size=sample_size,
+                                    max_candidates=max_candidates, d1=d1)
+    identifier = pilot_config_id(protocol)
     records, summaries = [], []
     for game_index in range(games):
         game_seed = seed + 2 * game_index
         game_records, updates = [], []
-        identifier = FixedDepthPCFRAgent(evaluator, config, initial_fen).config_id
-        game_id = f"pcfr-pilot-{identifier.rsplit(':', 1)[-1]}-{game_seed}"
+        game_id = f"pcfr-pilot-v2-{identifier.rsplit(':', 1)[-1]}-{game_seed}"
 
         class RecordingAgent(FixedDepthPCFRAgent):
             def act(self, turn):
-                record = self.label(turn, game_id)
+                record = replace(self.label(turn, game_id), config_id=identifier)
                 if d1 is not None:
                     # D1 is a separate input feature, not a replacement for solver labels.
                     values = tuple(d1.evaluate_boards(
@@ -192,6 +225,10 @@ def main(argv=None):
                 report["engine"] = dict(name=d1.engine.id, threads=1, hash_mb=16, depth=1,
                                         new_game_each_call=True,
                                         sha256=sha256(Path(shutil.which(args.stockfish) or args.stockfish).read_bytes()).hexdigest())
+            protocol = pilot_configuration(leaf, d1=d1, **{
+                key: value for key, value in settings.items() if key not in ("games", "seed")})
+            report["pilot_configuration"] = protocol
+            report["config_id"] = pilot_config_id(protocol)
             report["source_sha256"] = {p.relative_to(root).as_posix(): sha256(p.read_bytes()).hexdigest()
                                         for p in source_paths}
             tracemalloc.start()
@@ -208,6 +245,7 @@ def main(argv=None):
             manifest = dict(created=report["created"], records=len(records), config_id=records[0].config_id,
                             prototype=True, label_definition="raw_profile_continuation_no_gadget",
                             evaluator=leaf.name, include_d1=d1 is not None,
+                            pilot_configuration=protocol,
                             sha256=sha256(part.read_bytes()).hexdigest())
             (args.out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
             checked = validate(args.out, require_d1=args.include_d1, require_played_policy=True)
