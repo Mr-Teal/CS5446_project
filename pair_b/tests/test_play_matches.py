@@ -482,6 +482,40 @@ def test_a_dead_engine_is_reopened_and_the_run_goes_on(tmp_path, monkeypatch):
     assert (summary["games"], summary["errors"], summary["reopened"]) == (3, 1, 1)
 
 
+# Catches: an engine that stops answering (Bryan's probe on #18) hanging the whole run, instead of its
+# game failing with a TimeoutError and that side being reopened, as after a crash.
+@pytest.mark.skipif(__import__("shutil").which("stockfish") is None, reason="needs Stockfish on PATH")
+def test_an_engine_that_stops_answering_is_reopened_and_the_run_goes_on(tmp_path, monkeypatch):
+    from pairb.stockfish import StockfishEvaluator
+    from test_stockfish import HUNG_ENGINE, within
+    real = play_matches.play_one
+    hung = []
+
+    def hang_a_in_game_1(rules, number, moves, colours, scorers, judges, args):
+        if number == 1:  # side a's scorer now never answers; its old engine is closed first
+            scorers["a"].close()
+            scorers["a"] = StockfishEvaluator(depth=1, path=HUNG_ENGINE, call_timeout_s=0.5)
+            hung.append(scorers["a"])
+        return real(rules, number, moves, colours, scorers, judges, args)
+    monkeypatch.setattr(play_matches, "play_one", hang_a_in_game_1)
+    monkeypatch.setattr(sys, "argv", ["play_matches.py", "--a", "stockfish-d1", "--b", "material", "--games", "4",
+                                      "--max-plies", "10", "--rules", "standin", "--out", str(tmp_path / "m")])
+    try:
+        outcome = within(60, play_matches.main)
+    finally:
+        for ev in hung:
+            ev.engine.close()  # frees a call that is still waiting, so the suite can exit
+    assert outcome is not None, "the run was still waiting on the stuck engine after 60 s"
+    stopped = outcome.get("error")
+    assert isinstance(stopped, SystemExit) and stopped.code == 1, outcome  # one game did fail
+    games = [json.loads(line) for line in (tmp_path / "m" / "games.jsonl").read_text().splitlines()]
+    assert len(games) == 4
+    assert games[1]["error"].startswith("TimeoutError") and games[1]["reopened"] == ["a"]
+    assert all("error" not in g and g["diagnostic_errors"] == 0 for g in (games[0], games[2], games[3]))
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert (summary["games"], summary["errors"], summary["reopened"]) == (3, 1, 1)
+
+
 # Catches: an unattended run spending its whole budget on games that all fail the same way.
 def test_five_consecutive_failed_games_stop_the_run(tmp_path, monkeypatch):
     class Failing(play_matches.OnePlyBot):

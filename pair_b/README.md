@@ -86,6 +86,15 @@ on earlier ones; use it for labels. Inside a search, `False` is faster: 3.4 time
 alone and 1.8 times for Network 1 on an Apple GPU (`checkpoints/timing-new-game-each-call.json`). The
 network runs on CUDA or an Apple GPU when there is one (`device="cpu"` forces the CPU).
 
+`StockfishEvaluator(..., call_timeout_s=60.0)` is a wall-clock limit on each Stockfish call. The
+search stays depth only, so values do not change. python-chess sets no time limit on a depth-only
+search, so without this an engine that stops answering would leave the call waiting forever. When
+the limit passes, the evaluator closes the engine and the call raises `TimeoutError`; `alive()` is
+then False, so a caller (the match runner, for one) reopens it as after a crash. The default is far
+above a normal call (depth 11: median 204 ms, p95 667 ms per `evaluate_children`,
+`checkpoints/timing-stockfish-d11.json`). In a quick local check (600 depth-1 `evaluate_children`
+calls) the watchdog added about 0.06 ms per call.
+
 ## The belief network (D6)
 
 `BeliefNetworkEvaluator` scores every board of a belief knowing the whole belief. One shared board
