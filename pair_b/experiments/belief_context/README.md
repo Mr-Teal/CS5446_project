@@ -1,6 +1,6 @@
 # Belief context on practice labels: seed spread and sensitivity
 
-Two checks of what the belief network's context (the pooled summary of the rest of the belief) does on practice beliefs, whose labels are depth-11 Stockfish values of each board taken alone, so the true value of a board does not depend on the belief it sits in. Neither is evidence about belief-dependent value; that needs Pair A's solver labels. They make the committed one-seed comparison honest.
+Two checks of what the belief network's context (the pooled summary of the rest of the belief) does on practice beliefs, whose labels are depth-11 Stockfish values of each board taken alone, so a board's label does not depend on the belief it sits in. Neither is evidence about belief-dependent value; that needs Pair A's solver labels. They make the committed one-seed comparison honest.
 
 ## Five seeds per variant (`seeds.json`, `collect_seeds.py`)
 
@@ -31,3 +31,9 @@ done
 .venv/bin/python experiments/belief_context/collect_seeds.py --runs runs/belief-seeds --out experiments/belief_context/seeds.json   # also writes seed_runs/
 .venv/bin/python experiments/belief_context/sensitivity.py --data <data>/d6-check --out experiments/belief_context/sensitivity.json
 ```
+
+## What this shows and what it does not
+
+The practice labels are depth-11 Stockfish values of each board taken alone. So the labels do not depend on a board's belief, or on what either player knows. Board error is 0.0734 with context and 0.0762 without (five seeds each). The difference, -0.0028 on average, is negative for every seed. The kept network's value of a board moves by about 0.014 when the rest of its belief changes, about a sixth of its error on those boards. This is pipeline and approximation evidence: it shows that training and evaluation work, and how close the network gets to careful Stockfish. It is not evidence that the network learns the value of hidden information.
+
+Whole-belief play is not validated. In play, the one-ply bot calls the network board by board through `evaluate_children` (`src/pairb/bot.py:121`), which scores each child as a one-board belief (`src/pairb/belief_evaluator.py:122`). Pair A's search on #15 calls its leaves the same way. The real test is to rerun this comparison on Pair A's solver labels (`docs/label_definitions.md`), if they arrive in time.
