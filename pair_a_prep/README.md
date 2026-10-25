@@ -20,6 +20,13 @@ state. It leaves the default agent and shared interfaces unchanged.
 The [gadget bridge](docs/chess_gadgets.md#incremental-gadget-growth) supports
 the same growth with Resolve/Maxmargin paths, keys and payoff offsets preserved.
 
+The optional [budgeted uniform-growth agent](docs/anytime_search.md) now
+alternates solving and expansion, preserves the old tree after failed growth,
+and provides an observation-only action fallback if initial preparation exceeds
+a budget. See [the Obscuro status map](docs/obscuro_status.md) for remaining
+paper mechanisms and [budget probes](docs/budget_experiments.md) for measured
+costs and short-game integration limits.
+
 | Work | File | Contents |
 |---|---|---|
 | Chessboard viewer | [launch instructions](docs/board_viewer.md), [server](board_viewer.py) | Click-to-move chessboard, both fog perspectives, sample games and step-by-step replay using the rules adapter |
