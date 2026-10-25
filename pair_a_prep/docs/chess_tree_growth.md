@@ -64,11 +64,11 @@ failures are exceptions; callers decide whether to continue solving the old tree
 
 ## Limits and verification
 
-Gadget cloning now retains cutoff flags, including Maxmargin's shifted
-estimates. However, `expand_chess_tree` accepts only the original sampled-root
-solver. Gadget paths, opponent key rewriting and shifted replacement payoffs
-still require a dedicated integration. Do not graft these raw continuations
-into a gadget solver.
+Gadget cloning retains cutoff flags, including Maxmargin's shifted estimates.
+`expand_chess_tree` accepts only the original sampled-root solver. For gadget
+solvers, use [ChessGadget.expand](chess_gadgets.md#incremental-gadget-growth),
+which translates paths, opponent keys and shifted replacement payoffs. Do not
+graft raw chess continuations directly into a gadget solver.
 
 This API does not implement paper-specific expansion selection, gifts,
 alternates, knowledge closure, root replenishment, between-turn persistence,

@@ -133,10 +133,55 @@ Gadget cloning/validation and `solve()` add work and do not enforce a wall-clock
 limit. These finite fixture solves are not an anytime agent. The original
 trees must not be mutated after construction. This work does not implement
 knowledge closure, paper-derived gifts/alternates/priors, root replenishment,
-mode switching, incremental tree growth, persistence or purification. It leaves
-the generic PCFR+ solver unchanged so tree-growth work can proceed separately.
+mode switching, persistence or purification. The generic PCFR+ solver is unchanged.
 
-Cloned estimates preserve the `cutoff` flag for future growth integration.
-The [original chess tree can now grow incrementally](chess_tree_growth.md),
-but growing a gadget solver still requires path/key/offset mapping and is not
-supported by that API.
+## Incremental gadget growth
+
+Create a solver explicitly to alternate solving and expansion:
+
+```python
+from pair_a_prep.pcfr import PCFRPlus
+
+solver = PCFRPlus(bridge.gadget.tree, schedule="alternating")
+solver.run(20)
+bridge = bridge.expand(solver, evaluator, additional_depth=1,
+                       max_nodes=5000, max_evaluator_calls=100)
+solver.run(20)
+solution = bridge.solution(solver)
+record = solution.training_record(seed=17, game_id="bounded-growth-example")
+```
+
+Assign the returned bridge after success. Calling an old bridge with the
+updated solver is rejected. `solution(solver)` exports the current raw profile
+and unshifted continuation labels without restarting training. `solve()` is
+still the convenience method for a fresh fixed-work solve.
+
+Every current raw chess frontier grows together, as in the
+[original chess tree API](chess_tree_growth.md). Resolve paths insert `enter`;
+Maxmargin paths insert the opponent group. The existing gadget builder clones
+new subtrees, so opponent information-set rewriting and group payoff offsets
+are applied consistently. Exit leaves and actual terminal leaves are retained.
+Existing gadget minimizers and accumulated state survive the atomic graft.
+
+Preparation uses a temporary raw-tree solver for validation and reconstructs
+gadget clones; it does not replay root histories or re-evaluate old interiors.
+This adds memory and validation work. `max_nodes` bounds the raw chess tree,
+not gadget overhead or temporary copies. `max_evaluator_calls` covers only
+calls during the expansion attempt. A cooperative deadline is checked before
+committing, but cannot interrupt evaluator calls, cloning or final validation.
+Failed attempts preserve the caller's solver and bridge; external evaluator
+side effects remain. Use the same evaluator identity throughout.
+
+Configuration records the uniform growth steps, rounds completed before each
+step, final depth, predictive/averaging settings and total solver rounds. Use
+the continuing solver shown above when exporting a growth trajectory. These
+remain prototype fixture IDs rather than a production label protocol.
+
+Verification compares two consecutive expansions against independently built
+deeper Resolve/Maxmargin trees for both colours and multiple hidden roots.
+Checks cover solver state retention, failure atomicity, shifted terminal
+payoffs, unshifted labels and distinct IDs for different growth timings:
+
+```powershell
+.\pair_b\.venv\Scripts\python.exe -m pytest -q pair_a_prep/tests/test_chess_gadget_expansion.py
+```
