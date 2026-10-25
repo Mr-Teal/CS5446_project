@@ -8,6 +8,10 @@ For the optional Resolve/Maxmargin bridge with externally supplied parameters,
 see [chess_gadgets.md](chess_gadgets.md). That bridge does not change the default
 agent or pilot CLI described here.
 
+For optional state-preserving expansion between solver rounds, see
+[incremental chess tree growth](chess_tree_growth.md). The default agent still
+builds a fixed-depth tree on each turn.
+
 ## Files and data flow
 
 | File | Responsibility |

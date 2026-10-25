@@ -6,7 +6,7 @@ Only player-visible observations and that player's actions enter infoset keys.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from hashlib import sha256
 import json
 from math import isfinite
@@ -16,7 +16,7 @@ from typing import Optional
 from fow_shared.contracts import AgentInput, Observation
 from fow_shared.interfaces import LeafEvaluator
 from .rules_adapter import RuleState, RulesAdapter
-from .toy_games import Node, terminal
+from .toy_games import Node, terminal, frontier
 
 
 class TreeCapacityError(RuntimeError):
@@ -107,6 +107,9 @@ class ChessTree:
     evaluator_calls: int
     # Internal sampled histories aligned with continuations and the input belief.
     history_roots: tuple[HistoryRoot, ...] = ()
+    # Paths start at the sampled-root chance node. Values retain repetition stacks.
+    frontiers: dict[tuple[str, ...], HistoryRoot] = field(default_factory=dict)
+    viewer: str = "white"
 
 
 def build_chess_tree(turn: AgentInput, evaluator: LeafEvaluator, *,
@@ -129,8 +132,16 @@ def build_chess_tree(turn: AgentInput, evaluator: LeafEvaluator, *,
     rules = RulesAdapter()
     roots = reconstruct_roots(turn, rules, initial_fen, deadline)
     viewer = turn.observation.player
+    return _build_roots(roots, viewer, tuple(h.weight for h in turn.belief.hypotheses),
+                        evaluator, depth, max_nodes, deadline)
+
+
+def _build_roots(roots, viewer, weights, evaluator, depth, max_nodes, deadline):
+    """Build independent continuations from retained history, without replay."""
+    rules = RulesAdapter()
     stats = dict(nodes=0, frontier_leaves=0, terminal_leaves=0, evaluator_calls=0)
     cache = {}
+    frontiers = {}
 
     def reserve():
         if deadline is not None and perf_counter() >= deadline:
@@ -145,7 +156,7 @@ def build_chess_tree(turn: AgentInput, evaluator: LeafEvaluator, *,
             return None
         return 0.0 if ended.winner == "draw" else 1.0 if ended.winner == viewer else -1.0
 
-    def expand(state, memories, remaining):
+    def expand(state, memories, remaining, path):
         reserve()
         value = ended_value(state)
         if value is not None:
@@ -181,19 +192,81 @@ def build_chess_tree(turn: AgentInput, evaluator: LeafEvaluator, *,
                 # A blocked frontier is unresolved even if an evaluator guesses a draw.
                 if ended_value(child) is None and not rules.legal_moves(child):
                     raise UnresolvedNoMoveError("blocked frontier has no agreed rule result")
-                node.children[action] = terminal(float(value))
+                if ended_value(child) is None:
+                    next_memories = tuple(_extend(memories[i], rules.observe(child, p),
+                                                  action if p == mover else None)
+                                          for i, p in enumerate(("white", "black")))
+                    frontiers[path + (action,)] = HistoryRoot(child, next_memories)
+                    node.children[action] = frontier(float(value))
+                else:
+                    node.children[action] = terminal(float(value))
             else:
                 next_memories = tuple(_extend(memories[i], rules.observe(child, p),
                                               action if p == mover else None)
                                       for i, p in enumerate(("white", "black")))
-                node.children[action] = expand(child, next_memories, remaining - 1)
+                node.children[action] = expand(child, next_memories, remaining - 1, path + (action,))
         return node
 
     reserve()  # The sampled-root chance node also counts against the capacity.
-    branches = tuple(expand(r.state, r.memories, depth) for r in roots)
+    branches = tuple(expand(r.state, r.memories, depth, (str(i),)) for i, r in enumerate(roots))
     root = Node(children={str(i): n for i, n in enumerate(branches)},
-                probabilities={str(i): h.weight for i, h in enumerate(turn.belief.hypotheses)})
+                probabilities={str(i): weight for i, weight in enumerate(weights)})
     keys = {n.infoset for n in branches}
     if len(keys) != 1:
         raise ValueError("root policy is not shared across sampled hypotheses")
-    return ChessTree(root, branches, branches[0].infoset, history_roots=roots, **stats)
+    return ChessTree(root, branches, branches[0].infoset, history_roots=roots,
+                     frontiers=frontiers, viewer=viewer, **stats)
+
+
+def expand_chess_tree(tree: ChessTree, solver, evaluator: LeafEvaluator, *,
+                      additional_depth: int = 1, max_nodes: int = 5000,
+                      max_evaluator_calls: Optional[int] = None, deadline=None) -> ChessTree:
+    """Grow every current frontier together, preserving the solver's state.
+
+    Call between solver rounds. All hidden histories at this cut are expanded;
+    selecting individual branches is deliberately unsupported. Limits apply to
+    the resulting tree and evaluator calls in this expansion attempt. Evaluator
+    work cannot be rolled back, but failed attempts never change the solver.
+    The deadline is cooperative and cannot interrupt an evaluator invocation.
+    Use only with the original sampled-root tree, not a gadget clone.
+    """
+    if solver.root is not tree.root:
+        raise ValueError("solver and chess tree must share the current root")
+    if type(additional_depth) is not int or additional_depth < 1:
+        raise ValueError("additional_depth must be a positive integer")
+    if type(max_nodes) is not int or max_nodes < tree.nodes:
+        raise TreeCapacityError("max_nodes must accommodate the existing tree")
+    if max_evaluator_calls is not None and (
+            type(max_evaluator_calls) is not int or max_evaluator_calls < 0):
+        raise ValueError("max_evaluator_calls must be a nonnegative integer or None")
+    if not tree.frontiers:
+        return tree
+    calls = 0
+
+    class BudgetedEvaluator:
+        def evaluate_children(self, fen):
+            nonlocal calls
+            if deadline is not None and perf_counter() >= deadline:
+                raise SearchBudgetError("budget exhausted before frontier evaluation")
+            if max_evaluator_calls is not None and calls >= max_evaluator_calls:
+                raise SearchBudgetError("expansion evaluator call budget exhausted")
+            calls += 1
+            return evaluator.evaluate_children(fen)
+
+    replacements, next_frontiers = {}, {}
+    nodes, terminals = tree.nodes, tree.terminal_leaves
+    for path, context in tree.frontiers.items():
+        # The temporary builder adds a chance node that is not grafted.
+        subtree = _build_roots((context,), tree.viewer, (1.0,), BudgetedEvaluator(),
+                              additional_depth, max_nodes - nodes + 2, deadline)
+        replacements[path] = subtree.continuations[0]
+        nodes += subtree.nodes - 2  # Replace one old leaf; omit temporary chance.
+        terminals += subtree.terminal_leaves
+        next_frontiers.update({path + suffix[1:]: state
+                               for suffix, state in subtree.frontiers.items()})
+    if deadline is not None and perf_counter() >= deadline:
+        raise SearchBudgetError("budget exhausted before committing expansion")
+    solver.expand(replacements)
+    return ChessTree(solver.root, tuple(solver.root.children.values()), tree.root_infoset,
+                     nodes, len(next_frontiers), terminals, tree.evaluator_calls + calls,
+                     tree.history_roots, next_frontiers, tree.viewer)
