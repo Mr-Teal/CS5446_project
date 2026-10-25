@@ -19,7 +19,8 @@ from fow_shared.values import fog_legal_moves, terminal_score
 from .observe import observe as standin_view
 
 # fow_shared.values.terminal_score's rule names, as Teal's adapter names them
-_REASONS = {"king-captured": "king_capture", "fifty-move": "fifty_move", "repetition": "threefold_repetition"}
+_REASONS = {"king-captured": "king_capture", "fifty-move": "fifty_move",
+            "repetition": "threefold_repetition", "no-moves": "no_legal_moves"}
 
 
 class Rules(Protocol):

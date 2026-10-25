@@ -61,7 +61,7 @@ class FixedDepthPCFRAgent:
         configuration = dict(version=1, search=asdict(self.config), leaf=self.evaluator.name,
                              initial_fen=self.initial_fen, root_prior="input_belief_weights",
                              infosets="complete_private_stream", policy="raw_last_iterate",
-                             tree="fixed_full_width_no_gadget")
+                             tree="fixed_full_width_no_gadget", no_move_rule="terminal_draw_v1")
         digest = sha256(json.dumps(configuration, sort_keys=True).encode()).hexdigest()[:16]
         return "fixed-depth-pcfr-v1:" + digest
 

@@ -93,7 +93,8 @@ def pilot_configuration(evaluator, *, initial_fen, config, max_plies,
                 leaf=leaf_settings(evaluator), d1_features=leaf_settings(d1),
                 tracker=dict(implementation="exact-history-v1", sample_size=sample_size,
                              max_candidates=max_candidates, weighting="uniform_feasible_histories"),
-                match=dict(rules_id="paper_fow_v1_proposed", max_plies=max_plies,
+                match=dict(rules_id="paper_fow_v1_proposed", no_move_rule="terminal_draw_v1",
+                           max_plies=max_plies,
                            time_budget_ms=1000,
                            seeds="game=base+2*index; white=game; black=game+1"))
 
