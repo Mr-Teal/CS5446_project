@@ -17,11 +17,11 @@ issue under its own heading with the original feedback, response, and test comma
 2. Users can clear Stockfish or other game-specific state in `reset_game()`. The example in `pair_c/agent_factories.py` demonstrates resetting both direct Stockfish scorers and Stockfish inside network evaluators.
 3. Users remain responsible for managing any other state across games, such as hashes and caches.
 
-`check_reset_game.py` runs two short games through the real runner and game loop.
+`test_reset_game.py` runs two short games through the real runner and game loop.
 It checks that both factories' `reset_game()` callbacks run before each
 game, including between the first game's end and the second game's start.
 
-Run from the repository root: `python -m pytest pair_c/regression_tests/check_reset_game.py -v`.
+Run from the repository root: `python -m pytest pair_c/regression_tests/test_reset_game.py -v`.
 
 ## Review issue 2: Return a failure exit status
 
@@ -72,4 +72,21 @@ Run from the repository root:
 
 ```powershell
 python -m pytest pair_c/regression_tests/test_tracker_factory.py -v
+```
+
+## Follow-up: outcome accounting and depth metadata
+
+`test_outcome_accounting.py` checks terminal-only W/D/L denominators while
+retaining successful capped attempts in timing. It also runs the real CLI
+with two one-ply caps: zero scored games, zero terminal draws, unavailable
+outcome rates and successful exit after writing both records.
+
+`test_leaf_depth_metadata.py` checks all five built-in scorer IDs reject
+inconsistent depth metadata before loading resources, and that a valid D11
+setting reaches the constructor unchanged. No real engine/checkpoint is used.
+
+Run all focused regression checks from the repository root:
+
+```powershell
+python -m pytest -q pair_c/regression_tests
 ```
