@@ -1,4 +1,5 @@
-"""StockfishEvaluator against the real engine (D1 spec v0.3 §3).
+"""StockfishEvaluator against the real engine (D1 spec v0.3 §3), and its wall-clock limit against
+a fake engine that never answers 'go' (fake_hung_engine.py).
 
 Values follow fow_shared's rule: from the acting player's point of view. For evaluate_children
 that is the player to move at the node; for evaluate_boards it is the player named in the call.
@@ -7,9 +8,12 @@ import os
 import shutil
 import signal
 import sys
+import threading
 import time
+from pathlib import Path
 
 import chess
+import chess.engine
 import pytest
 
 from pairb.stockfish import StockfishEvaluator
@@ -253,3 +257,102 @@ def test_close_ends_an_engine_that_has_stopped_answering():
         except ProcessLookupError:
             pass
         ev.engine.close()
+
+
+# The wall-clock limit on each Stockfish call. python-chess sets no time limit on a depth-only search,
+# so an engine that stops answering would leave a call waiting forever, and the match runner's
+# recovery after a failed game (play_matches.reopen_dead) would never be reached (Bryan's probe on #18).
+
+HUNG_ENGINE = [sys.executable, "-u", str(Path(__file__).with_name("fake_hung_engine.py"))]
+
+
+def open_hung_engine(limit_s: float) -> StockfishEvaluator:
+    """A StockfishEvaluator on the fake engine, its call limit set to `limit_s` seconds."""
+    ev = StockfishEvaluator(depth=1, path=HUNG_ENGINE)
+    ev.call_timeout_s = limit_s
+    return ev
+
+
+def within(seconds: float, call):
+    """Run call() on a side thread and wait at most `seconds`, so a hang fails the test instead of
+    hanging the suite. Returns {"value": ...} or {"error": ...}, or None if call() is still waiting."""
+    outcome = {}
+
+    def run():
+        try:
+            outcome["value"] = call()
+        except BaseException as exc:  # handed back to the test, which checks what it was
+            outcome["error"] = exc
+    worker = threading.Thread(target=run, daemon=True)
+    worker.start()
+    worker.join(seconds)
+    return None if worker.is_alive() else outcome
+
+
+# Catches: a MultiPV call (evaluate_children) waiting forever on an engine that never answers.
+def test_evaluate_children_gives_up_on_an_engine_that_never_answers():
+    ev = open_hung_engine(0.5)
+    try:
+        start = time.monotonic()
+        outcome = within(10, lambda: ev.evaluate_children(chess.STARTING_FEN))
+        assert outcome is not None, "evaluate_children was still waiting after 10 s"
+        assert isinstance(outcome.get("error"), TimeoutError), outcome
+        assert time.monotonic() - start < 5
+        assert "depth 1" in str(outcome["error"]) and "0.5 s" in str(outcome["error"])
+    finally:
+        ev.engine.close()  # also frees a call that is still waiting
+
+
+# Catches: a single-board call (evaluate_boards, board_value) waiting forever on an engine that never answers.
+def test_evaluate_boards_gives_up_on_an_engine_that_never_answers():
+    ev = open_hung_engine(0.5)
+    try:
+        outcome = within(10, lambda: ev.evaluate_boards([chess.STARTING_FEN], "white"))
+        assert outcome is not None, "evaluate_boards was still waiting after 10 s"
+        assert isinstance(outcome.get("error"), TimeoutError), outcome
+    finally:
+        ev.engine.close()
+
+
+# Catches: a timed-out engine left looking alive, or left running, so play_matches.reopen_dead would
+# not replace it; or close() raising on it, so a run's clean-up ends with a traceback.
+def test_after_a_timeout_the_engine_is_reported_dead_and_closes_without_raising():
+    ev = open_hung_engine(0.5)
+    try:
+        outcome = within(10, lambda: ev.evaluate_boards([chess.STARTING_FEN], "white"))
+        assert outcome is not None and isinstance(outcome.get("error"), TimeoutError), outcome
+        assert ev.alive() is False  # what reopen_dead checks before it reopens a side
+        assert engine_exited(ev)
+        ev.close()  # must not raise
+        ev.close()  # nor twice
+    finally:
+        ev.engine.close()
+
+
+# Catches: no way to set the limit when opening the evaluator, or a default tight enough to cut short
+# a slow but healthy careful-Stockfish call (depth 11: median 204 ms, p95 667 ms per call).
+def test_the_call_limit_is_a_constructor_argument_with_a_generous_default():
+    with StockfishEvaluator(depth=1, path=HUNG_ENGINE) as default:
+        assert default.call_timeout_s == 60.0
+    with StockfishEvaluator(depth=1, path=HUNG_ENGINE, call_timeout_s=0.5) as short:
+        outcome = within(10, lambda: short.evaluate_boards([chess.STARTING_FEN], "white"))
+        assert outcome is not None and isinstance(outcome.get("error"), TimeoutError), outcome
+
+
+# Catches: the limit changing the search (a time limit added to Limit(depth=...) would cut some
+# searches short and change values), or a watchdog thread left running after a call that answered.
+def test_a_call_that_answers_in_time_is_a_plain_depth_search_and_leaves_no_watchdog(monkeypatch):
+    fen = "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R b KQkq - 3 3"
+    with StockfishEvaluator(depth=1, call_timeout_s=30) as ev:
+        limits = []
+        real = ev.engine.analyse
+
+        def spy(board, limit, **kwargs):
+            limits.append(limit)
+            return real(board, limit, **kwargs)
+        monkeypatch.setattr(ev.engine, "analyse", spy)
+        children = ev.evaluate_children(fen)
+        (value,) = ev.evaluate_boards([fen], "white")
+        assert not [t for t in threading.enumerate() if isinstance(t, threading.Timer) and t.is_alive()]
+    assert len(limits) == 2 and all(limit == chess.engine.Limit(depth=1) for limit in limits)
+    assert len(children) == chess.Board(fen).legal_moves.count() and -1 < value < 1

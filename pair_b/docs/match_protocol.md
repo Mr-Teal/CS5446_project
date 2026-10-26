@@ -12,7 +12,7 @@ The bots are honest: through `fow_shared.evaluation.play_game` each one receives
 
 ## Engine policy
 
-Stockfish 19, one thread, 16 MB hash. Every scorer, and the second copy used for the value-lost measurement, starts each game with `ucinewgame`; within a game the hash is kept between calls, as inside a search. The run file records this under `settings.engine`. A Stockfish that dies (a crash) is reopened after the game or measurement that found it dead, scorer and second copy, and the game records which side was reopened; a run stops after five failed games in a row.
+Stockfish 19, one thread, 16 MB hash. Every scorer, and the second copy used for the value-lost measurement, starts each game with `ucinewgame`; within a game the hash is kept between calls, as inside a search. The run file records this under `settings.engine`. A Stockfish that dies (a crash) or stops answering (see Failures) is reopened after the game or measurement that found it dead, scorer and second copy, and the game records which side was reopened; a run stops after five failed games in a row.
 
 Bryan's runner (`pairb.match_experiment`, PR #14) clears the engine before every call and opens fresh engines per game. The two policies give different values on the same position: with the hash kept from one earlier search, 9 of 30 depth-1 values change (by up to 0.02) and all 30 depth-11 values (by up to 0.10, and the best move changes), none with the hash cleared (`experiments/matches/engine-policy-probe.json`). Results from the two runners are therefore compared, not pooled.
 
@@ -37,6 +37,8 @@ Two intervals. Wilson's 95% score interval on the pair-level proportion (n = com
 ## Failures
 
 A game that raises (a tracker that loses the position, a scorer that fails, a side with no legal move) is recorded with its error, excluded from the score and from its pair, and the run goes on. A value-lost measurement that fails after a game finished keeps the game; the move records `diagnostic_error`. The run exits with status 1 if any game or measurement failed, so a batch wrapper notices; a table built from a run with errors states their count and cause.
+
+A Stockfish that stops answering is handled like one that crashes. Each Stockfish call has a wall-clock limit (`call_timeout_s`, 60 s by default; the search itself stays depth only, so no value changes). When it passes, the engine is closed and the call raises `TimeoutError`, so the game is recorded with that error, the side is reopened, and the run goes on. Without the limit, a depth-only call to a stuck engine would wait forever and the recovery would never be reached (Bryan's probe on #18).
 
 ## The runs for the report
 
