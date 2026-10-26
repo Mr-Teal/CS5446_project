@@ -26,6 +26,11 @@ are explicitly separated from the source-mapped mechanisms.
 
 ## Ownership and immediate sequence
 
+The [expansion audit](expansion_mechanism_audit.md) now checks the local paper's
+exact support/PUCT mixture and initialization. It also clarifies that our
+complete-cut requirement is an engineering restriction; the paper can expand
+one history leaf without expanding every member of its information set.
+
 1. User: integrate and test the within-turn budgeted agent and document baseline costs.
 2. User: derive selective expansion and new-node initialization from the source
    pseudocode before implementing them. Existing uniform growth is a reference.

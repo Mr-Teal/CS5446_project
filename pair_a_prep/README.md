@@ -27,6 +27,11 @@ a budget. See [the Obscuro status map](docs/obscuro_status.md) for remaining
 paper mechanisms and [budget probes](docs/budget_experiments.md) for measured
 costs and short-game integration limits.
 
+For draft slides 4-5, open [the local material viewer](presentation/index.html).
+The [material guide](presentation/README.md) includes SVG export and evidence
+regeneration; [the expansion audit](docs/expansion_mechanism_audit.md) separates
+the paper's one-sided leaf selection from our uniform complete-cut baseline.
+
 | Work | File | Contents |
 |---|---|---|
 | Chessboard viewer | [launch instructions](docs/board_viewer.md), [server](board_viewer.py) | Click-to-move chessboard, both fog perspectives, sample games and step-by-step replay using the rules adapter |
