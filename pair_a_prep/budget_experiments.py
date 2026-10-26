@@ -132,7 +132,7 @@ def collect():
         "budget_experiments", "anytime_agent", "chess_search", "pcfr", "rules_adapter",
         "belief_tracker", "search_agent", "toy_games")]
     return dict(scope="fixed-work diagnostic probes, not win-rate or full Obscuro validation",
-                evaluator="material", seed=17, rules="paper_fow_v1_proposed; no-move unresolved",
+                evaluator="material", seed=17, rules="paper_fow_v1_proposed; no-move terminal_draw_v1",
                 timing="clock disabled; 1000ms is diagnostic only; measured times are machine-dependent",
                 limits="same caps, not equal actual work; failed expansion work counts in evaluator calls",
                 environment=dict(python=sys.version, platform=platform.platform()),

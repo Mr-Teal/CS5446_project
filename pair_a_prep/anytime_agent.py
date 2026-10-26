@@ -69,7 +69,7 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
                            if hasattr(self.evaluator, key)}},
                        roots="input_belief_weights", infosets="complete_private_stream",
                        growth="uniform_all_frontiers", policy="raw_last_iterate",
-                       no_move_rule="unresolved_until_coordinated_update",
+                       no_move_rule="terminal_draw_v1",
                        fallback="uniform_observed_legal_moves_no_labels")
         return "uniform-growth-v1:" + sha256(json.dumps(
             payload, sort_keys=True, allow_nan=False).encode()).hexdigest()[:16]

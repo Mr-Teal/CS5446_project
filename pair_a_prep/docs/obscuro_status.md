@@ -11,7 +11,7 @@ are explicitly separated from the source-mapped mechanisms.
 
 | Mechanism and source anchor | Current evidence | Remaining work / difference |
 |---|---|---|
-| FoW rules and private observations, App. A | `rules_adapter.py`, special-position fixtures, referee integration | Coordinate the separate no-move rule change in #28. This branch still uses the earlier unresolved convention. |
+| FoW rules and private observations, App. A | `rules_adapter.py`, special-position fixtures, referee integration; #28 integrated in Pair A | Main rollout still depends on #15. New configurations identify the no-move terminal draw; historical artifacts retain their old rule revision. |
 | Consistent root histories | Partner's `belief_tracker.py`; replay validates observations/actions and retains repetition stacks | Exact internal enumeration is not scalable. Work with tracker owner on bounded, history-preserving candidates; output sampling alone does not bound population. |
 | Information-set identity | Private observation/action hash chains in `chess_search.py` | Current tree uses a sampled-root game, not the paper's complete knowledge-limited construction. |
 | KLUSS knowledge restriction, App. C.6 | Synchronized-cut toy prototype in `knowledge.py` | Build the relevant chess history/knowledge closure and connect unfreezing to chess subgames. Toy cut logic is not a general asynchronous-history implementation. |
@@ -36,8 +36,8 @@ are explicitly separated from the source-mapped mechanisms.
 6. Evaluation owner, with user support: freeze rules/source versions, integrate
    the available agent and measure strength only after stable end-to-end runs.
 
-#27 supplies raw-tree growth; #29 supplies gadget growth; #28 is the independent
-shared-rule update. This branch builds on #29 without changing those PRs.
+#27 supplies raw-tree growth, #29 gadget growth, and #28 the shared-rule update.
+All three are now integrated in the Pair A base; #15 remains the route to main.
 
 ## Reporting requirements
 
