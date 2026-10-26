@@ -110,7 +110,8 @@ repetition histories, so FEN is not a complete information state."
 **Visual:** A pipeline with a private-state boundary and evaluator branch.
 Show offline labels and post-game diagnostics as separate paths. Distinguish
 Pair A's history tracker from the 256-particle match configuration; the latter
-is not the full exact belief. Source: S3. Suggested reviewer: Pair A.
+is not the full exact belief. Source: S3. Teal has volunteered review, content
+and a replay-validated pair of hypotheses with the same private evidence.
 
 ### Slide 5. Grow Search Without Restarting Its Learning (1:15)
 
@@ -124,8 +125,10 @@ support selected contracts, not stronger play or full Obscuro reproduction."
 
 **Visual:** A before/after tree with unchanged old nodes and highlighted new
 frontiers. Limit verification to a 20-second callout; test counts go in backup.
-Note uniform growth, within-search retention rather than full cross-turn
-persistence, and cooperative deadlines. Sources: S3, S7. Reviewer: Pair A.
+Note uniform complete-frontier growth, within-turn retention, missing
+paper-derived gadget inputs/purification and cooperative deadlines. The budgeted
+agent does not yet use the gadget path. Sources: S3, S7. Teal has volunteered
+content and a retained-state growth visual; speaking allocation remains open.
 
 ### Slide 6. Swap the Evaluator, Keep the Interface (1:15)
 
@@ -197,7 +200,7 @@ do not pool this with slide 8's child-ranking task. Source: S4. Reviewer: Pair B
 ### Slide 10. Test Playing Strength With Paired Openings (1:15)
 
 **On slide:** "Seven candidates vs D1; 200 games per pairing planned."
-"Same opening, colors exchanged." "Score, uncertainty, latency and failures."
+"Same opening, colors exchanged." "Score, uncertainty, mean/p95 latency and failures."
 
 **Speaker draft:** "Evaluator-based agents share a one-ply planner, 256 particles
 and eight hypotheses; random play is an additional baseline. We average complete
@@ -206,7 +209,10 @@ elapsed time. The 60-second watchdog protects a call, not an entire move."
 
 **Visual:** One opening, two color-swapped games, one pair score. Put 1,400
 scheduled games under a conspicuous PLAN label. List source/rules, checkpoints
-and engine settings as prerequisites. Source: S5. Suggested reviewers:
+and engine settings as prerequisites. Before using results, reconcile scheduled
+games with finished games plus game errors and raw IDs; zero errors alone do
+not prove completion. Retain command/exit status and no-move count footnotes.
+Source: S5. Suggested reviewers:
 evaluation contributors and Pair B.
 
 ### Slide 11. Historical Checks Are Not Formal Results (1:15)
@@ -217,7 +223,9 @@ evaluation contributors and Pair B.
 **Speaker draft:** "This historical check supports a bounded, lopsided pairing.
 Its score is 1.00 with approximate Wilson interval 0.72-1.00. Bootstrap is
 withheld for ten constant pair scores. Per-call engine reset differs from the
-proposed per-game policy; this is neither a neural result nor new-batch evidence."
+proposed per-game policy. Builds, platforms, Python, seeds and revisions also
+differ, and both historical runs predate the watchdog. This is not neural or
+new-batch evidence."
 
 **Visual:** Separate historical and formal-status panels. When validated formal
 artifacts arrive, replace the status panel with paired scores/intervals and
@@ -245,11 +253,19 @@ Sources: S1, S4-S7.
 
 ## Team Handoff and Rehearsal
 
-**Confirm ownership.** Pair A can validate slides 1-5; Pair B can validate 6-9;
-evaluation contributors can validate 10-11. Bryan can check source links and
-claim boundaries. WANG Zhijian can advise on workflow status; this does not
-volunteer him to run the batch. LIN Tzu-Chun and all members should choose
-contributions and speaking blocks together. Reviewers are not assigned speakers.
+**Confirmed content ownership.** Teal has volunteered rules/shared-state/search
+review and initial content/visuals for slides 4-5: replay-validated hypotheses
+sharing private evidence, and before/after growth retaining solver state.
+These illustrate implementation, not strength gains. Speakers and deck location
+remain undecided. Pair B review of 6-9 and evaluation review of 10-11 are proposals.
+WANG Zhijian has not confirmed batch operation; LIN Tzu-Chun's role remains open.
+
+**Contribution credits.** Teal reports rules/referee/private observations,
+PCFR+/Resolve/Maxmargin prototypes, chess-history/gadget integration, pilots,
+within-turn growth/budget integration and supporting tests/docs/visualizers,
+with Codex assistance. Shengxin's belief-tracker/ZS21 work is reported by Teal;
+ask Shengxin to confirm wording and completion. Explicitly credit Bryan's PR21
+state-preserving toy expansion API, which the later chess/gadget work builds on.
 
 **First deliverables.** Claim a block and reviewer in the pull-request discussion,
 create its visuals and transfer the wording to the agreed slide tool. For each
@@ -297,9 +313,11 @@ S2. Colin's [pinned information examples](https://github.com/Mr-Teal/CS5446_proj
 
 S3. [Shared contract, main 2af8f1f](https://github.com/Mr-Teal/CS5446_project/blob/2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d/README.md) and [Pair A specifications/source, 5f334b1](https://github.com/Mr-Teal/CS5446_project/tree/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep). Different snapshots, not one validated final release.
 
+Use the [pinned mechanism checklist](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep/docs/obscuro_status.md) for detailed implemented/missing distinctions; only the main boundaries belong in the talk. Teal's [content/contribution confirmation](https://github.com/Mr-Teal/CS5446_project/pull/33#issuecomment-6408509322) is not final-source validation or a speaking allocation.
+
 S4. [Pinned evaluator documentation and linked artifacts](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/README.md). Plot the recorded values; distinguish development checks, offline beliefs, sealed tests and gameplay.
 
-S5. [Methods draft, PR32](https://github.com/Mr-Teal/CS5446_project/blob/005f2426faf2b3a000436a26a7a72bd563c7c79e/pair_b/docs/evaluation-methods-draft.md) and [batch discussion, issue 17](https://github.com/Mr-Teal/CS5446_project/issues/17). Recheck current decisions/artifacts before changing plans into results.
+S5. [Methods draft, PR32](https://github.com/Mr-Teal/CS5446_project/blob/d9497207eae4b3437bb3603df6f3be62d8a10aca/pair_b/docs/evaluation-methods-draft.md) and [batch discussion, issue 17](https://github.com/Mr-Teal/CS5446_project/issues/17). Recheck current decisions/artifacts before changing plans into results.
 
 S6. [Historical artifacts, PR31](https://github.com/Mr-Teal/CS5446_project/tree/8735be4cc7e06928db6d12ee2487a08bb86e5ba7/pair_b/experiments/matches/crosscheck-bryan-d1-vs-material-standard-start). Historical source: 3afc5945dfa5a98e5a90275782b8658b69bb9bcf; do not pool with the proposed batch.
 

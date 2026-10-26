@@ -138,10 +138,10 @@ computed strategy. Retaining accumulated solver state during growth avoids
 restarting all previous learning when a deeper continuation is added.
 
 Our implementation follows selected mechanisms, not every mechanism of either
-paper. In particular, the current budgeted prototype grows frontiers uniformly
-and rebuilds its search for each turn. State retention during one tree's growth
-must not be confused with complete cross-turn persistence, paper-faithful
-one-sided expansion or all of Obscuro's purification and gadget transitions [4].
+paper. The budgeted prototype uses uniform complete-frontier growth and rebuilds
+each turn; it does not yet integrate the gadget search path. Cross-turn persistence,
+paper-derived gadget inputs, selective expansion and purification remain missing.
+The detailed mechanism checklist separates these gaps from implemented parts [4].
 
 ---
 
@@ -274,9 +274,10 @@ legal plies with seed 0 under the recorded generation rule [6,7].
 
 **Status:** these 1,400 games are a plan, not completed results in this report.
 The final source/rules revision, machine, checkpoint identities and validated
-run artifacts must accompany the completed table. The runner of record proposed
-in the protocol discussion is play_matches; a workflow wrapper must preserve
-its semantics rather than silently substitute another experiment [6,7].
+run artifacts must accompany the completed table. Use play_matches as runner of
+record. Accept completion only when finished games plus game errors equal the
+scheduled count and raw IDs reconcile; save command and exit status. Zero error
+or incomplete-pair flags alone cannot establish that a batch finished [6,7].
 
 Game scores are 1/0.5/0 for win/draw/loss. The primary estimate averages the
 two scores within each complete color pair, then averages complete pairs.
@@ -287,10 +288,12 @@ Wilson interval for fractional pair scores and explains why bootstrap is absent.
 
 Stockfish 19 uses one thread and 16 MB hash, reset before each game. A 60-second
 per-call watchdog is failure protection, not an enforced action-time limit.
-Report both players' decision latency, game wall time, tracker health and
-termination causes. The comparison fixes outer planning work, not engine work
-or elapsed time. Decision timing excludes tracker updates. Per-row intervals
-do not establish multiple-comparison-adjusted superiority [6,7].
+Report both players' mean/p95 decision latency, game wall time and tracker health.
+Each row must footnote unresolved no-move exclusions or recorded no-move draws
+under its pinned rule. PR28 integration is pending and also changes stand-in
+decisions. Compare engine binary hashes alongside source/checkpoint identities.
+Outer planning, not compute/time, is controlled; timing excludes tracker updates.
+Per-row intervals are not multiple-comparison-adjusted evidence [6,7].
 
 ---
 
@@ -339,12 +342,11 @@ or losses and 734 plies, all ending in king capture [8]. The paired score is
 1.00 with approximate Wilson 95% interval 0.72-1.00. Bootstrap is withheld:
 there are only ten pairs and all pair scores are identical.
 
-The historical source is 3afc5945dfa5a98e5a90275782b8658b69bb9bcf. It resets
-Stockfish before every call, unlike the proposed per-game reset. Its 1,508
-tracker updates include 42 rebuilds and 163 capped updates. Colin reported
-the same aggregate W/D/L in his separate runner [6], but the runs share game
-machinery and differ in engine policy. They are not pooled, do not establish
-runner equivalence, and provide no neural-evaluator strength result.
+Bryan's source was 3afc594, with per-call engine reset; Colin's was 00639cb,
+with per-game reset [6,8]. Bryan recorded 1,508 tracker updates, 42 rebuilds
+and 163 caps. The runs share game machinery but differ in build, platform,
+Python and seed mapping; both predate the watchdog. Matching aggregate scores
+are not runner equivalence or neural strength evidence; the runs are not pooled.
 
 ---
 
@@ -399,41 +401,37 @@ internal workloads differ.
 ## 8. Limitations, Responsible AI and Next Steps
 
 Limitations include development-set selection, approximate labels, synthetic
-beliefs, uncertain transfer from ordinary-chess trajectories, different
-rule/search revisions, and pending formal matches. The papers use different
-engine versions and search procedures. Our results do not establish exact
-reproduction, human-level play or general strength; subgame diagnostics are
-not whole-game exploitability.
+beliefs, uncertain transfer from ordinary chess, different rule/search revisions
+and pending matches. Paper engine versions and search differ. Results establish
+neither exact reproduction nor human-level/general strength; subgame diagnostics
+are not whole-game exploitability.
 
-Responsible use emphasizes **transparency** through inspectable records,
-**accountability** through named contributions and review, and **fair play**
-through information boundaries. Any future human matches need participant
-consent and clear bot identification. No human study, fairness audit or
-real-world social benefit is claimed.
+Responsible use requires **transparency** through records, **accountability**
+through attribution/review, and **fair play** through information boundaries.
+Future human matches require consent and bot identification. No human study,
+fairness audit or social benefit is claimed.
 
-Next, pin the integrated revision, complete the paired batch and audit its
-counts and exclusions. Belief-dependent labels and controlled search ablations
-can then address questions beyond full-board regression. Retain positive,
-negative and inconclusive results.
+Next, pin the integrated revision and audit paired matches, then investigate
+belief-dependent targets and search ablations. Retain positive, negative and
+inconclusive results.
 
 ## 9. Team Contributions and AI Assistance
 
-This allocation reflects the available project records; each member must
-confirm their final contribution statement before submission.
+Teal confirmed his prototype work; other members' statements remain provisional.
 
 | Member(s) | Contribution reflected in current records |
 | --- | --- |
-| DING Chiyu; PEI Shengxin | Pair A: rules, tracking and search work, with implementation/review responsibilities to confirm individually |
+| DING Chiyu | Rules/referee/private observations; PCFR+, Resolve/Maxmargin prototypes; chess-history/gadget integration; label pilots/provenance; within-turn growth and budgeted-agent integration; tests, diagnostics, documentation and visualizers |
+| PEI Shengxin | Belief tracker and ZS21 (division reported by Teal); await Shengxin's confirmation of wording/completion |
 | QUEK Hongqiang Colin | Pair B: evaluators, training/development evaluation, match protocol and worked toy exposition |
-| Kuah Jun Hong, Bryan | Pair B: independent cross-checks, scoped reviews and evidence sharing; evaluation-methods and report drafting |
+| Kuah Jun Hong, Bryan | State-preserving toy PCFR+ expansion API (PR21), used by later chess/gadget integration; independent cross-checks, scoped reviews/evidence sharing, methods and report/presentation drafting |
 | WANG Zhijian | Evaluation workflow contribution; final batch operation and results to confirm |
-| LIN Tzu-Chun | Final role and completed contribution require confirmation; not inferred from proposal membership |
+| LIN Tzu-Chun | Role and completed contribution await confirmation |
 
-GitHub Copilot assisted Bryan with inspection, probe generation/execution,
-artifact checks and this draft. Bryan directed the scope and authorized earlier
-sharing; human verification and team approval remain necessary. The proposal
-records Claude-assisted drafting. Other members must add their own AI-use
-disclosures; this statement does not cover all team work.
+GitHub Copilot assisted Bryan's inspections, probes, artifact checks and drafting
+under his direction. Teal reports Codex assistance; the proposal records
+Claude-assisted drafting. Others must disclose their use. Human verification
+and team approval remain necessary.
 
 ## 10. Conclusion
 
@@ -452,13 +450,13 @@ matches, not regression error, passing tests or historical D1-versus-material wi
 
 3. CS5446_project contributors. Shared code and integration contract [Internet]. 2026 [cited 2026 Oct 26]. Revision 2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d. Available from: [pinned repository README](https://github.com/Mr-Teal/CS5446_project/blob/2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d/README.md).
 
-4. CS5446_project contributors. Pair A search implementation, specifications and reproduction differences [Internet]. 2026 [cited 2026 Oct 26]. Revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed. Available from: [pinned Pair A source](https://github.com/Mr-Teal/CS5446_project/tree/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep).
+4. CS5446_project contributors. Pair A search implementation, specifications and reproduction differences [Internet]. 2026 [cited 2026 Oct 26]. Revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed. Available from: [pinned Pair A source](https://github.com/Mr-Teal/CS5446_project/tree/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep); [detailed mechanism checklist](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep/docs/obscuro_status.md).
 
 5. emalcolin, CS5446_project contributors. Pair B: leaf evaluators, Network 1 and its practice data [Internet]. 2026 [cited 2026 Oct 26]. Revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed; contains links to the underlying checkpoint results and manifests. Available from: [pinned evaluator documentation](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/README.md).
 
 6. CS5446_project contributors. Match protocol [Internet]. 2026 [cited 2026 Oct 26]. Revision 2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d. Available from: [pinned protocol](https://github.com/Mr-Teal/CS5446_project/blob/2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d/pair_b/docs/match_protocol.md); [protocol discussion, issue 17](https://github.com/Mr-Teal/CS5446_project/issues/17).
 
-7. bryankuah. Evaluation methods and batch validation [Internet]. 2026 Oct 26 [cited 2026 Oct 26]. Draft PR32, revision 005f2426faf2b3a000436a26a7a72bd563c7c79e. Available from: [pinned methods draft](https://github.com/Mr-Teal/CS5446_project/blob/005f2426faf2b3a000436a26a7a72bd563c7c79e/pair_b/docs/evaluation-methods-draft.md).
+7. bryankuah. Evaluation methods and batch validation [Internet]. 2026 Oct 26 [cited 2026 Oct 26]. Draft PR32, revision d9497207eae4b3437bb3603df6f3be62d8a10aca. Available from: [pinned methods draft](https://github.com/Mr-Teal/CS5446_project/blob/d9497207eae4b3437bb3603df6f3be62d8a10aca/pair_b/docs/evaluation-methods-draft.md).
 
 8. bryankuah. Independent D1-versus-material historical cross-check [Internet]. 2026 [cited 2026 Oct 26]. Publication revision 8735be4cc7e06928db6d12ee2487a08bb86e5ba7; historical run source differs as stated in the text. Available from: [pinned raw artifacts and audit](https://github.com/Mr-Teal/CS5446_project/tree/8735be4cc7e06928db6d12ee2487a08bb86e5ba7/pair_b/experiments/matches/crosscheck-bryan-d1-vs-material-standard-start).
 
