@@ -134,6 +134,7 @@ to -0.0011; `experiments/belief_context/seeds.json`). The labels carry no inform
 belief, so that gain is denoising, not belief-dependent value; the kept network's value of a board
 moves by 0.014 on average when the rest of its belief changes, about a sixth of its error on those
 boards (`experiments/belief_context/sensitivity.json`). Pair A's labels are the real test.
+What these studies show and what they do not is set out at the end of `experiments/belief_context/README.md`.
 
 `checkpoints/belief-v1-d1/` is the kept network. A belief of 8 boards takes 3.4 ms on an Apple
 GPU when 200 are scored in one call, and 6.5 ms one at a time
