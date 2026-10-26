@@ -14,6 +14,10 @@ and the evaluator plug. It can produce small validated TrainingRecord pilots;
 see [chess search and label pilot](docs/chess_search.md). It does not yet
 implement the paper's full Obscuro search or generate production teacher data.
 
+An optional [incremental chess tree API](docs/chess_tree_growth.md) expands
+retained frontier histories between solver rounds while preserving PCFR+
+state. It leaves the default agent and shared interfaces unchanged.
+
 | Work | File | Contents |
 |---|---|---|
 | Chessboard viewer | [launch instructions](docs/board_viewer.md), [server](board_viewer.py) | Click-to-move chessboard, both fog perspectives, sample games and step-by-step replay using the rules adapter |

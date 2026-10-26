@@ -135,3 +135,8 @@ trees must not be mutated after construction. This work does not implement
 knowledge closure, paper-derived gifts/alternates/priors, root replenishment,
 mode switching, incremental tree growth, persistence or purification. It leaves
 the generic PCFR+ solver unchanged so tree-growth work can proceed separately.
+
+Cloned estimates preserve the `cutoff` flag for future growth integration.
+The [original chess tree can now grow incrementally](chess_tree_growth.md),
+but growing a gadget solver still requires path/key/offset mapping and is not
+supported by that API.
