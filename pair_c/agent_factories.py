@@ -1,6 +1,6 @@
 """Example factory that loads Pair B's OnePlyBot with a configured scorer.
 
-For another Agent, copy the class and replace the marked ``load_model`` body.
+For another Agent, copy the class and replace the marked ``load_model`` and ``reset_game`` bodies.
 Its required interface and relevant source files are documented there.
 """
 
@@ -8,10 +8,8 @@ from __future__ import annotations
 
 from typing import Mapping
 
-from pairb.belief_evaluator import BeliefNetworkEvaluator
 from pairb.bot import OnePlyBot
 from pairb.material import MaterialEvaluator
-from pairb.network_evaluator import NetworkEvaluator
 from pairb.stockfish import StockfishEvaluator
 
 from pair_c.agent_api import project_path
@@ -30,7 +28,7 @@ class Factory:
 
         Return value:
             ``None``. This initializer is framework code; users should leave it
-            unchanged and implement only ``load_model`` below.
+            unchanged and implement ``load_model`` and ``reset_game`` below.
         """
         self.settings = settings
 
@@ -60,8 +58,10 @@ class Factory:
             the Agent protocol is in ``fow_shared/interfaces.py``.
 
         User-owned work:
-            Replace the code between the markers. Load your checkpoint and
-            create your Agent. Return it directly if it already has the
+            Replace the code between the markers in both user-owned methods.
+            Load your checkpoint and create your Agent. Keep references to
+            scorer state that reset_game must clear before each game.
+            Return the Agent directly if it already has the
             required interface; otherwise adapt it before returning. Do not
             return a path, checkpoint dictionary, or uninitialized model.
 
@@ -84,6 +84,8 @@ class Factory:
         if scorer_id == "network1":
             if not checkpoint_setting:
                 raise ValueError("network1 requires checkpoint_path pointing to a .pt file")
+            from pairb.network_evaluator import NetworkEvaluator
+
             scorer = NetworkEvaluator.from_checkpoint(
                 project_path(checkpoint_setting),
                 stockfish_path=stockfish_path,
@@ -93,6 +95,8 @@ class Factory:
         elif scorer_id == "belief":
             if not checkpoint_setting:
                 raise ValueError("belief requires checkpoint_path pointing to a .pt file")
+            from pairb.belief_evaluator import BeliefNetworkEvaluator
+
             scorer = BeliefNetworkEvaluator.from_checkpoint(
                 project_path(checkpoint_setting),
                 stockfish_path=stockfish_path,
@@ -107,6 +111,37 @@ class Factory:
         else:
             raise ValueError(f"Unknown scorer_id: {scorer_id!r}")
 
+        self._scorer = scorer  # Retain the resources reset_game must clear.
         # Pair B already provides a compatible Agent implementation.
         return OnePlyBot(scorer)
+        # --- Your Code Ends Here ---
+
+    def reset_game(self) -> None:
+        """Clear this player's game-specific scorer state before a game starts.
+
+        Input:
+            No explicit argument. Use resources saved by load_model. Pair C
+            calls this once per attempted game, including the first, before
+            play_game calls the Agent's reset(player, seed).
+
+        Return value:
+            None. The same factory, Agent and model are reused across games.
+
+        User-owned work:
+            Replace the code between the markers for your model. Clear any
+            state that must not carry over from the previous game. If your
+            scorer uses a hash, cache, or similar state, manage its lifetime
+            yourself, including any reuse within one game. Stateless scorers
+            may do nothing. Do not reload the model or create a new Agent here.
+        """
+        # --- Your Code Start Here ---
+        scorer_id = self.settings.get("scorer_id", "").strip()
+        if scorer_id in ("network1", "belief"):
+            engine = self._scorer.stockfish
+        elif scorer_id in ("stockfish-d1", "stockfish-d11"):
+            engine = self._scorer
+        else:  # MaterialEvaluator does not own an engine.
+            engine = None
+        if engine is not None:
+            engine.new_game()
         # --- Your Code Ends Here ---

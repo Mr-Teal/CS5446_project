@@ -17,9 +17,9 @@ sys.path.insert(0, str(ROOT / "pair_b" / "src"))
 
 from fow_shared.evaluation import MatchConfig, play_game
 from pairb.rules import GameReferee, pick_rules
-from pairb.tracker import ParticleTracker
 
 from pair_c.agent_api import load_player, project_path
+from pair_c.tracker_api import load_tracker_factory
 
 
 def load_config(path: Path) -> dict:
@@ -34,6 +34,7 @@ def load_config(path: Path) -> dict:
         settings = {key: value.strip() for key, value in parser.items(section)}
         settings["name"] = parser.get(section, "name", fallback=f"Player {side.upper()}").strip()
         settings["factory"] = parser.get(section, "factory").strip()
+        settings["tracker_factory"] = parser.get(section, "tracker_factory").strip()
         players[side] = settings
 
     config = {
@@ -49,15 +50,6 @@ def load_config(path: Path) -> dict:
         "output_dir": project_path(parser.get("output", "directory")),
     }
 
-    # Belief-tracker settings belong to each player, like checkpoint_path: every
-    # agent may rely on its own belief granularity, so they cannot be global.
-    for side in ("a", "b"):
-        section = f"player_{side}"
-        players[side]["leaf_depth"] = parser.getint(section, "leaf_depth")
-        players[side]["tracker_particles"] = parser.getint(section, "tracker_particles")
-        players[side]["tracker_hypotheses"] = parser.getint(section, "tracker_hypotheses")
-        players[side]["tracker_rebuild_tries"] = parser.getint(section, "tracker_rebuild_tries")
-
     if config["games"] < 1:
         raise ValueError("games must be at least 1")
     if config["rules"] not in ("standin", "teal"):
@@ -67,15 +59,10 @@ def load_config(path: Path) -> dict:
     if config["seed"] < 0 or config["seed_mode"] not in ("fixed", "per_game"):
         raise ValueError("seed must be non-negative and seed_mode must be 'fixed' or 'per_game'")
     for side in ("a", "b"):
-        settings = players[side]
-        if settings["leaf_depth"] < 0:
+        if parser.getint(f"player_{side}", "leaf_depth") < 0:
             raise ValueError(f"player_{side}: leaf_depth cannot be negative")
-        if (settings["tracker_particles"] < 1 or settings["tracker_hypotheses"] < 1
-                or settings["tracker_rebuild_tries"] < 0):
-            raise ValueError(
-                f"player_{side}: tracker_particles and tracker_hypotheses must be "
-                "positive; tracker_rebuild_tries cannot be negative"
-            )
+    # Preserve player options as strings for both factories. Each tracker factory
+    # parses its own settings; other trackers need not define particle options.
     return config
 
 
@@ -120,6 +107,8 @@ def summarize(records: list[dict], config: dict) -> dict:
         "player_b": config["players"]["b"]["name"],
         "player_a_factory": config["players"]["a"]["factory"],
         "player_b_factory": config["players"]["b"]["factory"],
+        "player_a_tracker_factory": config["players"]["a"]["tracker_factory"],
+        "player_b_tracker_factory": config["players"]["b"]["tracker_factory"],
         "games_requested": config["games"],
         "games_completed": denominator,
         "games_failed": len(records) - denominator,
@@ -158,8 +147,12 @@ def run(config: dict, source_config: Path) -> dict:
     )
     with ExitStack() as stack:
         # Each side invokes its factory separately and owns its own Agent and model resources.
-        player_a = load_player(config["players"]["a"]["factory"], config["players"]["a"], stack)
-        player_b = load_player(config["players"]["b"]["factory"], config["players"]["b"], stack)
+        player_a, reset_a = load_player(config["players"]["a"]["factory"], config["players"]["a"], stack)
+        player_b, reset_b = load_player(config["players"]["b"]["factory"], config["players"]["b"], stack)
+        tracker_factories = {
+            side: load_tracker_factory(settings["tracker_factory"], settings)
+            for side, settings in config["players"].items()
+        }
         print(
             f"Players: A={config['players']['a']['name']} | B={config['players']['b']['name']} | "
             f"colors={'alternating' if config['alternating_colors'] else 'A always White'}",
@@ -180,19 +173,6 @@ def run(config: dict, source_config: Path) -> dict:
                     a_color: player_a,
                     b_color: player_b,
                 }
-                # Each tracker is built from the settings of the player who
-                # will hold that color in this game, so Player A and Player B
-                # truly own independent belief-tracking configurations.
-                trackers = {
-                    color: ParticleTracker(
-                        rules,
-                        n_particles=config["players"][player_by_color[color]]["tracker_particles"],
-                        n_hypotheses=config["players"][player_by_color[color]]["tracker_hypotheses"],
-                        rebuild_tries=config["players"][player_by_color[color]]["tracker_rebuild_tries"],
-                        initial_fen=config["initial_fen"],
-                    )
-                    for color in ("white", "black")
-                }
                 referee = GameReferee(rules, initial_fen=config["initial_fen"])
                 game_seed = seed_for_game(config, index)
                 base_record = {
@@ -202,6 +182,8 @@ def run(config: dict, source_config: Path) -> dict:
                     "player_b": config["players"]["b"]["name"],
                     "player_a_factory": config["players"]["a"]["factory"],
                     "player_b_factory": config["players"]["b"]["factory"],
+                    "player_a_tracker_factory": config["players"]["a"]["tracker_factory"],
+                    "player_b_tracker_factory": config["players"]["b"]["tracker_factory"],
                     "player_a_color": a_color,
                     "player_by_color": player_by_color,
                     "status": "failed",
@@ -213,6 +195,18 @@ def run(config: dict, source_config: Path) -> dict:
                 )
 
                 try:
+                    # Factories follow player identities when colors alternate.
+                    # Every game receives fresh trackers with the referee's rules
+                    # and public start; play_game calls their reset methods.
+                    trackers = {
+                        color: tracker_factories[player_by_color[color]].create_tracker(
+                            rules, initial_fen=config["initial_fen"],
+                        )
+                        for color in ("white", "black")
+                    }
+                    # Each factory owns its scorer's per-game state lifecycle.
+                    reset_a()
+                    reset_b()
                     match = MatchConfig(
                         time_budget_ms=config["time_budget_ms"],
                         max_plies=config["max_plies"],
@@ -220,8 +214,8 @@ def run(config: dict, source_config: Path) -> dict:
                         rules_id=rules.name,
                         engine_id=f"{config['players']['a']['name']}-vs-{config['players']['b']['name']}",
                         leaf_depth=max(
-                            config["players"]["a"]["leaf_depth"],
-                            config["players"]["b"]["leaf_depth"],
+                            int(config["players"]["a"]["leaf_depth"]),
+                            int(config["players"]["b"]["leaf_depth"]),
                         ),
                     )
                     result = play_game(referee, agents, trackers, match)
@@ -281,7 +275,9 @@ def main() -> None:
         parser.exit(1, f"Evaluation failed: {type(error).__name__}: {error}\n")
 
     completed = summary["games_completed"]
+    failed = summary["games_failed"]
     print(f"\nResults after {completed} completed games:")
+    print(f"  Failed games: {failed}")
     print(f"  Player A: {summary['player_a']}")
     print(f"    Wins: {summary['player_a_wins']}")
     print(f"    Draws: {summary['draws']}")
@@ -294,7 +290,13 @@ def main() -> None:
     print(f"    Losses: {summary['player_a_wins']}")
     print(f"    Win rate: {summary['player_a_losses'] / completed:.1%}" if completed else "    Win rate: unavailable")
     print(f"    Score rate: {summary['player_b_score_rate']:.1%}" if completed else "    Score rate: unavailable")
-    print(f"Results: {config['output_dir']}")
+    print(f"Results: {config['output_dir']}", flush=True)
+    if failed:
+        parser.exit(
+            1,
+            f"Evaluation finished with {failed} failed game(s). "
+            f"Logs and summary saved to {config['output_dir']}.\n",
+        )
 
 
 if __name__ == "__main__":

@@ -16,12 +16,10 @@ def project_path(value: str) -> Path:
 
 
 def load_player(factory_path: str, settings: Mapping[str, str], resources):
-    """Instantiate a factory and return the Agent produced by ``load_model``.
+    """Return the Agent and its factory's per-game reset callback.
 
-    Pair C passes the returned object directly to
-    ``fow_shared.evaluation.play_game``. The Agent owner is responsible for
-    making that object satisfy the shared runtime contract; this loader does
-    not inspect or validate its methods.
+    The runner calls reset_game once before each game, then passes the Agent
+    to play_game. The factory owns the scorer state it needs to clear.
     """
     module_name, separator, class_name = factory_path.partition(":")
     if not separator or not module_name or not class_name:
@@ -31,9 +29,11 @@ def load_player(factory_path: str, settings: Mapping[str, str], resources):
     if not isinstance(factory, type):
         raise ValueError(f"Player factory must be a class: {factory_path}")
 
-    # The factory object is only a loader. Its load_model method returns the
-    # actual Agent that play_game will call.
-    agent = factory(settings).load_model()
+    instance = factory(settings)
+    reset_game = getattr(instance, "reset_game", None)
+    if not callable(reset_game):
+        raise TypeError(f"Player factory must define reset_game(): {factory_path}")
+    agent = instance.load_model()
 
     # Some Agents own external resources such as a Stockfish subprocess. The
     # shared play_game() contract does not close them, so Pair C registers an
@@ -46,4 +46,4 @@ def load_player(factory_path: str, settings: Mapping[str, str], resources):
         close = getattr(getattr(agent, "scorer", None), "close", None)
     if callable(close):
         resources.callback(close)
-    return agent
+    return agent, reset_game
