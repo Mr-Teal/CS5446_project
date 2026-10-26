@@ -20,7 +20,8 @@ the checkout has Teal's adapter, and one table must be played by one set of rule
 overruns and never cuts a move short. A game that fails because a side has no fog-legal move is a
 recorded error ("no legal move"), until Pair A's rules decide such positions.
 
-A Stockfish that dies (a crash) is reopened, scorer and second copy, after the game or measurement
+A Stockfish that dies (a crash), or stops answering (no reply within StockfishEvaluator's
+call_timeout_s, 60 s by default), is reopened, scorer and second copy, after the game or measurement
 that found it dead, and the game records which side was reopened; a run stops after 5 failed games
 in a row.
 
