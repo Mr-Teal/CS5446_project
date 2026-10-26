@@ -63,10 +63,22 @@ Two remaining issues were reproduced:
    disagreeing with metadata. The factory can reject known scorer/depth
    mismatches locally; no Pair B API change is required for that validation.
 
-An isolated Pair C follow-up can address these without changing this handoff.
-Until its cap accounting is fixed, use `games.jsonl.stopped_at_ply_limit` and
-exclude those records when interpreting smoke outcomes. Local raw reports are
-under ignored `pair_a_prep/local_runs/`.
+The independent `pair-a/pr26-review-fixes` branch (8aad65c) addresses both:
+
+- Counts `games_scored`/`games_capped` separately, stores capped winners as null,
+  and excludes caps from outcome rates while retaining their timing.
+- Validates built-in scorer/depth agreement before loading resources, without
+  changing Pair B's API. Also fixes the reset-test command in the test README.
+- All 13 Pair C regressions pass (including the original four). The real Pair A
+  smoke was repeated against that fixed candidate: two capped six-ply attempts,
+  zero failures, zero scored games/draws, and unavailable outcome rates. Moves
+  match the original runner's smoke exactly.
+
+These are proposed follow-up changes, not changes to the author's PR26 branch.
+Until they are integrated, use `games.jsonl.stopped_at_ply_limit` and exclude
+those records when interpreting smoke outcomes. Local raw reports remain
+under ignored `pair_a_prep/local_runs/`; the compact evidence is in
+`results/evaluation_handoff_reference.json`.
 
 No full Pair B suite, long-game tracker validation, actual Stockfish/network
 execution, formal batch or new model training is covered by this handoff.

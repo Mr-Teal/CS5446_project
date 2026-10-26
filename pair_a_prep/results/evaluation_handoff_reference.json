@@ -1,0 +1,45 @@
+{
+  "scope": "PR26 re-review and bounded real Pair A integration; no strength or formal batch claim",
+  "date": "2026-10-26",
+  "pr26_head": "869870ded16a7cec9886d5eb803d2bcaae2c3778",
+  "pair_a_integrated_base": "dfeea4c5067d0b2d3dd0eef52f2527c9653c240f",
+  "pair_a_factory_commit": "d1b15ce",
+  "pair_c_followup_commit": "8aad65c",
+  "original_pair_c_files_verified_unchanged": 11,
+  "test_scopes_not_to_be_added_as_unique_tests": {
+    "original_pair_c_regressions_passed": 4,
+    "pair_a_factory_tests_passed": 5,
+    "fixed_pair_c_regressions_passed_including_original_four": 13
+  },
+  "independent_original_head_probes": {
+    "material_loads_with_torch_blocked": true,
+    "mock_direct_engine_new_game_calls": 2,
+    "mock_network1_nested_engine_new_game_calls": 2,
+    "mock_belief_nested_engine_new_game_calls": 2,
+    "depth_mismatch": {"scorer_id": "stockfish-d11", "configured_leaf_depth": 1, "actual_constructor_depth": 11},
+    "one_ply_cap_probe": {"attempts": 2, "failures": 0, "runner_reported_draws": 2, "runner_reported_score_rate": 0.5, "observed_terminal_outcomes": 0}
+  },
+  "real_pair_a_smoke": {
+    "agent_a": "uniform-growth PCFR+ with Material",
+    "agent_b": "fixed-depth PCFR+ with Material",
+    "rules": "teal",
+    "public_start_fen": "7k/8/8/8/8/8/8/K7 w - - 0 1",
+    "exact_tracker_output_sample_size": 4,
+    "exact_tracker_internal_capacity": 2000,
+    "a_colours": ["white", "black"],
+    "plies": [6, 6],
+    "failures": 0,
+    "observed_terminal_outcomes": [null, null],
+    "original_runner_reported_draws": 2,
+    "fixed_runner_scored_games": 0,
+    "fixed_runner_capped_games": 2,
+    "fixed_runner_reported_draws": 0,
+    "fixed_runner_score_rate": null,
+    "moves_match_original_after_accounting_fix": true
+  },
+  "limitations": [
+    "Pair A source/shared rules were integration dependencies overlaid in a PR26 snapshot.",
+    "No actual Stockfish, checkpoint or GPU execution in these probes; reset checks use scorer doubles.",
+    "No complete Pair B app/training suite, long-game tracker validation, formal batch or new training."
+  ]
+}
