@@ -109,7 +109,7 @@ def build_gadget(roots: Sequence[SubgameRoot], alternate_player0: Mapping[str, f
 
     def clone(node, group, offset=0.0):
         if node.payoff is not None:
-            return terminal(node.payoff - offset)
+            return Node(payoff=node.payoff - offset, cutoff=node.cutoff)
         # Opponent remembers J and its gadget action. Player 0 is NOT told J
         # or root identity: preserve all its original cross-root infoset keys.
         key = (_key("continuation", group, node.infoset) if node.player == 1 else node.infoset)
