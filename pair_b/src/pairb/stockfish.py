@@ -8,6 +8,8 @@ Values crossing to Pair A follow fow_shared's rule: from the acting player's poi
 Moves come from fow_shared.values.fog_legal_moves, so castling into, out of or through
 check and moves into check are covered; positions decided by a rule never reach Stockfish.
 """
+import threading
+
 import chess
 import chess.engine
 
@@ -26,13 +28,23 @@ def _sign(player: str) -> float:
 
 
 class StockfishEvaluator:
-    def __init__(self, depth: int, path: str = "stockfish", hash_mb: int = 16, new_game_each_call: bool = True):
+    def __init__(self, depth: int, path: str = "stockfish", hash_mb: int = 16, new_game_each_call: bool = True,
+                 call_timeout_s: float = 60.0):
         """new_game_each_call=True sends ucinewgame before every call, so no result depends on
         earlier searches (needed for labels). Inside a search, False is about 3.4x faster (1.5 against
         5.2 ms per expanded node on 300 positions from real games,
-        checkpoints/timing-new-game-each-call.json)."""
+        checkpoints/timing-new-game-each-call.json).
+
+        call_timeout_s is a wall-clock limit on each Stockfish call. The search itself stays depth
+        only, so values do not change; python-chess sets no time limit on a depth-only search, so an
+        engine that stops answering would otherwise leave the call waiting forever. When the limit
+        passes, the engine is closed and the call raises TimeoutError; alive() is then False, so a
+        caller can reopen the engine as after a crash. The default, 60 s, is far above a normal call
+        (depth 11: median 204 ms, p95 667 ms per evaluate_children, checkpoints/timing-stockfish-d11.json).
+        It is read on every call, so it can be changed between calls."""
         self.depth = depth
         self.new_game_each_call = new_game_each_call
+        self.call_timeout_s = call_timeout_s
         self.engine = chess.engine.SimpleEngine.popen_uci(path)
         self.engine.configure({"Threads": 1, "Hash": hash_mb})
         self.name = f"{self.engine.id.get('name', 'stockfish').lower().replace(' ', '-')}-d{depth}"
@@ -77,6 +89,33 @@ class StockfishEvaluator:
             self._game = object()
         return self._game
 
+    def _analyse(self, board: chess.Board, **kwargs):
+        """engine.analyse at Limit(depth=self.depth), the position alone, within call_timeout_s.
+
+        A watchdog thread closes the engine if the limit passes; python-chess then ends the pending
+        call with EngineTerminatedError, which is raised again here as TimeoutError. The watchdog is
+        cancelled and joined before this returns, so no thread outlives the call."""
+        timed_out = threading.Event()
+
+        def stop():
+            timed_out.set()
+            self.engine.close()  # thread-safe: kills the process and ends python-chess's event loop
+
+        watchdog = threading.Timer(self.call_timeout_s, stop)
+        watchdog.daemon = True
+        watchdog.start()
+        try:
+            return self.engine.analyse(board.copy(stack=False), chess.engine.Limit(depth=self.depth),
+                                       game=self._game_token(), **kwargs)
+        except Exception as error:
+            if timed_out.is_set():
+                raise TimeoutError(f"no answer from the engine at depth {self.depth} within "
+                                   f"{self.call_timeout_s:g} s (call_timeout_s); the engine was closed") from error
+            raise
+        finally:
+            watchdog.cancel()
+            watchdog.join()
+
     def evaluate_boards(self, fens: list[str], player: str) -> list[float]:
         """One value per board, same order, from `player`'s view ("white" or "black")."""
         sign = _sign(player)
@@ -109,9 +148,7 @@ class StockfishEvaluator:
         The board must not be decided by a rule (check rule_value first). Stockfish gets the
         position alone, as everywhere here: the rules use the board's history, the engine does not.
         """
-        n = board.legal_moves.count()
-        infos = self.engine.analyse(board.copy(stack=False), chess.engine.Limit(depth=self.depth), multipv=n,
-                                    game=self._game_token())
+        infos = self._analyse(board, multipv=board.legal_moves.count())
         return {info["pv"][0].uci(): info["score"].white() for info in infos}
 
     def board_value(self, board: chess.Board) -> tuple[float, bool]:
@@ -131,8 +168,7 @@ class StockfishEvaluator:
             return (max(children) if board.turn == chess.WHITE else min(children)), False
         # Send the position alone: python-chess would otherwise replay the moves that led here,
         # and a fog-only move (castling out of check) from an orthodox-illegal start kills Stockfish.
-        info = self.engine.analyse(board.copy(stack=False), chess.engine.Limit(depth=self.depth),
-                                   game=self._game_token())
+        info = self._analyse(board)
         return pov_to_value(info["score"]), False
 
     def children_values(self, board: chess.Board) -> dict[str, tuple[float, bool]]:
