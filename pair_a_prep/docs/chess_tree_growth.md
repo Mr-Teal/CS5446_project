@@ -72,8 +72,8 @@ graft raw chess continuations directly into a gadget solver.
 
 This API does not implement paper-specific expansion selection, gifts,
 alternates, knowledge closure, root replenishment, between-turn persistence,
-purification or a production anytime agent. The unresolved no-move policy is
-unchanged pending a coordinated shared-rule update.
+purification or a production anytime agent. The integrated #28 rule reports
+no-fog-legal-move positions as terminal draws before frontier evaluation.
 
 Run focused checks from the repository root:
 
