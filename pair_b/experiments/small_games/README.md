@@ -1,4 +1,4 @@
-# Small games: the Kuhn-poker convergence figure
+# Small games: the Kuhn-poker convergence figure and the information example
 
 Inputs for Section 3's half page on Pair A's small-game verification, produced from Pair A's code without changing it. `run_kuhn_control.py` imports Pair A's `pcfr.py` and `toy_games.py` (on their branch `pair-a/rules-interface`, or on `main` once #15 merges) and runs Kuhn poker with the alternating schedule twice, PCFR+ and the same solver with `predictive=False`, recording the last and average iterate's value and Nash gap at 14 log-spaced checkpoints up to 2,000 rounds, a summary of the last iterate's gap over every round (`last_gap_every_round`), and the SHA-256 of the `pcfr.py` and `toy_games.py` that ran, with the Python and NumPy versions (`provenance`; the committed run used the `pcfr.py` of #15, git blob 046ef2bc, unchanged since Pair A's commit 4b78ce1). `make_gap_figure.py` draws `kuhn-gap-vs-rounds.svg` from that JSON with no third-party library, and `--check` compares the PCFR+ curve with Pair A's committed `pcfr_alternating_reference.json` at the five checkpoints they share (it matched to 1e-9 on 22 October).
 
@@ -8,9 +8,12 @@ What the figure shows: PCFR+'s last iterate is below 1e-7 by round 100 and stays
 
 The four other toy games in Pair A's references (matching pennies, hidden and revealed, and the coin game, hidden and revealed) reach a gap of 0 at the first round under the alternating schedule (`pcfr_alternating_reference.json`); under the simultaneous schedule (`pcfr_reference.json`) only hidden matching pennies does: the hidden coin game starts at a gap of 0.5 and the two revealed games at 1. Either way they are a sentence and an appendix table, not a figure. The KLSS and KLUSS values (-0.5 and +0.5) do not come from this run: they are the LP values of the Resolve gadget over the cut from Pair A's `knowledge_demo()`, with the alternate payoff J0 = +2 (`pair_a_prep/docs/knowledge.md`, asserted in `pair_a_prep/tests/test_knowledge.py`).
 
+`information_example.md` is the worked example for #19. In hidden matching pennies and the hidden coin game, two histories land in one information set (`p1_hidden`, `guess_hidden`); the revealed versions split them. A table gives the value for player 0 and the LP's equilibrium strategies. `make_information_table.py` prints that table from Pair A's `pair_a_prep/results/toy_reference.json` with the standard library only, and `pair_b/tests/test_information_table.py` checks the table in the .md is exactly what it prints. No new solver sweep: the table only reads Pair A's committed values, and a rerun of `toy_games.py` on 24 October gave the same numbers for these four games.
+
 Commands, from the repository root with Pair A's environment (NumPy and SciPy) and their files on the path:
 
 ```sh
 PYTHONPATH=. pair_a_prep/.venv/bin/python pair_b/experiments/small_games/run_kuhn_control.py --out pair_b/experiments/small_games/kuhn-gap-vs-rounds.json --reference pair_a_prep/results/pcfr_alternating_reference.json
 python3 pair_b/experiments/small_games/make_gap_figure.py --curves pair_b/experiments/small_games/kuhn-gap-vs-rounds.json --out pair_b/experiments/small_games/kuhn-gap-vs-rounds.svg --reference pair_a_prep/results/pcfr_alternating_reference.json --check
+python3 pair_b/experiments/small_games/make_information_table.py
 ```
