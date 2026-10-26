@@ -17,6 +17,8 @@ implement the paper's full Obscuro search or generate production teacher data.
 An optional [incremental chess tree API](docs/chess_tree_growth.md) expands
 retained frontier histories between solver rounds while preserving PCFR+
 state. It leaves the default agent and shared interfaces unchanged.
+The [gadget bridge](docs/chess_gadgets.md#incremental-gadget-growth) supports
+the same growth with Resolve/Maxmargin paths, keys and payoff offsets preserved.
 
 | Work | File | Contents |
 |---|---|---|

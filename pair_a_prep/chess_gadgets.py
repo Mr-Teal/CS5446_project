@@ -7,16 +7,17 @@ root replenishment or a KLUSS knowledge closure.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from hashlib import sha256
 import json
 from math import fsum
 from random import Random
+from time import perf_counter
 from typing import Mapping, Optional
 
 from fow_shared.contracts import AgentInput, Decision, TrainingRecord
 from fow_shared.interfaces import LeafEvaluator
-from .chess_search import ChessTree, build_chess_tree
+from .chess_search import ChessTree, build_chess_tree, expand_chess_tree, SearchBudgetError
 from .gadgets import Gadget, SubgameRoot, build_gadget
 from .pcfr import PCFRPlus
 from .toy_games import behavioral_value
@@ -107,6 +108,57 @@ class ChessGadget:
     reach_mass: dict
     group_prior: Optional[dict]
 
+    def expand(self, solver: PCFRPlus, evaluator: LeafEvaluator, *,
+               additional_depth: int = 1, max_nodes: int = 5000,
+               max_evaluator_calls: Optional[int] = None, deadline=None) -> ChessGadget:
+        """Grow a complete chess frontier cut and preserve gadget solver state.
+
+        Return a new bridge only after an atomic graft. Resolve paths include
+        enter; Maxmargin paths include the selected opponent group. Replacement
+        nodes are cloned by the original gadget builder, preserving opponent
+        key rewriting and the group's payoff offset. max_nodes bounds the raw
+        chess tree, not the additional gadget/validation workspace.
+        """
+        if solver.root is not self.gadget.tree:
+            raise ValueError("solver must use this bridge's current gadget tree")
+        if evaluator.name != self.roots.settings["evaluator"]:
+            raise ValueError("growth must use the same evaluator identity as preparation")
+        if not self.roots.chess_tree.frontiers:
+            return self
+        # This temporary solver validates the raw graft; it has no trained state.
+        # The caller's trained gadget solver is untouched until all preparation
+        # and cloning succeed. A future builder can remove this extra workspace.
+        raw_solver = PCFRPlus(self.roots.chess_tree.root, schedule=solver.schedule)
+        grown = expand_chess_tree(self.roots.chess_tree, raw_solver, evaluator,
+                                  additional_depth=additional_depth, max_nodes=max_nodes,
+                                  max_evaluator_calls=max_evaluator_calls, deadline=deadline)
+        settings = {**self.roots.settings,
+                    "depth": self.roots.settings["depth"] + additional_depth,
+                    "max_nodes": max_nodes, "growth": "uniform_frontier_v1",
+                    "growth_steps": [*self.roots.settings.get("growth_steps", []),
+                                     dict(rounds_before=solver.rounds,
+                                          additional_depth=additional_depth,
+                                          max_nodes=max_nodes)]}
+        roots = replace(self.roots, chess_tree=grown, settings=settings)
+        candidate = roots.build(self.gadget.alternate_player0, reach_mass=self.reach_mass,
+                                mode=self.gadget.mode, group_prior=self.group_prior)
+        replacements = {}
+        for path in self.roots.chess_tree.frontiers:
+            index = int(path[0])
+            root_id = self.roots.root_ids[index]
+            if self.gadget.mode == "resolve":
+                gadget_path = (root_id, "enter") + path[1:]
+            else:
+                gadget_path = (self.roots.opponent_infosets[index], root_id) + path[1:]
+            node = candidate.gadget.tree
+            for action in gadget_path:
+                node = node.children[action]
+            replacements[gadget_path] = node
+        if deadline is not None and perf_counter() >= deadline:
+            raise SearchBudgetError("budget exhausted before gadget expansion commit")
+        solver.expand(replacements)
+        return replace(candidate, gadget=replace(candidate.gadget, tree=solver.root))
+
     def evaluate_profile(self, profile) -> ChessGadgetValues:
         """Evaluate the SAME raw profile, including unreachable continuations."""
         gadget_value = behavioral_value(self.gadget.tree, profile)
@@ -122,9 +174,17 @@ class ChessGadget:
             raise ValueError("rounds must be a positive integer")
         solver = PCFRPlus(self.gadget.tree, schedule=schedule)
         solver.run(rounds)
+        return self.solution(solver)
+
+    def solution(self, solver: PCFRPlus) -> ChessGadgetSolution:
+        """Export a trained current gadget solver without restarting its rounds."""
+        if solver.root is not self.gadget.tree or solver.rounds < 1:
+            raise ValueError("solution requires a trained solver on this bridge's current tree")
         profile = solver.policy()
         configuration = dict(version=1, chess=self.roots.settings, mode=self.gadget.mode,
-                             rounds=rounds, schedule=schedule, policy="raw_last_iterate",
+                             rounds=solver.rounds, schedule=solver.schedule,
+                             predictive=solver.predictive, averaging_power=solver.averaging_power,
+                             policy="raw_last_iterate",
                              root_ids=self.roots.root_ids,
                              belief_weights=self.roots.belief_weights,
                              root_groups=dict(zip(self.roots.root_ids, self.roots.opponent_infosets)),
