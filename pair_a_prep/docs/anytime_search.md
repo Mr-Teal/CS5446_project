@@ -102,7 +102,11 @@ commit. Historical references are not rewritten when code changes later.
 
 ## Scope
 
-This branch does not incorporate the independent #28 no-move rule update.
+This branch now incorporates #28: a no-fog-legal-move position is a terminal
+draw after other outcomes are checked. New agent configuration IDs and budget
+probe metadata identify `terminal_draw_v1`. The committed historical budget
+reference retains its original pre-rule source hashes/configuration and is
+not rewritten to imply a post-rule run.
 Gadget growth remains available separately through `ChessGadget.expand()`;
 the agent does not invent paper-specific alternate values or gadget priors.
 There is no selective one-sided expansion, cross-turn persistence,
