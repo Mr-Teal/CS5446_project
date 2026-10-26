@@ -86,6 +86,15 @@ on earlier ones; use it for labels. Inside a search, `False` is faster: 3.4 time
 alone and 1.8 times for Network 1 on an Apple GPU (`checkpoints/timing-new-game-each-call.json`). The
 network runs on CUDA or an Apple GPU when there is one (`device="cpu"` forces the CPU).
 
+`StockfishEvaluator(..., call_timeout_s=60.0)` is a wall-clock limit on each Stockfish call. The
+search stays depth only, so values do not change. python-chess sets no time limit on a depth-only
+search, so without this an engine that stops answering would leave the call waiting forever. When
+the limit passes, the evaluator closes the engine and the call raises `TimeoutError`; `alive()` is
+then False, so a caller (the match runner, for one) reopens it as after a crash. The default is far
+above a normal call (depth 11: median 204 ms, p95 667 ms per `evaluate_children`,
+`checkpoints/timing-stockfish-d11.json`). In a quick local check (600 depth-1 `evaluate_children`
+calls) the watchdog added about 0.06 ms per call.
+
 ## The belief network (D6)
 
 `BeliefNetworkEvaluator` scores every board of a belief knowing the whole belief. One shared board
@@ -134,6 +143,7 @@ to -0.0011; `experiments/belief_context/seeds.json`). The labels carry no inform
 belief, so that gain is denoising, not belief-dependent value; the kept network's value of a board
 moves by 0.014 on average when the rest of its belief changes, about a sixth of its error on those
 boards (`experiments/belief_context/sensitivity.json`). Pair A's labels are the real test.
+What these studies show and what they do not is set out at the end of `experiments/belief_context/README.md`.
 
 `checkpoints/belief-v1-d1/` is the kept network. A belief of 8 boards takes 3.4 ms on an Apple
 GPU when 200 are scored in one call, and 6.5 ms one at a time
@@ -300,9 +310,10 @@ works.
 
 ### Pair A's environment, for the Tests tab
 
-Pair A's tests need scipy, which Pair B's environment lacks, so the Tests tab runs them in Pair A's
-own environment, `pair_a_prep/.venv`. Set it up once, from the project root, as
-`pair_a_prep/README.md` does. On macOS and Linux:
+Pair A's code needs scipy. Pair B's environment now has it too (`uv sync` or the pip line above
+installs it), so `pair_a_prep.toy_games` imports there from the project root. The Tests tab still
+runs Pair A's tests in Pair A's own environment, `pair_a_prep/.venv`, with Pair A's own requirements.
+Set it up once, from the project root, as `pair_a_prep/README.md` does. On macOS and Linux:
 
 ```bash
 python3 -m venv pair_a_prep/.venv
