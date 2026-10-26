@@ -179,13 +179,41 @@ def test_tree_and_clock_limits_fail_without_publishing_partial_labels():
     assert agent.last_result is None
 
 
-def test_blocked_custom_position_does_not_silently_become_a_draw():
+def test_blocked_custom_position_is_an_explicit_terminal_draw():
     # The blocked position supplied in Colin's PR #15 review.
     fen = "7k/8/8/8/1p6/pPp5/PRP5/KB6 w - - 0 1"
-    turn = turn_after(fen)
-    assert not turn.observation.legal_moves and not turn.observation.terminal
-    with pytest.raises(UnresolvedNoMoveError):
+    state = RULES.initial_state(fen)
+    observation = RULES.observe(state, "white")
+    assert not observation.legal_moves and observation.terminal
+    assert observation.outcome == 0.0
+    turn = AgentInput(observation, Belief("white", 0, (Hypothesis(state.fen, 1.0, "blocked"),)), 1000)
+    with pytest.raises(ValueError, match="terminal turn"):
         build_chess_tree(turn, ConstantLeaf(), initial_fen=fen)
+
+
+@pytest.mark.parametrize("depth", [1, 2])
+def test_move_to_blocked_position_uses_draw_not_evaluator(depth):
+    fen = "7k/8/8/8/1pp5/pP6/PRP5/KB6 b - - 0 1"
+    turn = turn_after(fen, player="black")
+    tree = build_chess_tree(turn, ConstantLeaf(0.7), initial_fen=fen,
+                            depth=depth, max_nodes=10000)
+    assert tree.continuations[0].children["c4c3"].payoff == 0.0
+
+
+def test_no_move_draw_updates_exact_tracker_and_referee():
+    fen = "7k/8/8/8/1pp5/pP6/PRP5/KB6 b - - 0 1"
+    referee = RulesReferee(fen)
+    trackers = {p: BeliefTracker(fen) for p in ("white", "black")}
+    for p, tracker in trackers.items():
+        tracker.reset(p, 17)
+        tracker.update(referee.observe(p))
+    referee.apply("c4c3")
+    assert referee.is_terminal() and referee.winner() == "draw"
+    for p, tracker in trackers.items():
+        observation = referee.observe(p)
+        belief = tracker.update(observation, "c4c3" if p == "black" else None)
+        assert observation.terminal and observation.outcome == 0.0
+        assert belief.hypotheses
 
 
 def test_bad_leaf_coverage_or_nonfinite_scores_fail_explicitly():

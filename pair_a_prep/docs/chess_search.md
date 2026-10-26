@@ -68,8 +68,10 @@ the resulting chess game is a 3x3 matrix checked with the independent LP oracle.
 - Actual terminal outcomes override leaf estimates using the retained history.
   Nonterminal frontier estimates use the FEN-only evaluator interface; they are
   not complete repetition-aware continuation searches.
-- A blocked state without a referee result raises `UnresolvedNoMoveError`,
-  including at the frontier. No new draw, loss or pass rule is introduced.
+- Following #17, a state with no fog-legal action is an actual terminal draw,
+  including at the frontier. The adapter checks other outcomes first. Search
+  rejects terminal input turns; internal draw leaves override evaluator guesses.
+  `UnresolvedNoMoveError` remains a defensive check for inconsistent rule results.
 
 The generic evaluator plug supports `evaluate_children`, including Pair B's
 Material and Stockfish leaves. It does **not** use `evaluate_beliefs`; no claim
