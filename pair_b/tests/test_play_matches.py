@@ -816,7 +816,7 @@ def test_a_full_run_is_marked_completed_and_records_its_command(tmp_path, monkey
     summary = json.loads((tmp_path / "m" / "summary.json").read_text())
     assert summary["completed"] is True and summary["stopped_early"] is None
     assert summary["command"] == ["play_matches.py", "--a", "material", "--b", "material", "--games", "2",
-                                  "--max-plies", "12", "--out", "~/m"]
+                                  "--max-plies", "12", "--out", str(Path("~") / "m")]
 
 
 # Catches: a run stopped early on its last planned game (five failures in a row, or a dead engine that
