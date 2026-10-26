@@ -134,6 +134,7 @@ def test_a_failing_game_is_recorded_and_the_run_still_writes_its_summary(tmp_pat
     summary = json.loads((tmp_path / "m" / "summary.json").read_text())
     assert (summary["games"], summary["errors"], summary["score_a"]["mean"]) == (0, 2, None)
     assert (summary["score_a"]["complete_pairs"], summary["score_a"]["incomplete_pairs"]) == (0, 1)
+    assert summary["errors_no_legal_move"] == 0  # these failed for another reason
 
 
 # Catches: an interrupted run (Ctrl-C) leaving no summary of the games it did finish.
@@ -249,23 +250,23 @@ def test_the_settings_write_the_home_folder_as_a_tilde(tmp_path, monkeypatch):
         assert summary["settings"]["stockfish"] == str(Path("~") / Path(engine).name)
 
 
-def synthetic(number, opening, white, winner=None, error=None):
+def synthetic(number, opening, white, winner=None, error=None, reason=None, capped=False):
     """A finished (or failed) game record with only what summarise reads."""
     colours = {"white": white, "black": "b" if white == "a" else "a"}
     game = {"game": number, "opening": {"id": opening, "moves": []}, "colours": colours, "seconds": 1.0}
     if error:
         return {**game, "error": error}
-    return {**game, "winner": winner, "winner_side": colours.get(winner), "plies": 10,
-            "stopped_at_ply_limit": False, "moves": []}
+    return {**game, "winner": winner, "winner_side": colours.get(winner), "reason": reason, "plies": 10,
+            "stopped_at_ply_limit": capped, "moves": []}
 
 
-def summary_of(games):
+def summary_of(games, **extra):
     import argparse
     args = argparse.Namespace(a="material", b="material", games=len(games), max_plies=20, seed=0, particles=256,
                               guesses=8, device="auto", rules="standin", stockfish="stockfish", time_budget_ms=60000,
                               opening_plies=[2, 8], out="m")
     return play_matches.summarise(games, args, {"a": "m", "b": "m"}, {"a": None, "b": None}, 1.0,
-                                  play_matches.pick_rules("standin"))
+                                  play_matches.pick_rules("standin"), **extra)
 
 
 # Catches: a lone surviving game of an opening counted in a score labelled "both colours together"
@@ -577,7 +578,7 @@ def test_each_move_records_whether_it_overran_the_budget(two_games, tmp_path):
 def test_the_settings_name_the_engine_policy_and_the_output_folder(two_games):
     settings = two_games[1]["settings"]
     assert settings["engine"] == {"threads": 1, "hash_mb": 16, "new_game": "before every game",
-                                  "within_game": "hash kept between calls"}
+                                  "within_game": "hash kept between calls", "call_timeout_s": 60.0}
     assert settings["out"].endswith("material")
     # the home folder is written as ~ (summarise directly, since pytest's tmp_path is not under the home folder)
     import argparse
@@ -656,3 +657,238 @@ def test_a_success_resets_the_consecutive_failure_count(tmp_path, monkeypatch):
     games = [json.loads(line) for line in (tmp_path / "m" / "games.jsonl").read_text().splitlines()]
     summary = json.loads((tmp_path / "m" / "summary.json").read_text())
     assert len(games) == 12 and summary["errors"] == 8 and summary["stopped_early"] is None
+
+
+# Catches: a table that cannot say how its games ended (a pairing that wins only at the ply cap reads
+# the same as one that captures kings), or failed games counted among the endings.
+def test_the_summary_counts_how_the_finished_games_ended():
+    games = [synthetic(0, 0, "a", winner="white", reason="king_capture"),
+             synthetic(1, 0, "b", winner="draw", reason="fifty_move"),
+             synthetic(2, 1, "a", winner="draw", reason="threefold_repetition"),
+             synthetic(3, 1, "b", winner="draw", reason="no_legal_moves"),
+             synthetic(4, 2, "a", winner="draw", capped=True),
+             synthetic(5, 2, "b", winner="white", reason="king_capture"),
+             synthetic(6, 3, "a", winner="draw", reason="some_new_rule"),
+             synthetic(7, 3, "b", error="TrackerLost: x")]
+    assert summary_of(games)["end_reasons"] == {"king_capture": 2, "fifty_move": 1, "threefold_repetition": 1,
+                                                "no_legal_moves": 1, "ply_limit": 1, "some_new_rule": 1}
+    # the five usual endings are always listed, so two rows compare key by key
+    assert summary_of(games[:1])["end_reasons"] == {"king_capture": 1, "fifty_move": 0, "threefold_repetition": 0,
+                                                    "no_legal_moves": 0, "ply_limit": 0}
+
+
+def tracker_update(capped, rebuilt):
+    return {"ply": 0, "exact": not (capped or rebuilt), "capped": capped, "rebuilt": rebuilt, "particles": 1}
+
+
+def timed(side, ms, over=False, opening=False):
+    return {"side": side, "opening": opening, "elapsed_ms": ms, "over_budget": over, "value_lost": None}
+
+
+# Catches: a methods table that asks for the median time per move when the run file has only the mean and
+# the 95th percentile, overruns that cannot be totalled per side without reading every game, or tracker
+# health counted for the wrong side when the colours swap.
+def test_each_side_has_its_median_time_overruns_and_tracker_health():
+    first = synthetic(0, 0, "a", winner="white")  # a is White
+    first["moves"] = [timed("a", 0.0, over=True, opening=True), timed("b", 0.0, opening=True), timed("a", 1.0),
+                      timed("b", 10.0, over=True), timed("a", 2.0), timed("b", 20.0, over=True), timed("a", 9.0, over=True)]
+    first["trackers"] = {"white": [tracker_update(False, False), tracker_update(True, False), tracker_update(True, True)],
+                         "black": [tracker_update(False, True)]}
+    second = synthetic(1, 0, "b", winner="black")  # b is White
+    second["trackers"] = {"white": [tracker_update(True, True)], "black": [tracker_update(False, False)]}
+    sides = summary_of([first, second, synthetic(2, 1, "a", error="RuntimeError: boom")])["sides"]
+    a, b = sides["a"], sides["b"]
+    assert (a["ms_per_move_median"], b["ms_per_move_median"]) == (2.0, 15.0)
+    assert (a["over_budget_plies"], b["over_budget_plies"]) == (1, 2)
+    assert (a["tracker_capped"], a["tracker_rebuilt"]) == (2, 1)
+    assert (b["tracker_capped"], b["tracker_rebuilt"]) == (1, 2)
+
+
+# Catches: a run file that does not say how long a Stockfish call may take before it counts as stuck,
+# so two rows run with different limits look alike.
+def test_the_engine_settings_record_the_call_time_limit():
+    import inspect
+    from pairb.stockfish import StockfishEvaluator
+    default = inspect.signature(StockfishEvaluator).parameters["call_timeout_s"].default
+    nobody = {"a": None, "b": None}
+    assert play_matches.engine_policy(nobody, nobody)["call_timeout_s"] == default == 60.0
+
+    class Opened(StockfishEvaluator):
+        def __init__(self):  # no engine process: only the settings engine_policy reads
+            self.new_game_each_call, self.call_timeout_s = False, 5.0
+    assert play_matches.engine_policy({"a": Opened(), "b": None}, nobody)["call_timeout_s"] == 5.0
+
+
+BLOCKED = "7k/8/8/8/1p6/pPp5/PRP5/KB6 w - - 0 1"  # White to move, and no fog-legal move
+
+
+def without_the_draw_rule(monkeypatch):
+    """This code as it was before the draw rule decided on #17, whichever checkout runs the test."""
+    import pairb.rules
+    real = pairb.rules.terminal_score
+    monkeypatch.setattr(pairb.rules, "terminal_score",
+                        lambda board: None if (real(board) or ("",))[0] == "no-moves" else real(board))
+
+
+def with_the_draw_rule(monkeypatch):
+    """The draw rule decided on #17 (Teal's #28), applied by hand: a side with no fog-legal move draws."""
+    import pairb.rules
+    from fow_shared.values import fog_legal_moves
+    real = pairb.rules.terminal_score
+    monkeypatch.setattr(pairb.rules, "terminal_score",
+                        lambda board: real(board) or (None if fog_legal_moves(board) else ("no-moves", 0.0)))
+    monkeypatch.setitem(pairb.rules._REASONS, "no-moves", "no_legal_moves")
+
+
+def start_blocked(monkeypatch):
+    """Every game of the run starts from BLOCKED, the referee and both trackers alike."""
+    import functools
+    from pairb.rules import GameReferee
+    from pairb.tracker import ParticleTracker
+    monkeypatch.setattr(play_matches, "GameReferee", lambda rules: GameReferee(rules, BLOCKED))
+    monkeypatch.setattr(play_matches, "ParticleTracker", functools.partial(ParticleTracker, initial_fen=BLOCKED))
+
+
+# Catches: a table whose rule for a side with no fog-legal move is not written down. --rules standin does
+# not pin it, only the commit does, so the run must find out what its own code does and record it.
+def test_the_run_finds_out_what_its_rules_do_when_a_side_has_no_move(monkeypatch):
+    import chess
+    from fow_shared.values import terminal_score
+    rules = play_matches.pick_rules("standin")
+    assert play_matches.BLOCKED_FEN == BLOCKED
+    assert play_matches.no_move_rule(rules) == ("unresolved" if terminal_score(chess.Board(BLOCKED)) is None else "draw")
+    without_the_draw_rule(monkeypatch)
+    assert play_matches.no_move_rule(rules) == "unresolved"
+    with_the_draw_rule(monkeypatch)
+    assert play_matches.no_move_rule(rules) == "draw"
+
+
+# Catches: a random side failing with a different error (IndexError) from a bot side (ValueError) in the
+# same position, so a pre-rule table cannot count its no-move failures with one test.
+def test_random_fails_with_the_bots_error_when_there_is_no_move():
+    from types import SimpleNamespace
+    from pairb.bot import OnePlyBot
+    turn = SimpleNamespace(observation=SimpleNamespace(legal_moves=()), belief=None)
+    errors = []
+    for agent in (play_matches.RandomAgent(), OnePlyBot(scorer=None)):
+        agent.reset("white", 0)
+        with pytest.raises(ValueError) as raised:
+            agent.act(turn)
+        errors.append(str(raised.value))
+    assert errors[0] == errors[1] == "the observation has no legal move to choose from"
+
+
+# Catches: before the draw rule lands, a side with no fog-legal move failing its game in a way the summary
+# cannot count apart from other failures, or failing differently for a random side and a bot side.
+def test_before_the_draw_rule_a_side_with_no_move_fails_and_is_counted(tmp_path, monkeypatch, capsys):
+    start_blocked(monkeypatch)
+    without_the_draw_rule(monkeypatch)
+    with pytest.raises(SystemExit) as stopped:  # standin pinned: the patch reaches the stand-in only
+        run_main(monkeypatch, tmp_path / "m", "--a", "random", "--opening-plies", "0", "0", "--rules", "standin")
+    assert stopped.value.code == 1
+    games = [json.loads(line) for line in (tmp_path / "m" / "games.jsonl").read_text().splitlines()]
+    assert [g["scorers"]["white"] for g in games] == ["random", "material"]  # each kind of side is the blocked one
+    assert [g["error"] for g in games] == ["ValueError: the observation has no legal move to choose from"] * 2
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert (summary["errors"], summary["errors_no_legal_move"], summary["no_move_rule"]) == (2, 2, "unresolved")
+    assert "rules: pairb-standin; no_move_rule: unresolved" in capsys.readouterr().out
+
+
+# Catches: once the draw rule is in the code, a blocked side's game not ending as a draw by no_legal_moves,
+# or the summary still saying the rule is unresolved.
+def test_after_the_draw_rule_a_side_with_no_move_draws(tmp_path, monkeypatch, capsys):
+    start_blocked(monkeypatch)
+    with_the_draw_rule(monkeypatch)  # standin pinned: the patch reaches the stand-in only
+    run_main(monkeypatch, tmp_path / "m", "--a", "random", "--opening-plies", "0", "0", "--rules", "standin")
+    games = [json.loads(line) for line in (tmp_path / "m" / "games.jsonl").read_text().splitlines()]
+    assert [(g["winner"], g["reason"], g["plies"]) for g in games] == [("draw", "no_legal_moves", 0)] * 2
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert (summary["errors"], summary["errors_no_legal_move"], summary["no_move_rule"]) == (0, 0, "draw")
+    assert summary["end_reasons"]["no_legal_moves"] == 2
+    assert "no_move_rule: draw" in capsys.readouterr().out
+
+
+# Catches: a run file that does not say how it was started, or a finished run that cannot be told
+# apart from a partial one without counting its games.
+def test_a_full_run_is_marked_completed_and_records_its_command(tmp_path, monkeypatch):
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    run_main(monkeypatch, tmp_path / "m")
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert summary["completed"] is True and summary["stopped_early"] is None
+    assert summary["command"] == ["play_matches.py", "--a", "material", "--b", "material", "--games", "2",
+                                  "--max-plies", "12", "--out", "~/m"]
+
+
+# Catches: a run stopped early on its last planned game (five failures in a row, or a dead engine that
+# would not reopen) marked completed because every planned game has a record.
+def test_a_run_stopped_early_is_not_completed_even_with_every_game_recorded():
+    two = [synthetic(0, 0, "a", winner="white"), synthetic(1, 0, "b", winner="white")]
+    assert summary_of(two)["completed"] is True
+    assert summary_of(two, stopped_early="5 consecutive games failed")["completed"] is False
+
+
+# Catches: a Ctrl-C'd run writing a summary that looks clean (errors 0, stopped_early null), or the
+# process exiting with status 0 after it, so a batch wrapper takes a partial row for a finished one.
+def test_ctrl_c_marks_the_summary_interrupted_and_not_completed(tmp_path, monkeypatch, capsys):
+    real = play_matches.play_one
+
+    def interrupted_in_game_2(rules, number, *args):
+        if number == 1:
+            raise KeyboardInterrupt
+        return real(rules, number, *args)
+    monkeypatch.setattr(play_matches, "play_one", interrupted_in_game_2)
+    with pytest.raises(KeyboardInterrupt):
+        run_main(monkeypatch, tmp_path / "m", "--games", "4", "--rules", "standin")
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert (summary["games"], summary["errors"], summary["settings"]["games"]) == (1, 0, 4)
+    assert summary["stopped_early"] == "interrupted" and summary["completed"] is False
+    assert "interrupted" in capsys.readouterr().err
+    # the same in a real process: the summary is written and the exit status is not 0
+    script = (f"import importlib.util, sys\n"
+              f"spec = importlib.util.spec_from_file_location('pm', {str(ROOT / 'scripts' / 'play_matches.py')!r})\n"
+              f"pm = importlib.util.module_from_spec(spec); spec.loader.exec_module(pm)\n"
+              f"real = pm.play_one\n"
+              f"def stop(rules, number, *a):\n"
+              f"    if number == 1: raise KeyboardInterrupt\n"
+              f"    return real(rules, number, *a)\n"
+              f"pm.play_one = stop\n"
+              f"sys.argv = ['play_matches.py', '--a', 'material', '--b', 'material', '--games', '4', '--max-plies', '12',"
+              f" '--rules', 'standin', '--out', {str(tmp_path / 'p')!r}]\n"
+              f"pm.main()\n")
+    process = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True)
+    assert process.returncode != 0
+    assert json.loads((tmp_path / "p" / "summary.json").read_text())["stopped_early"] == "interrupted"
+
+
+# Catches: the runner itself failing between games (not a game that raises, which is recorded) and still
+# leaving a summary with stopped_early null.
+def test_a_runner_failure_between_games_is_not_summarised_as_a_clean_run(tmp_path, monkeypatch):
+    real = play_matches.play_one
+
+    def broken_in_game_2(rules, number, *args):
+        if number == 1:
+            raise OSError("disk full")
+        return real(rules, number, *args)
+    monkeypatch.setattr(play_matches, "play_one", broken_in_game_2)
+    with pytest.raises(OSError):
+        run_main(monkeypatch, tmp_path / "m", "--games", "4", "--rules", "standin")
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert summary["stopped_early"] == "the run failed: OSError: disk full" and summary["completed"] is False
+
+
+# Catches: rules that refuse the blocked position stopping the run before its first game, or a rule that
+# scores the blocked side as losing being recorded as a draw.
+def test_no_move_rule_reports_other_answers_as_they_are():
+    class Rules:
+        def __init__(self, ended=None, refuse=False):
+            self.ended, self.refuse = ended, refuse
+
+        def initial_state(self, fen):
+            if self.refuse:
+                raise ValueError("not a position these rules accept")
+            return fen
+
+        def terminal(self, state):
+            return self.ended
+    assert play_matches.no_move_rule(Rules(("black", "no_legal_moves"))) == "black wins (no_legal_moves)"
+    assert play_matches.no_move_rule(Rules(refuse=True)) == "unknown (ValueError: not a position these rules accept)"

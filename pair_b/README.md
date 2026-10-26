@@ -405,6 +405,9 @@ runner are in [docs/match_protocol.md](docs/match_protocol.md); the script's doc
 protocol flags and `--help` lists every flag. Three rules it enforces: a run of more than two games must pin `--rules standin` or `teal`,
 one table is played by one set of rules, and a score gets a bootstrap interval only from 20 or more
 complete colour pairs that do not all score the same (Wilson's interval is always given).
+`summary.json` also records `end_reasons`, `no_move_rule` (`draw` or `unresolved`), `errors_no_legal_move`, the command,
+`completed` (`stopped_early` is `interrupted` after Ctrl-C), each side's median time per move, over-budget plies and
+tracker capped and rebuilt totals, and `settings.engine.call_timeout_s`.
 
 The pilot (`experiments/matches/pilot-d1-vs-material/`: 10 games, 200-ply cap, seed 0, stand-in
 rules, on Colin's Mac): quick Stockfish won all 10 games against piece values, a score of 1.00 over
@@ -417,11 +420,11 @@ same 10 games played before the per-game engine reset (`pilot-d1-vs-material-sha
 differ in the length of 8 games (only game ids 0 and 5 match) and the winner of one (game id 7): engine state carried
 across games changes results, which is why no number from before the reset is cited.
 
-The runs for the report, for ZW, once the runner decision with Bryan is recorded (proposed, pending
-that decision): every scorer, the linear correction and `random` against quick Stockfish, 200 games
-each, with the same seed so that every pairing plays the same openings, and one rules id for the
-whole table (`standin` today; if Teal's adapter becomes the rules of record, every pairing is rerun
-under `teal`; a table never mixes the two).
+The runs for the report, for ZW, as decided on #17 (objections open until 27 October 23:59 SGT; see
+[docs/match_protocol.md](docs/match_protocol.md)): every scorer, the linear correction and `random`
+against quick Stockfish, 200 games each, seed 0, so that every pairing plays the same openings. All
+seven rows run on one commit under `--rules standin`, and every table states its `no_move_rule`; a
+table never mixes rules or rule versions.
 
 ```bash
 for a in material stockfish-d1 stockfish-d11 network1 belief linear random; do
