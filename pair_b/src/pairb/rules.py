@@ -5,7 +5,7 @@ pair_a_prep.rules_adapter.RulesAdapter, whenever it can be imported, or Pair B's
 python-chess with pairb.observe and fow_shared.values. The stand-in does not fill
 Observation.captured_own_piece_at, which is fine while the referee and the tracker use the same
 wrapper. A finished game is reported as (winner, reason), with Teal's reason names: king_capture,
-fifty_move and threefold_repetition.
+fifty_move, threefold_repetition and no_legal_moves.
 """
 import importlib
 from dataclasses import dataclass
