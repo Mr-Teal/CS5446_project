@@ -154,7 +154,7 @@ def build_chess_tree(turn: AgentInput, evaluator: LeafEvaluator, *,
         mover = rules.current_player(state)
         actions = rules.legal_moves(state)
         if not actions:
-            raise UnresolvedNoMoveError("no legal move and no rule result; no draw/loss/pass assumed")
+            raise UnresolvedNoMoveError("defensive check: no legal move without the expected terminal draw")
         index = 0 if mover == "white" else 1
         node = Node(player=0 if mover == viewer else 1,
                     infoset=mover + ":" + memories[index])
@@ -178,9 +178,9 @@ def build_chess_tree(turn: AgentInput, evaluator: LeafEvaluator, *,
                     value = estimates[action] * (1 if mover == viewer else -1)
                 else:
                     stats["terminal_leaves"] += 1
-                # A blocked frontier is unresolved even if an evaluator guesses a draw.
+                # Defensive consistency check: rules must report a blocked state as terminal.
                 if ended_value(child) is None and not rules.legal_moves(child):
-                    raise UnresolvedNoMoveError("blocked frontier has no agreed rule result")
+                    raise UnresolvedNoMoveError("defensive check: blocked frontier lacks its terminal draw")
                 node.children[action] = terminal(float(value))
             else:
                 next_memories = tuple(_extend(memories[i], rules.observe(child, p),

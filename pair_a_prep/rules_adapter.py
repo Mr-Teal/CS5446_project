@@ -113,7 +113,7 @@ class RulesAdapter:
         else:
             winner = "black" if self.current_player(state) == "white" else "white"
         reasons = {"king-captured": "king_capture", "fifty-move": "fifty_move",
-                   "repetition": "threefold_repetition"}
+                   "repetition": "threefold_repetition", "no-moves": "no_legal_moves"}
         return Outcome(winner=winner, reason=reasons[reason])
 
     def apply_move(self, state: RuleState, move: str) -> RuleState:

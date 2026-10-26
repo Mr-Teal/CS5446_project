@@ -81,7 +81,9 @@ five-ply game uses the real referee and shared runner through king capture and
 checks both trackers' terminal updates. Its tracker is explicitly a shape-only
 probe, not an inference implementation or evidence of playing strength.
 
-Still pending: teammate review of the proposed visibility/capture rules, real
-belief tracking and search integration, and an explicit policy for rare positions
-with zero fog-legal moves but no shared terminal outcome. Such positions are not
-silently declared ordinary-chess draws by this adapter.
+Following the project convention discussed in #17, a position with no fog-legal
+move is a terminal draw (`no_legal_moves`), after king capture, fifty-move and
+repetition outcomes are checked. The shared helper reports `no-moves`; both
+Pair A's adapter and Pair B's stand-in translate it to the same reason name.
+This is an explicit project convention, not ordinary-chess stalemate: a king
+that can move into attack still has fog-legal moves and is not terminal.

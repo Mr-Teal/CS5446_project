@@ -17,7 +17,7 @@ StateT = TypeVar("StateT")
 @dataclass(frozen=True)
 class Outcome:
     winner: Literal["white", "black", "draw"]
-    reason: Literal["king_capture", "threefold_repetition", "fifty_move"]
+    reason: Literal["king_capture", "threefold_repetition", "fifty_move", "no_legal_moves"]
 
 
 # Compatibility name for early draft consumers; no second observation schema.
