@@ -1,6 +1,6 @@
 # Evaluation Methods and Batch Validation
 
-Draft prepared 26 October 2026 for team review; not yet incorporated into the team report. The formal batch has not been run by Bryan; its results remain blank. The historical cross-check below is completed work, not a result from the proposed batch.
+Expanded methods and operational checklist, revised 26 October 2026 after Colin's review. The shorter report draft in PR #33 incorporates selected methods, not this entire document. The formal batch has not been run by Bryan; its results remain blank. The historical cross-check below is completed work, not a result from the proposed batch.
 
 ## Report Draft: Evaluation Methods
 
@@ -57,13 +57,13 @@ A separate, previously completed cross-check used independently implemented runn
 
 The bootstrap is withheld for these rows because there are only ten pairs and every pair has the same score. Bryan's 20 games contained 734 plies and ended by king capture, with no game failures, ply-cap draws or recorded action-budget overruns. Across both trackers there were 1,508 updates, including 42 rebuilt and 163 capped updates. The diagnostic action budget was not an enforced equal-time constraint.
 
-The results are shown side by side, not pooled. The runners share game machinery and deliberately differ in engine reset policy; identical aggregate outcomes on this lopsided pairing do not establish statistical equivalence or independent verification of all shared components. This check does not establish general chess strength, neural-evaluator performance or whole-belief gameplay. The historical audit's 131 passed and 13 skipped tests were not rerun for publication. The artifacts predate the Stockfish watchdog fix.
+The results are shown side by side, not pooled. The runners share game machinery and differ in engine reset policy, Stockfish build, platform, Python version, seed mapping and source revision (Colin: 00639cb; Bryan: 3afc594). Both historical runs predate the Stockfish watchdog fix. Identical aggregate outcomes on this lopsided pairing do not establish statistical equivalence or independent verification of all shared components. This check does not establish general chess strength or neural-evaluator performance and does not directly validate whole-belief gameplay. The historical audit's 131 focused tests passed and 13 were skipped; they were not rerun for publication. Preserve each run's own manifest and environment details.
 
 ## Formal Results Table: Unfilled
 
 All measured-result cells below are intentionally blank; scheduled game counts describe the proposed plan. Fill results only from validated artifacts; blank does not mean zero. Record the actual source/rules revision, machines, checkpoints and run dates with the completed table.
 
-| Candidate versus Stockfish D1 | Scheduled games | Finished W/D/L | Complete pairs | Paired score | Wilson 95% | Bootstrap 95% or reason | Game/diagnostic errors | Candidate latency median/p95 |
+| Candidate versus Stockfish D1 | Scheduled games | Finished W/D/L | Complete pairs | Paired score | Wilson 95% | Bootstrap 95% or reason | Game/diagnostic errors | Candidate latency mean/p95 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Material | 200 | | | | | | | |
 | Stockfish D1 | 200 | | | | | | | |
@@ -75,12 +75,14 @@ All measured-result cells below are intentionally blank; scheduled game counts d
 
 Also retain per-row opponent latency, game wall time, termination counts, incomplete pairs and tracker health in a companion table or appendix. Do not infer significance from overlapping or non-overlapping intervals alone.
 
+**Required no-move footnote for each row:** source/rules revision; unresolved no-move games excluded = Pending; terminal no-move draws included = Pending. Before PR #28 integration, inspect error records for both `no legal move` and `IndexError: Cannot choose from an empty sequence` (the random-agent path); verify the latter actually arose from an empty legal-action set. Count distinct affected game IDs, not occurrences of error text. After integration, count the recorded terminal reason `no_legal_moves` as draws. Keep other errors separate and never reclassify historical errors as draws. Fill and retain this footnote even when the verified count is zero.
+
 ## Operational Checklist: Not Report Prose
 
 ### Before Launch
 
 - [ ] Confirm the final protocol in issue #17. The proposed objection cutoff is 27 October 2026, 23:59 SGT; it is not a course deadline or proof that the batch has started.
-- [ ] Confirm the operator and machine, including working Torch and Stockfish 19 on that machine. ZW was asked to confirm; no confirmation was visible at drafting time. Bryan has not volunteered to run all 1,400 games.
+- [ ] Confirm the operator and machine, including working Torch and Stockfish 19 on that machine. Colin asked ZW to confirm these and whether he will operate the batch by 28 October; no confirmation was visible at revision time. Bryan has not volunteered to run all 1,400 games.
 - [ ] Select and record the exact batch source revision. Today's main SHA is a documentation reference, not automatically the approved batch revision.
 - [ ] Coordinate PR #28's no-move rule into that revision and verify the actual stand-in execution path. A merge into the Pair A branch alone is insufficient. If the team elects to run under the interim policy, record that explicit decision and the unchanged exclusion/count footnote before starting.
 - [ ] Verify the watchdog and engine recovery on the selected revision. PR #22 is merged, but its presence must be checked in the actual checkout.
@@ -91,14 +93,16 @@ Also retain per-row opponent latency, game wall time, termination counts, incomp
 
 ### After Each Pairing
 
-- [ ] Preserve raw records before analysis. Record command exit status and whether the full scheduled run completed or stopped early.
+- [ ] Preserve raw records before analysis. Save the exact command, exit code and interruption/termination status beside each run, including partial runs.
+- [ ] Require `games + errors == settings.games`, using the summary's finished-game and game-error counts, then reconcile these counts and all scheduled game IDs against raw records. Diagnostic errors do not count as attempted games. A stopped 200-game run with only two finished games is incomplete even if `errors == 0`, `stopped_early` is null and `incomplete_pairs == 0`; those flags alone are insufficient. Record missing games and quarantine incomplete rows until resolved or explicitly reported as partial, never as a completed scheduled batch.
 - [ ] Check unique game IDs, opening IDs, seeds and exactly one game per colour in each retained pair. Confirm the two games use the same opening.
 - [ ] Recompute raw W/D/L, finished games, failed games, incomplete pairs and the complete-pair denominator. Inspect every error and termination cause; do not convert technical failures into losses or draws.
 - [ ] Recompute pair scores and the mean from raw records, checking the candidate's orientation in both colours.
 - [ ] Reproduce Wilson and eligible paired-bootstrap intervals using the recorded protocol. Record why a bootstrap or estimate is unavailable.
 - [ ] Check per-game engine reset, recorded recovery events and failure exit status. Keep post-game diagnostic errors distinct from playing outcomes.
-- [ ] Summarise median/p95 decision latency for both sides, game wall time, ply-cap/rule-terminal outcomes and tracker capped/rebuilt counts. Include measurement units and sample counts.
-- [ ] Compare source, rules, configuration and checkpoint hashes across all seven rows. Quarantine incompatible rows instead of pooling them.
+- [ ] Summarise the runner's mean/p95 decision latency for both sides, game wall time, ply-cap/rule-terminal outcomes and tracker capped/rebuilt counts. Include measurement units and sample counts; do not label a recorded mean as a median.
+- [ ] Fill each row's no-move footnote using both pre-integration error paths or the post-integration terminal reason, as appropriate for its pinned rules.
+- [ ] Compare source, rules, configuration, checkpoint and engine identities across all seven rows, including each `record.stockfish.sha256` and the recorded executable/build/settings. Account for intentional candidate/checkpoint differences and document machine/build differences. Quarantine unapproved or unexplained incompatibilities instead of pooling them.
 - [ ] Investigate unexpected self-play or random-comparator behaviour without requiring an exact score or deleting inconvenient valid results.
 
 ### Before Using the Table
@@ -111,13 +115,15 @@ Also retain per-row opponent latency, game wall time, termination counts, incomp
 
 ### Current Status
 
-- Colin's review was requested on PR #31 and verified after a browser reload on 26 October 2026. The PR remains open; no merge was performed.
+- Colin approved PR #31 and PR #32 at their reviewed heads on 26 October 2026. Both remain open. His #32 checklist corrections are incorporated here; this revision has not itself been re-reviewed. His optional #31 README changes remain separate work.
 - The issue #19 report/presentation guidance is published. No additional toy experiment is required by this draft.
 - Machine/operator confirmation and a selected batch rules revision remain outstanding. No formal games, smoke tests or new training were launched by this task.
 - Actual batch validation must wait for the selected revision, environment and run artifacts. This checklist is preparation, not a validation pass.
 
 ## Sources and Editorial Notes
 
+- **Report allocation:** this is an expanded reference, not 2.5-3 pages to paste into the ten-page main report. Keep the comparison/planner and information boundary; color-pair sampling and score denominator; uncertainty/exclusions; source/rules/engine policy; and unequal-compute limitation. Condense provenance and historical comparisons into Section 6.2, separate from formal results. Keep commands, field-level acceptance checks, detailed seed mapping and the full operational checklist in this linked document. PR #33 Section 5 uses a compact methods/table layout; recheck pagination when actual results and figures are added.
+- [Colin's methods review](https://github.com/Mr-Teal/CS5446_project/pull/32#pullrequestreview-5647085913): interrupted-run observation, no-move paths, recorded latency/provenance and editorial follow-ups. These are reviewer-reported checks, not new tests run for this revision.
 - [Pinned match protocol at main 2af8f1f](https://github.com/Mr-Teal/CS5446_project/blob/2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d/pair_b/docs/match_protocol.md): planner, opening generation, engine policy, scores, interval caveats, failures and Colin's cross-check.
 - [Issue #17](https://github.com/Mr-Teal/CS5446_project/issues/17): proposed batch and cutoff, support from Bryan/Teal, whole-belief gameplay limitation and outstanding machine/operator confirmation. This discussion supersedes older wording in the protocol about the runner decision and no-move proposal.
 - [Bryan's protocol response](https://github.com/Mr-Teal/CS5446_project/issues/17#issuecomment-6406041253): rule rollout, historical separation and batch prerequisites.
