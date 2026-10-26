@@ -29,7 +29,7 @@ fixed one-ply; the budget is not an enforced equal-time comparison.
 These five artifacts are published unchanged. Absolute Windows paths are
 historical provenance, not portable paths. The audit's statement that no
 GitHub publication had occurred describes its original verification time.
-Its 131 passed / 13 skipped tests are historical results, not tests rerun
+Its focused test run (131 passed / 13 skipped) is historical, not rerun
 for publication; the skips were for the absent Pair A adapter.
 
 The run used a downloaded source archive, not a Git checkout. Empty
@@ -64,7 +64,7 @@ independent implementation of those components.
 
 Bryan's runner resets Stockfish before every analysis call. Colin's runner
 resets before each game and retains hash state within the game. Seed
-mapping, platform and engine build can also differ. Compare the artifacts
+mapping, platform and engine build also differ. Compare the artifacts
 side by side; **do not pool them** or combine them with the formal batch.
 
 This single run does not establish general playing strength, equal-time
