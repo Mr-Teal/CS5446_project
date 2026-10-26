@@ -88,12 +88,14 @@ remain unchanged during the graft. Counts and evidence are in `evidence.json`.
 ## Sources and attribution
 
 - PR33 plan: `bryankuah/report-presentation-drafts`, 5be0c4b.
-- Implementation base for these assets: `pair-a/anytime-search-agent`, 5a5287b.
+- Original implementation snapshot for these assets: 5a5287b. The material
+  branch now also contains the reviewed Pair A integration at dfeea4c.
 - `presentation_materials.py` generates evidence and SVGs from actual replay and
   growth APIs. The kings-only custom start is public and synthetic.
 - Bryan's #21 toy expansion API underlies the later chess/gadget integration.
   Materials and verification code were prepared with Codex assistance.
 - Paper: Zhang and Sandholm, arXiv:2506.01242v2, sections 3.3-3.4 and C.4-C.5.
   These mechanisms are described in `../docs/expansion_mechanism_audit.md`.
-- No new performance experiment, strength claim or final integrated release is
-  represented by the two slides. The #28 rule change remains separate.
+- No new performance experiment, strength claim or final release is represented
+  by the two slides. #28 is integrated into Pair A; its main rollout still
+  depends on #15. The displayed kings fixtures are unchanged by that rule.
