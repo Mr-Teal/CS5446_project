@@ -1,0 +1,43 @@
+schema_version = 1
+implementation = "pair_a_prep.zs21"
+specification = "paper_2021.toml"
+
+[rules]
+profile = "paper2021_fow_no_moves_draw_v1"
+no_move_rule = "terminal_draw_v1"
+terminal_precedence = ["king_capture", "fifty_move", "threefold_repetition", "no_legal_moves"]
+
+[agent]
+particle_floor = 200
+information_denominator = 10000000
+support_tolerance = 1e-9
+mode_epsilon = 1e-15
+submission_reserve_seconds = 2.0
+initial_solution_reserve_seconds = 0.5
+tracker_backend = "native"
+main_scale = 1.0
+sixfold_scale = 6.0
+
+[engine]
+path = "engines/stockfish13-batch-v6/stockfish13.exe"
+threads_per_worker = 1
+workers = 4
+depth = 1
+tau_pawns = 6.0
+mate_one_move = 0.9
+mate_decay = 0.78
+hash_mb_per_worker = 16
+
+[lp]
+method = "highs-ds"
+threads = 1
+feasibility_tolerance = 1e-8
+certificate_retry_tolerances = [1e-9, 1e-10]
+certificate_tolerance = 1e-8
+
+[experiment]
+games = 100
+seconds_per_move = 16.0
+seed = 210606068
+parallel_games = 1
+color_schedule = "alternating_white_black"

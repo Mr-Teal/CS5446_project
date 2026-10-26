@@ -6,8 +6,11 @@ The standalone preparation tools run independently of `fow_shared`; the new
 adapter reuses the merged shared rule helpers. The shared interfaces and
 encoder are unchanged by this branch. Agent ownership is agreed: the rules
 adapter and Obscuro belong to one Pair A member; ZS21 and the belief tracker
-belong to the other, with mutual review. Neither complete agent is implemented
-here yet. See [the PR handoff](docs/pr_handoff.md) for scope and remaining work.
+belong to the other, with mutual review. The 2021 ZS21 reproduction and matched
+baseline are now in [zs21](zs21/README.md), with a
+[portable runtime and integration guide](../zs21_runtime/README.md).
+The independent Obscuro work remains as described below. See
+[the PR handoff](docs/pr_handoff.md) for the earlier preparation scope.
 
 A runnable fixed-depth chess search now connects candidate histories, PCFR+
 and the evaluator plug. It can produce small validated TrainingRecord pilots;
