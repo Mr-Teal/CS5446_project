@@ -13,6 +13,9 @@ if len(sys.argv) < 2 or sys.argv[1] not in (*commands, "test"):
     raise SystemExit("Usage: reproduce.py {play|evaluate|replay|small-games|serve|test} [options]")
 command, arguments = sys.argv[1], sys.argv[2:]
 if command == "test":
+    pair_b_source = ROOT / "pair_b/src"
+    if pair_b_source.is_dir():
+        sys.path.insert(1, str(pair_b_source))
     import pytest
     (ROOT / "zs21_runtime/out").mkdir(parents=True, exist_ok=True)
     raise SystemExit(pytest.main(["-q", "tests", "pair_a_prep/tests", *arguments]))

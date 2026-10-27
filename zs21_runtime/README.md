@@ -6,7 +6,7 @@
 
 ## 1. 从新电脑启动
 
-当前已验证 **Windows x64 + AVX2/BMI2 CPU**，预编译 DLL/EXE 不适用于 Linux/macOS。使用 [Pixi 官方安装说明](https://pixi.prefix.dev/latest/installation/)，然后从仓库根目录执行以下命令。PR 合并前检出 `pair-a/zs21-agent-integration`；合并后可使用包含本改动的 `pair-a/rules-interface`。
+当前已验证 **Windows x64 + AVX2/BMI2 CPU**，预编译 DLL/EXE 不适用于 Linux/macOS。使用 [Pixi 官方安装说明](https://pixi.prefix.dev/latest/installation/)，然后从仓库根目录执行以下命令。PR #37 当前目标为 `main`；合并前检出 `pair-a/zs21-agent-integration`，合并后可使用包含本改动的 `main`。
 
 ```powershell
 git clone --branch pair-a/zs21-agent-integration https://github.com/Mr-Teal/CS5446_project.git
@@ -19,6 +19,10 @@ pixi run --manifest-path zs21_runtime/pixi.toml --locked -e darkchess smoke
 私有仓库需要团队 GitHub 权限；也可在对应分支下载 ZIP。项目不依赖原作者机器上的 `D:\workspace` 目录、父目录 Pixi 环境或下载目录。环境定义与锁文件均在本目录；两个环境名 `default` / `darkchess` 共用相同依赖和 solve group，未包含其他课程的 GPU/Notebook 依赖。[Pixi 环境说明](https://pixi.prefix.dev/latest/workspace/multi_environment/)
 
 `doctor` 会校验随包资源哈希、DLL 规则版本，启动真正的四个 Stockfish 13 单线程实例并完成估值。`smoke` 只运行两个行动，每次最多一次展开；输出 `unfinished_smoke` 是预期结果，不是和棋成绩，也不是正式比赛。报告写入被 Git 忽略的 `zs21_runtime/out/`。
+
+`test` 会把仓库已有的 `pair_b/src` 加入当前测试进程的导入路径，以运行 main 中 #36 引入的 Material-only 接入测试。它不安装 Pair B 的训练依赖，也不改变其他运行命令的导入路径。
+
+共享裁判和 ZS21 裁判现在统一使用 `fow_shared.values` 的 FoW 重复判定。有效的吃过路兵权按 FoW 可走性判断，不因王受攻击而删除；重复判定需要完整棋局历史，单独 FEN 不足以恢复。修复依据及回归范围见 [规则一致性记录](validation/repetition-consistency.md)。
 
 ## 2. 人机对战与观战
 

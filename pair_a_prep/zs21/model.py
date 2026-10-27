@@ -8,6 +8,8 @@ from time import perf_counter
 
 import chess
 
+from fow_shared.values import fog_position_key as position_key
+
 from ..rules_adapter import RuleState, RulesAdapter, RulesReferee
 from ..interface_draft import Outcome
 from .engine import canonical_board
@@ -21,13 +23,6 @@ class BudgetError(RuntimeError):
 def check_time(deadline):
     if deadline is not None and perf_counter() >= deadline:
         raise BudgetError("decision budget exhausted")
-
-
-def position_key(board):
-    ep = board.ep_square if any(board.generate_pseudo_legal_ep()) else None
-    return (board.pawns, board.knights, board.bishops, board.rooks, board.queens,
-            board.kings, board.occupied_co[0], board.occupied_co[1], board.turn,
-            board.clean_castling_rights(), ep)
 
 
 class SearchRules(RulesAdapter):
@@ -72,29 +67,16 @@ class SearchRules(RulesAdapter):
 
 
 class RefereeRules(RulesAdapter):
-    """Reuse Pair A rules, correcting repetition's effective EP to FoW legality."""
+    """Use shared FoW adjudication; retain the legacy no-move replay switch."""
 
     def __init__(self, *, no_move_draw=True):
         self.no_move_draw = no_move_draw
 
     def terminal(self, state):
-        board = state._board
-        if board.king(chess.WHITE) is None or board.king(chess.BLACK) is None:
-            return SearchRules().terminal(state)
-        if board.halfmove_clock >= 100:
-            return Outcome(winner="draw", reason="fifty_move")
-        key = position_key(board)
-        probe = board.copy(stack=True)
-        count = 1
-        for _ in range(min(len(probe.move_stack), board.halfmove_clock)):
-            probe.pop()
-            if position_key(probe) == key:
-                count += 1
-                if count >= 3:
-                    return Outcome(winner="draw", reason="threefold_repetition")
-        if self.no_move_draw and not has_fow_moves(board):
-            return Outcome(winner="draw", reason="no_legal_moves")
-        return None
+        outcome = super().terminal(state)
+        if outcome is not None and outcome.reason == "no_legal_moves" and not self.no_move_draw:
+            return None
+        return outcome
 
     def legal_moves(self, state):
         if self.terminal(state) is not None:

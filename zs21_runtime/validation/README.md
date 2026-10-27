@@ -1,6 +1,8 @@
 # 发布验证
 
-本记录对应 `pair-a/zs21-agent-integration`，基于 Pair A 提交 `dfeea4c5067d0b2d3dd0eef52f2527c9653c240f`，包含 #27–#30。2026-10-27 在 Windows x64 上使用本运行包新建的锁定 Pixi 环境验证。
+以下是初始提交 `00982c9` 的历史发布验证，基于 Pair A 提交 `dfeea4c5067d0b2d3dd0eef52f2527c9653c240f`，包含 #27–#30。2026-10-27 在 Windows x64 上使用本运行包新建的锁定 Pixi 环境验证。
+
+后续共享规则修复及当前 main 组合验证见 [FoW 重复判定一致性记录](repetition-consistency.md)。原报告保留原样，不把历史字节一致性或测试数量当作修复后的结果。
 
 - 完整回归：**612 passed，86.33 秒**，无失败、跳过或错误。包括现有 shared/Pair A 测试、论文算法验证、PR #28 规则、Python/native 对照、新接口和实际 JSON 子进程。
 - `doctor`：66 个引擎/原生库/源码/许可文件哈希一致，规则 ABI 正确；实际启动四个单线程 Stockfish 13，支持 batch 查询。
