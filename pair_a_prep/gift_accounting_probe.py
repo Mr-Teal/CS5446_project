@@ -2,7 +2,7 @@
 
 import argparse
 from dataclasses import asdict
-from .provenance import source_manifest, NORMALIZATION, git_revision
+from .provenance import source_manifest, NORMALIZATION, git_revision, artifact_sha256, ARTIFACT_HASH_CONVENTION
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -54,7 +54,8 @@ def main():
     report = dict(scope="local-CF partition and audit-only lineage, not exact ancestor payment lifting",
         source_sha256=sources, source_hash_convention=NORMALIZATION,
         base_commit_at_execution=git_revision(), examples=examples,
-        clock_artifact=dict(path=clock_path.name, sha256=sha256(clock_path.read_bytes()).hexdigest(),
+        clock_artifact=dict(path=clock_path.name, sha256=artifact_sha256(clock_path.read_bytes()),
+                            hash_convention=ARTIFACT_HASH_CONVENTION,
                             live_summary=clock["live_summary"], turn_runs=len(clock["turn_runs"]),
                             turn_overruns=sum(r["caller_over_budget"] for r in clock["turn_runs"]),
                             turn_fallbacks=sum(r["diagnostics"]["fallback"] for r in clock["turn_runs"])),

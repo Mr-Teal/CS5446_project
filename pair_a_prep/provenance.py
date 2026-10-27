@@ -38,3 +38,15 @@ def git_revision(root=REPOSITORY):
                               check=True, text=True, capture_output=True).stdout.strip()
     except (OSError, subprocess.CalledProcessError):
         return None
+
+
+ARTIFACT_HASH_CONVENTION = "sha256_utf8_artifact_bytes_crlf_to_lf_v1"
+
+
+def artifact_sha256(data):
+    """Hash serialized UTF-8 evidence bytes with CRLF normalized to LF.
+
+    Whitespace, JSON key order and all other bytes remain significant. This is
+    not semantic JSON hashing; it only removes Git checkout newline conversion.
+    """
+    return normalized_sha256(data)
