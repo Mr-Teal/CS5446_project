@@ -168,7 +168,8 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
             expansions=float(expansions), mode_switches=float(switches), mode_resolve=float(mode == "resolve"),
             elapsed_ms=elapsed, over_budget=float(elapsed > turn.time_budget_ms), fallback=0.,
             solver_root_value=value, purification=float(self.purify),
-            label_root_contract_pending=float(projection.boundaries is not None))
+            label_root_contract_pending=float(projection.boundaries is not None),
+            zero_reach_uniform_prior=float(bool(projection.boundaries and projection.boundaries.audit.get("all_zero_y_uniform"))))
         diagnostics.update({"projection:"+key: float(v) for key, v in projection.audit.items()})
         diagnostics.update({"raw_policy:"+a: p for a, p in raw.items()})
         diagnostics.update({"played_policy:"+a: p for a, p in played.items()})
