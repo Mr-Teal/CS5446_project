@@ -195,11 +195,12 @@ def project_chess(turn, evaluator, *, initial_fen, depth, max_nodes, saved=None,
     tree = ChessTree(root, tuple(branches), root_infoset, nodes, len(frontiers), terminals,
                      calls, tuple(contexts), frontiers, viewer)
     total_y = fsum(y.values())
-    prior = {j: .5/len(y)+.5*mass/total_y for j, mass in y.items()}
+    prior = {j: .5/len(y)+.5*(mass/total_y if total_y > 0 else 1/len(y)) for j, mass in y.items()}
     roots = tuple(SubgameRoot(key, group, node, reaches[key]) for key, group, node in zip(ids, groups, branches))
     boundaries = BlueprintBoundaries(roots, alternates, gifts, prior,
         dict(saved_cut=None if boundary is None else boundary.audit,
              fresh_boundary="min(heuristic_minimax_proxy, previous_unshifted_value)",
+             all_zero_opponent_reach=total_y == 0,
              fresh_mass="unit_counterfactual_and_opponent_sequence_reach"))
     return ChessProjection(turn, tree, tuple(paths), tuple(ids), tuple(groups), current_ids,
         boundaries, dict(retained=retained, fresh=fresh, knowledge_roots=len(branches),

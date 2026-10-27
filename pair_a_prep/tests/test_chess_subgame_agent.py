@@ -15,7 +15,7 @@ from pair_a_prep.pcfr import PCFRPlus
 from pair_a_prep.rules_adapter import RulesReferee
 from pair_a_prep.search_policies import purify_policy, StableSupport, heuristic_actions
 from pair_a_prep.toy_games import Node, terminal
-from pair_a_prep.tests.test_chess_search import KINGS, ConstantLeaf, turn_after
+from pair_a_prep.tests.test_chess_search import KINGS, ConstantLeaf, turn_after, single_path_turn
 
 
 @pytest.mark.parametrize("schedule", ["alternating", "simultaneous"])
@@ -72,6 +72,24 @@ def test_shallow_blueprint_adds_fresh_roots_with_explicit_boundaries():
     assert all(group.startswith("fresh-perfect-info:") for group in result.groups)
     assert result.audit["incomplete_cut"] == 3
     assert len(set(c.memories[1] for c in result.tree.history_roots)) == 3
+
+
+def test_all_observed_opponent_sequences_outside_blueprint_support_use_uniform_prior():
+    fen = "8/8/8/8/8/3k4/8/K7 w - - 0 1"
+    old_turn = turn_after(fen=fen)
+    tree = build_chess_tree(old_turn, ConstantLeaf(), initial_fen=fen, depth=3)
+    solver = PCFRPlus(tree.root)
+    # The actual hypothetical opponent plays c2, although the blueprint puts
+    # all opponent mass on e3. Our new observation distinguishes that move.
+    for key, actions in solver.sets[1].items():
+        solver._strategy[1][key][:] = 0
+        solver._strategy[1][key][actions.index("d3e3")] = 1
+    saved = SavedChessBlueprint(old_turn, tree, ((),), solver, .2)
+    turn = single_path_turn(fen, ("a1b2", "d3c2"), "white")
+    result = project_chess(turn, ConstantLeaf(), initial_fen=fen, depth=1, max_nodes=5000, saved=saved)
+    assert result.boundaries.audit["all_zero_opponent_reach"]
+    assert len(set(result.boundaries.group_prior.values())) == 1
+    assert sum(result.boundaries.group_prior.values()) == pytest.approx(1)
 
 
 @pytest.mark.parametrize("schedule", ["alternating", "simultaneous"])
