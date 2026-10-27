@@ -118,8 +118,8 @@ def forced_score(board: chess.Board) -> Optional[Tuple[str, float]]:
     """A result decided one move ahead under fog rules, for the side to move, or None.
 
     The game is not over yet. "king-capture": the side to move can take the king (+1).
-    Otherwise every fog-legal move is tried: a move that ends the game (a fifty-move or
-    repetition draw) scores that result, and a move that leaves its own king capturable
+    Otherwise every fog-legal move is tried: a move that ends the game (a fifty-move,
+    repetition or no-fog-legal-moves draw) scores that result, and a move that leaves its own king capturable
     scores -1. If every move is one of these, the best of them is the result ("forced-loss"
     or "forced-draw"); orthodox checkmate and stalemate are usually forced losses, unless
     castling out of or through check escapes. Any other move leaves the result open: None.
