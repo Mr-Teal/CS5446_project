@@ -81,7 +81,14 @@ class SearchFactory:
             agent_type = _ManagedFixed
         else:
             raise ValueError("search_mode must be anytime, retained, subgame or fixed")
-        self._agent = agent_type(MaterialEvaluator(), config, _initial_fen(self.settings))
+        extra = {}
+        if mode == "subgame":
+            purify = self.settings.get("purify", "true").strip().lower()
+            if purify not in ("true", "false"):
+                raise ValueError("purify must be true or false")
+            extra = dict(purify=purify == "true", submission_reserve_fraction=float(
+                self.settings.get("submission_reserve_fraction", "0.1")))
+        self._agent = agent_type(MaterialEvaluator(), config, _initial_fen(self.settings), **extra)
         return self._agent
 
     def reset_game(self):

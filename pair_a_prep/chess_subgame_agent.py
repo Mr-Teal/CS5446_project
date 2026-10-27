@@ -3,6 +3,7 @@
 from dataclasses import asdict
 from hashlib import sha256
 import json
+from math import isfinite
 from time import perf_counter
 from types import SimpleNamespace
 
@@ -35,17 +36,25 @@ def opponent_key_map(projection, to_raw=False):
 class ChessSubgameAgent(FixedDepthPCFRAgent):
     name = "sampled-I2-gadget-pcfr-prototype-v1"
 
-    def __init__(self, evaluator, config=None, initial_fen=None, purify=True):
+    def __init__(self, evaluator, config=None, initial_fen=None, purify=True,
+                 submission_reserve_fraction=.1):
         super().__init__(evaluator, config or AnytimeConfig(growth="one_sided"), initial_fen)
         if self.config.growth != "one_sided":
             raise ValueError("the integrated subgame prototype requires growth=one_sided")
         self.purify = purify
+        if not isfinite(submission_reserve_fraction) or not 0 <= submission_reserve_fraction < .5:
+            raise ValueError("submission reserve fraction must be finite in [0,.5)")
+        self.submission_reserve_fraction = submission_reserve_fraction
+        self.last_evaluator_calls = 0
+        self.last_stop_reason = None
         self.saved = None
         self.last_projection = self.last_solver = self.last_bridge = None
 
     def reset(self, player, seed):
         super().reset(player, seed)
         self.saved = None
+        self.last_evaluator_calls = 0
+        self.last_stop_reason = None
         self.last_projection = self.last_solver = self.last_bridge = None
 
     @property
@@ -54,6 +63,8 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
             leaf={key: getattr(self.evaluator, key) for key in ("depth", "new_game_each_call", "call_timeout_s")
                   if hasattr(self.evaluator, key)}, initial_fen=self.initial_fen,
             purify=self.purify, knowledge="saved_sampled_tree_synchronized_I2",
+            submission_reserve_fraction=self.submission_reserve_fraction,
+            round_guard="previous_completed_round_including_mode_switch",
             fresh_boundary="min(minimax_proxy, previous_unshifted_value)", fresh_mass="unit",
             gift_scope="within_saved_raw_tree", no_move_rule="terminal_draw_v1",
             half_budget="wall_clock" if self.config.stop_on_time else "round_count")
@@ -63,9 +74,13 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
         if self._player != turn.observation.player or turn.observation.terminal or not turn.observation.legal_moves:
             raise ValueError("reset for the nonterminal acting player before solving")
         self.last_result = None
+        self.last_evaluator_calls = 0
+        self.last_stop_reason = None
         started = perf_counter()
         deadline = started+turn.time_budget_ms/1000 if self.config.stop_on_time else None
         growth_deadline = started+turn.time_budget_ms/1000*self.config.expansion_fraction if deadline else None
+        solve_deadline = (deadline-turn.time_budget_ms/1000*self.submission_reserve_fraction
+                          if deadline is not None else None)
         calls = 0
         owner = self
         class CountedLeaf:
@@ -77,6 +92,7 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
                 if growth_deadline is not None and perf_counter() >= growth_deadline:
                     raise SearchBudgetError("growth_deadline")
                 calls += 1
+                owner.last_evaluator_calls = calls
                 return owner.evaluator.evaluate_children(fen)
         leaf = CountedLeaf()
         projection = project_chess(turn, leaf, initial_fen=self.initial_fen,
@@ -96,9 +112,14 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
         sampler, stable = OneSidedExpansion(self._rng.getrandbits(64)), StableSupport()
         next_growth = self.config.rounds_per_stage
         growth_stopped = None
+        previous_round_s = 0.
         for completed in range(self.config.rounds):
-            if deadline is not None and perf_counter() >= deadline:
-                break
+            round_started = perf_counter()
+            if solve_deadline is not None:
+                predicted = previous_round_s if self.submission_reserve_fraction > 0 else 0.
+                if round_started+predicted >= solve_deadline:
+                    self.last_stop_reason = "submission_reserve"
+                    break
             solver.step()
             if bridge:
                 target = choose_mode(current_minimum_margin(bridge.gadget, solver.policy()))
@@ -108,6 +129,7 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
                     seed_new(solver, retained)
                     bridge, mode = candidate, target
                     switches += 1
+            previous_round_s = perf_counter()-round_started
             after_half = ((perf_counter()-started >= turn.time_budget_ms/2000) if deadline else
                           completed+1 > self.config.rounds/2)
             stable.observe(solver.policy()[0][projection.tree.root_infoset], after_half)
@@ -168,6 +190,10 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
             expansions=float(expansions), mode_switches=float(switches), mode_resolve=float(mode == "resolve"),
             elapsed_ms=elapsed, over_budget=float(elapsed > turn.time_budget_ms), fallback=0.,
             solver_root_value=value, purification=float(self.purify))
+        self.last_stop_reason = self.last_stop_reason or "round_limit"
+        diagnostics["stop:"+self.last_stop_reason] = 1.
+        diagnostics["submission_reserve_ms"] = (turn.time_budget_ms*self.submission_reserve_fraction
+                                                 if self.config.stop_on_time else 0.)
         diagnostics.update({"projection:"+key: float(v) for key, v in projection.audit.items()})
         diagnostics.update({"raw_policy:"+a: p for a, p in raw.items()})
         diagnostics.update({"played_policy:"+a: p for a, p in played.items()})
@@ -183,14 +209,17 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
         started = perf_counter()
         try:
             return self.solve(turn).decision
-        except (SearchBudgetError, TreeCapacityError):
+        except (SearchBudgetError, TreeCapacityError) as exc:
             if not turn.observation.legal_moves or turn.observation.terminal:
                 raise
             moves = turn.observation.legal_moves
             policy = dict.fromkeys(moves, 1/len(moves))
             elapsed = (perf_counter()-started)*1000
             diagnostics = dict(fallback=1., elapsed_ms=elapsed,
-                               over_budget=float(elapsed > turn.time_budget_ms))
+                               over_budget=float(elapsed > turn.time_budget_ms),
+                               evaluator_calls=float(self.last_evaluator_calls))
+            self.last_stop_reason = type(exc).__name__+": "+str(exc)
+            diagnostics["stop:"+type(exc).__name__] = 1.
             diagnostics.update({"played_policy:"+a: p for a, p in policy.items()})
             decision = Decision(self._rng.choice(moves), policy, diagnostics)
             decision.validate_for(turn.observation)
