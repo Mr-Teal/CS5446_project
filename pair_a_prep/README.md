@@ -20,10 +20,6 @@ state. It leaves the default agent and shared interfaces unchanged.
 The [gadget bridge](docs/chess_gadgets.md#incremental-gadget-growth) supports
 the same growth with Resolve/Maxmargin paths, keys and payoff offsets preserved.
 
-For the Pair C per-player factory interface, see the
-[bounded integration handoff](docs/pair_c_handoff.md). Its Material-only config
-uses real path-preserving trackers and rejects inconsistent public starts/rules.
-
 The optional [budgeted uniform-growth agent](docs/anytime_search.md) now
 alternates solving and expansion, preserves the old tree after failed growth,
 and provides an observation-only action fallback if initial preparation exceeds
