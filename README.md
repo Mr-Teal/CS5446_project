@@ -45,7 +45,7 @@ for setup and current scope.
   through check to python-chess's pseudo-legal moves and passes the legal-move
   and game-over expectations of the `pair_a_prep` rules fixtures.
   `terminal_score` reports finished games (king captured, fifty moves,
-  threefold repetition with history); `forced_score` reports positions decided
+  threefold repetition with history, or no fog-legal moves); `forced_score` reports positions decided
   one move ahead that are not over yet (king capture available, or every move
   either ends the game in a draw or leaves the king capturable). Stockfish 19
   crashes on a position where the side to move can capture the king, so check
