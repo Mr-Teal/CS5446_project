@@ -1,5 +1,11 @@
 # Independent Pair A preparation
 
+The opt-in [integrated chess subgame prototype](docs/chess_subgame_integration.md)
+now connects sampled-tree knowledge projection, gadget boundaries, growth,
+warm starts and purification. [Richer-position verification](docs/subgame_position_validation.md)
+records special-rule positions and short private-observation games; it is not
+playing-strength evidence or a claim of complete Obscuro reproduction.
+
 The optional [serial one-sided search mode](docs/one_sided_search.md) now
 selects individual history frontiers and retains within-turn PCFR+ state.
 Its engineering evidence and updated slide materials are reproducible; it is
