@@ -1,6 +1,7 @@
 """Independent finite-tree arithmetic for C.2/C.3 and compatible warm starts."""
 
 from copy import deepcopy
+from dataclasses import replace
 
 import numpy as np
 import pytest
@@ -28,7 +29,7 @@ def test_current_profile_gifts_and_mixed_opponent_prior():
     boundaries = derive_boundaries(root, profile, cut)
     # Blueprint root value is -.5. Positive gift at mistake is 1 - (-.5).
     assert boundaries.gifts == pytest.approx({"JA": 1.5, "JB": 0})
-    assert boundaries.alternate_player0 == pytest.approx({"JA": 2.5, "JB": -1})
+    assert boundaries.alternate_player0 == pytest.approx({"JA": -.5, "JB": -1})
     assert boundaries.group_prior == pytest.approx({"JA": 0.375, "JB": 0.625})
     assert [r.reach_mass for r in boundaries.roots] == [1, 1]
 
@@ -59,8 +60,8 @@ def test_derived_gadgets_have_finite_lp_oracles_and_unshifted_continuations(mode
     solver = PCFRPlus(gadget.tree, schedule="alternating")
     solver.run(100)
     assert gadget.continuation_values(solver.policy())["A"] <= 1
-    assert current_minimum_margin(gadget, solver.policy()) <= -1.5 + 1e-8
-    assert choose_mode(current_minimum_margin(gadget, solver.policy())) == "resolve"
+    assert current_minimum_margin(gadget, solver.policy()) >= -1e-8
+    assert choose_mode(current_minimum_margin(gadget, solver.policy())) == "maxmargin"
 
 
 @pytest.mark.parametrize("schedule", ["alternating", "simultaneous"])
@@ -90,9 +91,19 @@ def test_cut_and_mode_validation():
 
 def test_mode_session_switches_without_discarding_continuation_state():
     root, profile, cut = fixture()
-    session = BoundarySession(derive_boundaries(root, profile, cut))
+    boundaries = derive_boundaries(root, profile, cut)
+    # Deliberately infeasible alternate exercises switching independently of gift arithmetic.
+    session = BoundarySession(replace(boundaries, alternate_player0={"JA": 2.5, "JB": -1}))
     for _ in range(6):
         session.step()
     assert session.mode == "resolve"
     assert session.solver.rounds == 6
     assert session.transitions[0]["retained"][0] == 2
+
+
+def test_positive_gift_relaxes_the_player_zero_bound():
+    root, profile, cut = fixture()
+    boundaries = derive_boundaries(root, profile, cut)
+    # Best continuation 1 must remain feasible after a 1.5 opponent gift.
+    assert 1 - boundaries.alternate_player0["JA"] == pytest.approx(1.5)
+    assert boundaries.alternate_player0["JA"] < boundaries.audit["groups"]["JA"]["conditional_value"]
