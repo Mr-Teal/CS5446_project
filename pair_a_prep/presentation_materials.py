@@ -169,9 +169,9 @@ def slide5(data):
 
 
 def clock_backup(report, baseline):
-    body = text(80, 235, "Median caller time (ms); overruns and fallbacks shown as raw / purified", 25, "#70dac5")
+    body = text(80, 235, "Median caller time (ms); counts shown as purify-off / purify-on", 25, "#70dac5")
     columns = (80, 355, 520, 755, 1040, 1290)
-    headers = ("Fixture", "Budget", "Raw median", "Purified median", "Overruns", "Fallbacks")
+    headers = ("Fixture", "Budget", "Purify-off", "Purify-on", "Overruns", "Fallbacks")
     for x, label in zip(columns, headers):
         body += text(x, 290, label, 22, weight="600")
     indexed = {(r["case"], r["budget_ms"], r["purify"]): r for r in report["summary"]}
@@ -188,9 +188,9 @@ def clock_backup(report, baseline):
             y += 48
     old = sum(r["caller_over_budget"] for r in baseline["turn_runs"])
     new = sum(r["caller_over_budget"] for r in report["turn_runs"])
-    body += text(80, 670, f'Submission guard: no reserve {old}/48 overruns; 10% reserve {new}/48 in this run.', 25, "#91b5ff")
-    body += text(80, 715, "4 samples per cell; Material only; tracker and saved-blueprint preparation excluded.", 23)
-    body += text(80, 758, "Fixed-work controls keep raw policies unchanged. Purification changes the played distribution.", 23)
+    body += text(80, 670, f'Historical guard: overruns {old}/48 to {new}/48; reserved live fallbacks 11/48.', 25, "#91b5ff")
+    body += text(80, 715, "Only 16/48 turns exercised the guard; Material only; historical source.", 23)
+    body += text(80, 758, "All non-fallback raw policies were ties; purification reflects move order.", 23)
     body += text(80, 801, "A running evaluator or CFR round can still overrun. These observations are not a hard-time guarantee.", 23, "#f8c36a")
     return slide("Clock budgets and purification: measured limits", "Backup for slide 5 | Two seeds, two repeats | Caller surrounds the entire act() call", body,
         "Synthetic cold/warm inputs | Small serial sample | Capped live games unscored | No playing-strength claim | Draft")
