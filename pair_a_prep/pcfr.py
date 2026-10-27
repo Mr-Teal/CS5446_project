@@ -178,7 +178,7 @@ class PCFRPlus:
             self._strategy[player].update(strategies[player])
             self._sums[player].update(sums[player])
         self._previous_opponent = previous_opponent
-        if not self.rounds:
+        if self.schedule == "simultaneous" or not self.rounds:
             self._initial_actions.update({(p, key): action for (p, key), action in (initial_actions or {}).items()
                                           if key in added[p]})
 

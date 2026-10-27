@@ -6,7 +6,7 @@ import json
 from time import perf_counter
 from types import SimpleNamespace
 
-from fow_shared.contracts import Decision
+from fow_shared.contracts import Decision, TrainingRecord
 from .anytime_agent import AnytimeConfig
 from .chess_projection import project_chess, SavedChessBlueprint
 from .chess_search import expand_chess_tree, SearchBudgetError, TreeCapacityError
@@ -167,7 +167,8 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
             solver_rounds=float(solver.rounds), solver_rounds_this_turn=float(solver.rounds-initial_rounds),
             expansions=float(expansions), mode_switches=float(switches), mode_resolve=float(mode == "resolve"),
             elapsed_ms=elapsed, over_budget=float(elapsed > turn.time_budget_ms), fallback=0.,
-            solver_root_value=value, purification=float(self.purify))
+            solver_root_value=value, purification=float(self.purify),
+            label_root_contract_pending=float(projection.boundaries is not None))
         diagnostics.update({"projection:"+key: float(v) for key, v in projection.audit.items()})
         diagnostics.update({"raw_policy:"+a: p for a, p in raw.items()})
         diagnostics.update({"played_policy:"+a: p for a, p in played.items()})
@@ -184,6 +185,9 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
         try:
             return self.solve(turn).decision
         except (SearchBudgetError, TreeCapacityError):
+            self.saved = None
+            self.last_result = None
+            self.last_projection = self.last_solver = self.last_bridge = None
             if not turn.observation.legal_moves or turn.observation.terminal:
                 raise
             moves = turn.observation.legal_moves
@@ -195,3 +199,13 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
             decision = Decision(self._rng.choice(moves), policy, diagnostics)
             decision.validate_for(turn.observation)
             return decision
+
+    def label(self, turn, game_id):
+        if not game_id.strip():
+            raise ValueError("label runs require a game_id")
+        result = self.solve(turn)
+        if result.decision.diagnostics["label_root_contract_pending"]:
+            raise ValueError("projected subgame labels disabled pending solver-root/weight contract agreement")
+        return TrainingRecord(turn, result.decision, result.root_value,
+                              result.hypothesis_values, self._seed, self.name,
+                              self.config_id, game_id)

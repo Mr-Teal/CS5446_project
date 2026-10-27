@@ -90,3 +90,22 @@ def test_seeded_budgeted_agent_runs_for_both_colours(player, moves):
         assert agent.name == "one-sided-pcfr-prototype-v1"
         outputs.append((result.decision.move, result.decision.root_policy, result.hypothesis_values))
     assert outputs[0] == outputs[1]
+
+
+@pytest.mark.parametrize("schedule", ["simultaneous", "alternating"])
+def test_growth_seed_survives_until_first_feedback_after_completed_rounds(schedule):
+    root = Node(player=0, infoset="I", children={
+        "stay": terminal(0), "grow": Node(payoff=0, cutoff=True)})
+    solver = PCFRPlus(root, schedule=schedule)
+    solver.run(2)
+    solver.expand({("grow",): Node(player=1, infoset="J", children={
+        "best": terminal(0), "other": terminal(0)})}, initial_actions={(1, "J"): "best"})
+    observed = []
+    item = solver.minimizers[1]["J"]
+    original = item.observe
+    def observe(utilities):
+        observed.append(item.strategy.copy())
+        original(utilities)
+    item.observe = observe
+    solver.step()
+    np.testing.assert_array_equal(observed[0], [1, 0])
