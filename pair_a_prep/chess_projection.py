@@ -126,17 +126,24 @@ def project_chess(turn, evaluator, *, initial_fen, depth, max_nodes, saved=None,
         y.update(boundary.audit["opponent_sequence_reach"])
     calls, retained, fresh = 0, 0, 0
     prepared_nodes = 1
+    lazy_neighbours = 0
     evaluation_cache = {}
 
     def append(context, moves, node=None, old_path=None):
-        nonlocal calls, retained, fresh, prepared_nodes
+        nonlocal calls, retained, fresh, prepared_nodes, lazy_neighbours
         index = len(branches)
         identity = root_identity(context.state.fen, moves)
         if old_path is None:
             memories = list(context.memories)
             memories[1-own_index] = sha256(("perfect-root:"+identity+":"+memories[1-own_index]).encode()).hexdigest()
             context = HistoryRoot(context.state, tuple(memories))
-        if node is None or node.payoff is not None:
+        if node is not None and node.cutoff and context.memories[own_index] != own_memory:
+            # Keep the old estimate at an outside-I knowledge neighbour. It
+            # remains an explicit expandable root frontier, not a pruned root.
+            continuation = deepcopy(node)
+            frontiers[(str(index),)] = context
+            lazy_neighbours += 1
+        elif node is None or node.payoff is not None:
             built = _build_roots((context,), viewer, (1.,), evaluator, depth,
                                  max_nodes-prepared_nodes+1, deadline,
                                  evaluation_cache=evaluation_cache)
@@ -215,4 +222,4 @@ def project_chess(turn, evaluator, *, initial_fen, depth, max_nodes, saved=None,
     return ChessProjection(turn, tree, tuple(paths), tuple(ids), tuple(groups), current_ids,
         boundaries, dict(retained=retained, fresh=fresh, knowledge_roots=len(branches),
             outside_current=sum(c.memories[own_index] != own_memory for c in contexts),
-            depth=depth_seen, incomplete_cut=incomplete))
+            depth=depth_seen, incomplete_cut=incomplete, lazy_neighbours=lazy_neighbours))

@@ -46,3 +46,27 @@ failures or fabricated terminal outcomes.
 
 The full shared/Pair A suite passed 486 tests for this first-stage snapshot.
 The overlapping focused preparation/clock/integration run passed 17 tests.
+
+## Lazy outside-I knowledge neighbours
+
+An old estimated cut root outside the current own information set can remain
+an estimated leaf. Preparing it eagerly is unnecessary in a growing tree and
+can exhaust the evaluator budget before solving the current move. The projector
+now keeps such roots, their reach masses and old boundary evidence unchanged,
+records them as explicit root frontiers, and expands them only when sampled.
+Current-I roots still need a legal-move decision node. Already expanded
+neighbours retain their continuations. No root, observation class or belief
+candidate is dropped, and both gadget modes can expand the deferred root later.
+
+The analytic kings cut retains all 9 histories, expands its 3 current-I roots
+with 3 evaluator calls, and leaves 6 outside-I roots estimated. Tests grow one
+of those roots through Resolve and Maxmargin while preserving the old solver.
+
+`results/projection_lazy_reference.json` records the same clock matrix after
+this change: **0/48 single-turn fallbacks and 0/48 live-action fallbacks**, with
+0 and 1 observed overruns respectively. All 12 live games remain capped/null.
+The overrun is retained in the raw record, not hidden by a rerun. This changes
+when heuristic leaves are expanded and may change policies; it is not a claim
+of equal work, stronger play or guaranteed deadlines. The earlier two snapshots
+remain committed for comparison. Reproduce using the same clock_ablation
+command with `--output pair_a_prep/results/projection_lazy_reference.json`.

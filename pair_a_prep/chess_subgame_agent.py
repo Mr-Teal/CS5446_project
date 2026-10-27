@@ -65,7 +65,7 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
             purify=self.purify, knowledge="saved_sampled_tree_synchronized_I2",
             submission_reserve_fraction=self.submission_reserve_fraction,
             round_guard="previous_completed_round_including_mode_switch",
-            preparation_window="solve_deadline_v2_single_replay_attempt_local_eval_cache",
+            preparation_window="solve_deadline_v3_single_replay_lazy_neighbours_attempt_local_eval_cache",
             fresh_boundary="min(minimax_proxy, previous_unshifted_value)", fresh_mass="unit",
             gift_scope="within_saved_raw_tree", no_move_rule="terminal_draw_v1",
             half_budget="wall_clock" if self.config.stop_on_time else "round_count")

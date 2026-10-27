@@ -9,6 +9,8 @@ from pair_a_prep.anytime_agent import AnytimeConfig
 from pair_a_prep.chess_search import HistoryRoot, _build_roots
 from pair_a_prep.chess_subgame_agent import ChessSubgameAgent
 from pair_a_prep.rules_adapter import RuleState
+from pair_a_prep.pcfr import PCFRPlus
+from pair_a_prep.chess_projection import SavedChessBlueprint
 from pair_a_prep.tests.test_chess_search import ConstantLeaf, KINGS, turn_after
 
 
@@ -62,3 +64,26 @@ def test_shared_evaluation_cache_does_not_cache_repetition_outcomes():
     assert not first.continuations[0].children["g8h8"].cutoff
     assert second.continuations[0].children["g8h8"].payoff == .4
     assert second.continuations[0].children["g8h8"].cutoff
+
+
+def test_outside_information_set_estimates_stay_present_and_can_grow_later():
+    old_turn = turn_after()
+    tree = chess_search.build_chess_tree(old_turn, ConstantLeaf(), initial_fen=KINGS, depth=2)
+    saved = SavedChessBlueprint(old_turn, tree, ((),), PCFRPlus(tree.root), .2)
+    turn = turn_after(moves=("a1b1", "h8g8"))
+    projection = chess_projection.project_chess(turn, ConstantLeaf(), initial_fen=KINGS,
+        depth=1, max_nodes=2000, saved=saved)
+    assert projection.audit["retained"] == 9
+    assert projection.audit["lazy_neighbours"] == 6
+    assert projection.tree.evaluator_calls == 3
+    path = next(path for path in projection.tree.frontiers if len(path) == 1)
+    for mode in ("resolve", "maxmargin"):
+        bridge = projection.bridge(mode, ConstantLeaf.name)
+        solver = PCFRPlus(bridge.gadget.tree, schedule="alternating")
+        solver.run(2)
+        grown = bridge.expand(solver, ConstantLeaf(), selected_paths=(path,),
+                              max_nodes=2000, max_evaluator_calls=1, initialize_best=True)
+        assert path not in grown.roots.chess_tree.frontiers
+        assert len(grown.roots.chess_tree.continuations) == 9
+        assert solver.rounds == 2
+        solver.run(2)
