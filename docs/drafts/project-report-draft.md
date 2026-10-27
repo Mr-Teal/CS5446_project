@@ -1,4 +1,4 @@
-# Fog-of-War Chess
+# Fog of War Chess
 
 Search Prototypes and Learned Leaf Evaluation
 
@@ -10,15 +10,16 @@ Semester 1, AY2026/27
 
 ## Project Report Draft
 
-26 October 2026 | For team review, not final submission
+27 October 2026 | For team review, not final submission
 
 **Team:** DING Chiyu; PEI Shengxin; QUEK Hongqiang Colin; WANG Zhijian;
 Kuah Jun Hong, Bryan; LIN Tzu-Chun.
 
 **Draft status.** This is a full report draft assembled from the available
-implementation, development results and historical validation evidence. Formal
-match results remain pending. The team must confirm the final integrated
-revision, contribution statements and conclusions before submission.
+implementation, development results, historical validation and the completed
+seven-row batch, independently audited at PR38 head 5e9393a. Publication remains
+subject to the 27 October 23:59 SGT objection window. The team must confirm the
+final integrated revision, contributions and conclusions before submission.
 
 **Major revisions expected.** Major changes are likely as implementation,
 integration, experiments and team review progress. This is a provisional
@@ -36,8 +37,8 @@ numbered Vancouver bibliography in a reference manager. This draft's references
 are manually prepared and have not been imported into one.
 
 **Reading guide.** Development-label results, historical match checks and the
-proposed formal batch are separate evidence populations. Pending means not yet
-reported here, not a score of zero. Detailed review logs are linked rather than
+archived pre-rule batch are separate evidence populations. An unmerged
+experimental branch is not reviewed main functionality. Detailed review logs are linked rather than
 reproduced in the main report. Remove this cover guidance before final submission.
 
 ---
@@ -54,9 +55,10 @@ show that a learned correction reduces value error against Stockfish depth-11
 labels from 0.095 to 0.076, but does not establish better move choice. A
 belief-conditioned network also improves label error, although its labels are
 full-board values rather than strategic belief-state values. A historical
-20-game check favors Stockfish depth 1 over material; it is not the planned
-multi-evaluator evaluation. Scoped checks support state-preserving tree growth
-and budget/fallback behavior. The contribution is a documented experimental
+20-game check favors Stockfish depth 1 over material. A separate seven-row
+batch completed 1,399 of 1,400 scheduled games: Network 1 and linear correction
+do not establish improvement over depth 1; the belief row remains inconclusive.
+Scoped checks support tree growth and budget/fallback behavior. The contribution is a documented experimental
 framework and analysis of these distinctions, not an exact reproduction of
 the published agents or a demonstrated improvement in general playing strength.
 
@@ -82,7 +84,8 @@ error and move ranking; **RQ2**, what does belief context contribute when the
 training labels themselves are not belief-dependent; and **RQ3**, do evaluator
 changes improve playing score under a fixed outer planner, with computation
 cost reported? Existing development evidence addresses RQ1 and part of RQ2.
-The formal experiment for RQ3 remains pending.
+The completed fixed-planner batch addresses RQ3 within its recorded rules,
+openings and compute limitations.
 
 The original proposal envisaged a staged reconstruction followed by
 solver-labeled belief learning. The current evidence supports a narrower
@@ -138,10 +141,12 @@ computed strategy. Retaining accumulated solver state during growth avoids
 restarting all previous learning when a deeper continuation is added.
 
 Our implementation follows selected mechanisms, not every mechanism of either
-paper. The budgeted prototype uses uniform complete-frontier growth and rebuilds
-each turn; it does not yet integrate the gadget search path. Cross-turn persistence,
-paper-derived gadget inputs, selective expansion and purification remain missing.
-The detailed mechanism checklist separates these gaps from implemented parts [4].
+paper. At main abfc868, the budgeted prototype uses uniform complete-frontier
+growth and rebuilds each turn. The later PR39–PR48 review stack adds selective
+expansion, retained search, sampled gadget boundaries and purification; these
+are unmerged experiments with open fixes and stale reference measurements,
+not reviewed main functionality or a complete Obscuro reproduction. ZS21 and
+the shared en-passant repetition fix are separately reviewed in PR37 [4,14].
 
 ---
 
@@ -255,29 +260,18 @@ estimated by resampling whole games, because positions within a game are
 correlated. These metrics measure agreement with an approximate full-board
 teacher, not exact fog-of-war optimality [5].
 
-For formal play, the proposed protocol compares seven candidates against
-Stockfish depth 1 using the same outer planner for evaluator-based agents,
-256 particles and eight sampled hypotheses. Random play is an additional
-action-selection baseline. Each pairing schedules 200 games: 100 openings,
+For formal play, seven candidates played Stockfish depth 1 using the same outer
+planner for evaluator-based agents, 256 particles and eight hypotheses. Random
+play is an additional baseline. Each pairing scheduled 200 games: 100 openings,
 each played with colors exchanged. Openings use two to eight nonterminal random
-legal plies with seed 0 under the recorded generation rule [6,7].
+legal plies with seed 0 under the recorded generation rule [6,7,13].
 
-| Candidate versus Stockfish D1 | Scheduled games | Paired score and interval |
-| --- | --- | --- |
-| Material | 200 | Pending |
-| Stockfish D1 (symmetry check) | 200 | Pending |
-| Stockfish D11 | 200 | Pending |
-| Network 1 | 200 | Pending |
-| Belief-conditioned network | 200 | Pending |
-| Linear correction | 200 | Pending |
-| Random action | 200 | Pending |
-
-**Status:** these 1,400 games are a plan, not completed results in this report.
-The final source/rules revision, machine, checkpoint identities and validated
-run artifacts must accompany the completed table. Use play_matches as runner of
-record. Accept completion only when finished games plus game errors equal the
-scheduled count and raw IDs reconcile; save command and exit status. Zero error
-or incomplete-pair flags alone cannot establish that a batch finished [6,7].
+Colin ran all rows on one M5 Pro Mac at a5c5fb6 (main 2af8f1f plus PR34),
+26–27 October. The summaries record code, engine, checkpoint and environment
+identities. The batch used stand-in rules before PR28 reached main with PR15;
+`no_move_rule` remains `unresolved` in these historical artifacts. No game hit a
+no-move case. Keep the original provenance and never pool with post-rule runs.
+Bryan independently audited the records; he did not rerun the matches [7,13].
 
 Game scores are 1/0.5/0 for win/draw/loss. The primary estimate averages the
 two scores within each complete color pair, then averages complete pairs.
@@ -285,13 +279,16 @@ Incomplete pairs, failed games and diagnostic errors are counted separately.
 The protocol uses a 2,000-resample paired bootstrap when at least 20 complete,
 nonconstant pair scores are available; otherwise it reports an approximate
 Wilson interval for fractional pair scores and explains why bootstrap is absent.
+Pair B counts a still-ongoing game at the 200-ply cap as a draw; Pair C
+separately reports capped/null outcomes. Keep these protocols distinct.
 
 Stockfish 19 uses one thread and 16 MB hash, reset before each game. A 60-second
 per-call watchdog is failure protection, not an enforced action-time limit.
 Report both players' mean/p95 decision latency, game wall time and tracker health.
 Each row must footnote unresolved no-move exclusions or recorded no-move draws
-under its pinned rule. PR28 integration is pending and also changes stand-in
-decisions. Compare engine binary hashes alongside source/checkpoint identities.
+under its pinned rule. PR28 is now on main and also changes evaluated stand-in
+children, so zero no-move failures does not establish rule-version equivalence.
+Compare engine binary hashes alongside source/checkpoint identities.
 Outer planning, not compute/time, is controlled; timing excludes tracker updates.
 Per-row intervals are not multiple-comparison-adjusted evidence [6,7].
 
@@ -350,6 +347,47 @@ are not runner equivalence or neural strength evidence; the runs are not pooled.
 
 ---
 
+### 6.3 Archived Match Batch
+
+Table 2 reports the seven comparisons against quick Stockfish. Score and
+intervals use complete color pairs (100 per row, 99 for random); W/D/L counts
+every finished game (199 for random). All figures were recomputed from the
+archived game records at PR38 head 5e9393a [13].
+
+| Candidate | Score | Bootstrap 95% | W/D/L | ms/move median (p95) |
+| --- | --- | --- | --- | --- |
+| D1 self-play | 0.520 | 0.455–0.588 | 103/2/95 | 11.1 (23.9) |
+| Random | 0.000 | Withheld* | 0/0/199 | 0.0 (0.0) |
+| Material | 0.048 | 0.023–0.078 | 9/1/190 | 4.3 (7.3) |
+| Linear | 0.513 | 0.455–0.573 | 98/9/93 | 14.2 (30.0) |
+| Network 1 | 0.515 | 0.448–0.585 | 100/6/94 | 36.1 (52.7) |
+| Belief | 0.563 | 0.495–0.630 | 111/3/86 | 149.8 (257.4) |
+| D11 | 0.585 | 0.513–0.660 | 114/6/80 | 2452.2 (9054.7) |
+
+*Random pairs all score zero, so bootstrap is withheld; Wilson 95% is
+0.000–0.037. Other Wilson intervals and mean/p95 timings are in [7,13].
+One TrackerLost failure excludes random game 36 and its partner from the score,
+leaving 1,398 games in 699 complete pairs; 1,399 games finished overall.
+There are no diagnostic errors or recorded 60-second budget overruns.
+
+Draws include six capped/adjudicated games: two of linear's nine draws and
+four of D11's six. Every other draw is repetition. Each row has zero no-move
+exclusions and zero terminal no-move draws under the pinned pre-rule source.
+
+D1 self-play spans 0.5. Linear and Network 1 do not establish improvement
+over D1, consistent with the development ranking result. Belief's interval
+also includes 0.5. D11's bootstrap narrowly excludes 0.5, but its Wilson
+interval (0.487–0.677) includes it; no adjusted superiority claim follows.
+These are separate pairings against D1, not a head-to-head ranking.
+
+Compute differs substantially: median Network 1, belief and D11 decisions
+are about 3, 13 and 220 times D1's. Belief scores single-board children in
+this runner, so its row is not evidence of strategic information value.
+The fixed outer planner controls neither total work nor elapsed time.
+The pre-rule batch is never pooled with later-rule or historical checks.
+
+---
+
 ## 7. Implementation Verification and Discussion
 
 ### 7.1 Scoped Verification
@@ -377,7 +415,7 @@ solver tests or matches were run to prepare this report draft.
 Three objectives must remain distinct: matching a full-board teacher, choosing
 good actions under hidden information, and faithfully reproducing a published
 search algorithm. The strongest available evaluator result concerns the first.
-The second needs the planned matches and a clear description of the planner;
+The second has bounded evidence from the archived fixed-planner matches;
 the third requires verification of all relevant search mechanisms and their
 integration. Success in one does not imply success in the others.
 
@@ -402,7 +440,7 @@ internal workloads differ.
 
 Limitations include development-set selection, approximate labels, synthetic
 beliefs, uncertain transfer from ordinary chess, different rule/search revisions
-and pending matches. Paper engine versions and search differ. Results establish
+and unequal compute in a pre-rule match batch. Paper engine versions and search differ. Results establish
 neither exact reproduction nor human-level/general strength; subgame diagnostics
 are not whole-game exploitability.
 
@@ -411,8 +449,9 @@ through attribution/review, and **fair play** through information boundaries.
 Future human matches require consent and bot identification. No human study,
 fairness audit or social benefit is claimed.
 
-Next, pin the integrated revision and audit paired matches, then investigate
-belief-dependent targets and search ablations. Retain positive, negative and
+Next, review and pin the integrated search revision, then investigate
+belief-dependent targets and search ablations. A post-rule batch is a separate
+team decision, not a prerequisite for preserving these archived results. Retain positive, negative and
 inconclusive results.
 
 ## 9. Team Contributions and AI Assistance
@@ -423,13 +462,14 @@ Teal confirmed his prototype work; other members' statements remain provisional.
 | --- | --- |
 | DING Chiyu | Rules/referee/private observations; PCFR+, Resolve/Maxmargin prototypes; chess-history/gadget integration; label pilots/provenance; within-turn growth and budgeted-agent integration; tests, diagnostics, documentation and visualizers |
 | PEI Shengxin | Belief tracker and ZS21 (division reported by Teal); await Shengxin's confirmation of wording/completion |
-| QUEK Hongqiang Colin | Pair B: evaluators, training/development evaluation, match protocol and worked toy exposition |
-| Kuah Jun Hong, Bryan | State-preserving toy PCFR+ expansion API (PR21), used by later chess/gadget integration; independent cross-checks, scoped reviews/evidence sharing, methods and report/presentation drafting |
-| WANG Zhijian | Evaluation workflow contribution; final batch operation and results to confirm |
+| QUEK Hongqiang Colin | Pair B evaluators and practice-data/training; one-ply bot, particle tracker, play_matches runner; protocol and seven-row batch (PR38); Fog Lab; worked information example; PR15/28 reviews |
+| Kuah Jun Hong, Bryan | Linear correction baseline (PR8); state-preserving toy PCFR+ expansion API (PR21), used by later chess/gadget integration; independent cross-check and batch archive audit; scoped reviews, methods and report/presentation drafts |
+| WANG Zhijian | Pair C evaluation workflow; own wording/completion to confirm. Colin operated the Pair B batch at Zhijian's request |
 | LIN Tzu-Chun | Role and completed contribution await confirmation |
 
 GitHub Copilot assisted Bryan's inspections, probes, artifact checks and drafting
-under his direction. Teal reports Codex assistance; the proposal records
+under his direction. Codex assisted this archive audit and revision.
+Teal reports Codex assistance; the proposal records
 Claude-assisted drafting. Others must disclose their use. Human verification
 and team approval remain necessary.
 
@@ -437,8 +477,9 @@ and team approval remain necessary.
 
 The project provides search and evaluation components with traceable evidence.
 Better full-board prediction has not yet established better decisions under
-hidden information. Final playing-strength conclusions must come from validated
-matches, not regression error, passing tests or historical D1-versus-material wins.
+hidden information. The audited fixed-planner batch does not establish gains
+for Network 1 or linear correction over D1. Its limited, unequal-compute
+comparisons do not establish full-agent strength or strategic belief value.
 
 ---
 
@@ -456,7 +497,7 @@ matches, not regression error, passing tests or historical D1-versus-material wi
 
 6. CS5446_project contributors. Match protocol [Internet]. 2026 [cited 2026 Oct 26]. Revision 2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d. Available from: [pinned protocol](https://github.com/Mr-Teal/CS5446_project/blob/2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d/pair_b/docs/match_protocol.md); [protocol discussion, issue 17](https://github.com/Mr-Teal/CS5446_project/issues/17).
 
-7. bryankuah. Evaluation methods and batch validation [Internet]. 2026 Oct 26 [cited 2026 Oct 26]. Draft PR32, revision d9497207eae4b3437bb3603df6f3be62d8a10aca. Available from: [pinned methods draft](https://github.com/Mr-Teal/CS5446_project/blob/d9497207eae4b3437bb3603df6f3be62d8a10aca/pair_b/docs/evaluation-methods-draft.md).
+7. bryankuah. Evaluation methods and batch validation [Internet]. 2026 Oct 27 [cited 2026 Oct 27]. PR50, revision bc8047b172c625a8b2463dbffcbb6a26da86a6b5. Available from: [pinned updated methods](https://github.com/Mr-Teal/CS5446_project/blob/bc8047b172c625a8b2463dbffcbb6a26da86a6b5/pair_b/docs/evaluation-methods-draft.md).
 
 8. bryankuah. Independent D1-versus-material historical cross-check [Internet]. 2026 [cited 2026 Oct 26]. Publication revision 8735be4cc7e06928db6d12ee2487a08bb86e5ba7; historical run source differs as stated in the text. Available from: [pinned raw artifacts and audit](https://github.com/Mr-Teal/CS5446_project/tree/8735be4cc7e06928db6d12ee2487a08bb86e5ba7/pair_b/experiments/matches/crosscheck-bryan-d1-vs-material-standard-start).
 
@@ -467,3 +508,7 @@ matches, not regression error, passing tests or historical D1-versus-material wi
 11. bryankuah. PR30 supplemental budget and fallback review [Internet]. 2026 Oct 26 [cited 2026 Oct 26]. Reviewed revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed. Available from: [review](https://github.com/Mr-Teal/CS5446_project/pull/30#issuecomment-6407182994); [rerunnable evidence and raw results](https://github.com/user-attachments/files/33944559/pr30-5f334b1-review-evidence.zip).
 
 12. Mr-Teal. Unify no-move terminal draws across rules and search [Internet]. PR28; 2026 [cited 2026 Oct 26]. Reviewed revision 21da153c8efdc1ae78dd1fac053c2402e1c7b3c7; not a statement that the formal batch uses this revision. Available from: [rule-update pull request](https://github.com/Mr-Teal/CS5446_project/pull/28).
+
+13. emalcolin. Seven-row match batch [Internet]. 2026 Oct 27 [cited 2026 Oct 27]. PR38, reviewed revision 5e9393ab8537088e8ea6542ce21e11f42218ee15; execution source a5c5fb6. Available from: [pinned records, checksums and tables](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27).
+
+14. CS5446_project contributors. Current integration and pending search reviews [Internet]. 2026 Oct 27 [cited 2026 Oct 27]. Main abfc8686ff3e4948a310f3753b25e702226d7ca0; later work remains separately reviewed. Available from: [pinned main](https://github.com/Mr-Teal/CS5446_project/tree/abfc8686ff3e4948a310f3753b25e702226d7ca0); [PR37](https://github.com/Mr-Teal/CS5446_project/pull/37); [PR42 review discussion](https://github.com/Mr-Teal/CS5446_project/pull/42).

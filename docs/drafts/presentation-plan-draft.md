@@ -1,8 +1,8 @@
-# Fog-of-War Chess
+# Fog of War Chess
 
 Presentation Plan and Slide Draft
 
-CS4246/CS5446 | AY2026/27 | 26 October 2026 | For team discussion
+CS4246/CS5446 | AY2026/27 | 27 October 2026 | For team discussion
 
 **Major revisions expected.** Major changes are likely as implementation,
 integration, experiments and team review progress. This is a provisional
@@ -35,8 +35,8 @@ on Canvas; the report's page/font rules are not slide-count requirements.
 | 7 | Data and measurement design | 1:00 |
 | 8 | Better values versus better moves | 1:30 |
 | 9 | What belief context shows | 1:00 |
-| 10 | Planned playing-strength evaluation | 1:15 |
-| 11 | Historical evidence and current status | 1:15 |
+| 10 | Paired playing-strength evaluation | 1:15 |
+| 11 | Completed batch and interpretation | 1:15 |
 | 12 | Conclusions and next steps | 1:15 |
 
 **Total:** 14:00 core content including handovers, plus 1:00 contingency buffer
@@ -85,11 +85,11 @@ context?" "RQ3: stronger play under a fixed planner?"
 
 **Speaker draft:** "Published methods motivate the design, but their performance
 is not our result. We have development measurements, a limited context study
-and checked search components. Formal matches must answer the playing-strength
-question. Delivered scope is narrower than the complete-reproduction proposal."
+and checked search components. The completed fixed-planner batch gives bounded
+playing evidence; it does not establish Network 1 or linear gains over D1. Delivered scope is narrower than the complete-reproduction proposal."
 
 **Visual:** Three questions with status labels: development evidence, offline
-context study, formal matches pending. Show a compact paper/project distinction,
+context study, archived fixed-planner matches. Show a compact paper/project distinction,
 not a list of pull requests. Sources: S1, S3-S5. Suggested reviewers: Pair A
 and Pair B; the team should agree opening speakers.
 
@@ -125,9 +125,10 @@ support selected contracts, not stronger play or full Obscuro reproduction."
 
 **Visual:** A before/after tree with unchanged old nodes and highlighted new
 frontiers. Limit verification to a 20-second callout; test counts go in backup.
-Note uniform complete-frontier growth, within-turn retention, missing
-paper-derived gadget inputs/purification and cooperative deadlines. The budgeted
-agent does not yet use the gadget path. Sources: S3, S7. Teal has volunteered
+Show uniform complete-frontier growth at main abfc868 and cooperative
+deadlines. Later selective/retained/gadget/purification work is in the unmerged
+PR39–PR48 stack with open review and historical measurements; label it experimental.
+ZS21 and the shared EP fix remain in separate PR37 review. Sources: S3, S7. Teal has volunteered
 content and a retained-state growth visual; speaking allocation remains open.
 
 ### Slide 6. Swap the Evaluator, Keep the Interface (1:15)
@@ -199,7 +200,7 @@ do not pool this with slide 8's child-ranking task. Source: S4. Reviewer: Pair B
 
 ### Slide 10. Test Playing Strength With Paired Openings (1:15)
 
-**On slide:** "Seven candidates vs D1; 200 games per pairing planned."
+**On slide:** "Seven candidates vs D1; 200 games per pairing scheduled."
 "Same opening, colors exchanged." "Score, uncertainty, mean/p95 latency and failures."
 
 **Speaker draft:** "Evaluator-based agents share a one-ply planner, 256 particles
@@ -207,40 +208,41 @@ and eight hypotheses; random play is an additional baseline. We average complete
 color-pair scores and report exclusions. Outer planning is controlled, not
 elapsed time. The 60-second watchdog protects a call, not an entire move."
 
-**Visual:** One opening, two color-swapped games, one pair score. Put 1,400
-scheduled games under a conspicuous PLAN label. List source/rules, checkpoints
-and engine settings as prerequisites. Before using results, reconcile scheduled
-games with finished games plus game errors and raw IDs; zero errors alone do
-not prove completion. Retain command/exit status and no-move count footnotes.
-Source: S5. Suggested reviewers:
+**Visual:** One opening, two color-swapped games, one pair score. State:
+1,400 attempted; 1,399 finished; 699 complete pairs across seven separate
+comparisons. Colin ran all rows on his M5 Pro at a5c5fb6, pre-rule, stand-in,
+26–27 October. Bryan audited the archives, not a rerun. Keep counts, engine
+policy and unequal compute visible. Source: S5, S8. Suggested reviewers:
 evaluation contributors and Pair B.
 
-### Slide 11. Historical Checks Are Not Formal Results (1:15)
+### Slide 11. Completed Batch Gives Bounded Evidence (1:15)
 
-**On slide now:** "Historical D1 vs material: 20 wins / 0 draws / 0 losses;
-10 color pairs." "Formal seven-way results: pending."
+**On slide:** "Score vs D1: linear 0.513; Network 1 0.515; belief 0.563;
+D11 0.585." "Intervals and compute cost limit the conclusions."
 
-**Speaker draft:** "This historical check supports a bounded, lopsided pairing.
-Its score is 1.00 with approximate Wilson interval 0.72-1.00. Bootstrap is
-withheld for ten constant pair scores. Per-call engine reset differs from the
-proposed per-game policy. Builds, platforms, Python, seeds and revisions also
-differ, and both historical runs predate the watchdog. This is not neural or
-new-batch evidence."
+**Speaker draft:** "Linear and Network 1 do not establish improvement over D1.
+Belief's 95% interval also includes 0.5. D11's bootstrap just excludes 0.5,
+but Wilson includes it; there is no adjusted superiority claim. These are
+separate matches against D1, not a ranking or equal-time comparison."
 
-**Visual:** Separate historical and formal-status panels. When validated formal
-artifacts arrive, replace the status panel with paired scores/intervals and
-latency, identify counts/revision, and rewrite this talk track. Otherwise retain
-Pending without predicting outcomes. Do not pool runs. Sources: S5, S6.
+**Visual:** Plot all seven paired scores with the archived bootstrap intervals;
+random uses Wilson with a different marker. Include a 0.5 reference line.
+Show median decision costs: D1 11.1 ms, Network 1 36.1, belief 149.8,
+D11 2452.2. State 99 pairs for random, 100 elsewhere. W/D/L counts every
+finished game; the failed random game's partner is excluded only from pairing.
+Two linear and four D11 draws are 200-ply caps. No no-move failures occurred,
+but the source is pre-rule and never pooled with later runs. Keep historical
+20-game D1/material checks separate in backup. Sources: S5, S6, S8.
 
 ### Slide 12. What We Can Conclude (1:15)
 
 **On slide:** "Information structure matters." "Prediction is not playing
-strength." "Reproducible components; integrated evaluation next."
+strength." "Audited batch; integrated search evaluation next."
 
 **Speaker draft:** "Our current contribution is a documented framework and
 case-specific evidence. Better teacher agreement has not established better
-decisions under fog. Next are the integrated revision, audited matches and
-belief-dependent targets. Transparent limits and information-safe interfaces
+decisions under fog in the tested planner. Next are the reviewed integrated
+search revision, belief-dependent targets and appropriate search ablations. Transparent limits and information-safe interfaces
 support responsible experimentation; they are not performance evidence."
 
 **Visual:** Three takeaways and a short next-step sequence, with contribution
@@ -258,14 +260,18 @@ review and initial content/visuals for slides 4-5: replay-validated hypotheses
 sharing private evidence, and before/after growth retaining solver state.
 These illustrate implementation, not strength gains. Speakers and deck location
 remain undecided. Pair B review of 6-9 and evaluation review of 10-11 are proposals.
-WANG Zhijian has not confirmed batch operation; LIN Tzu-Chun's role remains open.
+Colin ran the Pair B batch at Zhijian's request (#17, results in #38).
+LIN Tzu-Chun's role remains open.
 
 **Contribution credits.** Teal reports rules/referee/private observations,
 PCFR+/Resolve/Maxmargin prototypes, chess-history/gadget integration, pilots,
 within-turn growth/budget integration and supporting tests/docs/visualizers,
 with Codex assistance. Shengxin's belief-tracker/ZS21 work is reported by Teal;
 ask Shengxin to confirm wording and completion. Explicitly credit Bryan's PR21
-state-preserving toy expansion API, which the later chess/gadget work builds on.
+state-preserving toy expansion API, which the later chess/gadget work builds on,
+and his linear baseline (#8), historical cross-check and independent batch audit.
+Credit Colin's evaluators/data/training, bot/tracker/runner, protocol/batch, Fog Lab,
+worked example and reviews; Colin's individual AI-use statement is still pending.
 
 **First deliverables.** Claim a block and reviewer in the pull-request discussion,
 create its visuals and transfer the wording to the agreed slide tool. For each
@@ -294,7 +300,8 @@ are full-board and the online path is board-wise. Explain the required follow-up
 are different objectives; show slide 8's value-lost interval.
 
 **Did we reproduce Obscuro?** No complete reproduction claim. Keep a mechanism
-status table with uniform growth, persistence limits and reviewed revisions.
+status table separating main's uniform-growth baseline, unmerged sampled
+search mechanisms, open fixes and the separately reviewed ZS21 delivery.
 
 **Is the comparison fair?** Outer planning is fixed, total compute is not.
 Explain paired openings, timing, failures and engine resets.
@@ -317,9 +324,9 @@ Use the [pinned mechanism checklist](https://github.com/Mr-Teal/CS5446_project/b
 
 S4. [Pinned evaluator documentation and linked artifacts](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/README.md). Plot the recorded values; distinguish development checks, offline beliefs, sealed tests and gameplay.
 
-S5. [Methods draft, PR32](https://github.com/Mr-Teal/CS5446_project/blob/d9497207eae4b3437bb3603df6f3be62d8a10aca/pair_b/docs/evaluation-methods-draft.md) and [batch discussion, issue 17](https://github.com/Mr-Teal/CS5446_project/issues/17). Recheck current decisions/artifacts before changing plans into results.
+S5. [Updated methods, PR50](https://github.com/Mr-Teal/CS5446_project/blob/bc8047b172c625a8b2463dbffcbb6a26da86a6b5/pair_b/docs/evaluation-methods-draft.md) and [batch discussion, issue 17](https://github.com/Mr-Teal/CS5446_project/issues/17). The batch is complete; preserve its pre-rule source and the 27 October 23:59 SGT publication gate.
 
-S6. [Historical artifacts, PR31](https://github.com/Mr-Teal/CS5446_project/tree/8735be4cc7e06928db6d12ee2487a08bb86e5ba7/pair_b/experiments/matches/crosscheck-bryan-d1-vs-material-standard-start). Historical source: 3afc5945dfa5a98e5a90275782b8658b69bb9bcf; do not pool with the proposed batch.
+S6. [Historical artifacts, PR31](https://github.com/Mr-Teal/CS5446_project/tree/8735be4cc7e06928db6d12ee2487a08bb86e5ba7/pair_b/experiments/matches/crosscheck-bryan-d1-vs-material-standard-start). Historical source: 3afc5945dfa5a98e5a90275782b8658b69bb9bcf; do not pool with the archived seven-row batch.
 
 S7. [PR27 review/evidence](https://github.com/Mr-Teal/CS5446_project/pull/27#issuecomment-6406920434); [PR30 review/evidence](https://github.com/Mr-Teal/CS5446_project/pull/30#issuecomment-6407182994). Heads: 7b14bbbebb80ba410f0e23127e37263b975c167a and 5f334b1e26de31e5c90d444d3a4222352e5fb3ed. Suites overlap; neither includes the separate PR28 rule update.
 
@@ -327,9 +334,12 @@ S7. [PR27 review/evidence](https://github.com/Mr-Teal/CS5446_project/pull/27#iss
 issued 26 August 2026, pages 1, 3 and 5. The report-deadline year conflicts with
 the academic-year heading; confirm on Canvas rather than infer a correction.
 
-**AI assistance:** GitHub Copilot prepared this outline, wording, visual briefs
-and checks from available evidence under Bryan's direction. It is not yet
+**AI assistance:** GitHub Copilot prepared the earlier outline, wording, visual
+briefs and checks under Bryan's direction. Codex assisted this revision and
+the independent batch archive audit. It is not yet
 team-approved. Members must verify claims, create/review visuals, add their
 own contribution and AI-use disclosures, and rehearse. No new games, training
 or experiments were run. Major revisions to both this plan and the report
 are expected as more work and results become available.
+
+S8. [Reviewed batch, PR38 at 5e9393a](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27). Execution source a5c5fb6; paired scores and intervals, failures, timing and capped-draw notes. [Pending Pair A stack](https://github.com/Mr-Teal/CS5446_project/pull/42) and [ZS21/shared EP review](https://github.com/Mr-Teal/CS5446_project/pull/37) are separate from the batch.
