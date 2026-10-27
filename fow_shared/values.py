@@ -69,6 +69,11 @@ def fog_legal_moves(board: chess.Board) -> List[chess.Move]:
     """
     if terminal_score(board) is not None:
         return []
+    return _available_fog_moves(board)
+
+
+def _available_fog_moves(board: chess.Board) -> List[chess.Move]:
+    """Generate actions without querying terminal_score (avoids recursion)."""
     moves = list(board.generate_pseudo_legal_moves())
     king = board.king(board.turn)
     rank = 0 if board.turn == chess.WHITE else 7
@@ -87,7 +92,9 @@ def terminal_score(board: chess.Board) -> Optional[Tuple[str, float]]:
     """A finished game, as (rule name, score for the side to move), or None while it goes on.
 
     The game ends when a king has been captured, under the fifty-move rule, or by threefold
-    repetition; draws need no claim ([1] App. A). Repetition is seen only when the board
+    repetition; draws need no claim ([1] App. A). The project's #17 convention
+    also draws positions with no fog-legal action, after the other outcomes.
+    Repetition is seen only when the board
     carries its move history: a FEN alone cannot show it.
     """
     mover = board.turn
@@ -97,6 +104,10 @@ def terminal_score(board: chess.Board) -> Optional[Tuple[str, float]]:
         return "fifty-move", 0.0
     if board.is_repetition(3):
         return "repetition", 0.0
+    # Most positions have a pseudo-legal move. Only the rare empty case needs
+    # the full generator to check the additional no-check castling actions.
+    if next(board.generate_pseudo_legal_moves(), None) is None and not _available_fog_moves(board):
+        return "no-moves", 0.0
     return None
 
 
@@ -134,7 +145,7 @@ def forced_score(board: chess.Board) -> Optional[Tuple[str, float]]:
             board.pop()
         best = value if best is None else max(best, value)
     if best is None:
-        return None  # no fog-legal move at all (rare): left to the rules adapter
+        return None  # Finished no-move positions are handled by terminal_score.
     return _FORCED[best], best
 
 

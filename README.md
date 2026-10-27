@@ -1,8 +1,10 @@
 # Fog-of-war chess: shared code
 
-This directory currently contains only the common interface. Neither ZS21 nor
-Obscuro is assigned or implemented here. The PDF proposal describes earlier
-R1–R3 work, but no such source files were present in this directory.
+This repository contains shared contracts, Pair B's evaluation and training
+tools, and Pair A's rules adapter and toy-tree solver prototypes. Pair A's
+agent ownership is agreed; complete ZS21 and Obscuro agents are still pending.
+See [Pair A preparation](pair_a_prep/README.md) and [Pair B](pair_b/README.md)
+for setup and current scope.
 
 ## Integration contract (schema v1)
 
@@ -66,8 +68,9 @@ R1–R3 work, but no such source files were present in this directory.
 
 1. **Rule authority:** choose the exact chess.com/OpenSpiel-compatible rule
    adapter, including visibility, castling, en passant, king capture, draw
-   detection and legal-move feedback. The referee adapter is intentionally a
-   protocol until that comparison is complete. `python-chess` is used here to
+   detection and legal-move feedback. A concrete referee adapter now lives in
+   `pair_a_prep/rules_adapter.py`; comparisons with other environments remain
+   subject to review. `python-chess` is used here to
    parse hypothesis FENs; its ordinary legal-move generator is **not** a FoW
    referee.
 2. **Belief meaning:** `population_size` is the count before sampling; weights

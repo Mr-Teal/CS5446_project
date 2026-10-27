@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fog of War Chessboard</title><link rel="stylesheet" href="/style.css"></head>
+<body><main><header><div class="eyebrow">PAIR A · RULES INSPECTOR</div><h1>Fog of War Chessboard</h1><p>Play on the board or replay a sample game. Switch perspectives to see the fog change.</p></header>
+<div id="error" role="alert" hidden></div><noscript>JavaScript is required to use the board.</noscript>
+<div class="layout"><section class="board-panel"><div class="board-header"><strong id="turn">Loading board…</strong><label>View <select id="view"><option value="full">Full board</option><option value="white">White's fog view</option><option value="black">Black's fog view</option></select></label></div>
+<div id="board" class="board" role="group" aria-label="Chessboard"></div>
+<p id="instruction">Click a piece, then a highlighted destination.</p><div class="legend"><span>● Legal destination</span><span>▧ Hidden square</span><span>▰ Last known move</span></div>
+<div class="replay"><button id="start" title="First position">|◀</button><button id="prev">Previous</button><button id="play">Play replay</button><button id="next">Next</button><button id="end" title="Last position">▶|</button></div>
+<label class="timeline"><input type="range" id="timeline" min="0" value="0" max="0"><output id="position">Ply 0 / 0</output></label></section>
+<aside><section><h2>Position</h2><div id="status"></div><p id="capture"></p><p id="view-note" class="muted"></p></section>
+<section><h2>Sample games</h2><select id="demo" aria-label="Sample game"></select><button id="load-demo">Load replay</button><p class="muted">Load a sample, then use Next or Play replay. You can also move from any replay position to start a new branch.</p></section>
+<section><h2>Move history</h2><ol id="history"></ol><p class="muted">In a fog view, the opponent's move coordinates stay hidden. This inspector lets you switch to the full board deliberately.</p></section>
+<section><button id="reset">New standard game</button><details><summary>Custom starting position</summary><label for="fen">FEN</label><textarea id="fen" rows="3" placeholder="Paste a starting FEN"></textarea><button id="load-fen">Load position</button><p class="muted">A FEN starts fresh history. It cannot restore earlier repetitions.</p></details><details id="current-fen"><summary>Current full position</summary><code id="fen-output"></code></details></section>
+<p class="muted">Uses the Python rules adapter. Manual play and scripted replays; no Obscuro or belief tracker is running.</p></aside></div>
+<dialog id="promotion"><h2>Promote pawn</h2><p>Choose a piece.</p><div id="promotion-options"></div><button id="cancel-promotion">Cancel</button></dialog>
+</main><script src="/app.js"></script></body></html>

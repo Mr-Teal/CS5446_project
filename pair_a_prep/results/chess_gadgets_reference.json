@@ -1,0 +1,213 @@
+{
+  "date": "2026-10-23",
+  "scope": "Public tactical fixture; explicit synthetic gadget parameters; not Obscuro or strength evidence",
+  "commit": "fc2e1f046672484cee9b2c3bff573aa9fa508c48",
+  "initial_fen": "4k3/4r3/8/8/8/8/8/4K3 b - - 0 1",
+  "depth": 2,
+  "runs": [
+    {
+      "evaluator": "material-1-3-3-5-9",
+      "mode": "resolve",
+      "move": "e7e1",
+      "root_value": 1.0,
+      "hypothesis_values": [
+        1.0
+      ],
+      "gadget_value": 1.0,
+      "configuration": {
+        "version": 1,
+        "chess": {
+          "initial_fen": "4k3/4r3/8/8/8/8/8/4K3 b - - 0 1",
+          "depth": 2,
+          "max_nodes": 5000,
+          "evaluator": "material-1-3-3-5-9",
+          "root_identity": "fen_and_complete_candidate_path",
+          "infosets": "complete_private_stream",
+          "prototype": true
+        },
+        "mode": "resolve",
+        "rounds": 50,
+        "schedule": "alternating",
+        "policy": "raw_last_iterate",
+        "root_ids": [
+          "chess-root:00e96f8d7fbe215197f8f48d782efbb7a35ded576c1c5e7cab91a6916eaa4c0f"
+        ],
+        "belief_weights": {
+          "chess-root:00e96f8d7fbe215197f8f48d782efbb7a35ded576c1c5e7cab91a6916eaa4c0f": 1.0
+        },
+        "root_groups": {
+          "chess-root:00e96f8d7fbe215197f8f48d782efbb7a35ded576c1c5e7cab91a6916eaa4c0f": "white:6a1d671939f28308deac2bdd97f8413d90619608d1a35781deee313c5a7c7cc6"
+        },
+        "reach_mass": {
+          "chess-root:00e96f8d7fbe215197f8f48d782efbb7a35ded576c1c5e7cab91a6916eaa4c0f": 7.0
+        },
+        "group_prior": {
+          "white:6a1d671939f28308deac2bdd97f8413d90619608d1a35781deee313c5a7c7cc6": 1.0
+        },
+        "alternate_player0": {
+          "white:6a1d671939f28308deac2bdd97f8413d90619608d1a35781deee313c5a7c7cc6": 2.0
+        }
+      },
+      "repeat_identical": true,
+      "roundtrip": true,
+      "label_errors": [],
+      "label_warnings": []
+    },
+    {
+      "evaluator": "material-1-3-3-5-9",
+      "mode": "maxmargin",
+      "move": "e7e1",
+      "root_value": 1.0,
+      "hypothesis_values": [
+        1.0
+      ],
+      "gadget_value": 0.75,
+      "configuration": {
+        "version": 1,
+        "chess": {
+          "initial_fen": "4k3/4r3/8/8/8/8/8/4K3 b - - 0 1",
+          "depth": 2,
+          "max_nodes": 5000,
+          "evaluator": "material-1-3-3-5-9",
+          "root_identity": "fen_and_complete_candidate_path",
+          "infosets": "complete_private_stream",
+          "prototype": true
+        },
+        "mode": "maxmargin",
+        "rounds": 50,
+        "schedule": "alternating",
+        "policy": "raw_last_iterate",
+        "root_ids": [
+          "chess-root:00e96f8d7fbe215197f8f48d782efbb7a35ded576c1c5e7cab91a6916eaa4c0f"
+        ],
+        "belief_weights": {
+          "chess-root:00e96f8d7fbe215197f8f48d782efbb7a35ded576c1c5e7cab91a6916eaa4c0f": 1.0
+        },
+        "root_groups": {
+          "chess-root:00e96f8d7fbe215197f8f48d782efbb7a35ded576c1c5e7cab91a6916eaa4c0f": "white:6a1d671939f28308deac2bdd97f8413d90619608d1a35781deee313c5a7c7cc6"
+        },
+        "reach_mass": {
+          "chess-root:00e96f8d7fbe215197f8f48d782efbb7a35ded576c1c5e7cab91a6916eaa4c0f": 7.0
+        },
+        "group_prior": null,
+        "alternate_player0": {
+          "white:6a1d671939f28308deac2bdd97f8413d90619608d1a35781deee313c5a7c7cc6": 0.25
+        }
+      },
+      "repeat_identical": true,
+      "roundtrip": true,
+      "label_errors": [],
+      "label_warnings": []
+    },
+    {
+      "evaluator": "stockfish-19-d1",
+      "mode": "resolve",
+      "move": "e7e1",
+      "root_value": 1.0,
+      "hypothesis_values": [
+        1.0
+      ],
+      "gadget_value": 1.0,
+      "configuration": {
+        "version": 1,
+        "chess": {
+          "initial_fen": "4k3/4r3/8/8/8/8/8/4K3 b - - 0 1",
+          "depth": 2,
+          "max_nodes": 5000,
+          "evaluator": "stockfish-19-d1",
+          "root_identity": "fen_and_complete_candidate_path",
+          "infosets": "complete_private_stream",
+          "prototype": true
+        },
+        "mode": "resolve",
+        "rounds": 50,
+        "schedule": "alternating",
+        "policy": "raw_last_iterate",
+        "root_ids": [
+          "chess-root:00e96f8d7fbe215197f8f48d782efbb7a35ded576c1c5e7cab91a6916eaa4c0f"
+        ],
+        "belief_weights": {
+          "chess-root:00e96f8d7fbe215197f8f48d782efbb7a35ded576c1c5e7cab91a6916eaa4c0f": 1.0
+        },
+        "root_groups": {
+          "chess-root:00e96f8d7fbe215197f8f48d782efbb7a35ded576c1c5e7cab91a6916eaa4c0f": "white:6a1d671939f28308deac2bdd97f8413d90619608d1a35781deee313c5a7c7cc6"
+        },
+        "reach_mass": {
+          "chess-root:00e96f8d7fbe215197f8f48d782efbb7a35ded576c1c5e7cab91a6916eaa4c0f": 7.0
+        },
+        "group_prior": {
+          "white:6a1d671939f28308deac2bdd97f8413d90619608d1a35781deee313c5a7c7cc6": 1.0
+        },
+        "alternate_player0": {
+          "white:6a1d671939f28308deac2bdd97f8413d90619608d1a35781deee313c5a7c7cc6": 2.0
+        }
+      },
+      "repeat_identical": true,
+      "roundtrip": true,
+      "label_errors": [],
+      "label_warnings": []
+    },
+    {
+      "evaluator": "stockfish-19-d1",
+      "mode": "maxmargin",
+      "move": "e7e1",
+      "root_value": 1.0,
+      "hypothesis_values": [
+        1.0
+      ],
+      "gadget_value": 0.75,
+      "configuration": {
+        "version": 1,
+        "chess": {
+          "initial_fen": "4k3/4r3/8/8/8/8/8/4K3 b - - 0 1",
+          "depth": 2,
+          "max_nodes": 5000,
+          "evaluator": "stockfish-19-d1",
+          "root_identity": "fen_and_complete_candidate_path",
+          "infosets": "complete_private_stream",
+          "prototype": true
+        },
+        "mode": "maxmargin",
+        "rounds": 50,
+        "schedule": "alternating",
+        "policy": "raw_last_iterate",
+        "root_ids": [
+          "chess-root:00e96f8d7fbe215197f8f48d782efbb7a35ded576c1c5e7cab91a6916eaa4c0f"
+        ],
+        "belief_weights": {
+          "chess-root:00e96f8d7fbe215197f8f48d782efbb7a35ded576c1c5e7cab91a6916eaa4c0f": 1.0
+        },
+        "root_groups": {
+          "chess-root:00e96f8d7fbe215197f8f48d782efbb7a35ded576c1c5e7cab91a6916eaa4c0f": "white:6a1d671939f28308deac2bdd97f8413d90619608d1a35781deee313c5a7c7cc6"
+        },
+        "reach_mass": {
+          "chess-root:00e96f8d7fbe215197f8f48d782efbb7a35ded576c1c5e7cab91a6916eaa4c0f": 7.0
+        },
+        "group_prior": null,
+        "alternate_player0": {
+          "white:6a1d671939f28308deac2bdd97f8413d90619608d1a35781deee313c5a7c7cc6": 0.25
+        }
+      },
+      "repeat_identical": true,
+      "roundtrip": true,
+      "label_errors": [],
+      "label_warnings": []
+    }
+  ],
+  "engine": {
+    "sha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+    "threads": 1,
+    "hash_mb": 16,
+    "depth": 1,
+    "new_game_each_call": true
+  },
+  "source_sha256": {
+    "pair_a_prep/chess_gadgets.py": "6c38b7efe3ddc45ca506a07c713c3c31db5a7dc773cd67467d1aaebfdd57d921",
+    "pair_a_prep/chess_search.py": "8a30c8d62fa5950dec6141556069105deb8ad3e359936622c4ee234193ad2f55",
+    "pair_a_prep/gadgets.py": "1d6f30311b1500f0773cc8865bf2b13b64d2c2d0ab9ba9cc7053584d151d7633",
+    "pair_a_prep/pcfr.py": "b380c6129d09aabcb59bab9c66633cbd49731c28e4a092c37beb79d427edb4ea",
+    "pair_a_prep/rules_adapter.py": "3b73851ac9e036f59d8c8c767a7ec4a7fa5358271f02a69856bfaf4e855497cb",
+    "pair_b/src/pairb/material.py": "61955b56b3381107cb840421082ac5c7aca93e1d73c0d561334556d34002efcf",
+    "pair_b/src/pairb/stockfish.py": "435001e5c28d698d632c84659f7bb54b99bc5092a810cc1e25adec2d3b55ffac"
+  }
+}

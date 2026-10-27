@@ -1,0 +1,6 @@
+# Local Python environments, installed package metadata and interpreter caches.
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/

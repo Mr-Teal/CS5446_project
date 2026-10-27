@@ -63,6 +63,20 @@ def test_threefold_repetition_needs_the_move_history():
     assert terminal_score(chess.Board(board.fen())) is None  # a FEN alone cannot show it
 
 
+@pytest.mark.parametrize("mirror", [False, True])
+def test_no_fog_moves_is_a_draw_and_keeps_other_outcomes_first(mirror):
+    board = chess.Board("7k/8/8/8/1p6/pPp5/PRP5/KB6 w - - 0 1")
+    if mirror:
+        board = board.mirror()
+    assert terminal_score(board) == ("no-moves", 0.0)
+    assert rule_score(board) == ("no-moves", 0.0)
+    assert fog_legal_moves(board) == []
+    board.halfmove_clock = 100
+    assert terminal_score(board) == ("fifty-move", 0.0)
+    board.remove_piece_at(board.king(not board.turn))
+    assert terminal_score(board) == ("king-captured", 1.0)
+
+
 @pytest.mark.parametrize("fen", [
     "7k/6Q1/6K1/8/8/8/8/8 b - - 0 1",           # orthodox checkmate: Black must still move
     "7k/5Q2/6K1/8/8/8/8/8 b - - 0 1",           # orthodox stalemate

@@ -1,0 +1,49 @@
+{
+  "source_branch": "pair-a/rules-interface",
+  "source_commit": "c55de7a787caffe68fb4e2f5e0812fdfce00f652",
+  "downloaded_on": "2026-10-21",
+  "archive_sha256": "F3ADCEC25DE84A117448CA3CBB58C1DEEFB70201D07480333C571B62BAB09A49",
+  "platform": "Windows win-64",
+  "environment": "darkchess",
+  "environment_manifest": "D:/workspace/nuswork/pixi.toml",
+  "environment_lock": "D:/workspace/nuswork/pixi.lock",
+  "versions": {
+    "pixi": "0.77.0",
+    "chess": "1.11.2",
+    "python": "3.12.15",
+    "python_chess": "1.999",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "pytest": "9.1.1"
+  },
+  "test_command": "pixi run -e darkchess python -m pytest -q tests pair_a_prep/tests pair_b_prep --durations=5",
+  "tests_passed": 291,
+  "subtests_passed": 2,
+  "new_tracker_tests": 95,
+  "test_duration_seconds": 16.0,
+  "test_exit_code": 0,
+  "fixture_command": "pixi run -e darkchess python -m pair_a_prep.fixtures --adapter pair_a_prep.rules_adapter:fixture_result",
+  "fixtures_passed": 17,
+  "fixture_exit_code": 0,
+  "original_file_count": 203,
+  "changed_original_files": [
+    "pair_a_prep/README.md",
+    "pair_a_prep/docs/reproduction_differences.md"
+  ],
+  "missing_original_files": [],
+  "added_source_files": [
+    "pair_a_prep/belief_tracker.py",
+    "pair_a_prep/docs/belief_tracker.md",
+    "pair_a_prep/tests/test_belief_tracker.py"
+  ],
+  "fow_shared_unchanged": true,
+  "implementation_sha256": "B6D391652EEFAC65CEAE5D9A522E2F0743DDEFBD3767C80B77309EBC561B5DAE",
+  "tracker_tests_sha256": "6564DAAF9F7117786F21D475AFBAE6492ECAFCAF61E647CD95E5C84BBCF5EEC0",
+  "limitations": [
+    "Exact history enumeration is not benchmarked at million-state scale.",
+    "Rules profile remains paper_fow_v1_proposed.",
+    "Scripted integration games do not establish agent strength.",
+    "Pair B neural-training and Stockfish-dependent suite was not run."
+  ],
+  "generated_report": "pair_a_prep/results/belief_tracker_verification.json"
+}
