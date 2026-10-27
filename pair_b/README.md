@@ -420,11 +420,11 @@ same 10 games played before the per-game engine reset (`pilot-d1-vs-material-sha
 differ in the length of 8 games (only game ids 0 and 5 match) and the winner of one (game id 7): engine state carried
 across games changes results, which is why no number from before the reset is cited.
 
-The runs for the report, for ZW, as decided on #17 (objections open until 27 October 23:59 SGT; see
-[docs/match_protocol.md](docs/match_protocol.md)): every scorer, the linear correction and `random`
-against quick Stockfish, 200 games each, seed 0, so that every pairing plays the same openings. All
-seven rows run on one commit under `--rules standin`, and every table states its `no_move_rule`; a
-table never mixes rules or rule versions.
+The runs for the report, as decided on #17 (objections open until 27 October 23:59 SGT; the batch
+ran at a5c5fb6, results on #38; see [docs/match_protocol.md](docs/match_protocol.md)): every scorer,
+the linear correction and `random` against quick Stockfish, 200 games each, seed 0, so that every
+pairing plays the same openings. All seven rows run on one commit under `--rules standin`, and every
+table states its `no_move_rule`; a table never mixes rules or rule versions.
 
 ```bash
 for a in material stockfish-d1 stockfish-d11 network1 belief linear random; do

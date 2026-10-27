@@ -1,6 +1,6 @@
 # Match protocol
 
-Status: the decisions on #17 are recorded here. Colin proposed them on 24 October 2026, Teal and Bryan supported them, and objections stay open until 27 October 23:59 SGT. In short: `play_matches.py` is the runner of record; Bryan's runner is an independent sanity check, shown side by side and never pooled; every table uses `--rules standin`; a side with no fog-legal move and no rule result is a draw everywhere; the engine hash is kept within a game and cleared before every game; the batch is seven rows against quick Stockfish, 200 games each, seed 0. Nothing here is a strength claim; the 200-game runs have not been played.
+Status: the decisions on #17 are recorded here. Colin proposed them on 24 October 2026, Teal and Bryan supported them, and objections stay open until 27 October 23:59 SGT. In short: `play_matches.py` is the runner of record; Bryan's runner is an independent sanity check, shown side by side and never pooled; every table uses `--rules standin`; a side with no fog-legal move and no rule result is a draw everywhere; the engine hash is kept within a game and cleared before every game; the batch is seven rows against quick Stockfish, 200 games each, seed 0. Nothing here is a strength claim. The batch ran on 26 and 27 October at a5c5fb6 (main 2af8f1f plus #34), before the no-move rule reached `main` (`no_move_rule` unresolved), so it is never pooled with later runs; its table, caveats and raw games are on #38 (`experiments/matches/batch-2026-10-27/`).
 
 ## What the study measures
 
@@ -24,17 +24,17 @@ Opening i is k random legal plies, k drawn from 2 to 8 by `random.Random(seed * 
 
 ## Rules
 
-One table, one set of rules. A run of more than two games must pin `--rules standin` or `--rules teal`; the runner refuses `auto`, which picks Teal's adapter wherever the checkout has it (on `main` once #15 merges) and the stand-in elsewhere. The run file records the rules id and the SHA-256 of every source file that plays, including `pair_a_prep/*.py`, where Teal's adapter lives. #17 settled `--rules standin` for every table. If the rules of record change, every pairing of the table is rerun; a table never mixes the two.
+One table, one set of rules. A run of more than two games must pin `--rules standin` or `--rules teal`; the runner refuses `auto`, which picks Teal's adapter wherever the checkout has it (on `main` since #15) and the stand-in elsewhere. The run file records the rules id and the SHA-256 of every source file that plays, including `pair_a_prep/*.py`, where Teal's adapter lives. #17 settled `--rules standin` for every table. If the rules of record change, every pairing of the table is rerun; a table never mixes the two.
 
-A side with no fog-legal move and no rule result. Decided on #17: it is a draw everywhere. Once #28 reaches `main`, the referee's `terminal()`, Teal's adapter, `pairb/stockfish.py`, the bot and Fog Lab all agree. Teal's #28 puts the draw into the shared code (`fow_shared.values.terminal_score`, rule `no-moves`, which both sets of rules report as `no_legal_moves`) and into Teal's adapter. #28 targets the Pair A branch, so it reaches `main` only with #15.
+A side with no fog-legal move and no rule result. Decided on #17: it is a draw everywhere. Since #28 reached `main` with #15 (27 October), the referee's `terminal()`, Teal's adapter, `pairb/stockfish.py`, the bot and Fog Lab all agree. Teal's #28 puts the draw into the shared code (`fow_shared.values.terminal_score`, rule `no-moves`, which both sets of rules report as `no_legal_moves`) and into Teal's adapter. #28 targeted the Pair A branch and reached `main` with #15.
 
 `--rules standin` does not pin this rule; only the commit does. Games played before and after it can differ even when nothing fails, so all seven rows run on one commit and every table caption states its `no_move_rule`. Each run finds the rule out at the start, on a blocked position (`7k/8/8/8/1p6/pPp5/PRP5/KB6 w - - 0 1`, White to move), and records `no_move_rule` in its summary: `draw` once the rule is in the code, `unresolved` before. In a pre-rule run such a game fails with "ValueError: the observation has no legal move to choose from", the same text for a bot side and a random side. The summary counts these games in `errors_no_legal_move`, and a pre-rule table footnotes that count.
 
-Before #28, Fog Lab already ends such a game as a draw (`pairb/lab/session.py`, reason `no_legal_moves`), but the evaluators do not score a move into such a position as a draw. In `7k/8/8/8/1pp5/pP6/PRP5/KB6 b - - 0 1`, c4c3 leaves White with no move; `StockfishEvaluator(depth=1).evaluate_children` gives it about -0.336 (depth 1 does not see the stalemate) and piece values give -0.870. Only Stockfish's `board_value` of the blocked board itself is 0.0; piece values score that board by material (0.870 for White). With #28's change applied to `main`, the rules decide that child, so no engine value is used for it, and both give 0.0.
+Before #28, Fog Lab already ends such a game as a draw (`pairb/lab/session.py`, reason `no_legal_moves`), but the evaluators do not score a move into such a position as a draw. In `7k/8/8/8/1pp5/pP6/PRP5/KB6 b - - 0 1`, c4c3 leaves White with no move; `StockfishEvaluator(depth=1).evaluate_children` gives it about -0.336 (depth 1 does not see the stalemate) and piece values give -0.870. Only Stockfish's `board_value` of the blocked board itself is 0.0; piece values score that board by material (0.870 for White). With #28's change, now on `main`, the rules decide that child, so no engine value is used for it, and both give 0.0.
 
 ## Score and intervals
 
-The first-named side's score is wins plus half the draws over the complete colour pairs (openings whose two games both finished, one with each colour); a pair scores 0, 0.25, 0.5, 0.75 or 1 (a win and a draw is 0.75, a loss and a draw 0.25). Raw wins, draws and losses count every finished game and are reported beside it; incomplete pairs are counted and excluded.
+The first-named side's score is wins plus half the draws over the complete colour pairs (openings whose two games both finished, one with each colour); a pair scores 0, 0.25, 0.5, 0.75 or 1 (a win and a draw is 0.75, a loss and a draw 0.25). Raw wins, draws and losses count every finished game and are reported beside it; incomplete pairs are counted and excluded. A game still going at the ply cap (`--max-plies`, 200 by default) ends as a draw, counted as `ply_limit` in `end_reasons`.
 
 Two intervals. Wilson's 95% score interval on the pair-level proportion (n = complete pairs) is always given; it is an approximation that treats a pair's score (which can be a quarter point) as a 0-or-1 outcome, and it stays informative at 0 and 1 (5 of 5 pairs: 0.57 to 1.00; 100 of 100: 0.96 to 1.00). A percentile bootstrap that resamples complete pairs (2,000 resamples, seed 0) is given only when there are at least 20 complete pairs that do not all score the same; otherwise it would collapse to a point and is withheld as degenerate, with the reason in the run file. For the 200-game rows the bootstrap is the headline interval where it exists and the Wilson interval covers the rows near 0 or 1.
 
@@ -46,7 +46,7 @@ A Stockfish that stops answering is handled like one that crashes. Each Stockfis
 
 ## The runs for the report
 
-Decided on #17 (objections open until 27 October 23:59 SGT). All seven rows run on one commit. From `pair_b/`:
+Decided on #17 (objections open until 27 October 23:59 SGT); the batch ran this way at a5c5fb6 (#38). All seven rows run on one commit. From `pair_b/`:
 
 ```bash
 for a in material stockfish-d1 stockfish-d11 network1 belief linear random; do
