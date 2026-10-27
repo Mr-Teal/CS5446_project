@@ -31,7 +31,13 @@ notes and this README are maintained separately.
 The two selected hypotheses have the same White evidence, but are not the
 full belief population. The growth visual uses a zero heuristic to illustrate
 structure; no playing-strength inference is possible. Only one sampled root
-is shown and its chance parent is omitted. Black's three expanded occurrences
-share a policy, rather than becoming three separate information sets.
+is shown and its chance parent is omitted. One history leaf grows while the
+other two retain estimates. Later expanded occurrences of the same information
+set share its existing policy.
+
+The updated slide 5 shows 3 frontiers becoming 5, not whole-cut growth to 9.
+See [the implementation and measured work](../docs/one_sided_search.md) and
+`../results/one_sided_reference.json` for the separate Material smoke. The
+visual uses a zero heuristic; do not present its nodes as Material match data.
 
 Expansion audit: [mechanism and implementation comparison](../docs/expansion_mechanism_audit.md).

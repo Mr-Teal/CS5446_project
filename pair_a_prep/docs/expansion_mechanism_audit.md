@@ -5,6 +5,9 @@ especially section 3.3, pp. 5-6; section 3.4, p. 6; Appendix C.4, pp. 17-18;
 and Appendix C.5, p. 18. The PDF's printed pages match one-based PDF pages.
 Online primary reference: [Zhang and Sandholm, v2](https://arxiv.org/pdf/2506.01242v2).
 This is a source/implementation audit, not a new expansion implementation.
+Implementation update, 27 October: [one_sided_search.md](one_sided_search.md)
+records the new optional selective mode, evidence and remaining approximations.
+The comparison table below preserves the audited pre-implementation baseline.
 
 ## What the paper specifies
 

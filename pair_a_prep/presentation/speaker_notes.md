@@ -54,20 +54,22 @@ estimated nonterminal frontiers, not real game endings. We prepare new
 continuations, evaluate their children and validate the result before changing
 the active tree. Old regret minimizers and their accumulated state survive;
 only newly introduced information sets receive new solver state. In this
-example all three frontiers grow together. The budgeted agent alternates
+example one of three frontiers grows, leaving two untouched. The exploring side
+alternates after each successful expansion. It uses a half support-uniform,
+half variance-PUCT mixture; the other side follows its raw CFR policy. The agent alternates
 solving and growth, then reserves work for final solving. If a growth attempt
 does not fit, it retains the old tree. If even initial preparation cannot
 finish, it can still return a legal action, but does not fabricate a training
 label. These checks support implementation behavior, not stronger play. Our
-growth is uniform and within one turn; the paper instead uses one-sided
-selective exploration. Deadlines remain cooperative rather than hard limits.
+growth is serial and within one turn. Cross-turn retention, complete KLUSS and
+paper-derived boundary updates remain unfinished. Deadlines remain cooperative.
 
 **Point to:** the blue White node retained in both panels, then the new green
-Black nodes and yellow estimates. The repeated Black decision nodes share
-one information-set policy in this fixture; they are not independent
-omniscient decision makers. The root chance node is omitted for legibility.
+Black node and yellow estimates. If another hidden occurrence of the same Black
+information set is expanded later, it shares the existing policy. The root
+chance node is omitted for legibility.
 
-**20-second evidence callout:** the fixture expands from 3 to 9 frontiers;
+**20-second evidence callout:** the fixture expands from 3 to 5 frontiers;
 old minimizer identity, regrets, averages and the completed round count
 remain unchanged during the graft. Counts and evidence are in `evidence.json`.
 
@@ -76,14 +78,20 @@ remain unchanged during the graft. Counts and evidence are in `evidence.json`.
 - Original paper: explore with one player at a time, alternate after each
   expansion, select a leaf using a half support-uniform / half PUCT policy.
   The other player keeps its current strategy. See the audit for exact formula.
-- This implementation: all-frontier growth, serial stages, uniform new-state
-  initialization, no cross-turn retained tree, no complete Obscuro claim.
+- This implementation: optional one-sided growth, serial stages, best-child
+  initialization for growth infosets, uniform initial shallow-tree state,
+  no cross-turn retained tree, no complete Obscuro claim.
 - One-sided exploration is different from alternating PCFR+ updates. Keeping
   those concepts separate is essential when explaining the current code.
 - The budgeted agent follows the raw sampled-root path. The gadget growth API
   exists separately; paper-derived alternate/gift/prior inputs remain missing.
 - Growth can use more evaluator calls than direct deeper construction. Failed
   preparation consumes actual work even when the committed tree is unchanged.
+- Engineering comparison: the three-seed kings-only Material root fixture used
+  68 nodes / 13 calls with uniform growth and 22-24 nodes / 5 calls with selective
+  growth. Both use 12 CFR rounds and equal upper limits, not equal actual work.
+  The two six-ply matches are capped with null outcomes: no strength claim.
+  Full records and timings: `../results/one_sided_reference.json`.
 
 ## Sources and attribution
 

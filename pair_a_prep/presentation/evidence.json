@@ -70,9 +70,14 @@
   "weights_note": "Illustrative equal weights over these two selected histories, not a full posterior.",
   "growth": {
     "before_nodes": 5,
-    "after_nodes": 14,
+    "after_nodes": 8,
+    "selected_path": [
+      "0",
+      "a1b1"
+    ],
+    "expansion_events": 1,
     "before_frontiers": 3,
-    "after_frontiers": 9,
+    "after_frontiers": 5,
     "solver_rounds": 3,
     "old_minimizers_regrets_averages_preserved": true,
     "actions": [

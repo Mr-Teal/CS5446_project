@@ -98,7 +98,7 @@ class PCFRPlus:
                       for p, player_sets in enumerate(sets))
         return sets, order
 
-    def expand(self, replacements: Mapping[tuple[str, ...], Node]) -> None:
+    def expand(self, replacements: Mapping[tuple[str, ...], Node], *, initial_actions=None) -> None:
         """Atomically replace cutoff leaves by subtrees at root-relative paths.
 
         Call only between run()/step() calls, never mutate nodes directly.
@@ -142,14 +142,22 @@ class PCFRPlus:
         added = tuple({key: PredictiveRMPlus(len(actions), self.predictive)
                        for key, actions in sets[player].items()
                        if key not in self.sets[player]} for player in (0, 1))
+        for (player, key), action in (initial_actions or {}).items():
+            if player not in (0, 1) or key not in sets[player] or action not in sets[player][key]:
+                raise ValueError("initial action must belong to an introduced infoset")
+            if key in added[player]:
+                minimizer = added[player][key]
+                minimizer.strategy[:] = 0
+                minimizer.strategy[sets[player][key].index(action)] = 1
         strategies = ({}, {})
         sums = ({}, {})
         for player in (0, 1):
             for key, minimizer in added[player].items():
                 # Alternating mode holds a published strategy awaiting feedback.
-                strategies[player][key] = (
-                    minimizer.next_strategy()
-                    if self.schedule == "alternating" and self.rounds else minimizer.strategy.copy())
+                strategies[player][key] = minimizer.strategy.copy()
+                # Publish the heuristic policy with pending feedback, without
+                # advancing PRM+ (which would turn a zero-regret state uniform).
+                minimizer._pending = self.schedule == "alternating" and bool(self.rounds)
                 sums[player][key] = np.zeros_like(minimizer.regrets)
         previous_opponent = [
             None if previous is None else {

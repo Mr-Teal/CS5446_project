@@ -56,6 +56,7 @@ class SearchFactory:
         mode = self.settings.get("search_mode", "anytime").strip()
         if mode == "anytime":
             config = AnytimeConfig(**common,
+                growth=self.settings.get("growth", "uniform").strip(),
                 initial_depth=_positive(self.settings, "initial_depth", 1),
                 max_depth=_positive(self.settings, "max_depth", 2),
                 rounds_per_stage=_positive(self.settings, "rounds_per_stage", 2),

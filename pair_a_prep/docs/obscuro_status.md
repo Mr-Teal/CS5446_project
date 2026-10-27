@@ -1,6 +1,11 @@
 # Obscuro implementation status
 
 This is a repository implementation map, not a claim of exact reproduction.
+The latest incremental implementation is described in
+[Serial one-sided search](one_sided_search.md): selected-history growth,
+support/variance-PUCT sampling and growth-node best-child initialization are
+implemented. The historical baseline checklist below describes the uniform
+prototype; it must not be read as the status of the new optional growth mode.
 The source anchors below follow the existing [paper specification map](paper_specs.md)
 for Zhang and Sandholm, *General search techniques without common knowledge
 for imperfect-information games*, arXiv:2506.01242v2. The authors' original

@@ -1,5 +1,10 @@
 # Independent Pair A preparation
 
+The optional [serial one-sided search mode](docs/one_sided_search.md) now
+selects individual history frontiers and retains within-turn PCFR+ state.
+Its engineering evidence and updated slide materials are reproducible; it is
+not yet a complete Obscuro agent or a strength-tested teacher.
+
 This directory contains preparation tools, a rules adapter prototype, and an
 exact history-preserving belief tracker with optional output sampling.
 The standalone preparation tools run independently of `fow_shared`; the new

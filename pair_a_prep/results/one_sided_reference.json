@@ -1,0 +1,456 @@
+{
+  "purpose": "engineering smoke, not playing-strength evidence",
+  "python": "3.12.15",
+  "initial_fen": "7k/8/8/8/8/8/8/K7 w - - 0 1",
+  "config": {
+    "rounds": 12,
+    "rounds_per_stage": 2,
+    "final_rounds": 2,
+    "initial_depth": 1,
+    "max_depth": 3,
+    "max_nodes": 512,
+    "max_evaluator_calls": 32,
+    "stop_on_time": false
+  },
+  "rules_id": "paper2021_fow_no_moves_draw_v1",
+  "evaluator": "material",
+  "source_sha256": {
+    "one_sided.py": "f4a06a9eecb2a60a004f2743843dc383e1f51756f8de2c1122185ef5c339d145",
+    "anytime_agent.py": "fabe54aaa9cd957e7c4714ac041bfecd6aa82e9a3b0f4b8b4b08a98e5189fddf",
+    "pcfr.py": "4c49659c51438174fdcfc7fb8e638c0383032dcedfc3f1805ab950fc0614caf3",
+    "chess_search.py": "7769d29c39f6bb4b3532945e8eca6de76eae61d4bfff4c200e21a1ca726c2fcc",
+    "one_sided_experiment.py": "e1c5e4b1f28373fe873073f301a15e944e63f095c4bcee4bc2a17f8801bf7395",
+    "rules_adapter.py": "a42ac0ba2c9c9825d23e9978085655334308e8fe3b3e357611c0854ed03c66e2",
+    "belief_tracker.py": "319dc80fb887d353245e5a765a3625e2a36a98ebac5dc73811265b82bde7134f"
+  },
+  "root_checks": [
+    {
+      "mode": "uniform",
+      "seed": 17,
+      "config_id": "uniform-growth-pcfr-prototype-v1:674bd4fef3d097c7",
+      "move": "a1b1",
+      "policy": {
+        "a1a2": 0.3333333333333333,
+        "a1b1": 0.3333333333333333,
+        "a1b2": 0.3333333333333333
+      },
+      "diagnostics": {
+        "search_nodes": 68.0,
+        "solver_rounds": 12.0,
+        "search_depth": 3.0,
+        "expansions": 2.0,
+        "evaluator_calls": 13.0,
+        "elapsed_ms": 32.14840008877218,
+        "over_budget": 0.0,
+        "terminal_leaves": 0.0,
+        "frontier_leaves": 54.0,
+        "solver_root_value": 0.0,
+        "fallback": 0.0,
+        "initial_ms": 1.7657000571489334,
+        "solving_ms": 7.310000015422702,
+        "growth_ms": 22.56510010920465,
+        "finalizing_ms": 0.4944000393152237,
+        "stop:round_limit": 1.0,
+        "growth_stop:max_depth": 1.0,
+        "played_policy:a1a2": 0.3333333333333333,
+        "played_policy:a1b1": 0.3333333333333333,
+        "played_policy:a1b2": 0.3333333333333333
+      }
+    },
+    {
+      "mode": "uniform",
+      "seed": 29,
+      "config_id": "uniform-growth-pcfr-prototype-v1:674bd4fef3d097c7",
+      "move": "a1b1",
+      "policy": {
+        "a1a2": 0.3333333333333333,
+        "a1b1": 0.3333333333333333,
+        "a1b2": 0.3333333333333333
+      },
+      "diagnostics": {
+        "search_nodes": 68.0,
+        "solver_rounds": 12.0,
+        "search_depth": 3.0,
+        "expansions": 2.0,
+        "evaluator_calls": 13.0,
+        "elapsed_ms": 31.497200019657612,
+        "over_budget": 0.0,
+        "terminal_leaves": 0.0,
+        "frontier_leaves": 54.0,
+        "solver_root_value": 0.0,
+        "fallback": 0.0,
+        "initial_ms": 1.4043000992387533,
+        "solving_ms": 7.052899803966284,
+        "growth_ms": 22.58270001038909,
+        "finalizing_ms": 0.45110005885362625,
+        "stop:round_limit": 1.0,
+        "growth_stop:max_depth": 1.0,
+        "played_policy:a1a2": 0.3333333333333333,
+        "played_policy:a1b1": 0.3333333333333333,
+        "played_policy:a1b2": 0.3333333333333333
+      }
+    },
+    {
+      "mode": "uniform",
+      "seed": 41,
+      "config_id": "uniform-growth-pcfr-prototype-v1:674bd4fef3d097c7",
+      "move": "a1b1",
+      "policy": {
+        "a1a2": 0.3333333333333333,
+        "a1b1": 0.3333333333333333,
+        "a1b2": 0.3333333333333333
+      },
+      "diagnostics": {
+        "search_nodes": 68.0,
+        "solver_rounds": 12.0,
+        "search_depth": 3.0,
+        "expansions": 2.0,
+        "evaluator_calls": 13.0,
+        "elapsed_ms": 38.73899998143315,
+        "over_budget": 0.0,
+        "terminal_leaves": 0.0,
+        "frontier_leaves": 54.0,
+        "solver_root_value": 0.0,
+        "fallback": 0.0,
+        "initial_ms": 1.4043999835848808,
+        "solving_ms": 14.919000444933772,
+        "growth_ms": 22.007700288668275,
+        "finalizing_ms": 0.3970998805016279,
+        "stop:round_limit": 1.0,
+        "growth_stop:max_depth": 1.0,
+        "played_policy:a1a2": 0.3333333333333333,
+        "played_policy:a1b1": 0.3333333333333333,
+        "played_policy:a1b2": 0.3333333333333333
+      }
+    },
+    {
+      "mode": "one_sided",
+      "seed": 17,
+      "config_id": "one-sided-pcfr-prototype-v1:d55b5ad2a8d7df06",
+      "move": "a1b2",
+      "policy": {
+        "a1a2": 0.3333333333333333,
+        "a1b1": 0.3333333333333333,
+        "a1b2": 0.3333333333333333
+      },
+      "diagnostics": {
+        "search_nodes": 22.0,
+        "solver_rounds": 12.0,
+        "search_depth": 3.0,
+        "expansions": 4.0,
+        "evaluator_calls": 5.0,
+        "elapsed_ms": 11.077399831265211,
+        "over_budget": 0.0,
+        "terminal_leaves": 0.0,
+        "frontier_leaves": 16.0,
+        "solver_root_value": 0.0,
+        "fallback": 0.0,
+        "initial_ms": 1.365999924018979,
+        "solving_ms": 2.2486005909740925,
+        "growth_ms": 7.266299799084663,
+        "finalizing_ms": 0.1713000237941742,
+        "stop:round_limit": 1.0,
+        "growth_stop:final_round_reserve": 1.0,
+        "played_policy:a1a2": 0.3333333333333333,
+        "played_policy:a1b1": 0.3333333333333333,
+        "played_policy:a1b2": 0.3333333333333333
+      }
+    },
+    {
+      "mode": "one_sided",
+      "seed": 29,
+      "config_id": "one-sided-pcfr-prototype-v1:d55b5ad2a8d7df06",
+      "move": "a1b1",
+      "policy": {
+        "a1a2": 0.3333333333333333,
+        "a1b1": 0.3333333333333333,
+        "a1b2": 0.3333333333333333
+      },
+      "diagnostics": {
+        "search_nodes": 22.0,
+        "solver_rounds": 12.0,
+        "search_depth": 3.0,
+        "expansions": 4.0,
+        "evaluator_calls": 5.0,
+        "elapsed_ms": 10.420900071039796,
+        "over_budget": 0.0,
+        "terminal_leaves": 0.0,
+        "frontier_leaves": 16.0,
+        "solver_root_value": 0.0,
+        "fallback": 0.0,
+        "initial_ms": 1.314300112426281,
+        "solving_ms": 2.105000428855419,
+        "growth_ms": 6.792499916628003,
+        "finalizing_ms": 0.18650013953447342,
+        "stop:round_limit": 1.0,
+        "growth_stop:final_round_reserve": 1.0,
+        "played_policy:a1a2": 0.3333333333333333,
+        "played_policy:a1b1": 0.3333333333333333,
+        "played_policy:a1b2": 0.3333333333333333
+      }
+    },
+    {
+      "mode": "one_sided",
+      "seed": 41,
+      "config_id": "one-sided-pcfr-prototype-v1:d55b5ad2a8d7df06",
+      "move": "a1a2",
+      "policy": {
+        "a1a2": 0.3333333333333333,
+        "a1b1": 0.3333333333333333,
+        "a1b2": 0.3333333333333333
+      },
+      "diagnostics": {
+        "search_nodes": 24.0,
+        "solver_rounds": 12.0,
+        "search_depth": 3.0,
+        "expansions": 4.0,
+        "evaluator_calls": 5.0,
+        "elapsed_ms": 12.093700002878904,
+        "over_budget": 0.0,
+        "terminal_leaves": 0.0,
+        "frontier_leaves": 18.0,
+        "solver_root_value": 0.0,
+        "fallback": 0.0,
+        "initial_ms": 1.3310001231729984,
+        "solving_ms": 2.692699898034334,
+        "growth_ms": 7.806300185620785,
+        "finalizing_ms": 0.242199981585145,
+        "stop:round_limit": 1.0,
+        "growth_stop:final_round_reserve": 1.0,
+        "played_policy:a1a2": 0.3333333333333333,
+        "played_policy:a1b1": 0.3333333333333333,
+        "played_policy:a1b2": 0.3333333333333333
+      }
+    }
+  ],
+  "games": [
+    {
+      "one_sided_colour": "white",
+      "outcome": null,
+      "capped": true,
+      "plies": [
+        {
+          "ply": 0,
+          "player": "white",
+          "agent_name": "one-sided-pcfr-prototype-v1",
+          "move": "a1b2",
+          "elapsed_ms": 10.624099988490343,
+          "over_budget": false,
+          "search_nodes": 22.0
+        },
+        {
+          "ply": 1,
+          "player": "black",
+          "agent_name": "uniform-growth-pcfr-prototype-v1",
+          "move": "h8g7",
+          "elapsed_ms": 75.53169992752373,
+          "over_budget": false,
+          "search_nodes": 67.0
+        },
+        {
+          "ply": 2,
+          "player": "white",
+          "agent_name": "one-sided-pcfr-prototype-v1",
+          "move": "b2a3",
+          "elapsed_ms": 25.204000063240528,
+          "over_budget": false,
+          "search_nodes": 54.0
+        },
+        {
+          "ply": 3,
+          "player": "black",
+          "agent_name": "uniform-growth-pcfr-prototype-v1",
+          "move": "g7h6",
+          "elapsed_ms": 95.86249990388751,
+          "over_budget": false,
+          "search_nodes": 180.0
+        },
+        {
+          "ply": 4,
+          "player": "white",
+          "agent_name": "one-sided-pcfr-prototype-v1",
+          "move": "a3b3",
+          "elapsed_ms": 21.72610000707209,
+          "over_budget": false,
+          "search_nodes": 39.0
+        },
+        {
+          "ply": 5,
+          "player": "black",
+          "agent_name": "uniform-growth-pcfr-prototype-v1",
+          "move": "h6g6",
+          "elapsed_ms": 92.00339997187257,
+          "over_budget": false,
+          "search_nodes": 109.0
+        }
+      ],
+      "final_diagnostics": {
+        "white": {
+          "search_nodes": 39.0,
+          "solver_rounds": 12.0,
+          "search_depth": 2.0,
+          "expansions": 4.0,
+          "evaluator_calls": 7.0,
+          "elapsed_ms": 21.61820000037551,
+          "over_budget": 0.0,
+          "terminal_leaves": 0.0,
+          "frontier_leaves": 31.0,
+          "solver_root_value": 0.0,
+          "fallback": 0.0,
+          "initial_ms": 9.234100114554167,
+          "solving_ms": 3.3746000844985247,
+          "growth_ms": 8.645699825137854,
+          "finalizing_ms": 0.33769989386200905,
+          "stop:round_limit": 1.0,
+          "growth_stop:final_round_reserve": 1.0,
+          "played_policy:a3a2": 0.2,
+          "played_policy:a3a4": 0.2,
+          "played_policy:a3b2": 0.2,
+          "played_policy:a3b3": 0.2,
+          "played_policy:a3b4": 0.2
+        },
+        "black": {
+          "search_nodes": 109.0,
+          "solver_rounds": 12.0,
+          "search_depth": 2.0,
+          "expansions": 1.0,
+          "evaluator_calls": 32.0,
+          "elapsed_ms": 91.81550005450845,
+          "over_budget": 0.0,
+          "terminal_leaves": 0.0,
+          "frontier_leaves": 90.0,
+          "solver_root_value": 0.0,
+          "fallback": 0.0,
+          "initial_ms": 9.191600140184164,
+          "solving_ms": 9.69190034084022,
+          "growth_ms": 72.30439991690218,
+          "finalizing_ms": 0.6170000415295362,
+          "stop:round_limit": 1.0,
+          "growth_stop:evaluator_limit": 1.0,
+          "played_policy:h6g5": 0.2,
+          "played_policy:h6g6": 0.2,
+          "played_policy:h6g7": 0.2,
+          "played_policy:h6h5": 0.2,
+          "played_policy:h6h7": 0.2
+        }
+      }
+    },
+    {
+      "one_sided_colour": "black",
+      "outcome": null,
+      "capped": true,
+      "plies": [
+        {
+          "ply": 0,
+          "player": "white",
+          "agent_name": "uniform-growth-pcfr-prototype-v1",
+          "move": "a1b1",
+          "elapsed_ms": 31.903200084343553,
+          "over_budget": false,
+          "search_nodes": 68.0
+        },
+        {
+          "ply": 1,
+          "player": "black",
+          "agent_name": "one-sided-pcfr-prototype-v1",
+          "move": "h8g8",
+          "elapsed_ms": 18.962600035592914,
+          "over_budget": false,
+          "search_nodes": 36.0
+        },
+        {
+          "ply": 2,
+          "player": "white",
+          "agent_name": "uniform-growth-pcfr-prototype-v1",
+          "move": "b1c2",
+          "elapsed_ms": 69.84929996542633,
+          "over_budget": false,
+          "search_nodes": 109.0
+        },
+        {
+          "ply": 3,
+          "player": "black",
+          "agent_name": "one-sided-pcfr-prototype-v1",
+          "move": "g8f7",
+          "elapsed_ms": 24.662600131705403,
+          "over_budget": false,
+          "search_nodes": 51.0
+        },
+        {
+          "ply": 4,
+          "player": "white",
+          "agent_name": "uniform-growth-pcfr-prototype-v1",
+          "move": "c2d3",
+          "elapsed_ms": 88.71390018612146,
+          "over_budget": false,
+          "search_nodes": 172.0
+        },
+        {
+          "ply": 5,
+          "player": "black",
+          "agent_name": "one-sided-pcfr-prototype-v1",
+          "move": "f7f6",
+          "elapsed_ms": 31.58950014039874,
+          "over_budget": false,
+          "search_nodes": 54.0
+        }
+      ],
+      "final_diagnostics": {
+        "white": {
+          "search_nodes": 172.0,
+          "solver_rounds": 12.0,
+          "search_depth": 2.0,
+          "expansions": 1.0,
+          "evaluator_calls": 32.0,
+          "elapsed_ms": 88.57020013965666,
+          "over_budget": 0.0,
+          "terminal_leaves": 0.0,
+          "frontier_leaves": 144.0,
+          "solver_root_value": 0.0,
+          "fallback": 0.0,
+          "initial_ms": 12.713999953120947,
+          "solving_ms": 13.32570007070899,
+          "growth_ms": 61.61999981850386,
+          "finalizing_ms": 0.901099992915988,
+          "stop:round_limit": 1.0,
+          "growth_stop:evaluator_limit": 1.0,
+          "played_policy:c2b1": 0.125,
+          "played_policy:c2b2": 0.125,
+          "played_policy:c2b3": 0.125,
+          "played_policy:c2c1": 0.125,
+          "played_policy:c2c3": 0.125,
+          "played_policy:c2d1": 0.125,
+          "played_policy:c2d2": 0.125,
+          "played_policy:c2d3": 0.125
+        },
+        "black": {
+          "search_nodes": 54.0,
+          "solver_rounds": 12.0,
+          "search_depth": 2.0,
+          "expansions": 4.0,
+          "evaluator_calls": 7.0,
+          "elapsed_ms": 31.454799929633737,
+          "over_budget": 0.0,
+          "terminal_leaves": 0.0,
+          "frontier_leaves": 46.0,
+          "solver_root_value": 0.0,
+          "fallback": 0.0,
+          "initial_ms": 14.08509979955852,
+          "solving_ms": 4.4946009293198586,
+          "growth_ms": 12.40619970485568,
+          "finalizing_ms": 0.44269999489188194,
+          "stop:round_limit": 1.0,
+          "growth_stop:final_round_reserve": 1.0,
+          "played_policy:f7e6": 0.125,
+          "played_policy:f7e7": 0.125,
+          "played_policy:f7e8": 0.125,
+          "played_policy:f7f6": 0.125,
+          "played_policy:f7f8": 0.125,
+          "played_policy:f7g6": 0.125,
+          "played_policy:f7g7": 0.125,
+          "played_policy:f7g8": 0.125
+        }
+      }
+    }
+  ]
+}

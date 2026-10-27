@@ -107,3 +107,21 @@ def test_configuration_distinguishes_growth_timing_at_same_final_depth_and_round
         assert solution.configuration["chess"]["growth_steps"][0]["rounds_before"] == before
         ids.append(solution.config_id)
     assert ids[0] != ids[1]
+
+
+@pytest.mark.parametrize("mode", ["resolve", "maxmargin"])
+def test_selective_gadget_growth_preserves_other_frontiers_and_unshifted_values(mode):
+    roots = prepare_chess_roots(make_turn(), TableLeaf(), initial_fen=KINGS, depth=1)
+    bridge = build(roots, mode)
+    solver = PCFRPlus(bridge.gadget.tree, schedule="alternating")
+    solver.run(2)
+    path = next(iter(roots.chess_tree.frontiers))
+    grown = bridge.expand(solver, TableLeaf(), selected_paths=(path,))
+    assert set(roots.chess_tree.frontiers) - {path} <= set(grown.roots.chess_tree.frontiers)
+    assert path not in grown.roots.chess_tree.frontiers
+    assert solver.rounds == 2
+    solver.run(2)
+    solution = grown.solution(solver)
+    assert solution.configuration["chess"]["growth"] == "selected_history_v1"
+    assert solution.values.root_value == pytest.approx(sum(
+        h.weight * v for h, v in zip(roots.turn.belief.hypotheses, solution.values.hypothesis_values)))

@@ -13,6 +13,7 @@ from fow_shared.contracts import AgentInput, Belief, HistoryEvent, Hypothesis
 from fow_shared.values import fog_legal_moves
 from .chess_search import build_chess_tree, expand_chess_tree, observation_key, reconstruct_roots
 from .pcfr import PCFRPlus
+from .one_sided import OneSidedExpansion
 from .rules_adapter import RulesAdapter
 
 
@@ -54,7 +55,10 @@ def evidence():
     solver.run(3)
     retained = {key: (item, item.regrets.copy(), solver._sums[p][key].copy())
                 for p in (0, 1) for key, item in solver.minimizers[p].items()}
-    grown = expand_chess_tree(tree, solver, ZeroLeaf())
+    sampler = OneSidedExpansion(17)
+    proposal = sampler.select(tree, solver, 3)
+    grown = expand_chess_tree(tree, solver, ZeroLeaf(), selected_paths=(proposal[0],), initialize_best=True)
+    sampler.commit(proposal)
     preserved = all(solver.minimizers[p][key] is item
                     and np.array_equal(item.regrets, regrets)
                     and np.array_equal(solver._sums[p][key], sums)
@@ -66,6 +70,7 @@ def evidence():
                 same_private_history=True, own_memory_equal=True, opponent_memories_differ=True,
                 weights_note="Illustrative equal weights over these two selected histories, not a full posterior.",
                 growth=dict(before_nodes=tree.nodes, after_nodes=grown.nodes,
+                            selected_path=proposal[0], expansion_events=sampler.events,
                             before_frontiers=tree.frontier_leaves, after_frontiers=grown.frontier_leaves,
                             solver_rounds=solver.rounds, old_minimizers_regrets_averages_preserved=preserved,
                             actions=list(tree.continuations[0].children),
@@ -137,7 +142,7 @@ def slide4(data):
 def slide5(data):
     body = card(65, 215, 670, 500) + card(790, 215, 745, 500)
     body += text(90, 260, "BEFORE: depth 1", 27, "#70dac5", "600")
-    body += text(815, 260, "AFTER: depth 2", 27, "#70dac5", "600")
+    body += text(815, 260, "AFTER: one history expanded", 27, "#70dac5", "600")
     def node(x, y, label, new=False, frontier=False):
         colour = "#f8c36a" if frontier else "#70dac5" if new else "#91b5ff"
         return (f'<circle cx="{x}" cy="{y}" r="20" fill="{colour}"/>'
@@ -149,16 +154,18 @@ def slide5(data):
         body += node(x, 505, "estimate", frontier=True)
         right = 935 + index * 225
         body += line(1160, 370, right, 485) + text((1160 + right) / 2 - 25, 420, action, 18)
-        body += node(right, 505, "Black", new=True)
-        for delta in (-65, 0, 65):
-            body += line(right, 525, right + delta, 615, "#70dac5")
-            body += node(right + delta, 635, "", frontier=True)
+        selected = action == data["growth"]["selected_path"][-1]
+        body += node(right, 505, "Black" if selected else "estimate", new=selected, frontier=not selected)
+        if selected:
+            for delta in (-65, 0, 65):
+                body += line(right, 525, right + delta, 615, "#70dac5")
+                body += node(right + delta, 635, "", frontier=True)
     body += text(90, 675, "3 estimated frontiers", 22, "#b1bfd5")
-    body += text(815, 690, "All 3 frontiers expanded; 9 new estimates", 22, "#b1bfd5")
+    body += text(815, 690, "1 frontier expanded; 2 untouched + 3 new estimates", 22, "#b1bfd5")
     body += text(80, 758, "Preserved: old minimizers, regrets, averages, completed rounds", 29, "#91b5ff", "600")
     body += text(80, 805, "Growth fails -> keep the old tree. Initial build fails -> legal action fallback, no invented labels.", 23)
-    return slide("Grow search without restarting its learning", "Our baseline grows the whole cut; the paper selects leaves with one-sided exploration.", body,
-                 "Slide 5 | Chance parent omitted | Black nodes share one policy | Within-turn retention, cooperative deadlines | Draft")
+    return slide("Grow search without restarting its learning", "Alternate explorer per expansion; half support-uniform, half variance-PUCT selection.", body,
+                 "Slide 5 | Chance parent omitted | Serial sampled-root prototype | No cross-turn retention or complete KLUSS | Draft")
 
 
 def main():
