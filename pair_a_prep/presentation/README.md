@@ -10,6 +10,7 @@ links to the SVGs, speaker notes and machine-readable evidence.
 | `slide5.svg` | 1600x900 vector slide: actual small-tree growth with solver state retention |
 | `speaker_notes.md` | 75-second scripts, transitions, backup answers and sources |
 | `evidence.json` | Candidate paths/FENs, shared observation and growth assertions |
+| `slide5-clock-backup.svg` | Recorded clock/purification table; optional backup for slide 5 |
 
 Insert the SVGs into the team's slide software as graphics; keep the text in
 the speaker notes if rebuilding them as native slide objects. This pack is
@@ -24,7 +25,8 @@ Regenerate deterministic SVG/evidence assets from the repository root:
 The generator uses the existing chess/solver dependencies. It checks both
 complete private histories, replays the hypotheses with the search validator,
 and confirms the old minimizers/regrets/averages survive a real expansion.
-It overwrites its four generated files (`index.html`, both SVGs, evidence),
+It overwrites `index.html`, both main SVGs and evidence; when both clock JSON
+artifacts are available, it also generates `slide5-clock-backup.svg`,
 so edit the generator rather than hand-editing those generated files. Speaker
 notes and this README are maintained separately.
 
@@ -41,3 +43,6 @@ See [the implementation and measured work](../docs/one_sided_search.md) and
 visual uses a zero heuristic; do not present its nodes as Material match data.
 
 Expansion audit: [mechanism and implementation comparison](../docs/expansion_mechanism_audit.md).
+
+Clock backup: [matrix, submission guard and recorded limitations](../docs/clock_purification_ablation.md).
+It adds a backup page, not a new agreed speaking assignment or final team deck.

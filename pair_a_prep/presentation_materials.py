@@ -165,7 +165,35 @@ def slide5(data):
     body += text(80, 758, "Preserved: old minimizers, regrets, averages, completed rounds", 29, "#91b5ff", "600")
     body += text(80, 805, "Growth fails -> keep the old tree. Initial build fails -> legal action fallback, no invented labels.", 23)
     return slide("Grow search without restarting its learning", "Alternate explorer per expansion; half support-uniform, half variance-PUCT selection.", body,
-                 "Slide 5 | Chance parent omitted | Serial sampled-root prototype | No cross-turn retention or complete KLUSS | Draft")
+                 "Slide 5 | Within-turn fixture | Integrated agent also retains raw blueprints | Sampled-tree prototype | Draft")
+
+
+def clock_backup(report, baseline):
+    body = text(80, 235, "Median caller time (ms); overruns and fallbacks shown as raw / purified", 25, "#70dac5")
+    columns = (80, 355, 520, 755, 1040, 1290)
+    headers = ("Fixture", "Budget", "Raw median", "Purified median", "Overruns", "Fallbacks")
+    for x, label in zip(columns, headers):
+        body += text(x, 290, label, 22, weight="600")
+    indexed = {(r["case"], r["budget_ms"], r["purify"]): r for r in report["summary"]}
+    y = 340
+    for case, label in (("cold_standard", "Cold standard"), ("warm_sampled_kings", "Saved blueprint")):
+        for budget in report["budgets_ms"]:
+            raw, played = indexed[case, budget, False], indexed[case, budget, True]
+            cells = (label, str(budget)+" ms", f'{raw["median_ms"]:.1f}', f'{played["median_ms"]:.1f}',
+                     f'{raw["overruns"]} / {played["overruns"]}',
+                     f'{int(raw["fallbacks"])} / {int(played["fallbacks"])}')
+            for x, value in zip(columns, cells):
+                body += text(x, y, value, 22)
+            body += line(80, y+16, 1510, y+16, "#293b55")
+            y += 48
+    old = sum(r["caller_over_budget"] for r in baseline["turn_runs"])
+    new = sum(r["caller_over_budget"] for r in report["turn_runs"])
+    body += text(80, 670, f'Submission guard: no reserve {old}/48 overruns; 10% reserve {new}/48 in this run.', 25, "#91b5ff")
+    body += text(80, 715, "4 samples per cell; Material only; tracker and saved-blueprint preparation excluded.", 23)
+    body += text(80, 758, "Fixed-work controls keep raw policies unchanged. Purification changes the played distribution.", 23)
+    body += text(80, 801, "A running evaluator or CFR round can still overrun. These observations are not a hard-time guarantee.", 23, "#f8c36a")
+    return slide("Clock budgets and purification: measured limits", "Backup for slide 5 | Two seeds, two repeats | Caller surrounds the entire act() call", body,
+        "Synthetic cold/warm inputs | Small serial sample | Capped live games unscored | No playing-strength claim | Draft")
 
 
 def main():
@@ -174,6 +202,12 @@ def main():
     (OUT / "evidence.json").write_text(json.dumps(data, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     (OUT / "slide4.svg").write_text(slide4(data), encoding="utf-8")
     (OUT / "slide5.svg").write_text(slide5(data), encoding="utf-8")
+    clock = Path(__file__).with_name("results") / "clock_ablation_reference.json"
+    baseline = clock.with_name("clock_ablation_baseline.json")
+    if clock.exists() and baseline.exists():
+        (OUT / "slide5-clock-backup.svg").write_text(clock_backup(
+            json.loads(clock.read_text(encoding="utf-8")),
+            json.loads(baseline.read_text(encoding="utf-8"))), encoding="utf-8")
     (OUT / "index.html").write_text('''<!doctype html><html lang="en"><meta charset="utf-8">
 <title>Pair A: slides 4-5 materials</title><style>
 body{background:#0b1426;color:#eaf0ff;font:18px "Segoe UI",sans-serif;margin:25px}
@@ -181,8 +215,10 @@ nav{display:flex;gap:24px}a{color:#70dac5}object{width:100%;max-height:88vh;disp
 @media print{body{margin:0}nav,p{display:none}object{height:100vh;max-height:none;break-after:page}}
 </style><nav><a href="slide4.svg">Slide 4 SVG</a><a href="slide5.svg">Slide 5 SVG</a>
 <a href="speaker_notes.md">Speaker notes</a><a href="evidence.json">Replay evidence</a></nav>
+<p><a href="slide5-clock-backup.svg">Clock and purification backup</a> (generated from the recorded ablation artifacts)</p>
 <p>Draft content/visuals. Speaker allocation is open. Open the SVGs directly to export or insert into slides.</p>
 <object data="slide4.svg" type="image/svg+xml"></object><object data="slide5.svg" type="image/svg+xml"></object>
+<object data="slide5-clock-backup.svg" type="image/svg+xml"></object>
 </html>''', encoding="utf-8")
     print(json.dumps(dict(same_private_history=data["same_private_history"], growth=data["growth"])))
 
