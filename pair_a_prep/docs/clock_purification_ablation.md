@@ -99,3 +99,14 @@ need those agreements and separately frozen configurations.
 ## Review clarification for the historical clock matrix
 
 Every recorded non-fallback raw policy in this matrix was an exact tie. Purification therefore measures deterministic move-order tie-breaking, not learned preferences. Only 16 of 48 standalone turns exercised the guard: 24 reached the round cap and 8 fell back at 20 ms. The reserved live run had 11 fallbacks among 48 actions; report this cost beside the 0/48 standalone overrun count. These archived results precede the gift-sign and fallback-blueprint fixes and must not be presented as measurements of the updated source.
+
+## Review-fix clock rerun
+
+The separate `clock_ablation_review_baseline.json` and `clock_ablation_review_reserved.json` preserve the updated-source reruns; the original artifacts and backup slide remain historical.
+
+| Setting | Standalone overruns / 48 | Standalone fallbacks / 48 | Live overruns / 48 | Live fallbacks / 48 |
+|---|---:|---:|---:|---:|
+| No reserve | 16 | 8 | 14 | 13 |
+| 10% reserve | 0 | 8 | **1** | **12** |
+
+Both live matrices contain 12 capped/null games and no tracker-capacity failure. The reserved rerun did overrun on one live action; no hard-time guarantee or playing-strength benefit follows. Preparation at 20 ms remains a source of uniform-move fallback. Runtime sources are now hashed with the shared CRLF-to-LF convention and repository-relative paths, including shared scoring, Material and evaluation dependencies. `--output` is required, so reproduction cannot silently overwrite the reference. `purify` and reserve settings are rejected for modes that cannot use them. The revised agent name is `sampled-I2-gadget-pcfr-prototype-v2`; config IDs identify the reserve separately.

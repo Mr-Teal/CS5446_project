@@ -34,7 +34,7 @@ def opponent_key_map(projection, to_raw=False):
 
 
 class ChessSubgameAgent(FixedDepthPCFRAgent):
-    name = "sampled-I2-gadget-pcfr-prototype-v1"
+    name = "sampled-I2-gadget-pcfr-prototype-v2"
 
     def __init__(self, evaluator, config=None, initial_fen=None, purify=True,
                  submission_reserve_fraction=.1):
@@ -193,7 +193,8 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
             expansions=float(expansions), mode_switches=float(switches), mode_resolve=float(mode == "resolve"),
             elapsed_ms=elapsed, over_budget=float(elapsed > turn.time_budget_ms), fallback=0.,
             solver_root_value=value, purification=float(self.purify),
-            label_root_contract_pending=float(projection.boundaries is not None))
+            label_root_contract_pending=float(projection.boundaries is not None),
+            zero_reach_uniform_prior=float(bool(projection.boundaries and projection.boundaries.audit.get("all_zero_y_uniform"))))
         self.last_stop_reason = self.last_stop_reason or "round_limit"
         diagnostics["stop:"+self.last_stop_reason] = 1.
         diagnostics["submission_reserve_ms"] = (turn.time_budget_ms*self.submission_reserve_fraction
