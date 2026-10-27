@@ -65,6 +65,7 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
             purify=self.purify, knowledge="saved_sampled_tree_synchronized_I2",
             submission_reserve_fraction=self.submission_reserve_fraction,
             round_guard="previous_completed_round_including_mode_switch",
+            preparation_window="solve_deadline_v2_single_replay_attempt_local_eval_cache",
             fresh_boundary="min(minimax_proxy, previous_unshifted_value)", fresh_mass="unit",
             gift_scope="within_saved_raw_tree", no_move_rule="terminal_draw_v1",
             half_budget="wall_clock" if self.config.stop_on_time else "round_count")
@@ -81,6 +82,7 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
         growth_deadline = started+turn.time_budget_ms/1000*self.config.expansion_fraction if deadline else None
         solve_deadline = (deadline-turn.time_budget_ms/1000*self.submission_reserve_fraction
                           if deadline is not None else None)
+        evaluation_deadline = solve_deadline
         calls = 0
         owner = self
         class CountedLeaf:
@@ -89,15 +91,16 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
                 nonlocal calls
                 if calls >= owner.config.max_evaluator_calls:
                     raise SearchBudgetError("evaluator_limit")
-                if growth_deadline is not None and perf_counter() >= growth_deadline:
-                    raise SearchBudgetError("growth_deadline")
+                if evaluation_deadline is not None and perf_counter() >= evaluation_deadline:
+                    raise SearchBudgetError("evaluation_deadline")
                 calls += 1
                 owner.last_evaluator_calls = calls
                 return owner.evaluator.evaluate_children(fen)
         leaf = CountedLeaf()
         projection = project_chess(turn, leaf, initial_fen=self.initial_fen,
             depth=self.config.initial_depth, max_nodes=self.config.max_nodes,
-            saved=self.saved, deadline=growth_deadline)
+            saved=self.saved, deadline=solve_deadline)
+        evaluation_deadline = growth_deadline
         mode, switches, expansions = "maxmargin", 0, 0
         bridge = projection.bridge(mode, leaf.name) if projection.boundaries else None
         active_root = bridge.gadget.tree if bridge else projection.tree.root

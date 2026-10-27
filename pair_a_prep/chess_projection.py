@@ -55,14 +55,22 @@ class ChessProjection:
 
 
 def project_chess(turn, evaluator, *, initial_fen, depth, max_nodes, saved=None, deadline=None):
+    if type(depth) is not int or depth < 1:
+        raise ValueError("depth must be a positive integer")
+    if type(max_nodes) is not int or max_nodes < 2:
+        raise ValueError("max_nodes must be an integer of at least two")
+    if turn.observation.terminal:
+        raise ValueError("cannot project a terminal turn")
+    if 1+len(turn.belief.hypotheses) > max_nodes:
+        raise TreeCapacityError("sampled root nodes alone exceed max_nodes")
     rules = RulesAdapter()
     viewer = turn.observation.player
     own_index = 0 if viewer == "white" else 1
     current = reconstruct_roots(turn, rules, initial_fen, deadline)
     current_ids = tuple(root_identity(h.fen, h.candidate_moves) for h in turn.belief.hypotheses)
     if saved is None:
-        tree = build_chess_tree(turn, evaluator, initial_fen=initial_fen, depth=depth,
-                                max_nodes=max_nodes, deadline=deadline)
+        tree = _build_roots(current, viewer, tuple(h.weight for h in turn.belief.hypotheses),
+                            evaluator, depth, max_nodes, deadline)
         groups = tuple(("black" if viewer == "white" else "white")+":"+c.memories[1-own_index] for c in current)
         return ChessProjection(turn, tree, tuple(h.candidate_moves for h in turn.belief.hypotheses),
             current_ids, groups, current_ids, None, dict(retained=0, fresh=len(current),
@@ -118,6 +126,7 @@ def project_chess(turn, evaluator, *, initial_fen, depth, max_nodes, saved=None,
         y.update(boundary.audit["opponent_sequence_reach"])
     calls, retained, fresh = 0, 0, 0
     prepared_nodes = 1
+    evaluation_cache = {}
 
     def append(context, moves, node=None, old_path=None):
         nonlocal calls, retained, fresh, prepared_nodes
@@ -129,7 +138,8 @@ def project_chess(turn, evaluator, *, initial_fen, depth, max_nodes, saved=None,
             context = HistoryRoot(context.state, tuple(memories))
         if node is None or node.payoff is not None:
             built = _build_roots((context,), viewer, (1.,), evaluator, depth,
-                                 max_nodes-prepared_nodes+1, deadline)
+                                 max_nodes-prepared_nodes+1, deadline,
+                                 evaluation_cache=evaluation_cache)
             continuation = built.continuations[0]
             frontiers.update({(str(index),)+p[1:]: c for p, c in built.frontiers.items()})
             calls += built.evaluator_calls
