@@ -82,3 +82,7 @@ under ignored `pair_a_prep/local_runs/`; the compact evidence is in
 
 No full Pair B suite, long-game tracker validation, actual Stockfish/network
 execution, formal batch or new model training is covered by this handoff.
+
+## Retained depth contract
+
+The optional retained factory requires `max_depth >= 3` (default 3). A saved tree must contain a nonterminal two plies below its old root for next-turn reuse. Merely switching the supplied shallow anytime smoke config to retained mode is rejected. Reused branches are restored to `initial_depth` before solving, including mixed fresh/deep roots; normal limits still apply, so recovery can fail explicitly. The baseline anytime smoke configuration is unchanged.

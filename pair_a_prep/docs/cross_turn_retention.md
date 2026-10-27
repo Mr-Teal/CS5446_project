@@ -83,3 +83,11 @@ retained chess tree into KLUSS boundaries, assigning novel-root min(heuristic,
 previous value), and carrying group/control state across automatic modes need
 separate integration and validation. Do not use an old gadget boundary for a
 fresh root without constructing the missing opponent-private context.
+
+## Retained depth contract
+
+The optional retained factory requires `max_depth >= 3` (default 3). A saved tree must contain a nonterminal two plies below its old root for next-turn reuse. Merely switching the supplied shallow anytime smoke config to retained mode is rejected. Reused branches are restored to `initial_depth` before solving, including mixed fresh/deep roots; normal limits still apply, so recovery can fail explicitly. The baseline anytime smoke configuration is unchanged.
+
+## Review-fix evidence
+
+`results/cross_turn_review_reference.json` records the depth-floor correction and the corrected subtractive gift convention. Both four-ply capped Material games reused 3 roots per side on the last turn. Bare kings remain a plumbing check, not evidence of useful learned information. Unlike the historical reference, the corrected toy boundary stays in Maxmargin; it no longer claims a mode switch caused by the old gift-sign error. Reproduce to a fresh local path with `python -m pair_a_prep.cross_turn_experiment --output pair_a_prep/local_runs/cross-turn-review.json`. Source paths are repository-relative; `source_hash_convention` specifies CRLF-to-LF normalization and covers all shared/Pair A/Pair B runtime Python sources. Older artifacts are preserved as historical evidence.

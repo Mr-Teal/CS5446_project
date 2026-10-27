@@ -50,3 +50,25 @@ def test_mismatched_start_and_standin_rules_are_rejected():
 def test_material_depth_metadata_cannot_silently_name_an_engine_depth():
     with pytest.raises(ValueError, match="leaf_depth=0"):
         SearchFactory({**SETTINGS, "leaf_depth": "11"}).load_model()
+
+
+def test_retained_factory_rejects_depth_without_reusable_descendants():
+    with pytest.raises(ValueError, match="max_depth >= 3"):
+        SearchFactory({**SETTINGS, "search_mode": "retained"}).load_model()
+
+
+def test_retained_factory_reuses_and_restores_initial_depth_on_later_turn():
+    agent = SearchFactory({**SETTINGS, "search_mode": "retained", "initial_depth": "3",
+        "max_depth": "3", "max_nodes": "5000", "max_evaluator_calls": "256",
+        "stop_on_time": "false"}).load_model()
+    try:
+        agent.reset("white", 17)
+        agent.solve(turn_after())
+        result = agent.solve(turn_after(moves=("a1b1", "h8g8")))
+        assert result.decision.diagnostics["retention:reused_roots"] > 0
+        assert result.decision.diagnostics["retention:retained_infosets"] > 0
+        assert result.decision.diagnostics["retention:restored_frontiers"] > 0
+        assert result.decision.diagnostics["evaluator_calls"] > 0
+        assert min(len(path)-1 for path in agent.last_tree.frontiers) >= 3
+    finally:
+        agent.close()

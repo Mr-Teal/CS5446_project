@@ -6,7 +6,7 @@ from time import perf_counter
 
 from .anytime_agent import AnytimePCFRAgent
 from .chess_search import (ChessTree, reconstruct_roots, _build_roots,
-                           observation_key, SearchBudgetError, TreeCapacityError)
+                           observation_key, SearchBudgetError, TreeCapacityError, expand_chess_tree)
 from .rules_adapter import RulesAdapter
 from .toy_games import Node
 from .warm_start import rebase_solver
@@ -113,7 +113,16 @@ def retain_tree(previous_turn, previous_tree, turn, evaluator, *, initial_fen,
                 probabilities={str(i): h.weight for i, h in enumerate(turn.belief.hypotheses)})
     tree = ChessTree(root, tuple(branches), branches[0].infoset, nodes, len(frontiers),
                      terminals, calls, contexts, frontiers, turn.observation.player)
-    return tree, dict(reused_roots=reused, fresh_roots=len(branches)-reused,
+    # Restore every shallow cutoff, even when another root is already deep.
+    # This temporary solver only grafts structure; the agent rebases saved state later.
+    from .pcfr import PCFRPlus
+    structural_solver = PCFRPlus(tree.root)
+    restored = 0
+    while shallow := tuple(path for path in tree.frontiers if len(path)-1 < depth):
+        tree = expand_chess_tree(tree, structural_solver, evaluator, selected_paths=shallow,
+                                 max_nodes=max_nodes, deadline=deadline)
+        restored += len(shallow)
+    return tree, dict(restored_frontiers=restored, reused_roots=reused, fresh_roots=len(branches)-reused,
                       discarded_previous_roots=len(previous_turn.belief.hypotheses)-len(used_old))
 
 
@@ -133,7 +142,7 @@ class RetainedPCFRAgent(AnytimePCFRAgent):
 
     @property
     def config_id(self):
-        return super().config_id + ":private-history-warm-v1"
+        return super().config_id + ":private-history-warm-v2-depth-floor"
 
     def _prepare_tree(self, turn, leaf, deadline):
         if self.saved is None:

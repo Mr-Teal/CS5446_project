@@ -64,10 +64,12 @@ class SearchFactory:
             config = AnytimeConfig(**common,
                 growth=self.settings.get("growth", "uniform").strip(),
                 initial_depth=_positive(self.settings, "initial_depth", 1),
-                max_depth=_positive(self.settings, "max_depth", 2),
+                max_depth=_positive(self.settings, "max_depth", 3 if mode == "retained" else 2),
                 rounds_per_stage=_positive(self.settings, "rounds_per_stage", 2),
                 final_rounds=_positive(self.settings, "final_rounds", 2),
                 max_evaluator_calls=_positive(self.settings, "max_evaluator_calls", 16))
+            if mode == "retained" and config.max_depth < 3:
+                raise ValueError("retained mode requires max_depth >= 3 for cross-turn reuse")
             agent_type = _ManagedRetained if mode == "retained" else _ManagedAnytime
         elif mode == "fixed":
             config = SearchConfig(**common, depth=_positive(self.settings, "search_depth", 1))
