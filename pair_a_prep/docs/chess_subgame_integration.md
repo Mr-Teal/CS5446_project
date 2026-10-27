@@ -119,3 +119,7 @@ agreed replenishment weighting; knowledge closure beyond the saved tree;
 cross-root/pre-saved-root gift bookkeeping and missing-branch correction;
 original Stockfish 14 D1/MultiPV calibration; concurrent scheduling and broader
 time/strength experiments. The #37 rule-consistency decision remains separate.
+
+## Label contract review gate
+
+Projected subgame solves may contain additional current-infoset roots and blueprint weights not represented by the input belief. Decisions export `label_root_contract_pending=1`; `label()` rejects such records until Pair B agrees the root and weight schema. Cold solves retain the existing input-belief contract. A budget fallback discards the saved blueprint, so the next successful own turn starts cold.

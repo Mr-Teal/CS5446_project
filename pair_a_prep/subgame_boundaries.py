@@ -118,7 +118,7 @@ def derive_boundaries(root, profile, cut, deadline=None):
                 retained_delta=retained_delta, discarded_delta=full_delta-retained_delta,
                 gift=max(full_delta, 0.)))
         gift = fsum(term["gift"] for term in terms)
-        gifts[group], alternates[group] = gift, conditional + gift
+        gifts[group], alternates[group] = gift, conditional - gift
         y_reaches[group] = rows[0][2]
         audit[group] = dict(counterfactual_mass=mass, joint_mass=joint,
                             conditional_value=conditional, ancestor_gifts=terms,
