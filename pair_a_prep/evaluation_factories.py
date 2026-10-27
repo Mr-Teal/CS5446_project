@@ -8,6 +8,7 @@ from typing import Mapping
 
 from .anytime_agent import AnytimeConfig, AnytimePCFRAgent
 from .belief_tracker import BeliefTracker
+from .cross_turn import RetainedPCFRAgent
 from .rules_adapter import RulesAdapter
 from .search_agent import FixedDepthPCFRAgent, SearchConfig
 
@@ -40,6 +41,11 @@ class _ManagedFixed(FixedDepthPCFRAgent):
         self.evaluator.close()
 
 
+class _ManagedRetained(RetainedPCFRAgent):
+    def close(self):
+        self.evaluator.close()
+
+
 class SearchFactory:
     """Create a Material-only search baseline with independent owned resources."""
 
@@ -54,7 +60,7 @@ class SearchFactory:
                       max_nodes=_positive(self.settings, "max_nodes", 512),
                       schedule="alternating", stop_on_time=_clock(self.settings))
         mode = self.settings.get("search_mode", "anytime").strip()
-        if mode == "anytime":
+        if mode in ("anytime", "retained"):
             config = AnytimeConfig(**common,
                 growth=self.settings.get("growth", "uniform").strip(),
                 initial_depth=_positive(self.settings, "initial_depth", 1),
@@ -62,12 +68,12 @@ class SearchFactory:
                 rounds_per_stage=_positive(self.settings, "rounds_per_stage", 2),
                 final_rounds=_positive(self.settings, "final_rounds", 2),
                 max_evaluator_calls=_positive(self.settings, "max_evaluator_calls", 16))
-            agent_type = _ManagedAnytime
+            agent_type = _ManagedRetained if mode == "retained" else _ManagedAnytime
         elif mode == "fixed":
             config = SearchConfig(**common, depth=_positive(self.settings, "search_depth", 1))
             agent_type = _ManagedFixed
         else:
-            raise ValueError("search_mode must be anytime or fixed")
+            raise ValueError("search_mode must be anytime, retained or fixed")
         self._agent = agent_type(MaterialEvaluator(), config, _initial_fen(self.settings))
         return self._agent
 
