@@ -90,6 +90,14 @@ def test_all_observed_opponent_sequences_outside_blueprint_support_use_uniform_p
     assert result.boundaries.audit["all_zero_opponent_reach"]
     assert len(set(result.boundaries.group_prior.values())) == 1
     assert sum(result.boundaries.group_prior.values()) == pytest.approx(1)
+    agent = ChessSubgameAgent(ConstantLeaf(), AnytimeConfig(growth="one_sided",
+        rounds=4, final_rounds=1, stop_on_time=False,
+        max_nodes=5000, max_evaluator_calls=256), fen)
+    agent.reset("white", 17)
+    agent.saved = saved
+    decision = agent.act(turn)
+    assert decision.diagnostics["fallback"] == 0
+    assert decision.diagnostics["zero_reach_uniform_prior"] == 1
 
 
 @pytest.mark.parametrize("schedule", ["alternating", "simultaneous"])
