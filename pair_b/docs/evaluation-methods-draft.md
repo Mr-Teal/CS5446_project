@@ -1,36 +1,36 @@
 # Evaluation Methods and Batch Validation
 
-Expanded methods and operational checklist, revised 26 October 2026 after Colin's review. The shorter report draft in PR #33 incorporates selected methods, not this entire document. The formal batch has not been run by Bryan; its results remain blank. The historical cross-check below is completed work, not a result from the proposed batch.
+Expanded methods and operational checklist, revised 27 October 2026 after independent review of PR #38 at 5e9393a. Colin completed all seven rows on his M5 Pro Mac on 26–27 October at a5c5fb6 (main 2af8f1f plus #34). Bryan independently checked the archived records and approved #38; he did not rerun the matches. The shorter report draft in PR #33 uses selected methods. The earlier independent cross-check remains separate. The #17 objection window remains open until 27 October 23:59 SGT; review approval does not waive that gate.
 
 ## Report Draft: Evaluation Methods
 
 ### Objective and Comparisons
 
-The proposed evaluation asks whether changing the leaf evaluator changes playing performance under a common fog-of-war decision procedure. The evaluator-based agents use a one-ply belief planner, with a separate particle tracker for each player, 256 particles and eight sampled hypotheses. The planner selects a move using its weighted average evaluated value across hypotheses. The candidate evaluators are material, Stockfish depth 1, Stockfish depth 11, Network 1, the belief-conditioned network and the linear correction. A random-action agent provides an additional comparator; it is not an evaluator using the same move-selection calculation.
+The evaluation asks whether changing the leaf evaluator changes playing performance under a common fog-of-war decision procedure. The evaluator-based agents use a one-ply belief planner, with a separate particle tracker for each player, 256 particles and eight sampled hypotheses. The planner selects a move using its weighted average evaluated value across hypotheses. The candidate evaluators are material, Stockfish depth 1, Stockfish depth 11, Network 1, the belief-conditioned network and the linear correction. A random-action agent provides an additional comparator; it is not an evaluator using the same move-selection calculation.
 
-Each candidate, including the random comparator, will play Stockfish depth 1. Stockfish depth 1 against itself provides a symmetry check, not a requirement that a finite sample score exactly 0.5. The planned batch contains 200 games per pairing, seven pairings and 1,400 scheduled games in total. Completed and eligible counts will be reported separately from scheduled counts.
+Each candidate, including the random comparator, played Stockfish depth 1. Stockfish depth 1 against itself provides a symmetry check, not a requirement that a finite sample score exactly 0.5. The batch scheduled 200 games per pairing, seven pairings and 1,400 games in total. There are 1,399 finished games and one technical failure. Paired scores use 100 complete pairs per row except random, which has 99 complete pairs (198 games); its W/D/L counts all 199 finished games.
 
-The comparison holds the outer planning and belief-sampling configuration constant for evaluator-based agents. It does not equalise total computation: evaluators differ in internal work, particularly Stockfish depths 1 and 11. Nor is this an equal-time experiment; the one-ply planner does not enforce its supplied action-time budget. Playing score will therefore be accompanied by per-side decision latency, game wall-clock time and tracker diagnostics. The bot's measured decision time excludes its tracker update cost.
+The comparison holds the outer planning and belief-sampling configuration constant for evaluator-based agents. It does not equalise total computation: evaluators differ in internal work, particularly Stockfish depths 1 and 11. Nor is this an equal-time experiment; the one-ply planner does not enforce its supplied action-time budget. Playing score is therefore accompanied by per-side decision latency, game wall-clock time and tracker diagnostics. The bot's measured decision time excludes its tracker update cost.
 
 ### Openings and Information Access
 
-For each pairing, the proposed seed is 0. Each opening consists of two to eight random legal plies, excluding moves that end the game. Opening index i uses seed 1000 * seed + i. Each opening is played twice with player colours exchanged, giving 100 scheduled colour pairs per pairing. Opening moves are passed through the game machinery so both trackers receive their respective observations. The protocol seeds game n with 1000 * seed + n and the Black player with that seed plus one.
+For each pairing, the seed was 0. Each opening consists of two to eight random legal plies, excluding moves that end the game. Opening index i uses seed 1000 * seed + i. Each opening is played twice with player colours exchanged, giving 100 scheduled colour pairs per pairing. Opening moves are passed through the game machinery so both trackers receive their respective observations. The protocol seeds game n with 1000 * seed + n and the Black player with that seed plus one.
 
 During play, each agent receives only its own observations and tracker belief. Access to the true board is reserved for the referee and post-game diagnostics, not the player's move selection. In the match runner, the belief-conditioned evaluator scores the children of individual hypotheses; its whole-belief evaluation path is offline only. Consequently, these matches do not directly validate whole-belief gameplay.
 
 ### Rules, Engine State and Provenance
 
-All rows are proposed to use explicitly selected stand-in rules. One results table must use one documented rules version; automatic adapter selection is unsuitable because it can change with checkout contents. Before the batch is accepted, its exact source revision, rules identifier and source hashes must be recorded.
+All seven rows used explicitly selected stand-in rules (`pairb-standin`) at a5c5fb696bda20f0312abd2a7af020bd6388a6ad. One results table must use one documented rules version; automatic adapter selection is unsuitable because it can change with checkout contents. The archived summaries record the exact source revision, rules identifier and source hashes.
 
-The team has supported treating a position with no fog-legal move and no other terminal result as a draw. Implementation rollout is still pending for the batch revision: PR #28 targets the Pair A branch, not main. The intended rule must reach and be checked on the selected batch revision. Historical pre-change results must not be mixed with post-change results in a single formal table. Under the interim policy, unresolved no-move errors are excluded and counted explicitly; they must not be silently relabelled as draws after the run.
+The batch is pre-rule: its recorded `no_move_rule` is `unresolved`. PR #28's no-move draw rule subsequently reached main with #15 on 27 October. A rules flag alone does not pin this behavior. No archived game has a no-move error or a `no_legal_moves` ending. The pre-rule table is retained under its original revision and exclusion policy; zero observed no-move failures does not make it equivalent to post-rule play, because the rule also changes evaluated child values. Do not pool pre/post-rule games or relabel historical outcomes. A post-rule rerun requires a separate team decision and a new complete table.
 
-The proposed engine is Stockfish 19 with one thread and a 16 MB hash. The runner clears engine state at the start of every game and retains it between calls within that game, including the diagnostic engine's corresponding per-game reset. The per-call watchdog defaults to 60 seconds and preserves depth-limited search. It is failure protection, not a whole-move or whole-game time budget.
+The batch used Stockfish 19 with one thread and a 16 MB hash. The runner clears engine state at the start of every game and retains it between calls within that game, including the diagnostic engine's corresponding per-game reset. The per-call watchdog defaults to 60 seconds and preserves depth-limited search. It is failure protection, not a whole-move or whole-game time budget.
 
 For every run, retain the exact command, source and rules identity, seeds, opening configuration, tracker settings, engine identity and settings, checkpoint identities, environment details and output location. Record any differences between machines. Checkpoints remain fixed; no new training is part of this evaluation plan.
 
 ### Scores and Uncertainty
 
-Game scores are 1 for a win, 0.5 for a draw and 0 for a loss, from the candidate's perspective. For an opening with both colour-swapped games completed, its pair score is the mean of the two game scores. The primary estimate is the mean across complete colour pairs. A pair can score 0, 0.25, 0.5, 0.75 or 1. Incomplete pairs are counted and excluded from this estimate.
+Game scores are 1 for a win, 0.5 for a draw and 0 for a loss, from the candidate's perspective. Pair B's runner scores a game still ongoing at the 200-ply cap as a draw (`ply_limit`); this differs from Pair C's capped/null convention. The archived batch contains two such draws for linear and four for depth-11 Stockfish. Every other recorded draw is threefold repetition. For an opening with both colour-swapped games completed, its pair score is the mean of the two game scores. The primary estimate is the mean across complete colour pairs. A pair can score 0, 0.25, 0.5, 0.75 or 1. Incomplete pairs are counted and excluded from this estimate.
 
 Raw wins, draws and losses count all finished games, including a finished game whose partner failed. They therefore need not reproduce the paired estimate when incomplete pairs exist. Both populations and their counts must be shown explicitly.
 
@@ -59,37 +59,39 @@ The bootstrap is withheld for these rows because there are only ten pairs and ev
 
 The results are shown side by side, not pooled. The runners share game machinery and differ in engine reset policy, Stockfish build, platform, Python version, seed mapping and source revision (Colin: 00639cb; Bryan: 3afc594). Both historical runs predate the Stockfish watchdog fix. Identical aggregate outcomes on this lopsided pairing do not establish statistical equivalence or independent verification of all shared components. This check does not establish general chess strength or neural-evaluator performance and does not directly validate whole-belief gameplay. The historical audit's 131 focused tests passed and 13 were skipped; they were not rerun for publication. Preserve each run's own manifest and environment details.
 
-## Formal Results Table: Unfilled
+## Formal Results Table: Archived Pre Rule Batch
 
-All measured-result cells below are intentionally blank; scheduled game counts describe the proposed plan. Fill results only from validated artifacts; blank does not mean zero. Record the actual source/rules revision, machines, checkpoints and run dates with the completed table.
+Colin ran the batch from 26 October 22:47 to 27 October 08:09 SGT on one M5 Pro Mac, macOS 26.5.1, Python 3.14.6, NumPy 2.5.4, torch 2.14.1 (networks on MPS) and Stockfish 19. Source a5c5fb6, stand-in rules, seed 0, 256 particles, eight hypotheses, 200-ply cap, one engine thread and 16 MB hash were common across rows. The executable SHA-256 is `dc2f18c34ae962dff591b66147d220ec06e61d756b93d8a4f5e04fd8e55c251f`. Checkpoint identities remain in each summary. Results are archived in [PR #38](https://github.com/Mr-Teal/CS5446_project/pull/38), reviewed at 5e9393a; publication remains subject to the #17 objection window.
 
-| Candidate versus Stockfish D1 | Scheduled games | Finished W/D/L | Complete pairs | Paired score | Wilson 95% | Bootstrap 95% or reason | Game/diagnostic errors | Candidate latency mean/p95 |
+| Candidate versus Stockfish D1 | Scheduled | Finished W/D/L | Complete pairs | Paired score | Wilson 95% | Bootstrap 95% or reason | Game/diagnostic errors | Candidate ms mean/p95 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Material | 200 | | | | | | | |
-| Stockfish D1 | 200 | | | | | | | |
-| Stockfish D11 | 200 | | | | | | | |
-| Network 1 | 200 | | | | | | | |
-| Belief-conditioned network | 200 | | | | | | | |
-| Linear correction | 200 | | | | | | | |
-| Random | 200 | | | | | | | |
+| material | 200 | 9/1/190 | 100 | 0.048 | 0.020–0.108 | 0.023–0.078 | 0/0 | 4.0/7.3 |
+| stockfish-d1 | 200 | 103/2/95 | 100 | 0.520 | 0.423–0.615 | 0.455–0.588 | 0/0 | 12.2/23.9 |
+| stockfish-d11 | 200 | 114/6/80 | 100 | 0.585 | 0.487–0.677 | 0.513–0.660 | 0/0 | 3281.2/9054.7 |
+| network1 | 200 | 100/6/94 | 100 | 0.515 | 0.418–0.611 | 0.448–0.585 | 0/0 | 33.4/52.7 |
+| belief | 200 | 111/3/86 | 100 | 0.563 | 0.465–0.656 | 0.495–0.630 | 0/0 | 139.1/257.4 |
+| linear | 200 | 98/9/93 | 100 | 0.513 | 0.416–0.608 | 0.455–0.573 | 0/0 | 15.5/30.0 |
+| random | 200 | 0/0/199 | 99 | 0.000 | 0.000–0.037 | Withheld: all pairs score 0 | 1/0 | 0.0/0.0 |
 
-Also retain per-row opponent latency, game wall time, termination counts, incomplete pairs and tracker health in a companion table or appendix. Do not infer significance from overlapping or non-overlapping intervals alone.
+Score and both intervals use complete colour pairs; W/D/L uses every finished game. Random game 36 (opening 18) failed with `TrackerLost: no position fits black's view at ply 18`; its surviving partner remains in W/D/L but is excluded from the paired score. This leaves 1,398 games in 699 complete pairs across the seven separate comparisons. The failure and random row's nonzero process exit remain visible. There are no diagnostic errors, recovery events or recorded budget overruns. Timings exclude opening moves and tracker maintenance; candidate mean/p95 here is distinct from median/p95 in #38's main table. Full opponent timings, wall times, endings and tracker aggregates remain in the summaries.
 
-**Required no-move footnote for each row:** source/rules revision; unresolved no-move games excluded = Pending; terminal no-move draws included = Pending. Before PR #28 integration, inspect error records for both `no legal move` and `IndexError: Cannot choose from an empty sequence` (the random-agent path); verify the latter actually arose from an empty legal-action set. Count distinct affected game IDs, not occurrences of error text. After integration, count the recorded terminal reason `no_legal_moves` as draws. Keep other errors separate and never reclassify historical errors as draws. Fill and retain this footnote even when the verified count is zero.
+**No-move footnote for every row:** source a5c5fb6, rules `pairb-standin`, `no_move_rule=unresolved`; unresolved no-move games excluded = 0; terminal `no_legal_moves` draws included = 0. The one random failure is a tracker failure, not a no-move case.
+
+The controls are consistent with expectations: random and material score poorly, and D1 self-play has both intervals spanning 0.5. Linear and Network 1 do not establish improvement over D1. Belief has a higher point estimate but both intervals include 0.5. D11's bootstrap narrowly excludes 0.5 while its Wilson interval includes it; do not infer a multiple-comparison-adjusted superiority claim. Rows are separate matches against D1, not a head-to-head ranking. The belief row scores single-board children and does not establish strategic belief-context value or whole-belief gameplay.
+
+Independent archive review by Bryan with Codex assistance: all 22 manifest file sizes/hashes and seven decompressed game-stream hashes match. All 52 recorded source SHA-256 values match the pinned source snapshot; those source bytes also match GitHub's blob identities for a5c5fb6. Scores, both intervals, W/D/L, pairing/seed/opening consistency, timings, value-loss/tracker aggregates, termination and failure totals were independently recomputed from 1,400 records. Both generated tables rebuild byte for byte. This was an archive audit, not a match rerun or independent neural execution; original pre-normalization summary hashes and execution-machine history remain author-provided evidence.
+
+The batch was executed before the objection cutoff. #34 was also merged ahead of its stated time gate, as Colin disclosed on #38. Review and publication do not retroactively change that sequence: #38's 23:59 SGT gate remains explicit, objections require follow-up, and the batch keeps its pre-rule source.
 
 ## Operational Checklist: Not Report Prose
 
-### Before Launch
+### Batch Launch Record and Future Runs
 
-- [ ] Confirm the final protocol in issue #17. The proposed objection cutoff is 27 October 2026, 23:59 SGT; it is not a course deadline or proof that the batch has started.
-- [ ] Confirm the operator and machine, including working Torch and Stockfish 19 on that machine. Colin asked ZW to confirm these and whether he will operate the batch by 28 October; no confirmation was visible at revision time. Bryan has not volunteered to run all 1,400 games.
-- [ ] Select and record the exact batch source revision. Today's main SHA is a documentation reference, not automatically the approved batch revision.
-- [ ] Coordinate PR #28's no-move rule into that revision and verify the actual stand-in execution path. A merge into the Pair A branch alone is insufficient. If the team elects to run under the interim policy, record that explicit decision and the unchanged exclusion/count footnote before starting.
-- [ ] Verify the watchdog and engine recovery on the selected revision. PR #22 is merged, but its presence must be checked in the actual checkout.
-- [ ] Pin all seven candidate identities, checkpoint hashes, seeds, tracker configuration, opening range, ply cap and engine settings. Record the runner's effective settings, not only CLI defaults assumed from older docs.
-- [ ] Reconcile any use of PR #26's workflow with play_matches as runner of record. A wrapper must preserve per-game reset, both player trackers, nonzero exit status and provenance.
-- [ ] Use distinct, non-overwriting output directories per pairing. Run a small colour-paired smoke test on the selected machine; keep smoke artifacts separate from the formal batch.
-- [ ] Check that the smoke test loads the intended modules/checkpoints and writes complete game, pairing, diagnostic and provenance records. Do not treat a stale downloaded snapshot as the selected revision.
+- Completed operator/machine confirmation: Colin ran all seven rows on his M5 Pro with torch and Stockfish 19; no split-machine batch was needed.
+- Completed source/configuration record: all rows use a5c5fb6 and explicit stand-in rules. The archived source includes the watchdog. Each row has its own output folder, command, settings, engine and checkpoint identities.
+- This batch retained the pre-rule interim policy; the draw-rule implementation reached main later. Do not rewrite its source or outcomes to match main.
+- The #17 objection cutoff remains 27 October 2026, 23:59 SGT. Execution before the cutoff does not waive objections or authorize merging #38 early.
+- For any future batch, agree the protocol, operator, machine and exact rule/source revision first; verify effective modules, engines and checkpoints with a separate colour-paired smoke run. Use non-overwriting row folders. Keep Pair C experiments separate unless their scoring, tracker, engine and provenance contracts are explicitly reconciled.
 
 ### After Each Pairing
 
@@ -115,21 +117,25 @@ Also retain per-row opponent latency, game wall time, termination counts, incomp
 
 ### Current Status
 
-- Colin approved PR #31 and PR #32 at their reviewed heads on 26 October 2026. Both remain open. His #32 checklist corrections are incorporated here; this revision has not itself been re-reviewed. His optional #31 README changes remain separate work.
-- The issue #19 report/presentation guidance is published. No additional toy experiment is required by this draft.
-- Machine/operator confirmation and a selected batch rules revision remain outstanding. No formal games, smoke tests or new training were launched by this task.
-- Actual batch validation must wait for the selected revision, environment and run artifacts. This checklist is preparation, not a validation pass.
+- PR #31 and #32 merged on 26 October. Their historical checks remain historical; publication did not rerun them.
+- The seven-row batch is complete and independently audited as described above. #38 was approved at 5e9393a; the objection window/publication gate remains as stated. #49's three documentation changes were reviewed at 7bad533.
+- #15, #26, #36 and #34 are on main. The later Pair A search stack and ZS21/shared-EP integration remain separate review work; do not present unmerged mechanisms as reviewed main functionality.
+- Issue #19's worked example and narrative are available. No additional toy experiment or post-rule batch is required by this revision.
+- No new training or matches were run for this document update. Future post-rule experiments require a separately pinned and validated run.
 
 ## Sources and Editorial Notes
 
 - **Report allocation:** this is an expanded reference, not 2.5-3 pages to paste into the ten-page main report. Keep the comparison/planner and information boundary; color-pair sampling and score denominator; uncertainty/exclusions; source/rules/engine policy; and unequal-compute limitation. Condense provenance and historical comparisons into Section 6.2, separate from formal results. Keep commands, field-level acceptance checks, detailed seed mapping and the full operational checklist in this linked document. PR #33 Section 5 uses a compact methods/table layout; recheck pagination when actual results and figures are added.
 - [Colin's methods review](https://github.com/Mr-Teal/CS5446_project/pull/32#pullrequestreview-5647085913): interrupted-run observation, no-move paths, recorded latency/provenance and editorial follow-ups. These are reviewer-reported checks, not new tests run for this revision.
 - [Pinned match protocol at main 2af8f1f](https://github.com/Mr-Teal/CS5446_project/blob/2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d/pair_b/docs/match_protocol.md): planner, opening generation, engine policy, scores, interval caveats, failures and Colin's cross-check.
-- [Issue #17](https://github.com/Mr-Teal/CS5446_project/issues/17): proposed batch and cutoff, support from Bryan/Teal, whole-belief gameplay limitation and outstanding machine/operator confirmation. This discussion supersedes older wording in the protocol about the runner decision and no-move proposal.
+- [Issue #17](https://github.com/Mr-Teal/CS5446_project/issues/17): batch and cutoff, support from Bryan/Teal, Colin's machine/operator confirmation, completion report and whole-belief gameplay limitation. This discussion supersedes older wording in the protocol about the runner decision and no-move proposal.
 - [Bryan's protocol response](https://github.com/Mr-Teal/CS5446_project/issues/17#issuecomment-6406041253): rule rollout, historical separation and batch prerequisites.
 - [Historical cross-check PR #31](https://github.com/Mr-Teal/CS5446_project/pull/31), publication head 8735be4cc7e06928db6d12ee2487a08bb86e5ba7: provenance, artifact audit and Bryan's results. Its publication source is distinct from the historical run source.
 - [No-move rule PR #28](https://github.com/Mr-Teal/CS5446_project/pull/28): approved by Bryan at 21da153c8efdc1ae78dd1fac053c2402e1c7b3c7, with 451 integration tests; not a test of the eventual batch revision.
 - [Watchdog PR #22](https://github.com/Mr-Teal/CS5446_project/pull/22) and [claim-boundary PR #24](https://github.com/Mr-Teal/CS5446_project/pull/24): merged safeguards and limits; no fresh test run is claimed here.
 - [Published information-example guidance](https://github.com/Mr-Teal/CS5446_project/issues/19#issuecomment-6406533365): motivation and presentation, separate from playing-strength evidence.
 
-Only convert future-tense methods into completed-methods prose after checking the actual batch artifacts. Keep editorial status and the operational checklist outside the submitted report narrative.
+Completed-methods wording above follows the independently checked #38 artifacts. Keep editorial status and the operational checklist outside the submitted report narrative. The detailed after-pairing and acceptance checklists remain reusable requirements, not a claim that every author-side launch action was witnessed by the reviewer.
+
+- [Reviewed batch artifacts at 5e9393a](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27): raw games, summaries, checksums and table builder.
+- [PR #49](https://github.com/Mr-Teal/CS5446_project/pull/49): companion protocol/README status corrections.
