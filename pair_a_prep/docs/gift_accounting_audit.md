@@ -87,3 +87,9 @@ Remaining work: exact cross-root gadget payment lifting, missing-branch value
 corrections outside the saved finite game, original engine calibration and the
 team's tracker/weighting/rule agreements. This ledger does not implement those
 mechanisms or resolve #37.
+
+## Review-fix snapshot
+
+`gift_accounting_review_reference.json` and its linked `gift_accounting_clock_review_reference.json` supersede the old measurements for the corrected gift-sign/fallback code. The two hand examples still give gifts 0.25 and 0, and both final chess ledgers contain three events. The clock matrix has 48 standalone actions with 2 fallbacks and no observed overrun; its 12 capped/null live games have 48 actions with no observed fallback or overrun. These are source-specific small serial observations, not hard-time or strength guarantees; do not pool them with earlier runs.
+
+Reproduce to fresh paths with `python -m pair_a_prep.clock_ablation --output <clock.json>`, then `python -m pair_a_prep.gift_accounting_probe --clock-report <clock.json> --output <audit.json>`. Both reports must have identical complete normalized source manifests; the audit refuses a stale clock snapshot. Original artifacts remain historical. The ledger remains audit-only and does not numerically lift ancestor gadget payments.
