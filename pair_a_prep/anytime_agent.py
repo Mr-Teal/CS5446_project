@@ -75,6 +75,7 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
                            if hasattr(self.evaluator, key)}},
                        roots="input_belief_weights", infosets="complete_private_stream",
                        growth=self.config.growth, policy="raw_last_iterate",
+                       initial_policy="heuristic_best" if self.config.growth == "one_sided" else "uniform",
                        no_move_rule="terminal_draw_v1",
                        fallback="uniform_observed_legal_moves_no_labels")
         return self.name + ":" + sha256(json.dumps(
@@ -86,7 +87,9 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
                                 deadline=deadline)
 
     def _prepare_solver(self, tree):
-        return PCFRPlus(tree.root, schedule=self.config.schedule)
+        from .search_policies import heuristic_actions
+        return PCFRPlus(tree.root, schedule=self.config.schedule,
+                        initial_actions=heuristic_actions(tree.root) if self.config.growth == "one_sided" else None)
 
     def _remember(self, turn, tree, solver):
         pass

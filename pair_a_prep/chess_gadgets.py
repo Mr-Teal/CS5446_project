@@ -111,7 +111,7 @@ class ChessGadget:
     def expand(self, solver: PCFRPlus, evaluator: LeafEvaluator, *,
                additional_depth: int = 1, max_nodes: int = 5000,
                max_evaluator_calls: Optional[int] = None, deadline=None,
-               selected_paths=None) -> ChessGadget:
+               selected_paths=None, initialize_best=False) -> ChessGadget:
         """Grow a complete chess frontier cut and preserve gadget solver state.
 
         Return a new bridge only after an atomic graft. Resolve paths include
@@ -163,7 +163,13 @@ class ChessGadget:
             replacements[gadget_path] = node
         if deadline is not None and perf_counter() >= deadline:
             raise SearchBudgetError("budget exhausted before gadget expansion commit")
-        solver.expand(replacements)
+        initial_actions = {}
+        if initialize_best:
+            from .search_policies import heuristic_actions
+            for subtree in replacements.values():
+                for key, action in heuristic_actions(subtree).items():
+                    initial_actions.setdefault(key, action)
+        solver.expand(replacements, initial_actions=initial_actions)
         return replace(candidate, gadget=replace(candidate.gadget, tree=solver.root))
 
     def evaluate_profile(self, profile) -> ChessGadgetValues:
