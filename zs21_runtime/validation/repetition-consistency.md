@@ -8,4 +8,6 @@
 
 PR 的目标已由维护者改为 main，其中 #36 新增测试需要导入仓库已有 `pairb` 模块。因此便携 test 入口显式加入 `pair_b/src`，无需设置额外 PYTHONPATH 或安装整个训练环境；此路径只用于 test 命令。
 
-完整验证结果、精确版本与源文件哈希在 `repetition-consistency.json` 中记录。`release-verification.json` 是初始提交 `00982c9` 的历史验证，保留原样；其“八个核心文件逐字节一致”结论不再描述重构后的 `model.py`。本次不更改 agent 搜索算法、D-09 搜索和棋近似、native ABI 或引擎资产，不重新运行正式比赛。
+将修复提交 `edef410` 与当前 main `abfc868` 做隔离组合，没有合并冲突；清除额外 PYTHONPATH 后运行原便携测试入口，**627 passed（80.00 秒），0 failures / errors / skipped**。它包含 main 的五项 #36 接入测试。doctor 校验 66 个资产，加载 native DLL，启动四个单线程 Stockfish 13 并实际估值成功。原 154 个冻结历史文件哈希仍一致。
+
+完整验证结果、精确版本与源文件哈希在 `repetition-consistency.json` 中记录，分别保存 Git blob 与实际测试文件的 SHA-256，并注明两份普通文本发生的 CRLF 检出转换。`release-verification.json` 是初始提交 `00982c9` 的历史验证，保留原样；其“八个核心文件逐字节一致”结论不再描述重构后的 `model.py`。本次不更改 agent 搜索算法、D-09 搜索和棋近似、native ABI 或引擎资产，不重新运行正式比赛。
