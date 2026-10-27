@@ -129,3 +129,7 @@ Both live matrices used 12 four-ply pawn games, all capped with null outcomes.
 The reserved run had no overruns but still 11 fallbacks. Report fallback work and
 reasons honestly. Source JSON, configuration and caveats are in
 `../docs/clock_purification_ablation.md`; the SVG table is generated from them.
+
+## Historical clock evidence clarification
+
+Every non-fallback raw policy in the archived matrix was an exact tie; purification measures move-order tie-breaking. Only 16/48 standalone turns exercised the guard (24 hit the round cap; 8 fell back). The reserved live run had 11/48 fallbacks. The archived source predates the gift-sign and blueprint fixes; do not describe these counts as updated-source measurements.
