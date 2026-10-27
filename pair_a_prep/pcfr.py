@@ -83,6 +83,7 @@ class PCFRPlus:
         self.predictive = predictive
         self.averaging_power = averaging_power
         self.rounds = 0
+        self._growth_seeds = {}
         self.minimizers = tuple({key: PredictiveRMPlus(len(actions), predictive)
                                  for key, actions in sets.items()} for sets in self.sets)
         self._strategy = tuple({key: np.full(len(actions), 1 / len(actions))
@@ -170,6 +171,9 @@ class PCFRPlus:
             self._strategy[player].update(strategies[player])
             self._sums[player].update(sums[player])
         self._previous_opponent = previous_opponent
+        if self.schedule == "simultaneous" or not self.rounds:
+            self._growth_seeds.update({(p, key): action for (p, key), action in (initial_actions or {}).items()
+                                       if key in added[p]})
 
     def _check_recall(self, node, histories, seen):
         if node.payoff is not None:
@@ -238,6 +242,11 @@ class PCFRPlus:
             prediction = (np.zeros_like(minimizer.regrets) if previous is None
                           else self._utilities(player, previous)[key])
             self._strategy[player][key] = minimizer.next_strategy(prediction)
+            action = self._growth_seeds.pop((player, key), None)
+            if action is not None:
+                self._strategy[player][key][:] = 0
+                self._strategy[player][key][self.sets[player][key].index(action)] = 1
+                minimizer.strategy = self._strategy[player][key].copy()
 
     def _observe(self, player) -> None:
         utilities = self._utilities(player)
