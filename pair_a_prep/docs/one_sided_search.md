@@ -23,7 +23,7 @@ and the existing exact history tracker feed the same shared agent interface.
 5. Initialize newly introduced growth infosets toward the heuristic-best child
    of their first prepared occurrence. Existing state is never reinitialized.
    Alternating mode publishes this policy as pending feedback and extends its
-   cached opponent profile. Initial shallow-tree policies still start uniform.
+   cached opponent profile. The initial shallow tree is also seeded toward heuristic-best children. Simultaneous growth preserves a new seed until its first feedback, including after completed rounds.
 6. Commit only after budget checks and solver validation. A failed preparation
    retains solver state, sampler counts, exploring side and proposal RNG state.
    Terminal/depth-limited samples consume RNG but do not alternate the explorer.
@@ -31,8 +31,7 @@ and the existing exact history tracker feed the same shared agent interface.
 
 `ChessGadget.expand(selected_paths=...)` supports the same partial-history path
 translation, including Resolve enter paths and Maxmargin payoff offsets. The
-automatic sampler is connected to the raw-tree agent only. Gadget growth keeps
-its existing uniform initialization and requires externally supplied boundaries.
+automatic sampler is connected to the raw-tree agent only. The integrated subgame prototype also seeds gadget growth; the generic gadget API still requires externally supplied boundaries.
 
 ## Explicit engineering conventions
 

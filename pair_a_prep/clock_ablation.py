@@ -2,7 +2,7 @@
 
 import argparse
 from dataclasses import asdict, replace
-from hashlib import sha256
+from .provenance import source_manifest, NORMALIZATION, git_revision
 import json
 from pathlib import Path
 import platform
@@ -129,7 +129,7 @@ def run(budgets=(20, 100, 500), seeds=(17, 29), repeats=2, reserve=.1):
                 error = None
                 try:
                     result = play_game(RulesReferee(fen), agents, trackers,
-                        MatchConfig(budget, 4, seed, "paper2021_fow_no_moves_draw_v1", "material", 0))
+                        MatchConfig(budget, 4, seed, "paper_fow_v1_proposed", "material", 0))
                 except BeliefCapacityError as exc:
                     result, error = None, dict(type=type(exc).__name__, message=str(exc))
                 actions = sorted([r for agent in agents.values() for r in agent.rows], key=lambda r: r["ply"])
@@ -138,15 +138,13 @@ def run(budgets=(20, 100, 500), seeds=(17, 29), repeats=2, reserve=.1):
                     outcome=None if result is None or result.stopped_at_ply_limit else result.winner,
                     error=error, actions=actions,
                     final_populations={p: tracker.population_size for p, tracker in trackers.items()}))
-    sources = {name: sha256((ROOT/name).read_bytes()).hexdigest() for name in (
-        "clock_ablation.py", "chess_subgame_agent.py", "chess_projection.py", "search_policies.py",
-        "pcfr.py", "subgame_boundaries.py", "chess_search.py", "chess_gadgets.py", "warm_start.py",
-        "rules_adapter.py", "belief_tracker.py", "subgame_validation.py")}
+    sources = source_manifest(("pair_a_prep/data/subgame_positions.json",))
     actions = [r for game in games for r in game["actions"]]
     return dict(scope="clock-enabled engineering ablation; no hard real-time guarantee or strength claim",
         python=platform.python_version(), numpy=numpy.__version__, chess=chess.__version__,
-        source_sha256=sources, evaluator="material", leaf_depth=0,
-        rules_id="paper2021_fow_no_moves_draw_v1", pending_rule_difference="PR37 effective EP repetition",
+        source_sha256=sources, source_hash_convention=NORMALIZATION,
+        base_commit_at_execution=git_revision(), evaluator="material", leaf_depth=0,
+        rules_id="paper_fow_v1_proposed", pending_rule_difference="PR37 effective EP repetition",
         config=asdict(config), budgets_ms=budgets, seeds=seeds, repeats=repeats,
         submission_reserve_fraction=reserve,
         warm_preparation="outside measured call; shared readonly saved blueprint, no hidden referee input",
@@ -163,7 +161,7 @@ def run(budgets=(20, 100, 500), seeds=(17, 29), repeats=2, reserve=.1):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, default=ROOT/"results/clock_ablation_reference.json")
+    parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--submission-reserve-fraction", type=float, default=.1)
     args = parser.parse_args()
     report = run(reserve=args.submission_reserve_fraction)
