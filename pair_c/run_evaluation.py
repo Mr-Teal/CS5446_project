@@ -74,10 +74,11 @@ def seed_for_game(config: dict, game_index: int) -> int:
 
 
 def summarize(records: list[dict], config: dict) -> dict:
-    """Count outcomes from Player A's point of view; failed games are excluded from rates."""
+    """Count observed outcomes; failed and ply-capped attempts are not scored."""
     completed = [record for record in records if record["status"] == "completed"]
+    scored = [record for record in completed if not record["stopped_at_ply_limit"]]
     wins = draws = losses = 0
-    for record in completed:
+    for record in scored:
         if record["winner"] == "draw":
             draws += 1
         elif record["winner"] == record["player_a_color"]:
@@ -100,7 +101,7 @@ def summarize(records: list[dict], config: dict) -> dict:
             "max_ms_per_move": max(values) if values else None,
         }
 
-    denominator = len(completed)
+    denominator = len(scored)
     score_rate = (wins + 0.5 * draws) / denominator if denominator else None
     return {
         "player_a": config["players"]["a"]["name"],
@@ -110,8 +111,11 @@ def summarize(records: list[dict], config: dict) -> dict:
         "player_a_tracker_factory": config["players"]["a"]["tracker_factory"],
         "player_b_tracker_factory": config["players"]["b"]["tracker_factory"],
         "games_requested": config["games"],
-        "games_completed": denominator,
-        "games_failed": len(records) - denominator,
+        "games_completed": len(completed),
+        "games_scored": denominator,
+        "games_capped": len(completed) - denominator,
+        "games_failed": len(records) - len(completed),
+        "ply_limit_policy": "exclude_from_outcome_rates",
         "player_a_wins": wins,
         "draws": draws,
         "player_a_losses": losses,
@@ -222,7 +226,7 @@ def run(config: dict, source_config: Path) -> dict:
                     ended = referee.result()
                     base_record.update({
                         "status": "completed",
-                        "winner": result.winner,
+                        "winner": None if result.stopped_at_ply_limit else result.winner,
                         "termination": "ply_limit" if result.stopped_at_ply_limit else ended[1],
                         "stopped_at_ply_limit": result.stopped_at_ply_limit,
                         "plies": [asdict(ply) for ply in result.plies],
@@ -230,7 +234,9 @@ def run(config: dict, source_config: Path) -> dict:
                     move_counts = {"a": 0, "b": 0}
                     for ply in result.plies:
                         move_counts[player_by_color[ply.player]] += 1
-                    if result.winner == "draw":
+                    if result.stopped_at_ply_limit:
+                        outcome = "ply limit reached (unscored)"
+                    elif result.winner == "draw":
                         outcome = "draw"
                     else:
                         winner_side = player_by_color[result.winner]
@@ -275,21 +281,24 @@ def main() -> None:
         parser.exit(1, f"Evaluation failed: {type(error).__name__}: {error}\n")
 
     completed = summary["games_completed"]
+    scored = summary["games_scored"]
     failed = summary["games_failed"]
-    print(f"\nResults after {completed} completed games:")
+    print(f"\nResults after {completed} successful game attempts:")
+    print(f"  Terminal games scored: {scored}")
+    print(f"  Ply-capped attempts (unscored): {summary['games_capped']}")
     print(f"  Failed games: {failed}")
     print(f"  Player A: {summary['player_a']}")
     print(f"    Wins: {summary['player_a_wins']}")
     print(f"    Draws: {summary['draws']}")
     print(f"    Losses: {summary['player_a_losses']}")
-    print(f"    Win rate: {summary['player_a_win_rate']:.1%}" if completed else "    Win rate: unavailable")
-    print(f"    Score rate: {summary['player_a_score_rate']:.1%}" if completed else "    Score rate: unavailable")
+    print(f"    Win rate: {summary['player_a_win_rate']:.1%}" if scored else "    Win rate: unavailable")
+    print(f"    Score rate: {summary['player_a_score_rate']:.1%}" if scored else "    Score rate: unavailable")
     print(f"  Player B: {summary['player_b']}")
     print(f"    Wins: {summary['player_a_losses']}")
     print(f"    Draws: {summary['draws']}")
     print(f"    Losses: {summary['player_a_wins']}")
-    print(f"    Win rate: {summary['player_a_losses'] / completed:.1%}" if completed else "    Win rate: unavailable")
-    print(f"    Score rate: {summary['player_b_score_rate']:.1%}" if completed else "    Score rate: unavailable")
+    print(f"    Win rate: {summary['player_a_losses'] / scored:.1%}" if scored else "    Win rate: unavailable")
+    print(f"    Score rate: {summary['player_b_score_rate']:.1%}" if scored else "    Score rate: unavailable")
     print(f"Results: {config['output_dir']}", flush=True)
     if failed:
         parser.exit(

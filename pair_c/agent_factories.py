@@ -74,6 +74,13 @@ class Factory:
         scorer_id = self.settings.get("scorer_id", "").strip()
         if not scorer_id:
             raise ValueError("Factory requires scorer_id in the player section")
+        expected_depth = {"material": 0, "stockfish-d1": 1, "stockfish-d11": 11,
+                          "network1": 1, "belief": 1}.get(scorer_id)
+        if expected_depth is not None:
+            configured_depth = int(self.settings.get("leaf_depth", str(expected_depth)))
+            if configured_depth != expected_depth:
+                raise ValueError(f"{scorer_id} requires leaf_depth={expected_depth}; "
+                                 f"configured {configured_depth}. Search depth is separate.")
 
         stockfish_setting = self.settings.get("stockfish_path", "stockfish").strip()
         stockfish_file = project_path(stockfish_setting)

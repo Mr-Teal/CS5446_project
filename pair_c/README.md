@@ -54,7 +54,18 @@ The output directory contains:
 - `games.jsonl`: one JSON record per attempted game, including player identities, Agent/tracker factory paths and colors, seed, winner, termination reason, every move, and per-move elapsed time. Failed games are recorded with an error.
 - `summary.json`: Agent/tracker factory paths, wins, draws, losses, win rate, score rate, completed/failed game counts, move timing, and over-budget counts.
 
-Win rate is `wins / completed games`. Score rate follows the paper's convention: `(wins + 0.5 * draws) / completed games`. Failed games are excluded from both rates and shown separately.
+Win rate is `wins / games_scored`; score rate is `(wins + 0.5 * draws) / games_scored`.
+`games_scored` includes only observed terminal outcomes. `games_completed` counts
+successful runner attempts, including `games_capped`; capped attempts have
+`winner: null` and remain separate from terminal draws. Both capped and failed
+attempts are excluded from outcome rates. Timing includes successful capped
+attempts. A run containing only caps has unavailable outcome rates and can
+still exit successfully because a cap is a configured stopping condition.
+
+For the included factory, `leaf_depth` must agree with the scorer: Material=0,
+Stockfish D1/Network1/belief=1, and Stockfish D11=11. Mismatches raise before
+model/engine loading. This validates metadata without changing Pair B's API;
+custom search factories should use separate options for their search depth.
 
 ## Relation to the Paper
 
