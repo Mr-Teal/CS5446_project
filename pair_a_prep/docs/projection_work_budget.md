@@ -1,3 +1,13 @@
+## Current review scope
+
+At this head, evidence for correctness is the functional projection-work regression suite: single replay, attempt-local evaluator caching with per-history terminal checks, preparation deadline separation and lazy neighbour expansion. No current-head timing or fallback improvement is claimed.
+
+`projection_budget_reference.json` and `projection_lazy_reference.json` below are **historical, pre-review-fix snapshots**. They use short-path/raw checkout-byte hashes (some CRLF), not the new complete normalized manifest, and cannot verify against this head. Their chronology is initial projection-window/cache changes followed by lazy-neighbour changes, before the later seed/gift/label/diagnostic fixes; the first snapshot also predates lazy projection. Preserve these artifacts; reproduce current source only to a new path using `clock_ablation --output ...`.
+
+The historical comparison against #44 used its old 8 standalone / 11 live fallbacks. #44's separately refreshed reserved matrix has 8 / 12, with one live overrun, and belongs to a different source snapshot. Do not substitute, pool, or attribute that comparison to this head. Timing has no hard-time or strength interpretation.
+
+---
+
 # Projection preparation work and budgets
 
 This follow-up is stacked on #44, independent of tracker population/weight
