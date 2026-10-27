@@ -19,6 +19,7 @@ from .search_policies import heuristic_actions, StableSupport, purify_policy, se
 from .subgame_boundaries import choose_mode, current_minimum_margin
 from .toy_games import behavioral_value, information_sets
 from .warm_start import rebase_solver
+from .gift_accounting import ledger_for_projection
 
 
 def opponent_key_map(projection, to_raw=False):
@@ -68,6 +69,7 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
             preparation_window="solve_deadline_v3_single_replay_lazy_neighbours_attempt_local_eval_cache",
             fresh_boundary="min(minimax_proxy, previous_unshifted_value)", fresh_mass="unit",
             gift_scope="within_saved_raw_tree", no_move_rule="terminal_draw_v1",
+            gift_accounting="retained_discarded_local_cf_audit_DAG_v1_no_ancestor_payments",
             half_budget="wall_clock" if self.config.stop_on_time else "round_count")
         return self.name+":"+sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()[:16]
 
@@ -187,6 +189,7 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
         raw = profile[0][projection.tree.root_infoset]
         played = purify_policy(raw, mode, stable.stable) if self.purify else dict(raw)
         move = self._rng.choices(list(played), weights=list(played.values()), k=1)[0]
+        ledger = ledger_for_projection(None if self.saved is None else self.saved.gift_ledger, projection)
         elapsed = (perf_counter()-started)*1000
         diagnostics = dict(search_nodes=float(projection.tree.nodes), evaluator_calls=float(calls),
             solver_rounds=float(solver.rounds), solver_rounds_this_turn=float(solver.rounds-initial_rounds),
@@ -198,13 +201,14 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
         diagnostics["submission_reserve_ms"] = (turn.time_budget_ms*self.submission_reserve_fraction
                                                  if self.config.stop_on_time else 0.)
         diagnostics.update({"projection:"+key: float(v) for key, v in projection.audit.items()})
+        diagnostics.update(ledger.metrics())
         diagnostics.update({"raw_policy:"+a: p for a, p in raw.items()})
         diagnostics.update({"played_policy:"+a: p for a, p in played.items()})
         diagnostics["growth_stop:"+(growth_stopped or "round_limit")] = 1.
         decision = Decision(move, raw, diagnostics)
         decision.validate_for(turn.observation)
         self.last_result = SearchResult(decision, values, value)
-        self.saved = SavedChessBlueprint(turn, projection.tree, projection.paths, raw_solver, value)
+        self.saved = SavedChessBlueprint(turn, projection.tree, projection.paths, raw_solver, value, ledger)
         self.last_projection, self.last_solver, self.last_bridge = projection, solver, bridge
         return self.last_result
 

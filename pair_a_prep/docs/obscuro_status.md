@@ -1,5 +1,11 @@
 # Obscuro implementation status
 
+Further optional follow-ups: [projection work budgets](projection_work_budget.md)
+separate preparation/growth windows and defer outside-I estimates without
+dropping roots. [Gift accounting](gift_accounting_audit.md) explicitly partitions
+local retained/discarded CF contributions and preserves cross-turn audit
+lineage. It does not numerically transfer ancestor gadget payments.
+
 Latest optional integration: [sampled-tree chess subgame agent](chess_subgame_integration.md)
 connects saved-tree I^2 projection, finite-cut boundaries, fresh-root caps,
 serial gadget switching, selective growth, initial best policies and C.8-style
