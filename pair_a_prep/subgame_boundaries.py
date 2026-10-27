@@ -100,7 +100,7 @@ def derive_boundaries(root, profile, cut):
                       gift=max(cf[key]["actions"][action] - cf[key]["value"], 0.0))
                  for key, action in sequence]
         gift = fsum(term["gift"] for term in terms)
-        gifts[group], alternates[group] = gift, conditional + gift
+        gifts[group], alternates[group] = gift, conditional - gift
         y_reaches[group] = rows[0][2]
         audit[group] = dict(counterfactual_mass=mass, joint_mass=joint,
                             conditional_value=conditional, ancestor_gifts=terms,

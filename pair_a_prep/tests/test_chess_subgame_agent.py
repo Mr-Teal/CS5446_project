@@ -114,7 +114,7 @@ def test_live_gadget_agent_runs_modes_growth_retention_and_raw_labels(schedule):
         assert sum(v > 0 for k, v in record.decision.diagnostics.items() if k.startswith("played_policy:")) <= 3
 
 
-def test_failed_projection_does_not_replace_saved_blueprint():
+def test_failed_projection_discards_saved_blueprint_and_next_turn_recovers():
     config = AnytimeConfig(growth="one_sided", rounds=4, final_rounds=1, stop_on_time=False)
     agent = ChessSubgameAgent(ConstantLeaf(), config, KINGS)
     agent.reset("white", 17)
@@ -124,6 +124,21 @@ def test_failed_projection_does_not_replace_saved_blueprint():
     turn = turn_after(moves=("a1b1", "h8g8"))
     decision = agent.act(turn)
     assert decision.diagnostics["fallback"] == 1
-    assert agent.last_result is None and agent.saved is saved
+    assert agent.last_result is None and agent.saved is None
     with pytest.raises(SearchBudgetError):
         agent.label(turn, "no-fabricated-labels")
+    agent.config = config
+    following = turn_after(moves=("a1b1", "h8g8", "b1a1", "g8h8"))
+    assert agent.act(following).diagnostics["fallback"] == 0
+    assert agent.last_projection.boundaries is None
+
+
+def test_projected_labels_are_explicitly_blocked_until_root_contract_agreement():
+    config = AnytimeConfig(growth="one_sided", rounds=4, final_rounds=1,
+                           stop_on_time=False, max_evaluator_calls=256, max_nodes=2000)
+    agent = ChessSubgameAgent(ConstantLeaf(), config, KINGS)
+    agent.reset("white", 17)
+    agent.act(turn_after())
+    with pytest.raises(ValueError, match="solver-root/weight contract"):
+        agent.label(turn_after(moves=("a1b1", "h8g8")), "projected")
+    assert agent.last_result.decision.diagnostics["label_root_contract_pending"] == 1
