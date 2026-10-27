@@ -95,3 +95,7 @@ is stronger. Live fallbacks include evaluator-call limits as well as clock
 failures. The tracker/weighting discussion and #37's rule
 decision are unresolved. Longer games and engine-based strength comparisons
 need those agreements and separately frozen configurations.
+
+## Review clarification for the historical clock matrix
+
+Every recorded non-fallback raw policy in this matrix was an exact tie. Purification therefore measures deterministic move-order tie-breaking, not learned preferences. Only 16 of 48 standalone turns exercised the guard: 24 reached the round cap and 8 fell back at 20 ms. The reserved live run had 11 fallbacks among 48 actions; report this cost beside the 0/48 standalone overrun count. These archived results precede the gift-sign and fallback-blueprint fixes and must not be presented as measurements of the updated source.

@@ -17,7 +17,7 @@ All values are player-0 maximizing utility, as required by `build_gadget`:
   the remembered opponent sequence. These are current-profile CFVs, not best
   responses or ordinary conditional action values. Gift estimates are added
   literally as in C.2; no extra division or clipping to [-1,1] is performed.
-- Alternate is conditional player-0 continuation value plus that gift.
+- Alternate is conditional player-0 continuation value minus that gift (Figure 9, ConstructSubgame line 8).
 - Resolve alpha is half uniform over J and half normalized opponent sequence
   reach y(J). Each observation class contributes once, not once per history.
   This differs from belief weights and p(h)x(h) root masses.
@@ -46,7 +46,7 @@ private-infoset warm starts; changing utility perspective is unsupported.
 `test_subgame_boundaries.py` checks hand-calculated gifts, nonuniform chance,
 zero-reach behavior, fully mixed prior, LP-solvable derived gadgets, mode changes,
 and independent warm state under both CFR schedules. The two-action fixture has
-blueprint root value -.5, mistake gift 1.5, alternates (2.5,-1), and Resolve alpha
+blueprint root value -.5, mistake gift 1.5, alternates (-.5,-1), and Resolve alpha
 (.375,.625). Alternates exceeding 1 are intentional gift-adjusted boundaries.
 
 This is a finite-cut building block. Chess KLUSS closure, boundary projection
