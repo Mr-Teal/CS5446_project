@@ -1,6 +1,6 @@
 # The #17 batch, 27 October 2026
 
-Colin ran the #17 batch on his M5 Pro Mac (macOS 26.5.1, torch 2.14.1 on mps, Stockfish 19). Each side plays in the one-ply bot against quick Stockfish: 200 games, 100 colour pairs, random 2 to 8 ply openings, seed 0, stand-in rules. Rows ran one at a time from a clean worktree at a5c5fb6 (main 2af8f1f plus #34): material, stockfish-d1, linear, random, network1, belief, stockfish-d11. The batch ran 26 Oct 22:47 to 27 Oct 08:09 SGT; stockfish-d11 took about 6 hours. It is pre-rule (`no_move_rule` `unresolved`, #28 not on main), with no no-move games.
+Colin ran the #17 batch on his M5 Pro Mac (macOS 26.5.1, torch 2.14.1 on mps, Stockfish 19). Each side plays in the one-ply bot against quick Stockfish: 200 games, 100 colour pairs, random 2 to 8 ply openings, seed 0, stand-in rules. Rows ran one at a time from a clean worktree at a5c5fb6 (main 2af8f1f plus #34): material, stockfish-d1, linear, random, network1, belief, stockfish-d11. The batch ran 26 Oct 22:47 to 27 Oct 08:09 SGT; stockfish-d11 took about 6 hours. It is pre-rule (`no_move_rule` `unresolved`; #28's no-move rule reached main later, with #15), with no no-move games.
 
 Row folders hold `summary.json` (only `settings.out` changed, to the relative `runs/matches/<row>` from `command`) and `games.jsonl.gz`; logs and `batch-status.tsv` sit beside them, unchanged. `checksums.json` has every copied file's sha256 (and the original's, for `summary.json`), and what each `.gz` unpacks to.
 
@@ -22,6 +22,8 @@ Checks: all passed
 
 Exact values: linear 0.5125, network1 0.515, belief 0.5625, stockfish-d11 0.585; bootstrap ends material 0.0225 to 0.0775, belief's low end 0.495, stockfish-d11's low end 0.5125. The prose rounds these half up to 3 decimals; the run logs round the stored floats with ties to even, so they print 0.512, 0.562, 0.022 to 0.077 and 0.512. Value lost uses each side's own scorer, so rows differ in scale.
 
+W-D-L counts every finished game (199 for random); Score and both intervals use complete colour pairs (the Pairs column, 99 for random). Draws include games stopped at the 200-ply cap, which the runner scores as draws (`--max-plies`, 200 by default; `ply_limit`: 2 for linear, 4 for stockfish-d11); every other draw is a threefold repetition.
+
 ## One failure
 
 random-vs-d1 game 36 (opening 18; `game 37/200` in the log) hit `TrackerLost` at ply 18 in quick Stockfish's tracker. The 256-particle cap dropped the true position at ply 7, so no kept position fitted a bishop seen at ply 17, and the rebuild found none. A replay reproduces it. It is the tracker limit under Failures in `match_protocol.md`: the game and its pair are excluded, and the row exited 1. A random win there would give 0.005.
@@ -38,21 +40,24 @@ Equal work per move, not equal time:
 
 ## What it does not show
 
-No equal-time claim, no strength claim beyond these pairings. No evidence that the belief network learns the value of hidden information: its labels are board-level (#24). Pre-rule, so never pooled with runs after #28. Bryan's runner stays a separate check.
+No equal-time claim, no strength claim beyond these pairings. No evidence that the belief network learns the value of hidden information: its labels are board-level (#24). Pre-rule, so never pooled with runs that include #28's rule (on main since #15). Bryan's runner stays a separate check.
 
-## Provenance after #34
+## Provenance
 
-From the repository root on main, this checks each `record.source_sha256` against the files. Every row should print `all match` (before #34, `play_matches.py` and `bot.py` differ).
+Each `record.source_sha256` holds the source hashes at the batch's commit, a5c5fb6. From the repository root, this checks them against that commit with `git show`, so the working tree and line endings do not matter. Every row should print `all match`:
 
 ```sh
 python3 - <<'EOF'
-import hashlib, json, pathlib
+import hashlib, json, pathlib, subprocess
 for f in sorted(pathlib.Path("pair_b/experiments/matches/batch-2026-10-27").glob("*/summary.json")):
-    src = json.loads(f.read_text())["record"]["source_sha256"]
-    bad = [p for p, h in src.items() if hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest() != h]
-    print(f.parent.name, f"{len(src)} files,", "all match" if not bad else f"differ: {bad}")
+    rec = json.loads(f.read_text())["record"]
+    show = lambda p: subprocess.run(["git", "show", f"{rec['git_commit']}:{p}"], capture_output=True, check=True).stdout
+    bad = [p for p, h in rec["source_sha256"].items() if hashlib.sha256(show(p)).hexdigest() != h]
+    print(f.parent.name, f"{len(rec['source_sha256'])} files,", "all match" if not bad else f"differ: {bad}")
 EOF
 ```
+
+Checked against today's files instead, differences are expected and are not provenance failures: on main at abfc868 (after #15 and #34), `fow_shared/values.py`, `pair_a_prep/toy_games.py` and `pair_b/src/pairb/rules.py` differ, all from #15, and later changes may add more.
 
 ## Rebuilding the table
 
