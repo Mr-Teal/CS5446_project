@@ -6,6 +6,11 @@ The latest incremental implementation is described in
 support/variance-PUCT sampling and growth-node best-child initialization are
 implemented. The historical baseline checklist below describes the uniform
 prototype; it must not be read as the status of the new optional growth mode.
+Follow-up building blocks are now documented in
+[finite-cut blueprint boundaries](subgame_boundaries.md) and
+[opt-in cross-turn retention](cross_turn_retention.md). These do not yet form
+an automatically connected KLUSS/gadget chess agent; tracker population and
+new-root boundary semantics still require integration and partner review.
 The source anchors below follow the existing [paper specification map](paper_specs.md)
 for Zhang and Sandholm, *General search techniques without common knowledge
 for imperfect-information games*, arXiv:2506.01242v2. The authors' original
