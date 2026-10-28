@@ -75,3 +75,19 @@ def test_run_preserves_action_trace_when_tracker_capacity_interrupts_game():
     assert game["status"] == "tracker_capacity" and game["outcome"] is None
     assert game["plies"] is None and game["completed_action_count"] == 1
     assert len(game["actions"]) == 1
+
+
+def test_peak_tracker_preserves_an_intermediate_peak_after_population_shrinks(monkeypatch):
+    from pair_a_prep.subgame_validation import PeakTracker
+    from pair_a_prep.belief_tracker import BeliefTracker
+    def update_population(tracker, count):
+        tracker._candidates = tuple(range(count))
+    monkeypatch.setattr(BeliefTracker, "update", update_population)
+    tracker = PeakTracker()
+    tracker.reset("white", 17)
+    tracker.update(1819)
+    tracker.update(12)
+    assert tracker.population_size == 12
+    assert tracker.peak_population == 1819
+    tracker.reset("white", 29)
+    assert tracker.peak_population == tracker.population_size == 1
