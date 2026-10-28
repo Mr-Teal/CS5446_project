@@ -56,6 +56,8 @@ def main():
         base_commit_at_execution=git_revision(), examples=examples,
         clock_artifact=dict(path=clock_path.name, sha256=artifact_sha256(clock_path.read_bytes()),
                             hash_convention=ARTIFACT_HASH_CONVENTION,
+                            rule_readiness=clock.get("rule_readiness"),
+                            pending_rule_difference=clock.get("pending_rule_difference"),
                             live_summary=clock["live_summary"], turn_runs=len(clock["turn_runs"]),
                             turn_overruns=sum(r["caller_over_budget"] for r in clock["turn_runs"]),
                             turn_fallbacks=sum(r["diagnostics"]["fallback"] for r in clock["turn_runs"])),
