@@ -1,6 +1,6 @@
 # Evaluation Methods and Batch Validation
 
-Expanded methods and operational checklist, revised 27 October 2026 after independent review of PR #38 at 5e9393a. Colin completed all seven rows on his M5 Pro Mac on 26–27 October at a5c5fb6 (main 2af8f1f plus #34). Bryan independently checked the archived records and approved #38; he did not rerun the matches. The shorter report draft in PR #33 uses selected methods. The earlier independent cross-check remains separate. The #17 objection window remains open until 27 October 23:59 SGT; review approval does not waive that gate.
+Expanded methods and operational checklist, revised 28 October 2026 after independent review of PR #38 at 5e9393a. Colin completed all seven rows on his M5 Pro Mac on 26–27 October at a5c5fb6 (main 2af8f1f plus #34). Bryan independently checked the archived records and approved #38; he did not rerun the matches. The shorter report draft in PR #33 uses selected methods. The earlier independent cross-check remains separate. The #17 objection window closed on 27 October 2026 at 23:59 SGT. PR #38 merged into main at 0a7a148 on 28 October at 01:18 SGT, after that cutoff.
 
 ## Report Draft: Evaluation Methods
 
@@ -22,7 +22,7 @@ During play, each agent receives only its own observations and tracker belief. A
 
 All seven rows used explicitly selected stand-in rules (`pairb-standin`) at a5c5fb696bda20f0312abd2a7af020bd6388a6ad. One results table must use one documented rules version; automatic adapter selection is unsuitable because it can change with checkout contents. The archived summaries record the exact source revision, rules identifier and source hashes.
 
-The batch is pre-rule: its recorded `no_move_rule` is `unresolved`. PR #28's no-move draw rule subsequently reached main with #15 on 27 October. A rules flag alone does not pin this behavior. No archived game has a no-move error or a `no_legal_moves` ending. The pre-rule table is retained under its original revision and exclusion policy; zero observed no-move failures does not make it equivalent to post-rule play, because the rule also changes evaluated child values. Do not pool pre/post-rule games or relabel historical outcomes. A post-rule rerun requires a separate team decision and a new complete table.
+The batch is pre-rule: its recorded `no_move_rule` is `unresolved`. PR #28's no-move draw rule subsequently reached main with #15 on 27 October. PR #37 also changed threefold-repetition adjudication to use a fog-of-war en passant position key; it merged at 04f992d on 28 October at 00:19 SGT. The batch predates both changes. A rules flag alone does not pin this behavior. No archived game has a no-move error or a `no_legal_moves` ending. The pre-rule table is retained under its original revision and exclusion policy; zero observed no-move failures does not make it equivalent to post-rule play, because the rule also changes evaluated child values. Do not pool pre/post-rule games or relabel historical outcomes. A post-rule rerun requires a separate team decision and a new complete table.
 
 The batch used Stockfish 19 with one thread and a 16 MB hash. The runner clears engine state at the start of every game and retains it between calls within that game, including the diagnostic engine's corresponding per-game reset. The per-call watchdog defaults to 60 seconds and preserves depth-limited search. It is failure protection, not a whole-move or whole-game time budget.
 
@@ -61,7 +61,7 @@ The results are shown side by side, not pooled. The runners share game machinery
 
 ## Formal Results Table: Archived Pre Rule Batch
 
-Colin ran the batch from 26 October 22:47 to 27 October 08:09 SGT on one M5 Pro Mac, macOS 26.5.1, Python 3.14.6, NumPy 2.5.4, torch 2.14.1 (networks on MPS) and Stockfish 19. Source a5c5fb6, stand-in rules, seed 0, 256 particles, eight hypotheses, 200-ply cap, one engine thread and 16 MB hash were common across rows. The executable SHA-256 is `dc2f18c34ae962dff591b66147d220ec06e61d756b93d8a4f5e04fd8e55c251f`. Checkpoint identities remain in each summary. Results are archived in [PR #38](https://github.com/Mr-Teal/CS5446_project/pull/38), reviewed at 5e9393a; publication remains subject to the #17 objection window.
+Colin ran the batch from 26 October 22:47 to 27 October 08:09 SGT on one M5 Pro Mac, macOS 26.5.1, Python 3.14.6, NumPy 2.5.4, torch 2.14.1 (networks on MPS) and Stockfish 19. Source a5c5fb6, stand-in rules, seed 0, 256 particles, eight hypotheses, 200-ply cap, one engine thread and 16 MB hash were common across rows. The executable SHA-256 is `dc2f18c34ae962dff591b66147d220ec06e61d756b93d8a4f5e04fd8e55c251f`. Checkpoint identities remain in each summary. Results are archived in [PR #38](https://github.com/Mr-Teal/CS5446_project/pull/38), reviewed at 5e9393a and merged into main at 0a7a148 on 28 October at 01:18 SGT, after the #17 objection window closed.
 
 | Candidate versus Stockfish D1 | Scheduled | Finished W/D/L | Complete pairs | Paired score | Wilson 95% | Bootstrap 95% or reason | Game/diagnostic errors | Candidate ms mean/p95 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -73,7 +73,7 @@ Colin ran the batch from 26 October 22:47 to 27 October 08:09 SGT on one M5 Pro 
 | linear | 200 | 98/9/93 | 100 | 0.513 | 0.416–0.608 | 0.455–0.573 | 0/0 | 15.5/30.0 |
 | random | 200 | 0/0/199 | 99 | 0.000 | 0.000–0.037 | Withheld: all pairs score 0 | 1/0 | 0.0/0.0 |
 
-Score and both intervals use complete colour pairs; W/D/L uses every finished game. Random game 36 (opening 18) failed with `TrackerLost: no position fits black's view at ply 18`; its surviving partner remains in W/D/L but is excluded from the paired score. This leaves 1,398 games in 699 complete pairs across the seven separate comparisons. The failure and random row's nonzero process exit remain visible. There are no diagnostic errors, recovery events or recorded budget overruns. Timings exclude opening moves and tracker maintenance; candidate mean/p95 here is distinct from median/p95 in #38's main table. Full opponent timings, wall times, endings and tracker aggregates remain in the summaries.
+Score and both intervals use complete colour pairs; W/D/L uses every finished game. Three-decimal scores and intervals follow the published table's half-up rounding of the exact figures; some run-log cells round down instead (linear 0.513 versus 0.512, belief 0.563 versus 0.562, material bootstrap 0.023–0.078 versus 0.022–0.077, and D11 bootstrap lower bound 0.513 versus 0.512). These are display differences, not different results. Random game 36 (opening 18) failed with `TrackerLost: no position fits black's view at ply 18`; its surviving partner remains in W/D/L but is excluded from the paired score. This leaves 1,398 games in 699 complete pairs across the seven separate comparisons. The failure and random row's nonzero process exit remain visible. There are no diagnostic errors, recovery events or recorded budget overruns. Timings exclude opening moves and tracker maintenance; candidate mean/p95 here is distinct from median/p95 in #38's main table. Full opponent timings, wall times, endings and tracker aggregates remain in the summaries.
 
 **No-move footnote for every row:** source a5c5fb6, rules `pairb-standin`, `no_move_rule=unresolved`; unresolved no-move games excluded = 0; terminal `no_legal_moves` draws included = 0. The one random failure is a tracker failure, not a no-move case.
 
@@ -81,7 +81,7 @@ The controls are consistent with expectations: random and material score poorly,
 
 Independent archive review by Bryan with Codex assistance: all 22 manifest file sizes/hashes and seven decompressed game-stream hashes match. All 52 recorded source SHA-256 values match the pinned source snapshot; those source bytes also match GitHub's blob identities for a5c5fb6. Scores, both intervals, W/D/L, pairing/seed/opening consistency, timings, value-loss/tracker aggregates, termination and failure totals were independently recomputed from 1,400 records. Both generated tables rebuild byte for byte. This was an archive audit, not a match rerun or independent neural execution; original pre-normalization summary hashes and execution-machine history remain author-provided evidence.
 
-The batch was executed before the objection cutoff. #34 was also merged ahead of its stated time gate, as Colin disclosed on #38. Review and publication do not retroactively change that sequence: #38's 23:59 SGT gate remains explicit, objections require follow-up, and the batch keeps its pre-rule source.
+The batch was executed before the objection cutoff. #34 was also merged ahead of its stated time gate, as Colin disclosed on #38. Review and publication do not retroactively change that sequence. The #17 objection window closed on 27 October at 23:59 SGT, and #38 merged after it on 28 October at 01:18 SGT. The batch keeps its pre-rule source; any subsequent objections require follow-up.
 
 ## Operational Checklist: Not Report Prose
 
@@ -90,7 +90,7 @@ The batch was executed before the objection cutoff. #34 was also merged ahead of
 - Completed operator/machine confirmation: Colin ran all seven rows on his M5 Pro with torch and Stockfish 19; no split-machine batch was needed.
 - Completed source/configuration record: all rows use a5c5fb6 and explicit stand-in rules. The archived source includes the watchdog. Each row has its own output folder, command, settings, engine and checkpoint identities.
 - This batch retained the pre-rule interim policy; the draw-rule implementation reached main later. Do not rewrite its source or outcomes to match main.
-- The #17 objection cutoff remains 27 October 2026, 23:59 SGT. Execution before the cutoff does not waive objections or authorize merging #38 early.
+- The #17 objection window closed on 27 October 2026 at 23:59 SGT; #38 merged after the cutoff on 28 October at 01:18 SGT. Preserve the historical execution and publication chronology.
 - For any future batch, agree the protocol, operator, machine and exact rule/source revision first; verify effective modules, engines and checkpoints with a separate colour-paired smoke run. Use non-overwriting row folders. Keep Pair C experiments separate unless their scoring, tracker, engine and provenance contracts are explicitly reconciled.
 
 ### After Each Pairing
@@ -118,8 +118,8 @@ The batch was executed before the objection cutoff. #34 was also merged ahead of
 ### Current Status
 
 - PR #31 and #32 merged on 26 October. Their historical checks remain historical; publication did not rerun them.
-- The seven-row batch is complete and independently audited as described above. #38 was approved at 5e9393a; the objection window/publication gate remains as stated. #49's three documentation changes were reviewed at 7bad533.
-- #15, #26, #36 and #34 are on main. The later Pair A search stack and ZS21/shared-EP integration remain separate review work; do not present unmerged mechanisms as reviewed main functionality.
+- The seven-row batch is complete and independently audited as described above. #38 was approved at 5e9393a and merged at 0a7a148 on 28 October at 01:18 SGT, after the #17 window closed. #49's three documentation changes merged at 4fe521b on 27 October at 22:48 SGT.
+- #15, #26, #36, #34 and #45 are on main. ZS21/shared-EP integration #37 is also on main at 04f992d (28 October at 00:19 SGT). The later Pair A search stack remains separate review work; do not present its unmerged mechanisms as reviewed main functionality.
 - Issue #19's worked example and narrative are available. No additional toy experiment or post-rule batch is required by this revision.
 - No new training or matches were run for this document update. Future post-rule experiments require a separately pinned and validated run.
 
