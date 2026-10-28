@@ -92,9 +92,7 @@ and the no-reserve/reserve totals directly from the two JSON files.
 These are implementation observations: time savings can trade against solver
 work, and purification changes the played distribution rather than proving it
 is stronger. Live fallbacks include evaluator-call limits as well as clock
-failures. The tracker/weighting discussion and #37's rule
-decision are unresolved. Longer games and engine-based strength comparisons
-need those agreements and separately frozen configurations.
+failures. At the historical execution, tracker/weighting discussion and #37's rule decision were unresolved. #37 is now merged; the effective EP history check passes. Longer games and engine-based comparisons still need tracker/weight agreements and separately frozen configurations.
 
 ## Review clarification for the historical clock matrix
 
@@ -114,3 +112,11 @@ Both live matrices contain 12 capped/null games and no tracker-capacity failure.
 ## Post-main metadata correction
 
 `clock_ablation_post_main_baseline.json` and `clock_ablation_post_main_reserved.json` contain the merged shared-rule and corrected prior/label metadata. label_available is false for projected solves that label() rejects, even if a numerical solve result exists. The earlier review reruns also had exactly tied raw policies (40/40 non-fallback turns), so their purification changes reflect move order. Old JSONs remain historical. The backup generator now derives fallback and guard-exercise totals from its actual input arrays rather than typed counts.
+
+## Metadata-only EP readiness correction
+
+The generator now evaluates the declared effective shared-rule history instead of always claiming PR37 is pending. New reports emit `pending_rule_difference: null` with an explicit passing readiness check when that check passes; a failed or missing check remains unresolved. This check covers the EP fixture, not every rule.
+
+The two post-main clock references were corrected only in readiness metadata. Their measurements, summary arrays, execution commit and source manifests are unchanged; no timing rerun occurred. `metadata_corrections` records the original normalized artifact digest, old field, corrected status and the recorded shared-rule hash used to justify the correction. That hash matches the implementation passing the EP fixture. The stored generator hash remains its original execution version, so it is intentionally different from the repaired generator. Earlier pre-rule/historical artifacts are not relabelled.
+
+Downstream clock/audit links must use the corrected artifact's normalized content hash, preserving the old link in an explicit metadata-correction entry. The distinction between execution provenance and a later metadata fix is intentional.
