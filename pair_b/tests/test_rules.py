@@ -22,6 +22,7 @@ FIFTY_MOVE = "8/8/8/4k3/8/8/3Q4/4K3 w - - 100 80"  # the halfmove clock has alre
 NO_BLACK_KING = "8/8/8/8/8/8/8/4K3 w - - 0 1"       # a start that is already decided: Black has no king
 # (start FEN, moves played, how the game ends: (winner, reason))
 FINISHED = [
+    ("7k/8/8/8/1p6/pPp5/PRP5/KB6 w - - 0 1", [], ("draw", "no_legal_moves")),
     (KING_CAPTURE, ["e2e8"], ("white", "king_capture")),
     (FIFTY_MOVE, [], ("draw", "fifty_move")),
     (chess.STARTING_FEN, ["g1f3", "g8f6", "f3g1", "f6g8"] * 2, ("draw", "threefold_repetition")),

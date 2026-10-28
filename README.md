@@ -1,8 +1,13 @@
 # Fog-of-war chess: shared code
 
-This directory currently contains only the common interface. Neither ZS21 nor
-Obscuro is assigned or implemented here. The PDF proposal describes earlier
-R1–R3 work, but no such source files were present in this directory.
+This repository contains shared contracts, Pair B's evaluation and training
+tools, and Pair A's rules adapter and search implementations. The reproduced
+2021 ZS21 agent is now available with a pinned Windows/Pixi runtime, a matched
+baseline and native/shared/JSON integration interfaces. Start with the
+[ZS21 installation and integration guide](zs21_runtime/README.md).
+The full Obscuro agent remains separate work.
+See [Pair A preparation](pair_a_prep/README.md) and [Pair B](pair_b/README.md)
+for setup and current scope.
 
 ## Integration contract (schema v1)
 
@@ -40,7 +45,7 @@ R1–R3 work, but no such source files were present in this directory.
   through check to python-chess's pseudo-legal moves and passes the legal-move
   and game-over expectations of the `pair_a_prep` rules fixtures.
   `terminal_score` reports finished games (king captured, fifty moves,
-  threefold repetition with history); `forced_score` reports positions decided
+  threefold repetition with history, or no fog-legal moves); `forced_score` reports positions decided
   one move ahead that are not over yet (king capture available, or every move
   either ends the game in a draw or leaves the king capturable). Stockfish 19
   crashes on a position where the side to move can capture the king, so check
@@ -66,8 +71,9 @@ R1–R3 work, but no such source files were present in this directory.
 
 1. **Rule authority:** choose the exact chess.com/OpenSpiel-compatible rule
    adapter, including visibility, castling, en passant, king capture, draw
-   detection and legal-move feedback. The referee adapter is intentionally a
-   protocol until that comparison is complete. `python-chess` is used here to
+   detection and legal-move feedback. A concrete referee adapter now lives in
+   `pair_a_prep/rules_adapter.py`; comparisons with other environments remain
+   subject to review. `python-chess` is used here to
    parse hypothesis FENs; its ordinary legal-move generator is **not** a FoW
    referee.
 2. **Belief meaning:** `population_size` is the count before sampling; weights

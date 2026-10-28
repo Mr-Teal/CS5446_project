@@ -1,0 +1,524 @@
+{
+  "algorithm": "PCFR+",
+  "schedule": "simultaneous full-tree",
+  "prediction": "previous sequence utility, new own descendants (Appendix F)",
+  "averaging": "quadratic own-reach weighted",
+  "games": {
+    "matching_pennies": {
+      "oracle_value": 0.0,
+      "trace": [
+        {
+          "rounds": 1,
+          "last": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 10,
+          "last": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 100,
+          "last": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 1000,
+          "last": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          }
+        },
+        {
+          "rounds": 2000,
+          "last": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.0,
+            "nash_gap": 0.0
+          }
+        }
+      ],
+      "last_policy": [
+        {
+          "p0": {
+            "H": 0.5,
+            "T": 0.5
+          }
+        },
+        {
+          "p1_hidden": {
+            "H": 0.5,
+            "T": 0.5
+          }
+        }
+      ],
+      "average_policy": [
+        {
+          "p0": {
+            "H": 0.5,
+            "T": 0.5
+          }
+        },
+        {
+          "p1_hidden": {
+            "H": 0.5,
+            "T": 0.5
+          }
+        }
+      ]
+    },
+    "revealed_pennies": {
+      "oracle_value": -1.0,
+      "trace": [
+        {
+          "rounds": 1,
+          "last": {
+            "value": 0.0,
+            "nash_gap": 1.0
+          },
+          "average": {
+            "value": 0.0,
+            "nash_gap": 1.0
+          }
+        },
+        {
+          "rounds": 10,
+          "last": {
+            "value": -1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": -0.9974025974025975,
+            "nash_gap": 0.0025974025974024872
+          }
+        },
+        {
+          "rounds": 100,
+          "last": {
+            "value": -1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": -0.9999970444805675,
+            "nash_gap": 2.955519432523701e-06
+          }
+        },
+        {
+          "rounds": 1000,
+          "last": {
+            "value": -1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": -0.9999999970044948,
+            "nash_gap": 2.9955051772390107e-09
+          }
+        },
+        {
+          "rounds": 2000,
+          "last": {
+            "value": -1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": -0.9999999996252811,
+            "nash_gap": 3.7471892255780404e-10
+          }
+        }
+      ],
+      "last_policy": [
+        {
+          "p0": {
+            "H": 0.5,
+            "T": 0.5
+          }
+        },
+        {
+          "p1_after_H": {
+            "H": 0.0,
+            "T": 1.0
+          },
+          "p1_after_T": {
+            "H": 1.0,
+            "T": 0.0
+          }
+        }
+      ],
+      "average_policy": [
+        {
+          "p0": {
+            "H": 0.5,
+            "T": 0.5
+          }
+        },
+        {
+          "p1_after_H": {
+            "H": 1.873594569873274e-10,
+            "T": 0.9999999998126405
+          },
+          "p1_after_T": {
+            "H": 0.9999999998126405,
+            "T": 1.873594569873274e-10
+          }
+        }
+      ]
+    },
+    "hidden_coin": {
+      "oracle_value": 0.5,
+      "trace": [
+        {
+          "rounds": 1,
+          "last": {
+            "value": 0.0,
+            "nash_gap": 0.5
+          },
+          "average": {
+            "value": 0.0,
+            "nash_gap": 0.5
+          }
+        },
+        {
+          "rounds": 10,
+          "last": {
+            "value": 0.5,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.4987012987012987,
+            "nash_gap": 0.0012987012987012991
+          }
+        },
+        {
+          "rounds": 100,
+          "last": {
+            "value": 0.5,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.4999985222402838,
+            "nash_gap": 1.4777597162063394e-06
+          }
+        },
+        {
+          "rounds": 1000,
+          "last": {
+            "value": 0.5,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.4999999985022474,
+            "nash_gap": 1.4977525886195053e-09
+          }
+        },
+        {
+          "rounds": 2000,
+          "last": {
+            "value": 0.5,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.49999999981264054,
+            "nash_gap": 1.8735946127890202e-10
+          }
+        }
+      ],
+      "last_policy": [
+        {
+          "guess_hidden": {
+            "H": 1.0,
+            "T": 0.0
+          }
+        },
+        {}
+      ],
+      "average_policy": [
+        {
+          "guess_hidden": {
+            "H": 0.9999999998126405,
+            "T": 1.873594569873274e-10
+          }
+        },
+        {}
+      ]
+    },
+    "revealed_coin": {
+      "oracle_value": 1.0,
+      "trace": [
+        {
+          "rounds": 1,
+          "last": {
+            "value": 0.0,
+            "nash_gap": 1.0
+          },
+          "average": {
+            "value": 0.0,
+            "nash_gap": 1.0
+          }
+        },
+        {
+          "rounds": 10,
+          "last": {
+            "value": 1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.9974025974025975,
+            "nash_gap": 0.0025974025974024872
+          }
+        },
+        {
+          "rounds": 100,
+          "last": {
+            "value": 1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.9999970444805675,
+            "nash_gap": 2.955519432523701e-06
+          }
+        },
+        {
+          "rounds": 1000,
+          "last": {
+            "value": 1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.9999999970044948,
+            "nash_gap": 2.9955051772390107e-09
+          }
+        },
+        {
+          "rounds": 2000,
+          "last": {
+            "value": 1.0,
+            "nash_gap": 0.0
+          },
+          "average": {
+            "value": 0.9999999996252811,
+            "nash_gap": 3.7471892255780404e-10
+          }
+        }
+      ],
+      "last_policy": [
+        {
+          "guess_H": {
+            "H": 1.0,
+            "T": 0.0
+          },
+          "guess_T": {
+            "H": 0.0,
+            "T": 1.0
+          }
+        },
+        {}
+      ],
+      "average_policy": [
+        {
+          "guess_H": {
+            "H": 0.9999999998126405,
+            "T": 1.873594569873274e-10
+          },
+          "guess_T": {
+            "H": 1.873594569873274e-10,
+            "T": 0.9999999998126405
+          }
+        },
+        {}
+      ]
+    },
+    "kuhn": {
+      "oracle_value": -0.05555555555555558,
+      "trace": [
+        {
+          "rounds": 1,
+          "last": {
+            "value": 0.12500000000000006,
+            "nash_gap": 0.9166666666666665
+          },
+          "average": {
+            "value": 0.12500000000000006,
+            "nash_gap": 0.9166666666666665
+          }
+        },
+        {
+          "rounds": 10,
+          "last": {
+            "value": -0.0805210246214366,
+            "nash_gap": 0.2498073912142059
+          },
+          "average": {
+            "value": -0.06577400031970768,
+            "nash_gap": 0.1430662810963721
+          }
+        },
+        {
+          "rounds": 100,
+          "last": {
+            "value": -0.04937456898372902,
+            "nash_gap": 0.22593910461840402
+          },
+          "average": {
+            "value": -0.055585158885459174,
+            "nash_gap": 0.006229285766093856
+          }
+        },
+        {
+          "rounds": 1000,
+          "last": {
+            "value": -0.06406482354098308,
+            "nash_gap": 0.1877350748010329
+          },
+          "average": {
+            "value": -0.05555521542694991,
+            "nash_gap": 0.000918984021865743
+          }
+        },
+        {
+          "rounds": 2000,
+          "last": {
+            "value": -0.055555555555555525,
+            "nash_gap": 1.1102230246251565e-16
+          },
+          "average": {
+            "value": -0.05555555469779455,
+            "nash_gap": 1.8496244749366397e-05
+          }
+        }
+      ],
+      "last_policy": [
+        {
+          "p0:0:start": {
+            "check": 0.7593698388742286,
+            "bet": 0.24063016112577137
+          },
+          "p0:0:check_bet": {
+            "fold": 1.0,
+            "call": 0.0
+          },
+          "p0:1:start": {
+            "check": 1.0,
+            "bet": 0.0
+          },
+          "p0:1:check_bet": {
+            "fold": 0.42603650554089545,
+            "call": 0.5739634944591047
+          },
+          "p0:2:start": {
+            "check": 0.2781095166226859,
+            "bet": 0.7218904833773141
+          },
+          "p0:2:check_bet": {
+            "fold": 0.0,
+            "call": 1.0
+          }
+        },
+        {
+          "p1:1:check": {
+            "check": 1.0,
+            "bet": 0.0
+          },
+          "p1:1:bet": {
+            "fold": 0.6666666666666666,
+            "call": 0.33333333333333337
+          },
+          "p1:2:check": {
+            "check": 0.0,
+            "bet": 1.0
+          },
+          "p1:2:bet": {
+            "fold": 0.0,
+            "call": 1.0
+          },
+          "p1:0:check": {
+            "check": 0.6666666666666666,
+            "bet": 0.33333333333333337
+          },
+          "p1:0:bet": {
+            "fold": 1.0,
+            "call": 0.0
+          }
+        }
+      ],
+      "average_policy": [
+        {
+          "p0:0:start": {
+            "check": 0.7592646605401021,
+            "bet": 0.2407353394598978
+          },
+          "p0:0:check_bet": {
+            "fold": 0.9999999998766178,
+            "call": 1.2338217931415995e-10
+          },
+          "p0:1:start": {
+            "check": 0.9999999973940003,
+            "bet": 2.6059997199146448e-09
+          },
+          "p0:1:check_bet": {
+            "fold": 0.4258454972850611,
+            "call": 0.574154502714939
+          },
+          "p0:2:start": {
+            "check": 0.2775883131622504,
+            "bet": 0.7224116868377496
+          },
+          "p0:2:check_bet": {
+            "fold": 3.374772065382592e-10,
+            "call": 0.9999999996625228
+          }
+        },
+        {
+          "p1:1:check": {
+            "check": 0.9999999940619542,
+            "bet": 5.938045723451696e-09
+          },
+          "p1:1:bet": {
+            "fold": 0.6666479927845294,
+            "call": 0.33335200721547076
+          },
+          "p1:2:check": {
+            "check": 1.873594569873274e-10,
+            "bet": 0.9999999998126405
+          },
+          "p1:2:bet": {
+            "fold": 1.873594569873274e-10,
+            "call": 0.9999999998126405
+          },
+          "p1:0:check": {
+            "check": 0.6666601945801679,
+            "bet": 0.3333398054198322
+          },
+          "p1:0:bet": {
+            "fold": 0.9999999998126405,
+            "call": 1.873594569873274e-10
+          }
+        }
+      ]
+    }
+  }
+}
