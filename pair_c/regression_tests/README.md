@@ -5,7 +5,7 @@ issue under its own heading with the original feedback, response, and test comma
 
 ## Review issue 1: Reset engine state between games (see #17)
 
-**Original feedback** (copied from `pair_c/TODO`):
+**Original feedback**:
 
 > The agents/scorers are reused across games with new_game_each_call=False, but OnePlyBot.reset() does not clear Stockfish state. In a two-game probe, neither scorer's new_game() was called.
 >
@@ -25,7 +25,7 @@ Run from the repository root: `python -m pytest pair_c/regression_tests/test_res
 
 ## Review issue 2: Return a failure exit status
 
-**Original feedback** (copied from `pair_c/TODO`):
+**Original feedback**:
 
 > With an agent that raises, both games were recorded as failed, but the CLI still exited with status 0.
 >
@@ -52,7 +52,7 @@ python -m pytest pair_c/regression_tests/test_failure_exit_status.py -v
 
 ## Review issue 3: Allow each player to supply its tracker
 
-**Original feedback** (copied from `pair_c/TODO`):
+**Original feedback**:
 
 > The runner always constructs ParticleTracker, whose hypotheses lack the complete candidate_moves paths required by Pair A's search. Using our current agent reproduced:
 >
@@ -89,4 +89,39 @@ Run all focused regression checks from the repository root:
 
 ```powershell
 python -m pytest -q pair_c/regression_tests
+```
+
+## Review issue 4: Save evaluation provenance
+
+**Original feedback** (copied from `pair_c/TODO`):
+
+> Source/checkpoint/engine provenance remains necessary before using this runner for broader experiments. #17's formal Pair B runner and #34's merge gates are unchanged.
+
+**Rebuttal / response:**
+
+Added `provenance.json` to each evaluation's output directory. It records:
+
+1. Runtime environment: Python, PyTorch and PyTorch-build CUDA versions, automatically detected CPU model, and evaluation start time in UTC.
+2. Each player's effective inference device, backend and corresponding GPU model. CPU players have no GPU model; macOS MPS is recorded separately from CUDA. Unknown hardware is accompanied by a detection note.
+3. The original configuration's absolute path and each player's checkpoint path.
+4. Each player's Stockfish executable path and the running engine's UCI name and author, including engines nested inside network scorers. Players without an engine have `null` entries.
+5. A grouped `sha256` section containing the configuration hash, separate checkpoint and Stockfish executable hashes for both players, and a nested `source_files` mapping. The latter dynamically discovers all Git-tracked files across the repository at runtime and hashes their current working-tree bytes, without file-type filtering or an aggregate hash. Untracked files are excluded; tracked files deleted locally but not yet staged are recorded as `null`.
+
+`test_provenance.py` constructs an INI with Player A on CPU and Player B on GPU.
+It covers CUDA and macOS MPS configurations using simulated torch/hardware
+responses, lightweight legal-move agents and nested engine metadata. Temporary
+checkpoint and engine files are hashed without loading models or starting an
+engine. The real runner, game loop and provenance writer generate the output.
+
+The test reads the saved `provenance.json` and checks only its field names and
+nested field structure, including both players' device, checkpoint and Stockfish
+sections and the grouped hashes. It does not compare field values or inspect
+the dynamic `sha256.source_files` entries. Source discovery is stubbed so the
+test does not depend on the current Git index. Actual GPU inference, hardware
+detection, checkpoint loading and engine execution are not exercised.
+
+Run from the repository root:
+
+```powershell
+python -m pytest pair_c/regression_tests/test_provenance.py -v
 ```

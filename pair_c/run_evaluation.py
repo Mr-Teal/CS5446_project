@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import argparse
 import configparser
+import hashlib
 import json
+import platform
 import statistics
 import sys
 from contextlib import ExitStack
 from dataclasses import asdict
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,13 +23,16 @@ from pairb.rules import GameReferee, pick_rules
 
 from pair_c.agent_api import load_player, project_path
 from pair_c.tracker_api import load_tracker_factory
+from pair_c.provenance import (
+    cpu_model, player_device, sha256_file, source_file_hashes, stockfish_provenance,
+)
 
 
 def load_config(path: Path) -> dict:
     """Read and validate the INI file; return values in the types the game runner needs."""
     parser = configparser.ConfigParser()
-    if not parser.read(path, encoding="utf-8"):
-        raise FileNotFoundError(f"Configuration file not found: {path}")
+    source_bytes = path.read_bytes()
+    parser.read_string(source_bytes.decode("utf-8"), source=str(path))
 
     players = {}
     for side in ("a", "b"):
@@ -38,6 +44,7 @@ def load_config(path: Path) -> dict:
         players[side] = settings
 
     config = {
+        "source_config_bytes": source_bytes,
         "players": players,
         "games": parser.getint("match", "games"),
         "alternating_colors": parser.getboolean("match", "alternating_colors"),
@@ -64,6 +71,56 @@ def load_config(path: Path) -> dict:
     # Preserve player options as strings for both factories. Each tracker factory
     # parses its own settings; other trackers need not define particle options.
     return config
+
+
+def collect_provenance(config: dict, source_config: Path, started_at: str, players: dict) -> dict:
+    """Describe this run; CUDA means the CUDA version used to build PyTorch."""
+    try:
+        import torch
+    except ImportError:
+        torch = None
+        torch_version = cuda_version = None
+    else:
+        torch_version = str(torch.__version__)
+        cuda_version = torch.version.cuda
+    source_bytes = config.get("source_config_bytes")
+    if source_bytes is None:
+        source_bytes = source_config.read_bytes()
+    checkpoint_paths = {}
+    checkpoint_hashes = {}
+    for side, settings in config["players"].items():
+        checkpoint = settings.get("checkpoint_path", "").strip()
+        # The built-in non-network scorers ignore checkpoint_path, even when
+        # the configuration retains a path from an earlier experiment.
+        if (settings["factory"] == "pair_c.agent_factories:Factory"
+                and settings.get("scorer_id") not in ("network1", "belief")):
+            checkpoint = ""
+        path = project_path(checkpoint).resolve() if checkpoint else None
+        checkpoint_paths[side] = str(path) if path is not None else None
+        checkpoint_hashes[side] = sha256_file(path) if path is not None else None
+    stockfish = {}
+    stockfish_hashes = {}
+    for side, agent in players.items():
+        stockfish[side], stockfish_hashes[side] = stockfish_provenance(agent)
+    return {
+        "started_at": started_at,
+        "python_version": platform.python_version(),
+        "torch_version": torch_version,
+        "cuda_version": cuda_version,
+        "cpu_model": cpu_model(),
+        "player_devices": {side: player_device(agent, torch) for side, agent in players.items()},
+        "config_path": str(source_config.resolve()),
+        "checkpoint_paths": checkpoint_paths,
+        "stockfish": stockfish,
+        "sha256": {
+            "config": hashlib.sha256(source_bytes).hexdigest(),
+            "player_a_checkpoint": checkpoint_hashes["a"],
+            "player_b_checkpoint": checkpoint_hashes["b"],
+            "player_a_stockfish": stockfish_hashes["a"],
+            "player_b_stockfish": stockfish_hashes["b"],
+            "source_files": source_file_hashes(ROOT),
+        },
+    }
 
 
 def seed_for_game(config: dict, game_index: int) -> int:
@@ -139,6 +196,7 @@ def summarize(records: list[dict], config: dict) -> dict:
 
 def run(config: dict, source_config: Path) -> dict:
     """Run each game, save its record immediately, then save one aggregate summary."""
+    started_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     if config["output_dir"].exists():
         raise FileExistsError(f"Output directory already exists: {config['output_dir']}")
 
@@ -153,6 +211,9 @@ def run(config: dict, source_config: Path) -> dict:
         # Each side invokes its factory separately and owns its own Agent and model resources.
         player_a, reset_a = load_player(config["players"]["a"]["factory"], config["players"]["a"], stack)
         player_b, reset_b = load_player(config["players"]["b"]["factory"], config["players"]["b"], stack)
+        provenance = collect_provenance(
+            config, source_config, started_at, {"a": player_a, "b": player_b},
+        )
         tracker_factories = {
             side: load_tracker_factory(settings["tracker_factory"], settings)
             for side, settings in config["players"].items()
@@ -163,8 +224,12 @@ def run(config: dict, source_config: Path) -> dict:
             flush=True,
         )
         config["output_dir"].mkdir(parents=True)
-        (config["output_dir"] / "evaluate_config.ini").write_text(
-            source_config.read_text(encoding="utf-8"), encoding="utf-8",
+        source_bytes = config.get("source_config_bytes")
+        (config["output_dir"] / "evaluate_config.ini").write_bytes(
+            source_bytes if source_bytes is not None else source_config.read_bytes(),
+        )
+        (config["output_dir"] / "provenance.json").write_text(
+            json.dumps(provenance, ensure_ascii=False, indent=2) + "\n", encoding="utf-8",
         )
 
         with (config["output_dir"] / "games.jsonl").open("w", encoding="utf-8") as log:

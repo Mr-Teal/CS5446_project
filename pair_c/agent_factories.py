@@ -6,6 +6,7 @@ Its required interface and relevant source files are documented there.
 
 from __future__ import annotations
 
+import shutil
 from typing import Mapping
 
 from pairb.bot import OnePlyBot
@@ -84,7 +85,11 @@ class Factory:
 
         stockfish_setting = self.settings.get("stockfish_path", "stockfish").strip()
         stockfish_file = project_path(stockfish_setting)
-        stockfish_path = str(stockfish_file) if stockfish_file.is_file() else stockfish_setting
+        if stockfish_file.is_file():
+            stockfish_path = str(stockfish_file.resolve())
+        else:
+            executable = shutil.which(stockfish_setting)
+            stockfish_path = str(project_path(executable).resolve()) if executable else stockfish_setting
         device = self.settings.get("device", "").strip() or None
         checkpoint_setting = self.settings.get("checkpoint_path", "").strip()
 
@@ -119,6 +124,13 @@ class Factory:
             raise ValueError(f"Unknown scorer_id: {scorer_id!r}")
 
         self._scorer = scorer  # Retain the resources reset_game must clear.
+        # Keep the exact launch path, including PATH resolution, for provenance.
+        # Pure belief networks may have no Stockfish instance at all.
+        engine_scorer = (getattr(scorer, "stockfish", None)
+                         if scorer_id in ("network1", "belief")
+                         else scorer if scorer_id in ("stockfish-d1", "stockfish-d11") else None)
+        if engine_scorer is not None:
+            engine_scorer.provenance_executable_path = stockfish_path
         # Pair B already provides a compatible Agent implementation.
         return OnePlyBot(scorer)
         # --- Your Code Ends Here ---

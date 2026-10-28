@@ -51,6 +51,55 @@ I included the `rules` argument because Pair B's `GameReferee` and `ParticleTrac
 The output directory contains:
 
 - `evaluate_config.ini`: a copy of the exact configuration used.
+- `provenance.json`: Python, PyTorch and CUDA versions, automatically detected hardware,
+  evaluation start time (UTC ISO 8601), and the original configuration's absolute
+  path and SHA-256. The hash and saved INI use the same bytes read during configuration
+  loading. CPU detection supports Windows, macOS and Linux. `player_devices`
+  records each player's effective device, backend and corresponding GPU model,
+  using loaded network tensors before the Agent/scorer's device field. CUDA
+  indices follow PyTorch's mapping, including `CUDA_VISIBLE_DEVICES`.
+  CPU players have a `null` GPU model. Unknown devices or failed GPU detection
+  have a `detection_note`; configuration values are not used to guess hardware.
+  On macOS, MPS is recorded as the backend. Its GPU model is obtained from
+  `system_profiler` only when a single adapter makes the identity unambiguous;
+  otherwise the model is `null` with an explanation. CUDA means
+  `torch.version.cuda` (PyTorch's build CUDA version, not the driver or local toolkit).
+  CUDA is `null` for CPU-only PyTorch; both software fields are `null` if PyTorch
+  cannot be imported because it is not installed. MPS runs do not require CUDA;
+  a standard macOS PyTorch build records `cuda_version: null`.
+  Start time is captured on entry to `run()`, before model loading.
+  All hashes are grouped under `sha256`: `config`, `player_a_checkpoint`, and
+  `player_b_checkpoint`. Checkpoint hashes are calculated from the configured
+  files after model loading, using repository-relative path resolution;
+  `checkpoint_paths` records the absolute paths. Missing checkpoint settings
+  and built-in non-network scorers produce `null` paths and hashes. Custom
+  factories should use `checkpoint_path` for their checkpoint file. Files are
+  hashed in chunks; an unreadable configured checkpoint fails the run rather
+  than silently omitting its hash. Keep checkpoints unchanged throughout loading
+  and evaluation so these hashes describe the loaded weights.
+  `stockfish.a` and `stockfish.b` record each player's actual engine executable
+  path and the running engine's UCI `name` and `author`. The built-in factory
+  resolves project-relative paths or PATH commands before starting the engine,
+  and uses that same absolute path for provenance. Executable file hashes are
+  stored in `sha256.player_a_stockfish` and `sha256.player_b_stockfish`.
+  Network scorers' nested Stockfish instances are included; players without an
+  engine (including pure belief networks) have `null` metadata and hashes.
+  Custom factories wrapping engines should expose `provenance_executable_path`
+  on their engine scorer; missing launch-path metadata is explicitly noted.
+  Executables must remain unchanged during loading and evaluation; unreadable
+  recorded executables fail provenance collection instead of omitting the hash.
+  `sha256.source_files` is a separate mapping from repository-relative tracked-file
+  paths to individual hashes; no aggregate source hash is calculated.
+  Each evaluation dynamically queries `git ls-files --cached -z` across the
+  entire repository and hashes every tracked file, without filtering file types
+  or directories. Tracked logs, datasets, checkpoints and documentation are
+  included as well.
+  Hashes describe current working-tree bytes, including unstaged edits.
+  Untracked files are excluded, even when not ignored. An unstaged deletion
+  is recorded as `null`; after staging the deletion, its path leaves the mapping.
+  Git must be available and the checkout must retain its Git index; discovery
+  failures abort provenance collection rather than reporting an empty source list.
+  An optional isolated smoke check is available via `python pair_c/provenance.py`.
 - `games.jsonl`: one JSON record per attempted game, including player identities, Agent/tracker factory paths and colors, seed, winner, termination reason, every move, and per-move elapsed time. Failed games are recorded with an error.
 - `summary.json`: Agent/tracker factory paths, wins, draws, losses, win rate, score rate, completed/failed game counts, move timing, and over-budget counts.
 
