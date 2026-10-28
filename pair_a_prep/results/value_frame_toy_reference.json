@@ -1,0 +1,204 @@
+{
+  "scope": "explicit-frame toy arithmetic only; no chess/gift-ledger/solver-state integration",
+  "python": "3.12.15",
+  "base_commit_at_execution": "879818c16518e1d706cf60fe5f666979d532aec9",
+  "source_hash_convention": "sha256_utf8_source_bytes_crlf_to_lf_v1",
+  "source_sha256": {
+    "fow_shared/__init__.py": "37341517e96181be2141f9e385db934dceec397cea53a4655f0d2414a7d9e5ce",
+    "fow_shared/contracts.py": "88a4b7e40aeea9ef6125ed1627f59cfb3c40003ee6838ae6d91a802e40779332",
+    "fow_shared/evaluation.py": "ff558195703f6288a5d0e9972fd88159b65c6b0624b2e8ec485b190385ad747d",
+    "fow_shared/features.py": "ec42b15ec57c3cca4c8bf5158a8f2b498bf14f3ad567424d31b20daa9cbfe664",
+    "fow_shared/interfaces.py": "9a8c72d198fd70e572032e610141983d2b90ce8464128cee9ff3b702fdd7d023",
+    "fow_shared/recording.py": "acd3d4df52337a527ebcc39295a078e417f7fd3886369fb41282849c6f618235",
+    "fow_shared/values.py": "8288dc8fcd117513b27f82fedd45d8817849ba13081c55f194a252940d70517b",
+    "pair_a_prep/__init__.py": "7a6bf349f2db09800283c148b509c3f38ff9f0154ad7a65cfd2f178007595521",
+    "pair_a_prep/anytime_agent.py": "c4a69c002aa1613d4495b0752ce295d497e5c3c8978c62af69afbeec7e272094",
+    "pair_a_prep/belief_tracker.py": "b6d391652eefac65ceae5d9a522e2f0743ddefbd3767c80b77309ebc561b5dae",
+    "pair_a_prep/benchmark_stockfish.py": "54d357c15ad91f7834e2b7bd4c2ae5c6a16535c4a3103f44b0af22625efcf741",
+    "pair_a_prep/board_viewer.py": "b954dcb340f14c34a7517e8f6d48fb6f00f57ba7fc75bb9a93c55eced585f1e2",
+    "pair_a_prep/budget_experiments.py": "af7004de46eadfc2b5fc69d2293dbd056e9edba491c9643173090177a4b9e79f",
+    "pair_a_prep/chess_gadgets.py": "838aff068409a87f70e34a31a1038854f17fb3448c00e876205aa9bee00bead0",
+    "pair_a_prep/chess_projection.py": "ce30d96db292a91b644378efda8551d2d6a2103378564a6c7bcae59a35a73e0a",
+    "pair_a_prep/chess_search.py": "0304bf62fce79e1678286d3ed8d68030489a926fce79c38f2bc26a2c2f2e7cd2",
+    "pair_a_prep/chess_subgame_agent.py": "653871f3d0937ee555642c33b882a4dbf24586c1f9e96a51e70a4adebf163953",
+    "pair_a_prep/clock_ablation.py": "3980b6755416d9b3013f0b3c1ae6ee69456be1d2c301f2a03b1364d452359e0b",
+    "pair_a_prep/cross_turn.py": "15e6925c5d09c358d9ac71f5a3c7c733b57680c65608bb7d780f4170cff7949d",
+    "pair_a_prep/cross_turn_experiment.py": "3fd8ae0f369f208481fea247f712e563c837cd9f6d17dcab73db45a0bad790eb",
+    "pair_a_prep/evaluation_factories.py": "a824056061a025c8fdd5cb8d097be19ed5a2d28b8056ca1faea6caac348de5f5",
+    "pair_a_prep/fixtures.py": "6325f62556d9c1b815f5235e27165abf67156d323095811b52d01ff89ac8fe24",
+    "pair_a_prep/gadgets.py": "9dc864e2064259338f1ec5c841a5f5449106ef75d02192f9190155abd62cb0bf",
+    "pair_a_prep/gift_accounting.py": "0da1499e8c9693f29d38022b28b75fe31b0f11928e20176145606eacbc6a754c",
+    "pair_a_prep/gift_accounting_probe.py": "c13feed467007b1b6170517cc35cf21ab7b63a8859b104d119366005379c38e9",
+    "pair_a_prep/interface_draft.py": "d3a991309aab28a48109a06ae3130644f3500fd46c8da7a5d39cc89503ad8c02",
+    "pair_a_prep/knowledge.py": "5c738b58f7d6847fe6a43aa4f00f033a822346caaf3546cc7528d426732255f4",
+    "pair_a_prep/label_pilot.py": "6cb76de0ea11ce06392983829c07f2fd01f1a178e3f5dd224a0239a152c704c2",
+    "pair_a_prep/one_sided.py": "f4a06a9eecb2a60a004f2743843dc383e1f51756f8de2c1122185ef5c339d145",
+    "pair_a_prep/one_sided_experiment.py": "dab7d97ab69855627823f9f7627c1e9d45203f4331a4541435407f49d2381841",
+    "pair_a_prep/pcfr.py": "cea90bb67feb725afaa0594c842c15647f1ab9cb76f2e58b1f48633f5deaa84e",
+    "pair_a_prep/presentation_materials.py": "0e4e6bab0f7d88115ce27b6ac2ec137e1006338600e2506c81e3e7df7c3fd8a5",
+    "pair_a_prep/provenance.py": "2d1f715268eeba1fe5a3f0ed6bf9d5def4fa0050835b19a9e9dd8d373e831106",
+    "pair_a_prep/rules_adapter.py": "495c56516ec194ef65deb04ac41adcac391643cd97f1fa862b6f1cc8171385d8",
+    "pair_a_prep/search_agent.py": "d6c8063e1e5060d397a31bdf8365ffa74f758a118a088aadb84fbee44131eb33",
+    "pair_a_prep/search_policies.py": "da6a282054aae66da8f10d9f35e245a6b7b0a1db6fee558d54b931ae4898dc54",
+    "pair_a_prep/subgame_boundaries.py": "04ae398136b0badfc5e7cf5271a39afeb2b729e54480a74b57f3f73e394e7699",
+    "pair_a_prep/subgame_validation.py": "71a330271904da7870664ce47208e23c69cc3bdbfa63bb4b39dd2e29006e61aa",
+    "pair_a_prep/toy_games.py": "35589a2b9a49cc6558943ec2e7a1896f1f9daad7ba6e843537b6e4bf48d062bf",
+    "pair_a_prep/toy_visualizer.py": "f37c3baa40b1758c11090838773ed57c69e89b9f39443cd32c97719226028c5e",
+    "pair_a_prep/value_frame_probe.py": "e03e72cc435313f8d90b287c820a549d355423076be3369cc7e94a92b0177efb",
+    "pair_a_prep/value_frames.py": "c073cc1baecd82d98ac6aee7b78d42074dd6d808ab7e56f4ad19e5268b9bc494",
+    "pair_a_prep/warm_start.py": "06c44a2cf708446793621824bcae856243dec475a0d410e6dac913c12ae21a63",
+    "pair_a_prep/zs21/__init__.py": "514e3a0e972ac4b4c73be2dbb0e79dcf2fe91662f282a1f6619b71231987339e",
+    "pair_a_prep/zs21/agent.py": "68994ee7080219199972dd9eeb68570bd5820c5797f5a9161ded17f7b10a27e4",
+    "pair_a_prep/zs21/config.py": "72426878567110fc587a5179547b09d5d618051360fadf94747901ce1a1edc54",
+    "pair_a_prep/zs21/engine.py": "eb97d394538d0c76887026cdcb72b194a01b2785de148073034e72b47d103c30",
+    "pair_a_prep/zs21/gadget.py": "6f3808338b0bec8a74d48cbd8e775a781f537cafbc07dc2e4288fbff4748f5c2",
+    "pair_a_prep/zs21/integration.py": "09073dcab3ab9077b01a839e8a23d44d356d8ac3725b1f9799639cdd8d2a5966",
+    "pair_a_prep/zs21/lp_diagnostics.py": "eda87106b901edd305c348705d3f7d02af199ac43a7efcf4f6d77e75e0732a87",
+    "pair_a_prep/zs21/match.py": "73d4f768192eafba35f9b0430813dd4b36eb415278be816d76b5aa6392ed4730",
+    "pair_a_prep/zs21/model.py": "0b5ff3a6676fc48d020bf80b2b03d9ba3b90ea2bc11c083dc61c1ad978f051a7",
+    "pair_a_prep/zs21/native_tracker.py": "03eb687a71d03d5f870a5c083de5da83a1e2a2d3eba80adbaab6a6bbe056fbf3",
+    "pair_a_prep/zs21/probe.py": "d93e78a118152fb045b61d26707f32c28d960528585a5e9d6596979fc5d8c266",
+    "pair_a_prep/zs21/protocol.py": "8cb11cdeb8846f05d709779c60649d1703b0e1c8b6f5be9c8af23514be91b77d",
+    "pair_a_prep/zs21/replay.py": "be62c4d793d3e1ae43b8a30044585a509375e474d2d707ef7e189862dd148818",
+    "pair_a_prep/zs21/rule_profile.py": "583a8a8cfdf9510d1d2f230b435f12b562b476fe3e301da71816c036124cf81b",
+    "pair_a_prep/zs21/sequence_form.py": "667de84dea3c8d3a6f5aa4156a71c5799768250d092285dad560f84028d14f3e",
+    "pair_a_prep/zs21/serve.py": "382048f34716a22de2e192ab988ceedde45f9745c1f826edea942892384ad1fe",
+    "pair_a_prep/zs21/ui.py": "84274a714072e6b71f31fdcf175c02feff41be0e2197f95ba26badfb9b57c316",
+    "pair_a_prep/zs21/validation.py": "76f3876114999f1606dc82f7aa22084802feaa1fb68eb54484f7aaa9a67cdead",
+    "pair_b/src/pairb/__init__.py": "662b9dc404bf2d8b66f652c82fb2e5053cccb6ab12d0e0e2a16e3fe7071f089d",
+    "pair_b/src/pairb/belief_data.py": "34206f5e945a9e4f5f77a53d531c59c9b4fbe3d5f3bea6b462da84ea1d6d872d",
+    "pair_b/src/pairb/belief_eval.py": "320001d119c233c948f38a9691ab83b0c08e3c31d6801abc0006a76750dbb497",
+    "pair_b/src/pairb/belief_evaluator.py": "4c4066187ec09cd640dbb7c7d67ebd26d710a1aff3176d78d2827b9342f59325",
+    "pair_b/src/pairb/belief_net.py": "89d454cfabc44f6a64a2e30cd9b93e677f50547a95db70207d8bebe5f08e240f",
+    "pair_b/src/pairb/bot.py": "da8b5fb12b1cd6083994fc17e6b77ebdaa19bb978126cf1e82298500540ba26b",
+    "pair_b/src/pairb/d2.py": "cb85c33ceb4f2cb511f06dd48892e12990fda55e5e1d7371b4a68c4a90ee2d20",
+    "pair_b/src/pairb/data.py": "cdf9bdb4639962303415c47fa77bfaf6ed4ed6afe1795e0aa6ba11f4ad211758",
+    "pair_b/src/pairb/encode.py": "5959d7635e1df388e474ca7e48a37a07b06dfa58a31ee74d266ea795f9936caf",
+    "pair_b/src/pairb/evaluate.py": "d8fdf455daf7472701cf532cca999d33af07ce74590a0270191eddc096894853",
+    "pair_b/src/pairb/harness_adapter.py": "6681169c5948935d7829fd867b26a424e9bdfddaa5285b0c9ca302405a376a2b",
+    "pair_b/src/pairb/lab/__init__.py": "2010df25f3be9983138981e15bb7f98505c788ed67b982bc47acc9e6b1fa7fca",
+    "pair_b/src/pairb/lab/__main__.py": "7779a8a379383916c5bd049ddabf1292e8636336a10b283853ba17dd07e875f7",
+    "pair_b/src/pairb/lab/accuracy.py": "77b97854c718967d3b07c42c5232035cd4883df2dee31a6fa1a6b4713be27bc3",
+    "pair_b/src/pairb/lab/checks/__init__.py": "d7da0448909f6ffefc751167b75d33f9d609b1c695b781c494348e7e045cafbb",
+    "pair_b/src/pairb/lab/checks/fixture_check.py": "9c4a77126b22b03f3c5945d48a02d42098d7a47c0b23b6ddd1945797036c4424",
+    "pair_b/src/pairb/lab/paths.py": "d5978ae9c538e67bd9f37e908916f3237f8aca7bbd1bc821fab08644cea8babb",
+    "pair_b/src/pairb/lab/record.py": "d248763370446f531b11332b24f80ad8208d56139b6b38719668800687972541",
+    "pair_b/src/pairb/lab/runs.py": "ea7185eb888b43d03f00db1867f09596f2c267aa4b78bb501cc68e306db26626",
+    "pair_b/src/pairb/lab/scorers.py": "ed7d246e4cbd5065a23767fa6955057a5f70760e8212aaed665d915bb809e7dc",
+    "pair_b/src/pairb/lab/server.py": "51a61a495fba56035e5d6d654997691dcd91750f82b3a860a0b6b658a093fc37",
+    "pair_b/src/pairb/lab/session.py": "90741f77ff59f128f9812a434bafe14dab7856cfbef88fa0a0cb2fa9b03e6ce8",
+    "pair_b/src/pairb/lab/stage_runner.py": "47f25113c18a6f05b3d3f911dddcda6ccf6500636ca1e25c53c673f1981bda54",
+    "pair_b/src/pairb/lab/stages.py": "20004384906e64c4dd6c1ac5e1fbd4ada7b0ec522347395ff35c12a71314dcf4",
+    "pair_b/src/pairb/label_validation.py": "bd2adcbfc827ee267e438cda8d3f61cca9fe4db575197d202574322ce3aee530",
+    "pair_b/src/pairb/linear.py": "cb23dc9d3937fe4159995c6e1319899f6d019dd2ffe659ffa486fa473f7971ad",
+    "pair_b/src/pairb/linear_evaluator.py": "2b6d70db803f96b3773806a228a50f794a09cf993215eaaa928dfb26e9511c5b",
+    "pair_b/src/pairb/linear_workflow.py": "fe0ba1a6ec8a7efab3850dcb6eecd2fa0940f362b68ad5d52e5c16e81476dced",
+    "pair_b/src/pairb/match_experiment.py": "d54e3c3a9dbe1e919cb727b2c9b2e3351611ef7b822dba92a65a4a9462b77101",
+    "pair_b/src/pairb/material.py": "cc1a9adaa672d4c3fb93c5dbb6270ae38b013f93d16f7e4c7fc3a4322e938831",
+    "pair_b/src/pairb/metrics.py": "e5955ef1b48e7871a50b97cba4ccc701911dc1972558c5ce04a1a2de386ba594",
+    "pair_b/src/pairb/net1.py": "d1f191a2cb608779dc50e6d49be73a4cea01658b55febe0d0add33e93881892c",
+    "pair_b/src/pairb/network_evaluator.py": "4e24faebfb5a20d07b1743faeb3aa8b3d58ecbd5980d6af737e4c6fc548d8c72",
+    "pair_b/src/pairb/observe.py": "0d1e225e56a5e22c6c13982f1ab8dba74df7243ac6284bd561a0e3be09e5e918",
+    "pair_b/src/pairb/provenance.py": "6814fe39835155392ce6cd3f90104b8973d7143481b0864994cf7fa15328e883",
+    "pair_b/src/pairb/rules.py": "67492780a2715c55600d13cd27534ab3b2846f763ab33ef4ab39b107eda6cc99",
+    "pair_b/src/pairb/standin_beliefs.py": "d97cf83fc6c652aba7712da21e5e2f034443caba1f35557e01657dc1a29d2e14",
+    "pair_b/src/pairb/stockfish.py": "e3b514d19604af421a827a34cb786aac3d78bca7e87dbbcc92a000ea54cf1fa3",
+    "pair_b/src/pairb/tracker.py": "88ee0f4c4d8c0a55d893ec15a369c6740c8b0c4ffbc1b145fb35b17c514218d4",
+    "pair_b/src/pairb/values.py": "e9ce2ae7015fdce58f0fc6d8b00a38481ce5982ff4f3ba33d13da43baf1a5b26"
+  },
+  "resolve": {
+    "source_frames": {
+      "A": {
+        "unit": "declared_common_player0_unit",
+        "scale": 1.0,
+        "offset": 0.0
+      },
+      "B": {
+        "unit": "declared_common_player0_unit",
+        "scale": 1.0,
+        "offset": 0.0
+      }
+    },
+    "target_frames": {
+      "A": {
+        "unit": "declared_common_player0_unit",
+        "scale": 2.0,
+        "offset": 0.3
+      },
+      "B": {
+        "unit": "declared_common_player0_unit",
+        "scale": 0.25,
+        "offset": -0.1
+      }
+    },
+    "source_prior": {
+      "A": 0.7,
+      "B": 0.3
+    },
+    "target_prior": {
+      "A": 0.9491525423728814,
+      "B": 0.05084745762711865
+    },
+    "expectation_scale": 1.4749999999999999,
+    "expectation_offset": 0.18,
+    "source_matrix": [
+      [
+        0.625,
+        0.73,
+        0.06499999999999999,
+        0.16999999999999998
+      ],
+      [
+        -0.125,
+        -0.31999999999999995,
+        0.365,
+        0.16999999999999998
+      ]
+    ],
+    "target_matrix": [
+      [
+        0.30169491525423725,
+        0.3728813559322034,
+        -0.07796610169491525,
+        -0.006779661016949136
+      ],
+      [
+        -0.20677966101694917,
+        -0.3389830508474576,
+        0.12542372881355934,
+        -0.006779661016949136
+      ]
+    ],
+    "max_matrix_residual": 1.1102230246251565e-16,
+    "source_lp_value": 0.16999999999999998,
+    "target_lp_value": -0.006779661016949136,
+    "reconstructed_source_lp_value": 0.17
+  },
+  "gift_delta_example": {
+    "source": 0.25,
+    "target_A": 0.125
+  },
+  "maxmargin": {
+    "source_margins": {
+      "A": 0.2,
+      "B": 0.3
+    },
+    "target_scales": {
+      "A": 0.1,
+      "B": 1.0
+    },
+    "unweighted_target_margins": {
+      "A": 2.0,
+      "B": 0.3
+    },
+    "source_minimizer": "A",
+    "unweighted_target_minimizer": "B",
+    "source_unit_corrected_minimizer": "A"
+  },
+  "missing": [
+    "derive proven frames from actual CF reach/gadget offsets",
+    "transport solver warm state",
+    "handle outside-sample branches",
+    "validate across live turns"
+  ]
+}
