@@ -237,6 +237,8 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
     def label(self, turn, game_id):
         if not game_id.strip():
             raise ValueError("label runs require a game_id")
+        if self.saved is not None:
+            raise ValueError("projected subgame labels disabled pending solver-root/weight contract agreement")
         result = self.solve(turn)
         if result.decision.diagnostics["label_root_contract_pending"]:
             raise ValueError("projected subgame labels disabled pending solver-root/weight contract agreement")

@@ -53,6 +53,7 @@ def test_archive_cli_exports_labels_without_inventing_git_provenance(archive, tm
     for relative, digest in report["source_sha256"].items():
         assert digest == sha256((archive / relative).read_bytes()).hexdigest()
     assert report["source_sha256"]["pair_a_prep/label_pilot.py"]
+    assert report["source_sha256"]["pair_b/src/pairb/values.py"]
     assert report["validation"] == {"errors": [], "warnings": []}
     assert (output / "part-000.jsonl").is_file()
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))

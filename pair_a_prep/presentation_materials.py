@@ -188,8 +188,12 @@ def clock_backup(report, baseline):
             y += 48
     old = sum(r["caller_over_budget"] for r in baseline["turn_runs"])
     new = sum(r["caller_over_budget"] for r in report["turn_runs"])
-    body += text(80, 670, f'Historical guard: overruns {old}/48 to {new}/48; reserved live fallbacks 11/48.', 25, "#91b5ff")
-    body += text(80, 715, "Only 16/48 turns exercised the guard; Material only; historical source.", 23)
+    live_actions = [a for game in report["games"] for a in game["actions"]]
+    live_fallbacks = int(sum(a["diagnostics"].get("fallback", 0) for a in live_actions))
+    exercised = sum(not r["diagnostics"].get("fallback", 0) and
+                    not r["diagnostics"].get("stop:round_limit", 0) for r in report["turn_runs"])
+    body += text(80, 670, f'Historical guard: overruns {old}/{len(baseline["turn_runs"])} to {new}/{len(report["turn_runs"])}; live fallbacks {live_fallbacks}/{len(live_actions)}.', 25, "#91b5ff")
+    body += text(80, 715, f"Only {exercised}/{len(report["turn_runs"])} turns exercised the guard; Material only; historical source.", 23)
     body += text(80, 758, "All non-fallback raw policies were ties; purification reflects move order.", 23)
     body += text(80, 801, "A running evaluator or CFR round can still overrun. These observations are not a hard-time guarantee.", 23, "#f8c36a")
     return slide("Clock budgets and purification: measured limits", "Backup for slide 5 | Two seeds, two repeats | Caller surrounds the entire act() call", body,

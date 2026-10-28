@@ -105,9 +105,11 @@ All of these and explicit capacity failures leave the last accepted population,
 observation and RNG unchanged. The caller can correct the input and retry.
 Stored observations detach their piece dictionaries from caller-owned snapshots.
 
-The rules profile remains `paper_fow_v1_proposed`; unresolved behavior such as
-zero legal moves without an existing terminal outcome is inherited from the
-adapter. This implementation does not add new draw rules or forced-loss endings.
+The rules profile remains `paper_fow_v1_proposed` with explicit no-move revision
+`terminal_draw_v1` from #28/#15: zero fog-legal moves is a terminal draw after
+king capture, fifty-move and repetition checks. The tracker inherits this
+adjudication and terminal feedback from the adapter; it does not add its own
+draw rules or forced-loss endings.
 
 ## Local environment and verification
 

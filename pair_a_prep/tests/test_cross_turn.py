@@ -68,3 +68,40 @@ def test_live_game_retains_state_and_reserves_new_rounds_each_turn(growth):
         assert diagnostics["retention:retained_infosets"] > 0
         player.reset(player._player, 19)
         assert player.saved is None
+
+
+def test_mixed_reused_and_fresh_roots_restore_every_shallow_frontier():
+    from pair_a_prep.chess_search import expand_chess_tree
+    from pair_a_prep.pcfr import PCFRPlus
+    old_turn = turn_after()
+    old = build_chess_tree(old_turn, ConstantLeaf(), initial_fen=KINGS, depth=2)
+    solver = PCFRPlus(old.root)
+    old = expand_chess_tree(old, solver, ConstantLeaf(),
+        selected_paths=(("0", "a1b1", "h8h7"),), max_nodes=5000)
+    turn = turn_after(moves=("a1b1", "h8g8"))
+    tree, audit = retain_tree(old_turn, old, turn, ConstantLeaf(),
+        initial_fen=KINGS, depth=2, max_nodes=5000)
+    assert audit["reused_roots"] > 0 and audit["fresh_roots"] > 0
+    assert audit["restored_frontiers"] > 0
+    reference = build_chess_tree(turn, ConstantLeaf(), initial_fen=KINGS, depth=2)
+    assert tree.root == reference.root
+    assert min(len(path)-1 for path in tree.frontiers) == 2
+
+
+def test_retained_restore_deduplicates_evaluator_work_across_frontiers():
+    class CountingLeaf(ConstantLeaf):
+        def __init__(self):
+            super().__init__()
+            self.calls = []
+        def evaluate_children(self, fen):
+            self.calls.append(fen)
+            return super().evaluate_children(fen)
+    leaf = CountingLeaf()
+    config = AnytimeConfig(initial_depth=3, max_depth=3, rounds=4,
+        final_rounds=1, stop_on_time=False, max_nodes=2000)
+    agent = RetainedPCFRAgent(leaf, config, KINGS)
+    agent.reset("white", 17)
+    agent.solve(turn_after())
+    leaf.calls.clear()
+    agent.solve(turn_after(moves=("a1b1", "h8g8")))
+    assert leaf.calls and len(leaf.calls) == len(set(leaf.calls))
