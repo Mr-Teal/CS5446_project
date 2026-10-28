@@ -169,3 +169,7 @@ can be added as the adapter develops. Cases containing `initial_fen` and
 `moves_uci` must replay the history rather than load only the final FEN.
 Running without `--adapter` validates fixture structure and history only;
 it does not establish that a FoW rules implementation passes the cases.
+
+### Actual transition diagnostics
+
+[Cross-turn reach/state audit](docs/transition_audit.md) records real private projections, checks candidate-path identities and distinguishes current CF reach ratios from cumulative solver-state conversion. Run `python -m pair_a_prep.transition_probe --output pair_a_prep/local_runs/transition-audit.json`. This offline diagnostic does not change agent decisions or authorize exact warm-state transfer.

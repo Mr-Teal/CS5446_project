@@ -50,3 +50,7 @@ The focused selection has 77 passing cases. It covers both schedules, predictive
 Resolve-to-Maxmargin conversion changes enter/exit versus selector structure. A test explicitly verifies that a valid continuation-frame certificate still fails the solver-state certificate. Different per-group offsets also generally fail the single-global-map requirement. The APIs therefore do not replace the existing heuristic mode-switch warm start.
 
 Real turns change the sampled roots, reach normalization, information sets and possibly unseen continuations. Deriving those correspondences, preserving the necessary original reach units, handling outside-sample branches and avoiding ancestor-payment double counting remain open. Numerical ancestor gifts are not added to the ledger or new boundaries. Future integration must first exhibit a valid transform for a real retained-root transition and justify the changed-game solver-state rule; it cannot rely only on matching hashes or these fixed-tree toys.
+
+## Follow-up on actual turns
+
+See [the actual transition audit](transition_audit.md) for read-only saved-tree/private-projection measurements. It distinguishes current per-player CF root ratios from accumulated-regret conversion and records where the strict whole-game certificate fails. The live heuristic warm start remains separate.
