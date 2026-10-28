@@ -103,3 +103,7 @@ The v2 run has 48 standalone actions with one fallback, and 12 capped/null live 
 ## Post-main integration snapshot
 
 `gift_accounting_post_main_reference.json` links to `gift_accounting_clock_post_main_reference.json` after the retained-cache repair and integration of main (#37/#38/#45). Sources match under the normalized convention. The measured clock run has 48 standalone actions, three fallbacks, zero observed overruns; its 12 capped/null live games have 48 actions, two fallbacks and zero observed overruns. Hand gifts remain 0.25/0 and the final ledgers have three events per side. Older v2/review/original matrices remain historical, with no pooling or timing guarantee.
+
+## EP readiness metadata correction
+
+The post-main clock report had the generator's stale PR37 pending string. It now records the passing effective EP check, with a metadata-only correction and original normalized digest. Measurements and execution manifests were preserved. The linked post-main gift audit updates its portable content hash and records the previous link/digest in its own correction entry; its game/ledger/measurement data is unchanged. No clock or game rerun occurred. The generator now copies readiness from its linked clock report. Earlier pre-rule and historical artifacts remain untouched.
