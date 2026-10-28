@@ -56,7 +56,7 @@ def measure(agent, turn, case, budget, seed, repeat):
         raw_policy=raw, played_policy=played,
         raw_played_l1=sum(abs(raw[a]-played[a]) for a in raw), diagnostics=decision.diagnostics,
         stop_reason=agent.last_stop_reason,
-        label_available=agent.last_result is not None)
+        label_available=agent.last_result is not None and not decision.diagnostics.get("label_root_contract_pending", 0))
 
 
 def prepare(seed):

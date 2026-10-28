@@ -35,7 +35,7 @@ Twelve declared position/history cases cover:
 The repetition fixture supplies one declared consistent hypothetical history,
 not a full posterior. Other single-root checks start at their public FEN. This
 is distinct from the live runs, which use the actual shared private-observation
-loop and independent exact trackers. A separate rule-history check includes #37's FoW-effective EP example and explicitly reports it blocked until the shared fix is integrated. It is not counted among the successful search roots.
+loop and independent exact trackers. A separate rule-history check includes #37's FoW-effective EP example and now passes after the shared #37 fix was merged from main. Earlier artifacts marked it blocked at their own source. It is not counted among the successful search roots.
 
 ## Recorded live runs
 
@@ -56,7 +56,7 @@ stress test or a claim about original Stockfish-based runtime.
 | Rook/pawn endgame | 29 | 3 | actual White win |
 
 Totals: 29 actions, no fallback, no action over 10000 ms, and no tracker capacity
-failure. The slowest recorded action was approximately 967 ms on this machine.
+failure. The original historical file peaked at about 967 ms; the earlier review file peaked at about 1002 ms. Neither number describes the current source.
 The historical head had 478 shared/Pair A tests; this is not a test count for the review-fix head.
 Action timing excludes tracker updates in the shared runner. The exact tracker
 population peaked at **1819/2000 (91%)**, at ply 5 of rook_endgame seed 17; its final population was only 1750; short-run success
@@ -86,3 +86,7 @@ Per-game peak populations (white / black): standard seed 17 421/343, standard se
 Actions export `zero_reach_uniform_prior` separately from uniform-move fallback. Under shallow Material search many raw policies are exact ties; purification then follows move order, not learned preferences. Projected training labels remain gated independently of these act()-based engineering runs.
 
 All runtime Python source paths are repository relative and SHA-256 hashes normalize CRLF to LF, as declared by `source_hash_convention`. The manifest includes shared terminal scoring, Material/value code, expansion, gadgets and the runner; the corpus JSON is also hashed. Revision queries run from the repository root. Preserve historical artifacts rather than relabelling their hashes or numbers.
+
+## Post-main diagnostic snapshot
+
+`subgame_positions_post_main_reference.json` reruns the corpus after merging #37/#45 from main and correcting the final-Decision zero-reach flag. It supersedes the earlier review snapshot for current diagnostic interpretation. Earlier zero_reach_uniform_prior arrays used the wrong key and must not be used as prior-approximation counts. The new intermediate-peak regression observes a population of 1819 followed by 12 and requires the recorded peak to stay 1819, then reset to 1.

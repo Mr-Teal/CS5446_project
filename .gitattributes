@@ -1,0 +1,7 @@
+# Preserve audited delivery bytes on Windows checkouts with core.autocrlf enabled.
+pair_a_prep/zs21/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+pair_a_prep/tests/test_zs21_*.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+pair_a_prep/tests/fixtures/zs21_*.npz -text
+zs21_runtime/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+# Keep the pinned upstream documentation exactly as archived.
+zs21_runtime/third_party/stockfish13/UPSTREAM_README.md -whitespace

@@ -21,7 +21,10 @@ The default agent remains a sampled-root game. An optional
 memory and connects Resolve/Maxmargin using externally supplied parameters.
 Paper-derived gadget values/priors and full KLUSS construction remain pending.
 
-The shared contracts and encoder are unchanged. Pair B can use
+The shared contracts and encoder are unchanged. The shared values layer now
+includes #28's no-fog-legal-move terminal draw, affecting Pair B's stand-in
+wrapper and evaluators too. Pre-rule results keep their old provenance and must
+not be pooled with post-rule runs. Pair B can use
 `pair_a_prep.rules_adapter.RulesReferee` and the existing `RulesAdapter`
 without waiting for the complete Obscuro agent. Run from the repository root:
 the root package installation ships only `fow_shared`, not `pair_a_prep`.

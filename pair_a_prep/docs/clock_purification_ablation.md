@@ -8,8 +8,8 @@ It does not establish strength, statistical speedup or a hard real-time limit.
 From the repository root:
 
 ```powershell
-& .\pair_b\.venv\Scripts\python.exe -m pair_a_prep.clock_ablation --submission-reserve-fraction 0 --output pair_a_prep/results/clock_ablation_baseline.json
-& .\pair_b\.venv\Scripts\python.exe -m pair_a_prep.clock_ablation
+& .\pair_b\.venv\Scripts\python.exe -m pair_a_prep.clock_ablation --submission-reserve-fraction 0 --output pair_a_prep/local_runs/clock-baseline.json
+& .\pair_b\.venv\Scripts\python.exe -m pair_a_prep.clock_ablation --output pair_a_prep/local_runs/clock-reserved.json
 & .\pair_b\.venv\Scripts\python.exe -m pair_a_prep.presentation_materials
 & .\pair_b\.venv\Scripts\python.exe -m pytest -q tests pair_a_prep/tests
 ```
@@ -110,3 +110,7 @@ The separate `clock_ablation_review_baseline.json` and `clock_ablation_review_re
 | 10% reserve | 0 | 8 | **1** | **12** |
 
 Both live matrices contain 12 capped/null games and no tracker-capacity failure. The reserved rerun did overrun on one live action; no hard-time guarantee or playing-strength benefit follows. Preparation at 20 ms remains a source of uniform-move fallback. Runtime sources are now hashed with the shared CRLF-to-LF convention and repository-relative paths, including shared scoring, Material and evaluation dependencies. `--output` is required, so reproduction cannot silently overwrite the reference. `purify` and reserve settings are rejected for modes that cannot use them. The revised agent name is `sampled-I2-gadget-pcfr-prototype-v2`; config IDs identify the reserve separately.
+
+## Post-main metadata correction
+
+`clock_ablation_post_main_baseline.json` and `clock_ablation_post_main_reserved.json` contain the merged shared-rule and corrected prior/label metadata. label_available is false for projected solves that label() rejects, even if a numerical solve result exists. The earlier review reruns also had exactly tied raw policies (40/40 non-fallback turns), so their purification changes reflect move order. Old JSONs remain historical. The backup generator now derives fallback and guard-exercise totals from its actual input arrays rather than typed counts.

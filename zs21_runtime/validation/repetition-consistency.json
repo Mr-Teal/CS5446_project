@@ -1,0 +1,88 @@
+{
+  "status": "passed",
+  "verified_on": "2026-10-27",
+  "platform": "Windows x64",
+  "code_commit": "edef410ff0cb8beb26dd4c7f8cdf36e73662c120",
+  "integration_base": "abfc8686ff3e4948a310f3753b25e702226d7ca0",
+  "tested_merged_tree": "fb0f4d845f91a3e551a75ba6ea82141a5520a1ff",
+  "tested_file_sha256": {
+    "fow_shared/values.py": "dabcc4626d3d85ef3ee73ca51179e77339d9cc611dc335468629b2d76598c4de",
+    "pair_a_prep/zs21/model.py": "0b5ff3a6676fc48d020bf80b2b03d9ba3b90ea2bc11c083dc61c1ad978f051a7",
+    "tests/test_fow_repetition.py": "4ec44cf96285b75b7cfee9fb65669a7f71c762381dd2e6c9a66150455872f95d",
+    "zs21_runtime/reproduce.py": "1411e19c964648786aa9c0a0b6f92b6f691c65c1fc335419a3ac23acd5dc65fe",
+    "zs21_runtime/pixi.toml": "8d880ca93906357082e4ac2db8917e29da54d360a8b616eb2b7a7e7f6a6414e3",
+    "zs21_runtime/pixi.lock": "6546666bc832e2733a0871a9b63f4e021b6381c5d330fe3d6fe5a84acc8218b7"
+  },
+  "git_blob_sha256": {
+    "fow_shared/values.py": "9bc40378b20d08b52c3783b48b65b2e82819799f5f31d8ffb943c5a082b6da20",
+    "pair_a_prep/zs21/model.py": "0b5ff3a6676fc48d020bf80b2b03d9ba3b90ea2bc11c083dc61c1ad978f051a7",
+    "tests/test_fow_repetition.py": "6560a73168dfba2f01313b6aa832824f183027286a24e1780bbf309f1391eafd",
+    "zs21_runtime/reproduce.py": "1411e19c964648786aa9c0a0b6f92b6f691c65c1fc335419a3ac23acd5dc65fe",
+    "zs21_runtime/pixi.toml": "8d880ca93906357082e4ac2db8917e29da54d360a8b616eb2b7a7e7f6a6414e3",
+    "zs21_runtime/pixi.lock": "6546666bc832e2733a0871a9b63f4e021b6381c5d330fe3d6fe5a84acc8218b7"
+  },
+  "crlf_checkout_conversion_only": [
+    "fow_shared/values.py",
+    "tests/test_fow_repetition.py"
+  ],
+  "regressions_before_fix": {
+    "tests": 10,
+    "failures": 4,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 0.461
+  },
+  "targeted_after_fix": {
+    "tests": 64,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 0.402
+  },
+  "combined_main_full_suite": {
+    "tests": 627,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 79.995
+  },
+  "test_command": "pixi run --manifest-path zs21_runtime/pixi.toml --locked -e darkchess test",
+  "extra_pythonpath": false,
+  "tests_include_main_handoff": true,
+  "doctor": {
+    "status": "passed",
+    "rules_id": "paper2021_fow_no_moves_draw_v1",
+    "assets_verified": 66,
+    "python": "3.12.15",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "python_chess": "1.11.2",
+    "engine": {
+      "name": "Stockfish 13",
+      "author": "the Stockfish developers (see AUTHORS file)"
+    },
+    "workers": 4,
+    "threads_per_worker": 1,
+    "transport": "native_uci_batches",
+    "engine_sha256": "7e6357e5637cfaa4865b84135bc860f959be5983a84b57e871d0a0616082a475",
+    "initial_value": 0.04829573112443868
+  },
+  "unchanged_paths": [
+    "pair_a_prep/zs21/agent.py",
+    "pair_a_prep/zs21/engine.py",
+    "pair_a_prep/zs21/gadget.py",
+    "pair_a_prep/zs21/sequence_form.py",
+    "pair_a_prep/zs21/native_tracker.py",
+    "pair_a_prep/zs21/rule_profile.py",
+    "pair_a_prep/zs21/native",
+    "zs21_runtime/engines",
+    "zs21_runtime/third_party",
+    "zs21_runtime/configs"
+  ],
+  "frozen_historical_files_verified": 154,
+  "formal_matches_run": 0,
+  "rule_example": {
+    "after_8_plies": "both referees nonterminal",
+    "after_9_plies": "both referees threefold_repetition draw"
+  }
+}

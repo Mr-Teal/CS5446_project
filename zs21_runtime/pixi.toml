@@ -1,0 +1,31 @@
+[workspace]
+name = "zs21-darkchess"
+version = "0.1.0"
+channels = ["https://prefix.dev/conda-forge", "conda-forge"]
+platforms = ["win-64"]
+
+[dependencies]
+python = "==3.12.15"
+numpy = "==2.5.4"
+scipy = "==1.18.1"
+pytest = "==9.1.1"
+gxx_win-64 = "==16.2.0"
+
+[pypi-dependencies]
+python-chess = "==1.999"
+
+[environments]
+default = { features = [], solve-group = "zs21" }
+darkchess = { features = [], solve-group = "zs21" }
+
+[tasks]
+doctor = "python -X utf8 scripts/doctor.py"
+test = "python -X utf8 reproduce.py test"
+play = "python -X utf8 reproduce.py play"
+evaluate = "python -X utf8 reproduce.py evaluate"
+replay = "python -X utf8 reproduce.py replay"
+serve = "python -X utf8 reproduce.py serve"
+smoke = "python -X utf8 examples/python_match.py --plies 2 --max-rounds 1"
+build-native = "python -X utf8 scripts/build.py --native-only"
+build-all = "python -X utf8 scripts/build.py"
+make-spec = "python -X utf8 scripts/make_spec.py"

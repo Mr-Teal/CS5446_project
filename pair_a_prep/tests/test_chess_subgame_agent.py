@@ -147,6 +147,10 @@ def test_projected_labels_are_explicitly_blocked_until_root_contract_agreement()
     agent = ChessSubgameAgent(ConstantLeaf(), config, KINGS)
     agent.reset("white", 17)
     agent.act(turn_after())
+    saved = agent.saved
     with pytest.raises(ValueError, match="solver-root/weight contract"):
         agent.label(turn_after(moves=("a1b1", "h8g8")), "projected")
-    assert agent.last_result.decision.diagnostics["label_root_contract_pending"] == 1
+    assert agent.saved is saved
+    decision = agent.act(turn_after(moves=("a1b1", "h8g8")))
+    assert decision.diagnostics["label_root_contract_pending"] == 1
+    assert decision.diagnostics["fallback"] == 0

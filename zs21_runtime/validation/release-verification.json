@@ -1,0 +1,84 @@
+{
+  "status": "passed",
+  "verified_on": "2026-10-27",
+  "platform": "Windows x64",
+  "base_branch": "pair-a/rules-interface",
+  "base_commit": "dfeea4c5067d0b2d3dd0eef52f2527c9653c240f",
+  "tests": {
+    "tests": "612",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "86.322"
+  },
+  "test_command": "pixi run --manifest-path zs21_runtime/pixi.toml --locked -e darkchess test",
+  "core_identical_to_verified_pr28_local_version": {
+    "pair_a_prep/zs21/agent.py": "68994ee7080219199972dd9eeb68570bd5820c5797f5a9161ded17f7b10a27e4",
+    "pair_a_prep/zs21/engine.py": "eb97d394538d0c76887026cdcb72b194a01b2785de148073034e72b47d103c30",
+    "pair_a_prep/zs21/model.py": "13c6ae71714eb8fd3850bc35a265f37c6cc4e5e4c7cfc9f32d78a4f7e6c90c2c",
+    "pair_a_prep/zs21/gadget.py": "6f3808338b0bec8a74d48cbd8e775a781f537cafbc07dc2e4288fbff4748f5c2",
+    "pair_a_prep/zs21/sequence_form.py": "667de84dea3c8d3a6f5aa4156a71c5799768250d092285dad560f84028d14f3e",
+    "pair_a_prep/zs21/native_tracker.py": "03eb687a71d03d5f870a5c083de5da83a1e2a2d3eba80adbaab6a6bbe056fbf3",
+    "pair_a_prep/zs21/rule_profile.py": "583a8a8cfdf9510d1d2f230b435f12b562b476fe3e301da71816c036124cf81b",
+    "pair_a_prep/zs21/native/inference.cpp": "8d92ad3f5e325b4d3d8095dcd927ec5292dcc2302b28e08a9635610bea016bc6"
+  },
+  "preserved_historical_files": 154,
+  "historical_selected_games": 34,
+  "historical_selected_wdl": [
+    17,
+    0,
+    17
+  ],
+  "formal_games_run_for_this_release": 0,
+  "smoke": {
+    "native_python_actions": 2,
+    "shared_runner_actions": 2,
+    "result": "unfinished_smoke"
+  },
+  "doctor": {
+    "status": "passed",
+    "rules_id": "paper2021_fow_no_moves_draw_v1",
+    "assets_verified": 66,
+    "python": "3.12.15",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "python_chess": "1.11.2",
+    "engine": {
+      "name": "Stockfish 13",
+      "author": "the Stockfish developers (see AUTHORS file)"
+    },
+    "workers": 4,
+    "threads_per_worker": 1,
+    "transport": "native_uci_batches",
+    "engine_sha256": "7e6357e5637cfaa4865b84135bc860f959be5983a84b57e871d0a0616082a475",
+    "initial_value": 0.04829573112443868
+  },
+  "rebuild": {
+    "status": "passed",
+    "positions": 84,
+    "rules_id": "paper2021_fow_no_moves_draw_v1",
+    "engine_comparison_fields": [
+      "value",
+      "source",
+      "depth",
+      "nodes"
+    ],
+    "native_actions_equal": true,
+    "native_terminal_probe_equal": true,
+    "rebuilt_hashes": {
+      "stockfish13.exe": "08abdd3db0cd4bcc73bace567a1ae58862bbfddd27b481ad7283e97953f9e2cb",
+      "inference.dll": "dc30cd09dbcfbcbded8c696e44c49afc838a9a61d4ba5458e74eef00e1aea701"
+    }
+  },
+  "relocation": {
+    "status": "passed",
+    "export": "git index with core.autocrlf=true",
+    "directory_contains_spaces": true,
+    "assets_verified": 66,
+    "native_python_actions": 2,
+    "environment": "same locked Pixi environment reused"
+  },
+  "lp_fixture_sha256": "9a8c30fb0f949c9c1eb865e5b158e9657bd843941706176700fc6b108a8ab145",
+  "pixi_lock_sha256": "6546666bc832e2733a0871a9b63f4e021b6381c5d330fe3d6fe5a84acc8218b7",
+  "known_unresolved": "D-29: two historical HiGHS Status 0: Not Set events, root cause unknown"
+}

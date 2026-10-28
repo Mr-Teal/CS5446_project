@@ -60,6 +60,29 @@ def standard_fen(board: chess.Board) -> str:
     return board.fen(en_passant="fen")
 
 
+def fog_position_key(board: chess.Board) -> tuple:
+    """Position identity, including en passant captures that expose the king."""
+    ep = board.ep_square if board.has_pseudo_legal_en_passant() else None
+    return (board.pawns, board.knights, board.bishops, board.rooks, board.queens,
+            board.kings, board.occupied_co[0], board.occupied_co[1], board.turn,
+            board.clean_castling_rights(), ep)
+
+
+def _is_fog_threefold_repetition(board: chess.Board) -> bool:
+    plies = min(len(board.move_stack), board.halfmove_clock)
+    if plies < 4:
+        return False
+    key, count = fog_position_key(board), 1
+    probe = board.copy(stack=plies)
+    for _ in range(plies):
+        probe.pop()
+        if probe.turn == board.turn and fog_position_key(probe) == key:
+            count += 1
+            if count == 3:
+                return True
+    return False
+
+
 def fog_legal_moves(board: chess.Board) -> List[chess.Move]:
     """Every move allowed under fog-of-war rules; none once the game is over.
 
@@ -94,15 +117,16 @@ def terminal_score(board: chess.Board) -> Optional[Tuple[str, float]]:
     The game ends when a king has been captured, under the fifty-move rule, or by threefold
     repetition; draws need no claim ([1] App. A). The project's #17 convention
     also draws positions with no fog-legal action, after the other outcomes.
-    Repetition is seen only when the board
-    carries its move history: a FEN alone cannot show it.
+    Repetition uses FoW-effective en passant rights and is seen only when the board
+    carries its move history: a FEN alone cannot show it. Pawn moves and captures
+    bound the history scan; queries leave the input board and stack unchanged.
     """
     mover = board.turn
     if board.king(chess.WHITE) is None or board.king(chess.BLACK) is None:
         return "king-captured", (1.0 if board.king(mover) is not None else -1.0)
     if board.halfmove_clock >= 100:
         return "fifty-move", 0.0
-    if board.is_repetition(3):
+    if _is_fog_threefold_repetition(board):
         return "repetition", 0.0
     # Most positions have a pseudo-legal move. Only the rare empty case needs
     # the full generator to check the additional no-check castling actions.
@@ -118,8 +142,8 @@ def forced_score(board: chess.Board) -> Optional[Tuple[str, float]]:
     """A result decided one move ahead under fog rules, for the side to move, or None.
 
     The game is not over yet. "king-capture": the side to move can take the king (+1).
-    Otherwise every fog-legal move is tried: a move that ends the game (a fifty-move or
-    repetition draw) scores that result, and a move that leaves its own king capturable
+    Otherwise every fog-legal move is tried: a move that ends the game (a fifty-move,
+    repetition or no-fog-legal-moves draw) scores that result, and a move that leaves its own king capturable
     scores -1. If every move is one of these, the best of them is the result ("forced-loss"
     or "forced-draw"); orthodox checkmate and stalemate are usually forced losses, unless
     castling out of or through check escapes. Any other move leaves the result open: None.

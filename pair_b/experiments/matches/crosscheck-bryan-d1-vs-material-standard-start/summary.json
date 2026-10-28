@@ -1,0 +1,23 @@
+{
+  "interpretation": "Exploratory fixed one-ply planner. Time budget is diagnostic, not enforced. Scores use complete pairs only; failures are not draws. No strength claim or confidence interval from a smoke pilot.",
+  "candidates": [
+    {
+      "candidate_index": 0,
+      "candidate": {
+        "kind": "stockfish-d1"
+      },
+      "attempted_games": 20,
+      "completed_games": 20,
+      "failed_games": 0,
+      "wins": 20,
+      "draws": 0,
+      "losses": 0,
+      "ply_limit_draws": 0,
+      "complete_pairs": 10,
+      "incomplete_pairs": 0,
+      "paired_score": 1.0,
+      "candidate_act_ms": 41488.88030415401,
+      "candidate_tracker_ms": 115146.28430502489
+    }
+  ]
+}
