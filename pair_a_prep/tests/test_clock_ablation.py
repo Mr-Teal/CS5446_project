@@ -105,3 +105,61 @@ def test_subgame_only_settings_are_not_silently_ignored(mode):
     from pair_a_prep.evaluation_factories import SearchFactory
     with pytest.raises(ValueError, match="require search_mode=subgame"):
         SearchFactory({"search_mode": mode, "purify": "false"}).load_model()
+
+
+def test_zero_reserve_clock_stop_is_deadline(monkeypatch):
+    clock = [0.]
+    clock_modules(monkeypatch, clock)
+    original = chess_subgame_agent.PCFRPlus.step
+    def step(solver):
+        original(solver)
+        clock[0] += .04
+    monkeypatch.setattr(chess_subgame_agent.PCFRPlus, "step", step)
+    agent = ChessSubgameAgent(ConstantLeaf(), AnytimeConfig(growth="one_sided", rounds=64),
+                              KINGS, submission_reserve_fraction=0)
+    agent.reset("white", 17)
+    decision = agent.act(replace(turn_after(), time_budget_ms=20))
+    assert decision.diagnostics["stop:deadline"] == 1
+    assert "stop:submission_reserve" not in decision.diagnostics
+
+
+@pytest.mark.parametrize("mode", ["anytime", "retained", "fixed"])
+def test_reserve_setting_cannot_be_silently_ignored(mode):
+    from pair_a_prep.evaluation_factories import SearchFactory
+    with pytest.raises(ValueError, match="require search_mode=subgame"):
+        SearchFactory({"search_mode": mode, "submission_reserve_fraction": "0.1"}).load_model()
+
+
+def test_subgame_defaults_match_validated_node_and_call_limits():
+    from pair_a_prep.evaluation_factories import SearchFactory
+    agent = SearchFactory({"search_mode": "subgame"}).load_model()
+    try:
+        assert agent.config.max_nodes == 1024
+        assert agent.config.max_evaluator_calls == 48
+    finally:
+        agent.close()
+
+
+def test_clock_measure_does_not_advertise_projected_labels():
+    from pair_a_prep.clock_ablation import measure, prepare
+    _, fen, turn, saved = prepare(17)[1]
+    agent = ChessSubgameAgent(ConstantLeaf(), AnytimeConfig(growth="one_sided", stop_on_time=False,
+        max_evaluator_calls=256, max_nodes=5000), fen)
+    agent.reset("white", 17)
+    agent.saved = saved
+    row = measure(agent, turn, "warm", 10000, 17, 0)
+    assert row["diagnostics"]["fallback"] == 0
+    assert not row["label_available"]
+
+
+def test_slide_totals_are_computed_from_supplied_records():
+    import json
+    from pathlib import Path
+    from pair_a_prep.presentation_materials import clock_backup
+    results = Path(__file__).resolve().parents[1] / "results"
+    report = json.loads((results / "clock_ablation_reference.json").read_text(encoding="utf-8"))
+    baseline = json.loads((results / "clock_ablation_baseline.json").read_text(encoding="utf-8"))
+    report["games"] = [{"actions": [{"diagnostics": {"fallback": 1}}] * 7}]
+    report["turn_runs"] = [{"caller_over_budget": False, "diagnostics": {"fallback": 0}}] * 3
+    svg = clock_backup(report, baseline)
+    assert "live fallbacks 7/7" in svg and "3/3 turns" in svg
