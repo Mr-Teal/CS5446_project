@@ -25,6 +25,9 @@ counter starting at zero, and the immediately preceding capture's player/square.
 the private `_board` is unsupported. Successors preserve repetition history
 and do not mutate their parent or sibling branches.
 FEN alone is insufficient to reconstruct repetition or private histories.
+Repetition includes en passant rights whenever the capture is allowed by FoW,
+including captures that leave the king attacked. The shared `fog_position_key`
+and `terminal_score` use this convention for both referee implementations.
 
 `RulesAdapter` implements `initial_state`, `current_player`, `legal_moves`,
 `apply_move` and `terminal`. It also implements `observe` using the shared `Observation` type. Move generation and actual terminal checks reuse

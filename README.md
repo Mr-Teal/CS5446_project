@@ -1,8 +1,11 @@
 # Fog-of-war chess: shared code
 
 This repository contains shared contracts, Pair B's evaluation and training
-tools, and Pair A's rules adapter and toy-tree solver prototypes. Pair A's
-agent ownership is agreed; complete ZS21 and Obscuro agents are still pending.
+tools, and Pair A's rules adapter and search implementations. The reproduced
+2021 ZS21 agent is now available with a pinned Windows/Pixi runtime, a matched
+baseline and native/shared/JSON integration interfaces. Start with the
+[ZS21 installation and integration guide](zs21_runtime/README.md).
+The full Obscuro agent remains separate work.
 See [Pair A preparation](pair_a_prep/README.md) and [Pair B](pair_b/README.md)
 for setup and current scope.
 
@@ -42,7 +45,7 @@ for setup and current scope.
   through check to python-chess's pseudo-legal moves and passes the legal-move
   and game-over expectations of the `pair_a_prep` rules fixtures.
   `terminal_score` reports finished games (king captured, fifty moves,
-  threefold repetition with history); `forced_score` reports positions decided
+  threefold repetition with history, or no fog-legal moves); `forced_score` reports positions decided
   one move ahead that are not over yet (king capture available, or every move
   either ends the game in a draw or leaves the king capturable). Stockfish 19
   crashes on a position where the side to move can capture the king, so check

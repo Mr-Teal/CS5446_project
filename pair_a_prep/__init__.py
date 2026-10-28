@@ -1,1 +1,1 @@
-"""Independent Pair A preparation; imports no fow_shared or Pair B code."""
+"""Pair A preparation, rules and search; submodules integrate shared/Pair B APIs."""

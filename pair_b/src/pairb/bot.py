@@ -38,6 +38,7 @@ from fow_shared.contracts import AgentInput, Decision
 from fow_shared.interfaces import LeafEvaluator
 
 TIE_TOLERANCE = 1e-12  # an average this close to the best one is tied with it
+NO_LEGAL_MOVE = "the observation has no legal move to choose from"  # the ValueError for a turn without a move
 
 
 @dataclass(frozen=True)
@@ -96,7 +97,7 @@ class OnePlyBot:
         started = perf_counter()
         moves = turn.observation.legal_moves
         if not moves:
-            raise ValueError("the observation has no legal move to choose from")
+            raise ValueError(NO_LEGAL_MOVE)
         hypotheses = turn.belief.hypotheses
         rows = [self._score(index, hypothesis.fen, moves) for index, hypothesis in enumerate(hypotheses)]
         weights = tuple(hypothesis.weight for hypothesis in hypotheses)
