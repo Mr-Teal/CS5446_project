@@ -23,6 +23,10 @@ from .pcfr import PCFRPlus
 from .toy_games import behavioral_value
 
 
+RULES_ID = "paper_fow_v1_proposed"
+NO_MOVE_RULE = "terminal_draw_v1"
+
+
 @dataclass(frozen=True)
 class ChessRootGroups:
     """A single sampled-root tree, with all tuples in original belief order."""
@@ -195,6 +199,7 @@ class ChessGadget:
             raise ValueError("solution requires a trained solver on this bridge's current tree")
         profile = solver.policy()
         configuration = dict(version=1, chess=self.roots.settings, mode=self.gadget.mode,
+                             rules="teal-rules-adapter", rules_id=RULES_ID, no_move_rule=NO_MOVE_RULE,
                              rounds=solver.rounds, schedule=solver.schedule,
                              predictive=solver.predictive, averaging_power=solver.averaging_power,
                              policy="raw_last_iterate",

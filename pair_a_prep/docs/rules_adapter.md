@@ -2,7 +2,11 @@
 
 Status: implemented against `paper_fow_v1_proposed` fixtures; teammate review
 is still needed before freezing the rules profile. This is not an agent or
-belief tracker. No shared contracts or Pair B evaluators are changed here.
+belief tracker. Shared contracts remain unchanged, but #15/#28 changed the
+shared rule helper used by both Pair B wrappers/evaluators: no fog-legal moves
+now ends in a terminal draw, after king capture, fifty-move and repetition.
+This changes semantics even with Pair B's stand-in rules; use pinned revisions
+and keep historical pre-rule results separate from later runs.
 
 ## Public API
 

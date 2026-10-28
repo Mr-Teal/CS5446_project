@@ -14,11 +14,15 @@ not yet a complete Obscuro agent or a strength-tested teacher.
 This directory contains preparation tools, a rules adapter prototype, and an
 exact history-preserving belief tracker with optional output sampling.
 The standalone preparation tools run independently of `fow_shared`; the new
-adapter reuses the merged shared rule helpers. The shared interfaces and
-encoder are unchanged by this branch. Agent ownership is agreed: the rules
+adapter reuses the merged shared rule helpers. Shared interfaces and the encoder
+are unchanged; #15/#28 updates shared no-move terminal-draw semantics used by
+Pair B, including stand-in rules/evaluators. Agent ownership is agreed: the rules
 adapter and Obscuro belong to one Pair A member; ZS21 and the belief tracker
-belong to the other, with mutual review. Neither complete agent is implemented
-here yet. See [the PR handoff](docs/pr_handoff.md) for scope and remaining work.
+belong to the other, with mutual review. The 2021 ZS21 reproduction and matched
+baseline are now in [zs21](zs21/README.md), with a
+[portable runtime and integration guide](../zs21_runtime/README.md).
+The independent Obscuro work remains as described below. See
+[the PR handoff](docs/pr_handoff.md) for the earlier preparation scope.
 
 A runnable fixed-depth chess search now connects candidate histories, PCFR+
 and the evaluator plug. It can produce small validated TrainingRecord pilots;
@@ -63,7 +67,7 @@ the paper's one-sided leaf selection from our uniform complete-cut baseline.
 | Knowledge restriction | [knowledge.py](knowledge.py), [notes](docs/knowledge.md) | Explicit synchronized-cut knowledge graph, I^2 restriction, frozen KLSS control and unfrozen KLUSS |
 | Interactive toy explorer | [open HTML](results/toy_explorer.html), [generator](toy_visualizer.py) | Recorded PCFR+ checkpoints, tree/action probabilities, shared information sets and convergence charts; fully offline |
 | Stockfish measurements | [benchmark_stockfish.py](benchmark_stockfish.py) | Fixed positions, depths 1 and 11, best-move/all-move MultiPV, raw scores and timings |
-| Rules fixtures | [rules_cases.json](data/rules_cases.json), [fixtures.py](fixtures.py) | 17 special positions and acceptance checks for a future adapter |
+| Rules fixtures | [rules_cases.json](data/rules_cases.json), [fixtures.py](fixtures.py) | 17 special positions and acceptance checks for the implemented adapter |
 | Reproduction differences | [reproduction_differences.md](docs/reproduction_differences.md) | Published settings, proposed choices, measurements and unresolved decisions |
 | Verification results | [verification.md](docs/verification.md) | Test coverage, real engine runs, limitations and integration steps |
 

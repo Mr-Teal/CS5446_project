@@ -1,0 +1,67 @@
+{
+  "verified_at": "2026-10-22T12:22:31.303741+00:00",
+  "source_commit": "3afc5945dfa5a98e5a90275782b8658b69bb9bcf",
+  "archive_sha256": "22ee6dc71087a08d68e6f3b166e2dbc183c0d0596d1d42e9efd4c535e6b9a21d",
+  "recorded_sources_verified_against_archive": 51,
+  "config_sha256": "6da50e9937f51d3af2701242d3394e26eee0c5ee33a13048dca7234d8745e5fd",
+  "reference_config_snapshot": "26a75d3fc59b61899c2021aaac369779732368ba",
+  "reference_config_difference": "Only the machine-specific stockfish_path",
+  "engine_sha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+  "runtime": {
+    "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "packages": {
+      "chess": "1.11.2",
+      "numpy": "2.5.4",
+      "torch": "2.14.1"
+    }
+  },
+  "tests": {
+    "passed": 131,
+    "skipped": 13,
+    "skip_reasons": {
+      "Pair A's rules adapter is not in this checkout": 9,
+      "Teal's rules adapter is not in this checkout": 4
+    }
+  },
+  "results": {
+    "attempted_games": 20,
+    "completed_games": 20,
+    "failed_games": 0,
+    "wins": 20,
+    "draws": 0,
+    "losses": 0,
+    "complete_pairs": 10,
+    "incomplete_pairs": 0,
+    "ply_limit_draws": 0,
+    "paired_score": 1.0
+  },
+  "diagnostics": {
+    "total_plies": 734,
+    "act_budget_overruns": 0,
+    "tracker_updates_both_sides": 1508,
+    "tracker_rebuilt_updates_both_sides": 42,
+    "tracker_capped_updates_both_sides": 163,
+    "candidate_act_median_ms": 89.32600007392466,
+    "candidate_act_total_ms": 41488.88030415401,
+    "candidate_tracker_total_ms": 115146.28430502489,
+    "games_wall_seconds": 546.7762117004022
+  },
+  "comparison": {
+    "artifact": "C:\\Users\\H333274\\Desktop\\CS5446\\.agent\\review-pr18\\CS5446_project-26a75d3fc59b61899c2021aaac369779732368ba\\pair_b\\experiments\\matches\\crosscheck-d1-vs-material-standard-start\\summary.json",
+    "artifact_sha256": "703ada4d005a3d90214f3f0273b4260025655966c91f790ec84780f2cfd607f1",
+    "recorded_source_commit": "00639cb48227133a7d5ab92e4f11b8df1c48a01d",
+    "colin_wins": 20,
+    "colin_complete_pairs": 10,
+    "colin_paired_score": 1.0,
+    "interpretation": "Both runs recorded 20 wins and paired score 1.0 on this pairing. Descriptive outcome agreement only, not statistical equivalence; do not pool runs. Engine reset policy, seed mapping, platform and engine build may differ."
+  },
+  "limits": [
+    "Fixed one-ply planner, not equal-time or equal-node evidence; budget is diagnostic only.",
+    "Standard public start and stand-in rules only; no Pair A adapter or neural evaluator validation in this run.",
+    "Ten colour pairs do not establish general playing strength; no confidence interval inferred from CI membership.",
+    "Tracker rebuilds weaken historical consistency; counts are retained rather than hidden.",
+    "Archive-based run: empty git fields do not certify a clean checkout; pinned archive and verified source hashes supply provenance.",
+    "Single run, not a fresh-process reproducibility repeat. No GitHub publication performed."
+  ]
+}
