@@ -182,7 +182,7 @@
   ],
   "clock_artifact": {
     "path": "gift_accounting_clock_post_main_reference.json",
-    "sha256": "945e519015f9c5850b2f4f1378eefa7c6762e75d5d9cbe2a3f3884e2bf8c8cb4",
+    "sha256": "57fb1899049edee55db3bc22bc21c0e0a3ea79588024ec1d0d46a8a7df07b39a",
     "hash_convention": "sha256_utf8_artifact_bytes_crlf_to_lf_v1",
     "live_summary": {
       "games": 12,
@@ -195,7 +195,20 @@
     },
     "turn_runs": 48,
     "turn_overruns": 0,
-    "turn_fallbacks": 3.0
+    "turn_fallbacks": 3.0,
+    "rule_readiness": {
+      "scope": "shared FoW-effective EP repetition fixture, not every rule",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "fow_effective_ep_repetition",
+          "expected_terminal": null,
+          "actual_terminal": null,
+          "status": "passed"
+        }
+      ]
+    },
+    "pending_rule_difference": null
   },
   "game": {
     "public_initial_fen": "7k/8/8/8/8/8/8/K7 w - - 0 1",
@@ -613,5 +626,16 @@
         ]
       }
     }
-  }
+  },
+  "metadata_corrections": [
+    {
+      "correction": "linked_clock_EP_metadata_v1",
+      "original_clock_sha256": "945e519015f9c5850b2f4f1378eefa7c6762e75d5d9cbe2a3f3884e2bf8c8cb4",
+      "corrected_clock_sha256": "57fb1899049edee55db3bc22bc21c0e0a3ea79588024ec1d0d46a8a7df07b39a",
+      "pre_correction_audit_sha256_lf": "acb3d4093ae9730211948483e227cc1de114a305c0b35e027e480b164427c97f",
+      "measured_arrays_unchanged": true,
+      "execution_source_manifest_unchanged": true,
+      "timing_rerun": false
+    }
+  ]
 }
