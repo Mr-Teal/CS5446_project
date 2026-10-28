@@ -109,6 +109,18 @@ def test_a_move_that_ends_the_game_in_a_draw_is_not_a_loss():
     assert forced_score(chess.Board("7k/5Q2/6K1/8/8/8/8/8 b - - 99 80")) == ("forced-draw", 0.0)
 
 
+@pytest.mark.parametrize("mirror", [False, True])
+def test_blocking_the_opponent_is_a_forced_draw_instead_of_an_open_safe_move(mirror):
+    board = chess.Board("6rk/6P1/6P1/8/1p6/pPp5/PRP5/KB6 b - - 0 1")
+    if mirror:
+        board = board.mirror()
+    before = standard_fen(board)
+    assert terminal_score(board) is None
+    assert forced_score(board) == ("forced-draw", 0.0)
+    assert rule_score(board) == ("forced-draw", 0.0)
+    assert standard_fen(board) == before and not board.move_stack
+
+
 def test_a_repetition_draw_one_move_ahead_needs_the_history_kept():
     # White twice declined to take the king, so Kg8 now repeats a position for the third time.
     board = chess.Board("6k1/5Q2/6K1/8/8/8/8/8 w - - 0 1")

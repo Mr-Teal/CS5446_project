@@ -75,5 +75,6 @@ python pair_b/scripts/benchmark_linear.py --run pair_b/runs/linear-pilot-120-v1 
 
 Reproduction can vary with Stockfish build/architecture; hashes identify this particular run.
 The same-record Network 1 comparison, fitted on Colin's original data, is in
-`checkpoints/linear-v1/` (see `linear_baseline.md`); full-game experiments remain to be run.
+`checkpoints/linear-v1/` (see `linear_baseline.md`); its 200-game row against quick
+Stockfish is in the #17 batch (#38).
 No playing-strength or belief-conditioning claim is made by this pilot.

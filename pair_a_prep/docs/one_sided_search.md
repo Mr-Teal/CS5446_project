@@ -57,7 +57,7 @@ automatic sampler is connected to the raw-tree agent only. The integrated subgam
 From the repository root, using the existing Pair B environment:
 
 ```powershell
-& .\pair_b\.venv\Scripts\python.exe -m pair_a_prep.one_sided_experiment
+& .\pair_b\.venv\Scripts\python.exe -m pair_a_prep.one_sided_experiment --output pair_a_prep/local_runs/one-sided.json
 & .\pair_b\.venv\Scripts\python.exe -m pair_a_prep.presentation_materials
 & .\pair_b\.venv\Scripts\python.exe -m pytest -q tests pair_a_prep/tests
 ```
@@ -75,10 +75,11 @@ Recorded wall times are machine-specific single measurements, not a benchmark.
 
 ## Remaining full-agent work
 
-KLUSS knowledge closure; paper-derived reaches/gifts/alternate updates and mode
-transitions; root replenishment; bounded history-preserving inference; cross-turn
-rerooting; initial-tree best-child initialization; Stockfish 14 integration;
-purification; robust standard-start long-game evaluation. Coordinate tracker
-semantics with its owner; ZS21's position-merging tracker is not a drop-in
-replacement for history-preserving Obscuro roots. The #37 repetition discrepancy
-must also be resolved before freezing a cross-agent evaluation rule revision.
+The optional subgame stack now implements sampled-tree knowledge projection,
+boundary/gift updates, cross-turn rerooting, initial-tree best-child seeding and
+purification. These are prototypes, not a full Obscuro reproduction. Remaining
+work includes exact knowledge closure beyond the saved sample, numerical
+ancestor gadget-payment lifting, agreed root replenishment/weights, bounded
+history-preserving inference, Stockfish 14 calibration and long-game validation.
+ZS21's position-merging tracker is not a drop-in history-preserving root supply.
+The shared FoW-effective EP repetition correction is now on main via #37.

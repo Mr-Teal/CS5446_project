@@ -190,3 +190,17 @@ def test_explicit_inputs_and_complete_maps_are_required():
     for alternate, masses, prior, mode in invalid:
         with pytest.raises(ValueError):
             roots.build(alternate, reach_mass=masses, group_prior=prior, mode=mode)
+
+
+def test_gadget_configuration_identifies_rules_and_hashes_rule_revisions(monkeypatch):
+    from pair_a_prep import chess_gadgets
+    roots = prepare_chess_roots(make_turn(), TableLeaf(), initial_fen=KINGS, depth=1)
+    first = build(roots).solve(2)
+    assert first.configuration["rules"] == "teal-rules-adapter"
+    assert first.configuration["rules_id"] == "paper_fow_v1_proposed"
+    assert first.configuration["no_move_rule"] == "terminal_draw_v1"
+    monkeypatch.setattr(chess_gadgets, "NO_MOVE_RULE", "legacy_unresolved")
+    second = build(roots).solve(2)
+    assert first.config_id != second.config_id
+    monkeypatch.setattr(chess_gadgets, "RULES_ID", "another_rule_revision")
+    assert build(roots).solve(2).config_id != second.config_id

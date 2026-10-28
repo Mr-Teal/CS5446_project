@@ -1,0 +1,16 @@
+{
+  "rules": "standin",
+  "seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "openings": [null],
+  "candidates": [{"kind": "stockfish-d1"}],
+  "opponent": {"kind": "material"},
+  "tracker": {
+    "n_particles": 256,
+    "n_hypotheses": 8,
+    "rebuild_tries": 2000
+  },
+  "max_plies": 200,
+  "time_budget_ms": 60000,
+  "stockfish_path": "C:/Users/H333274/Desktop/CS5446/.agent/review-pr16/bin/stockfish.exe",
+  "device": "cpu"
+}

@@ -17,8 +17,13 @@ colour's opening moves first), so both trackers see every ply from the start pos
 A run of more than two games must pin --rules (standin or teal): what auto picks depends on whether
 the checkout has Teal's adapter, and one table must be played by one set of rules. Each ply records over_budget against
 --time-budget-ms (60 s by default); the one-ply bots do not read the budget, so the flag measures
-overruns and never cuts a move short. A game that fails because a side has no fog-legal move is a
-recorded error ("no legal move"), until Pair A's rules decide such positions.
+overruns and never cuts a move short.
+
+A side with no fog-legal move: the draw decided on #17 arrives with Teal's #28, and --rules does not
+pin it; only the commit does. So each run tries BLOCKED_FEN at the start and records what its rules
+do there as no_move_rule: "draw", or "unresolved" until the draw rule lands; see no_move_rule. While it
+is unresolved, such a game fails with "ValueError: the observation has no legal move to choose from"
+(the same text for a bot side and a random side) and is counted in errors_no_legal_move.
 
 A Stockfish that dies (a crash), or stops answering (no reply within StockfishEvaluator's
 call_timeout_s, 60 s by default), is reopened, scorer and second copy, after the game or measurement
@@ -40,20 +45,27 @@ openings whose two games both finished, with Wilson's 95% interval on that pair-
 and, when there are at least 20 complete pairs that do not all score the same, a 95% interval that
 resamples those pairs 2,000 times with seed 0 (fewer pairs are too few to resample meaningfully and
 identical pairs collapse to a point, so the bootstrap is then withheld and `degenerate` is true), the
-count of incomplete pairs,
-mean value lost per side, plies, time per move, the device each network ran on, and the settings,
-checkpoints and commit, with a record of uncommitted changes, the SHA-256 of every source file that
-plays (fow_shared, pairb, this script, pair_a_prep), of the Stockfish binary, and the library
-versions. A game
-that raises is recorded with its error and left out of the score, and the run goes on. A value-lost
-measurement that fails after a game finished keeps the game and its result; the move records the
-measurement's error under diagnostic_error. The summary is written even when the run is
-interrupted, and the exit status is 1 if any game or measurement failed.
+count of incomplete pairs, how the finished games ended (end_reasons: king_capture, fifty_move,
+threefold_repetition, no_legal_moves, ply_limit, and any other reason by its own name), mean value
+lost per side, plies, time per move (mean, median and 95th percentile), over-budget plies and the
+tracker's capped and rebuilt updates per side, the device each network ran on, the rules and
+no_move_rule, the command (home folder as ~), and the settings (engine policy and call_timeout_s
+included), checkpoints and commit, with a record of uncommitted changes, the SHA-256 of every source
+file that plays (fow_shared, pairb, this script, pair_a_prep), of the Stockfish binary, and the
+library versions. A game that raises is recorded with its error and left out of the score, and the
+run goes on; errors counts these games and errors_no_legal_move the ones that failed for want of a
+move. A value-lost measurement that fails after a game finished keeps the game and its result; the
+move records the measurement's error under diagnostic_error. The summary is written even when the
+run is interrupted or the runner itself fails: completed is true only when every planned game has a
+record and nothing stopped the run early, and stopped_early says why it stopped ("interrupted" after
+Ctrl-C, which still ends the process with a non-zero status). The exit status is 1 if any game or
+measurement failed.
 """
 import argparse
 import contextlib
 import datetime
 import importlib.metadata
+import inspect
 import json
 import math
 import random
@@ -67,7 +79,7 @@ import numpy as np
 from fow_shared.contracts import Decision
 from fow_shared.evaluation import MatchConfig, play_game
 from fow_shared.values import standard_fen
-from pairb.bot import OnePlyBot
+from pairb.bot import NO_LEGAL_MOVE, OnePlyBot
 from pairb.lab.paths import ensure_repo_on_path
 from pairb.lab.scorers import CHECKPOINTS, SCORER_IDS, ScorerOptions, open_scorer
 from pairb.provenance import git_commit, git_status, portable, runtime, sha256_of
@@ -79,8 +91,12 @@ ROOT = Path(__file__).resolve().parents[1]
 LINEAR = "linear-v1/best.npz"  # the linear correction, inside the checkpoints folder
 TIME_BUDGET_MS = 60_000  # the default --time-budget-ms: each ply records over_budget against it; the one-ply
 # bots do not read the budget, so the flag only measures overruns, it never cuts a move short
+CALL_TIMEOUT_S = inspect.signature(StockfishEvaluator).parameters["call_timeout_s"].default  # per Stockfish call
 ENGINE_POLICY = {"threads": 1, "hash_mb": 16, "new_game": "before every game",
-                 "within_game": "hash kept between calls"}  # StockfishEvaluator's settings and this runner's use
+                 "within_game": "hash kept between calls",
+                 "call_timeout_s": CALL_TIMEOUT_S}  # StockfishEvaluator's settings and this runner's use
+BLOCKED_FEN = "7k/8/8/8/1p6/pPp5/PRP5/KB6 w - - 0 1"  # White to move, and no fog-legal move
+END_REASONS = ("king_capture", "fifty_move", "threefold_repetition", "no_legal_moves", "ply_limit")  # always listed
 N_BOOT, BOOT_SEED = 2000, 0
 MIN_PAIRS = 20  # fewer complete colour pairs than this get no bootstrap interval, only Wilson's
 MAX_CONSECUTIVE_ERRORS = 5  # a run stops after this many failed games in a row
@@ -99,6 +115,8 @@ class RandomAgent:
 
     def act(self, turn):
         moves = turn.observation.legal_moves
+        if not moves:  # the bots' error, so a table counts every no-move failure the same way
+            raise ValueError(NO_LEGAL_MOVE)
         return Decision(self.rng.choice(sorted(moves)), {move: 1 / len(moves) for move in moves})
 
 
@@ -155,6 +173,19 @@ class WatchedReferee:
 
     def __getattr__(self, name):  # current_player, is_terminal, winner, observe, result
         return getattr(self._referee, name)
+
+
+def no_move_rule(rules) -> str:
+    """What `rules` do when the side to move has no fog-legal move, tried on BLOCKED_FEN: "draw" once the
+    draw rule decided on #17 is in this code (it arrives with Teal's #28), "unresolved" before that, when
+    such a game fails with the bots' no-legal-move error. --rules does not pin this; only the commit does."""
+    try:
+        ended = rules.terminal(rules.initial_state(BLOCKED_FEN))
+    except Exception as exc:  # rules that refuse the position: say so, and let the run go on
+        return f"unknown ({type(exc).__name__}: {exc})"
+    if ended is None:
+        return "unresolved"
+    return "draw" if ended[0] == "draw" else f"{ended[0]} wins ({ended[1]})"
 
 
 def opening(rules, seed: int, index: int, plies: tuple[int, int] = (2, 8)) -> list[str]:
@@ -337,18 +368,33 @@ def engine_policy(scorers: dict, judges: dict) -> dict:
     policy = dict(ENGINE_POLICY)
     if any(e.new_game_each_call for e in engines):
         policy["within_game"] = "hash cleared before every call"
+    timeouts = sorted({e.call_timeout_s for e in engines})
+    if timeouts:
+        policy["call_timeout_s"] = timeouts[0] if len(timeouts) == 1 else timeouts
     return policy
+
+
+def end_reasons(played: list[dict]) -> dict:
+    """How the finished games ended: END_REASONS always (ply_limit for a game stopped at --max-plies),
+    and any other reason the rules give, by its own name."""
+    counts = dict.fromkeys(END_REASONS, 0)
+    for g in played:
+        reason = "ply_limit" if g["stopped_at_ply_limit"] else g.get("reason") or "unknown"
+        counts[reason] = counts.get(reason, 0) + 1
+    return counts
 
 
 def summarise(games: list[dict], args, names: dict, checkpoints: dict, seconds: float, rules,
               devices: dict | None = None, record: dict | None = None, stopped_early: str | None = None,
-              policy: dict | None = None) -> dict:
+              policy: dict | None = None, no_move: str | None = None, command: list[str] | None = None) -> dict:
     played = [g for g in games if "error" not in g]
     sides = {}
     for side in ("a", "b"):
         mine = [m for g in played for m in g["moves"] if m["side"] == side and not m["opening"]]
         lost = [m["value_lost"] for m in mine if m["value_lost"] is not None]
         ms = np.array([m["elapsed_ms"] for m in mine], dtype=np.float64)
+        updates = [u for g in played for colour, s in g["colours"].items() if s == side
+                   for u in g.get("trackers", {}).get(colour, [])]  # this side's own tracker, every update
         sides[side] = {
             "scorer": getattr(args, side), "name": names[side], "checkpoint_sha256": checkpoints[side],
             "device": (devices or {}).get(side),
@@ -357,20 +403,29 @@ def summarise(games: list[dict], args, names: dict, checkpoints: dict, seconds: 
             "as_white": sum(g["colours"]["white"] == side for g in played), "moves": len(mine),
             "value_lost_mean": float(np.mean(lost)) if lost else None,
             "ms_per_move_mean": float(ms.mean()) if len(ms) else None,
+            "ms_per_move_median": float(np.median(ms)) if len(ms) else None,
             "ms_per_move_p95": float(np.percentile(ms, 95)) if len(ms) else None,
+            "over_budget_plies": sum(bool(m["over_budget"]) for m in mine),
+            "tracker_capped": sum(bool(u["capped"]) for u in updates),
+            "tracker_rebuilt": sum(bool(u["rebuilt"]) for u in updates),
         }
     return {
         "a": args.a, "b": args.b, "games": len(played), "openings": len({g["opening"]["id"] for g in played}),
         "errors": len(games) - len(played),
+        "errors_no_legal_move": sum(NO_LEGAL_MOVE in g["error"] for g in games if "error" in g),
         "diagnostic_errors": sum(g.get("diagnostic_errors", 0) for g in played),
         "reopened": sum(len(g.get("reopened", [])) for g in games),
         "stopped_early": stopped_early,
+        "completed": len(games) == args.games and stopped_early is None,
         "score_a": paired_score(games),
         "sides": sides,
         "plies_mean": float(np.mean([g["plies"] for g in played])) if played else None,
         "stopped_at_ply_limit": sum(g["stopped_at_ply_limit"] for g in played),
+        "end_reasons": end_reasons(played),
         "seconds_per_game_mean": float(np.mean([g["seconds"] for g in played])) if played else None,
         "rules": rules.name,
+        "no_move_rule": no_move,
+        "command": command,
         "settings": {k: getattr(args, k) for k in ("games", "max_plies", "seed", "particles", "guesses", "device",
                                                    "rules", "time_budget_ms")}
         | {"opening_plies": list(args.opening_plies), "stockfish": portable(args.stockfish),
@@ -424,7 +479,8 @@ def main():
         rules = pick_rules(args.rules)
     except ValueError as error:
         ap.error(str(error))
-    print(f"rules: {rules.name}", flush=True)
+    no_move = no_move_rule(rules)
+    print(f"rules: {rules.name}; no_move_rule: {no_move}", flush=True)
     opts = ScorerOptions(Path(args.checkpoints), args.stockfish, None if args.device == "auto" else args.device)
     started = time.time()
     with contextlib.ExitStack() as stack:
@@ -472,9 +528,16 @@ def main():
                         stopped_early = f"{failed_in_a_row} consecutive games failed"
                         print(f"stopping: {stopped_early}; see games.jsonl", file=sys.stderr)
                         break
+        except KeyboardInterrupt:  # Ctrl-C: summarised below as not completed, and still raised (exit status not 0)
+            stopped_early = "interrupted"
+            print(f"interrupted after {len(games)} of {args.games} games; summary.json says so", file=sys.stderr)
+            raise
+        except Exception as exc:  # the runner itself failed (a failing game is caught in play_one)
+            stopped_early = f"the run failed: {type(exc).__name__}: {exc}"
+            raise
         finally:  # the games finished so far are summarised even if the run is interrupted
             summary = summarise(games, args, names, checkpoints, time.time() - started, rules, devices, record,
-                                stopped_early, engine_policy(scorers, judges))
+                                stopped_early, engine_policy(scorers, judges), no_move, portable(sys.argv))
             (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     s = summary["score_a"]
     if s["mean"] is None:

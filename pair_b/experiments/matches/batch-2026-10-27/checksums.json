@@ -1,0 +1,164 @@
+{
+ "about": "sha256 of every file copied from the batch run folder (runs/matches/ in a clean worktree at a5c5fb6). For each games.jsonl.gz, decompressed_sha256 is the sha256 of the original games.jsonl. original_sha256 is the sha256 of the file as the run wrote it.",
+ "compressed_with": {
+  "python": "3.14.6",
+  "zlib": "1.2.12",
+  "call": "gzip.GzipFile(filename='', mode='wb', mtime=0, compresslevel=9)"
+ },
+ "files": {
+  "material-vs-d1/summary.json": {
+   "sha256": "0e724fb74b4807838b4dea36aaf43601de3d7931d0ab61b66b3d9a13e7381b35",
+   "bytes": 9471,
+   "original_sha256": "d2907489297d1e97d4ba8916c0dcfe4a605b391c3e54bf35669e45ad0fd5b82f",
+   "original_bytes": 9588,
+   "how": "settings.out shortened from the absolute run folder to runs/matches/material-vs-d1, as in command; nothing else changed"
+  },
+  "material-vs-d1/games.jsonl.gz": {
+   "sha256": "f82b1550a6ad05fceccb6fee2a684c90a71d9df290ba21524d14d89e438715a8",
+   "bytes": 334135,
+   "decompressed_sha256": "7bd2c0a6191d63e6fa1303b1419f24f2f7e1c234ff6ffac9ecd71d192ee2b7fc",
+   "decompressed_bytes": 4249445,
+   "how": "games.jsonl, gzip level 9, mtime 0, no file name; decompresses to the original bytes"
+  },
+  "stockfish-d1-vs-d1/summary.json": {
+   "sha256": "5e952285133af762dc7065c4e2b95038aa794a3325b45831f7eaadd2de8cdd31",
+   "bytes": 9469,
+   "original_sha256": "adcd263d3f65e719ab2b645607a6f3a52b30f41e331a5215302cf8dedf51a8d1",
+   "original_bytes": 9586,
+   "how": "settings.out shortened from the absolute run folder to runs/matches/stockfish-d1-vs-d1, as in command; nothing else changed"
+  },
+  "stockfish-d1-vs-d1/games.jsonl.gz": {
+   "sha256": "0f68c2dbeff6955468c802115caa395d7195386caad260ea2a69339efb230d6f",
+   "bytes": 461844,
+   "decompressed_sha256": "435ded4b03a9b37cee1c4eb5ca80c46a89ef89b6db1bcbfab6e207bbc6ec4824",
+   "decompressed_bytes": 4829351,
+   "how": "games.jsonl, gzip level 9, mtime 0, no file name; decompresses to the original bytes"
+  },
+  "linear-vs-d1/summary.json": {
+   "sha256": "6d46e2200301efac2e207c3ef538f8d30cd5d6b69ea7fcd77ca71eb0916a58ec",
+   "bytes": 9548,
+   "original_sha256": "755f7d89da246c0f32765690c636c6221c92e568c51f675d0d01f71a49939aa1",
+   "original_bytes": 9665,
+   "how": "settings.out shortened from the absolute run folder to runs/matches/linear-vs-d1, as in command; nothing else changed"
+  },
+  "linear-vs-d1/games.jsonl.gz": {
+   "sha256": "4e36afc98516b00db7599d9b58e02b54141406baa94fe5f2c422c7c42db5c3f7",
+   "bytes": 508319,
+   "decompressed_sha256": "883e584895a50ad3799904d1aae6652355faa80234a728cbeaac86e5167caf49",
+   "decompressed_bytes": 5298025,
+   "how": "games.jsonl, gzip level 9, mtime 0, no file name; decompresses to the original bytes"
+  },
+  "random-vs-d1/summary.json": {
+   "sha256": "07bd88ea8f4a8da22cbb13dfa7142786f4ace49d4223a173862ef92db185ddfe",
+   "bytes": 9460,
+   "original_sha256": "c3ef3d9cf047686625ad4165d8f7b1fcf770f094fafece48cffc16ccdc214b21",
+   "original_bytes": 9577,
+   "how": "settings.out shortened from the absolute run folder to runs/matches/random-vs-d1, as in command; nothing else changed"
+  },
+  "random-vs-d1/games.jsonl.gz": {
+   "sha256": "3874fc067654ad099d73b3b1c33364d033506496f7a60599dac72070d7af23ad",
+   "bytes": 196560,
+   "decompressed_sha256": "6511d16151f9d638bc5dba16276e51bb29211c4dd067816501b1328ee281afd3",
+   "decompressed_bytes": 2899279,
+   "how": "games.jsonl, gzip level 9, mtime 0, no file name; decompresses to the original bytes"
+  },
+  "network1-vs-d1/summary.json": {
+   "sha256": "0aace1060752ba04e6f5a0f262b6e1ce4c2a85de00d8b5b48356b7340a3b95d1",
+   "bytes": 9560,
+   "original_sha256": "f93ec347028405dd6743ac95c05fd58b1535c7dc058aa9b4d6956d4a3056a10b",
+   "original_bytes": 9677,
+   "how": "settings.out shortened from the absolute run folder to runs/matches/network1-vs-d1, as in command; nothing else changed"
+  },
+  "network1-vs-d1/games.jsonl.gz": {
+   "sha256": "6893af76259c9ea89961f209dbf6c13d057194dee36a8eb004daaf752fb70178",
+   "bytes": 472186,
+   "decompressed_sha256": "6c34ce7ce34b01d0b7a93945ce1b9fc613254134b6734dbaa3b0342a1caf2e01",
+   "decompressed_bytes": 4750407,
+   "how": "games.jsonl, gzip level 9, mtime 0, no file name; decompresses to the original bytes"
+  },
+  "belief-vs-d1/summary.json": {
+   "sha256": "7c293bfd9e535148b7dd1e2407d4a6b7095e96cbc853c74f3db0649bdbfb777d",
+   "bytes": 9531,
+   "original_sha256": "d47892fa3c3c73736145099370e77f4af013a92661d2c79d84ff82f080296b8d",
+   "original_bytes": 9648,
+   "how": "settings.out shortened from the absolute run folder to runs/matches/belief-vs-d1, as in command; nothing else changed"
+  },
+  "belief-vs-d1/games.jsonl.gz": {
+   "sha256": "901b492bf8313a23ce8c160803cff44b245191caa22b42161255c6e7bfac0e2c",
+   "bytes": 500780,
+   "decompressed_sha256": "1626928c7c1c6927c6eeea7320b37bf8959a1185db5b29496569d7642d668c36",
+   "decompressed_bytes": 5007511,
+   "how": "games.jsonl, gzip level 9, mtime 0, no file name; decompresses to the original bytes"
+  },
+  "stockfish-d11-vs-d1/summary.json": {
+   "sha256": "626d49caee3ac4ab23c1a04511fa763a9260caba16bdca9349d1b6ec3064bd5a",
+   "bytes": 9498,
+   "original_sha256": "1ec36aa5f38017c505ffa5e0463f044eae227415a6f2fdbc03581980e8c5018a",
+   "original_bytes": 9615,
+   "how": "settings.out shortened from the absolute run folder to runs/matches/stockfish-d11-vs-d1, as in command; nothing else changed"
+  },
+  "stockfish-d11-vs-d1/games.jsonl.gz": {
+   "sha256": "804248e61c0aaa76d8b102dede3c83b29cfac98782da535f4ea5715efc27f467",
+   "bytes": 514403,
+   "decompressed_sha256": "047026ad8a25b4a5b23857b425b6f0936dadd5ff53cf87d2c70fdd7573b5fb6e",
+   "decompressed_bytes": 5276600,
+   "how": "games.jsonl, gzip level 9, mtime 0, no file name; decompresses to the original bytes"
+  },
+  "material-vs-d1.log": {
+   "sha256": "0251416d7b0c96407342dfa7cd37559edd7bb593d67beec0eb6526b69aad5b4c",
+   "bytes": 12409,
+   "original_sha256": "0251416d7b0c96407342dfa7cd37559edd7bb593d67beec0eb6526b69aad5b4c",
+   "original_bytes": 12409,
+   "how": "copied byte for byte (no absolute paths to rewrite)"
+  },
+  "stockfish-d1-vs-d1.log": {
+   "sha256": "674b602fb6c64c6619e97834df9c3fad479adf1a37a809b9e2ef6da112b5bce4",
+   "bytes": 13212,
+   "original_sha256": "674b602fb6c64c6619e97834df9c3fad479adf1a37a809b9e2ef6da112b5bce4",
+   "original_bytes": 13212,
+   "how": "copied byte for byte (no absolute paths to rewrite)"
+  },
+  "linear-vs-d1.log": {
+   "sha256": "a463f870ce2ccf4f35e5bf4519ae9b7c65d550ea6c6ae810b86bbb186b1483e6",
+   "bytes": 12017,
+   "original_sha256": "a463f870ce2ccf4f35e5bf4519ae9b7c65d550ea6c6ae810b86bbb186b1483e6",
+   "original_bytes": 12017,
+   "how": "copied byte for byte (no absolute paths to rewrite)"
+  },
+  "random-vs-d1.log": {
+   "sha256": "d7fedd4e54d94108abf2481b6e44131804a617f8e28e14c5f4b2d7e40c048bda",
+   "bytes": 12127,
+   "original_sha256": "d7fedd4e54d94108abf2481b6e44131804a617f8e28e14c5f4b2d7e40c048bda",
+   "original_bytes": 12127,
+   "how": "copied byte for byte (no absolute paths to rewrite)"
+  },
+  "network1-vs-d1.log": {
+   "sha256": "6816de0152a83acdf86f1a846f7dd3189e1bf3ae9643124e91f99860e65f937c",
+   "bytes": 12400,
+   "original_sha256": "6816de0152a83acdf86f1a846f7dd3189e1bf3ae9643124e91f99860e65f937c",
+   "original_bytes": 12400,
+   "how": "copied byte for byte (no absolute paths to rewrite)"
+  },
+  "belief-vs-d1.log": {
+   "sha256": "8044a5aad21c868831a865704ce9ec19ed88a76d9ebd3887b680c49a04fe532b",
+   "bytes": 12047,
+   "original_sha256": "8044a5aad21c868831a865704ce9ec19ed88a76d9ebd3887b680c49a04fe532b",
+   "original_bytes": 12047,
+   "how": "copied byte for byte (no absolute paths to rewrite)"
+  },
+  "stockfish-d11-vs-d1.log": {
+   "sha256": "902475714c323d0f79fb2a4343cb195e870e81b1fc3e6c422be20e40d717c158",
+   "bytes": 13631,
+   "original_sha256": "902475714c323d0f79fb2a4343cb195e870e81b1fc3e6c422be20e40d717c158",
+   "original_bytes": 13631,
+   "how": "copied byte for byte (no absolute paths to rewrite)"
+  },
+  "batch-status.tsv": {
+   "sha256": "fa3451b9484f983c3ac02f3126d2cfa88b2bfa89da5f484ce0d7c861f67ea52a",
+   "bytes": 1434,
+   "original_sha256": "fa3451b9484f983c3ac02f3126d2cfa88b2bfa89da5f484ce0d7c861f67ea52a",
+   "original_bytes": 1434,
+   "how": "copied byte for byte (no absolute paths to rewrite)"
+  }
+ }
+}

@@ -1,0 +1,295 @@
+schema_version = 1
+status = "portable_release_locally_validated"
+runtime_configuration = "runtime.toml"
+implementation_record = "../docs/IMPLEMENTATION.md"
+
+[paper]
+arxiv = "2106.06068v2"
+algorithm = "nested_1_klss"
+pseudocode = "Algorithm 12 and Algorithm 15"
+knowledge_order = 1
+blueprint = "no_offline_blueprint"
+
+[belief]
+full_information_set = true
+transpositions = true
+particle_floor = 200
+entropy_denominator = 10000000
+replacement_sampling = false
+
+[belief.transposition]
+status = "implemented_local_validation"
+scope = "roots_in_current_information_set"
+key_fields = ["candidate_piece_placement", "side_to_move", "castling_rights", "effective_fow_en_passant_rights"]
+ignore_draw_history = true
+representative_policy = "seeded_shuffle_first_complete_representative"
+native_representative_policy = "uniform_reservoir_complete_history_distribution_equivalent_d17"
+rng_stream = "transposition_representatives"
+seed_source = "recorded_run_seed"
+candidate_order = "canonical_before_shuffle"
+cardinality_and_sampling_unit = "unique_position_representatives"
+preserve_referee_and_exact_oracle_history = true
+
+[value]
+engine = "Stockfish 13"
+engine_commit = "3597f1942ec6f2cfbd50b905683739b0900ff5dd"
+depth = 1
+search_mode = "native_uci_go_depth"
+preserve_quiescence = true
+tau_pawns = 6.0
+transform = "tanh(score_pawns / tau_pawns)"
+cp_units_per_pawn = 100
+score_pov = "fixed_solving_player"
+terminal_policy = "fow_referee_before_engine"
+terminal_values_scope = "referee_outcomes_and_uncapped_search_base"
+search_utility_pipeline = "fow_terminal_base_or_engine_value_then_possible_draw_cap"
+terminal_win = 1.0
+terminal_draw = 0.0
+terminal_loss = -1.0
+adaptation_status = "sf13_v6_d15_capture_guard_d20_uci_ep_d21_king_legality_batch_and_reset"
+engine_build = "stockfish13-batch-v6"
+engine_binary_sha256 = "7e6357e5637cfaa4865b84135bc860f959be5983a84b57e871d0a0616082a475"
+orthodox_illegal_ep_policy = "omit_in_uci_only_preserve_fow_actions_information_and_identity"
+king_legality_patch = "test_destination_attacks_with_origin_vacant"
+use_nnue = true
+nnue_file = "nn-62ef826d1a6d.nnue"
+nnue_status = "original_default_full_hash_verified"
+nnue_sha256 = "62ef826d1a6d11b9e814188025aa02a60815c037292e0ef9bbb9bf4f724e5e63"
+
+[value.mate]
+status = "mate_mapping_integrated_and_tested"
+distance_unit = "uci_moves_not_plies"
+one_move_magnitude = 0.9
+decay_per_move = 0.78
+transform = "sign(n) * one_move_magnitude * decay_per_move ** (abs(n) - 1)"
+sign_policy = "normalize_to_fixed_solving_player"
+fusion = "mate_override"
+decay_distance_domain = "all_nonzero_integer_mate_distances"
+zero_mate_policy = "negative_if_mated_side_is_solving_player_positive_otherwise"
+zero_mate_magnitude = 0.9
+zero_mate_mated_side = "side_to_move_in_evaluated_position"
+zero_mate_scope = "confirmed_orthodox_checkmate_in_nonterminal_fow_state"
+zero_mate_is_terminal = false
+invalid_score_policy = "explicit_evaluation_error"
+scale_with_value_variant = true
+
+[value.possible_draw]
+status = "implemented_including_terminal_descendants"
+enabled = true
+observer = "fixed_solving_player_only"
+observation_repetition_count = 3
+quiet_ply_limit = 100
+initial_observation_count = 1
+observation_updates = "once_per_completed_ply_ignore_duplicate_delivery"
+observation_signature = ["side_to_move", "visible_mask", "visible_contents", "permitted_rule_and_action_information"]
+quiet_counter_reset = "own_action_or_observation_confirmed_pawn_move_or_capture"
+transform = "min(base_utility, cap_upper_bound)"
+cap_upper_bound = 0.0
+apply_to_terminal_nodes = true
+inheritance = "triggering_node_and_all_descendants"
+retain_after_pawn_move_or_capture = true
+retain_on_reroot = true
+reset_on_new_game = true
+affects_referee_outcomes = false
+scope = "search_position_utilities_not_whole_A_plus_B"
+cache_policy = "apply_per_path_after_uncapped_engine_cache_lookup"
+
+[value.history_input]
+status = "canonical_history_input_probed"
+mode = "independent_canonical_fen"
+halfmove_clock = 0
+fullmove_number = 1
+include_prior_moves = false
+retain_position_turn_castling_and_effective_ep = true
+uci_ep_exception = "d20_omit_ep_if_no_orthodox_legal_ep"
+preserve_native_search_internal_draw_detection = true
+
+[value.material_fallback]
+enabled = false
+status = "superseded_by_nonzero_mate_distance_decay"
+source_audit = "sources/stockfish13/d07-material-2026-10-24/manifest.json"
+
+[value.execution]
+status = "four_single_thread_workers_implemented"
+threads_per_engine = 1
+worker_count = 4
+pool_model = "persistent_engine_processes"
+search_state = "reset_before_each_independent_position"
+result_order = "fixed_batches_and_canonical_query_order"
+remaining_options = "freeze_sf13_defaults_before_execution"
+cache_key = "canonical_query_state_engine_build_network_options_and_history_policy"
+cache_payload = "uncapped_engine_score_no_referee_terminal_results"
+
+[search]
+variant = "reach_maxmargin_then_reach_resolving"
+expansion = "equilibrium_support_guided"
+catch_up_depth = true
+time_budget_status = "sixteen_seconds_user_authorized_historical_batch_stopped_at_34"
+
+[search.reach]
+status = "implemented_with_d13_retained_mass_normalization"
+value_pov = "fixed_solving_player"
+reference = "matched_old_game_and_strategy_snapshot"
+counterfactual_values = "best_response_values_with_consistent_payoff_terms_and_normalization"
+opponent_infoset_reduction = "min"
+ancestor_scope = "old_game_opponent_sequences_Ja_preceding_target_I0"
+history_source = "corresponding_candidate_history_not_referee_hidden_history"
+local_gift = "V_x(Ja) - V_x(J)"
+gift_representation = "nonnegative"
+aggregate = "sum_over_matching_ancestor_decision_action_pairs"
+empty_ancestor_sum = 0.0
+b_local_initialization = "-V_x(I0) + G_hat(I0)"
+b_gift_operation = "add"
+retained_mass_scale = "q_full_counterfactual_reach_divided_by_D_retained_reach"
+scale_alternate_and_gift_with_retained_mass = true
+preserve_old_b_copy_scaling_and_pruned_contributions = true
+mode_switch_payoff = "full_A_plus_B_per_d06"
+value_variant_policy = "recompute_from_own_payoff_scale"
+new_root_initialization = "d03_alternate_payoff_without_unavailable_historical_gift"
+rebuild_reference_policy = "d03_d04_matched_root_and_strategy_references"
+repeat_policy = "recompute_per_snapshot_and_target_no_accumulator_inflation"
+global_action_once_deduplication = false
+undefined_values = "detect_and_reject_invalid_solution_no_denominator_epsilon_or_nan_to_zero"
+undefined_failure = "d04_last_valid_current_decision_snapshot_or_explicit_failure"
+zero_reach_boundary_status = "explicit_failure_for_zero_counterfactual_reach_or_D"
+use_mode_epsilon_to_clip_gift = false
+true_game_lower_bound_guaranteed = false
+
+[search.budget]
+status = "implemented_local_validation"
+mode = "wall_clock_per_move"
+seconds = 16.0
+applies_to = ["paper_agent", "baseline"]
+clock = "monotonic"
+start_event = "referee_transfers_turn_to_acting_player"
+deadline = "turn_start_plus_seconds"
+includes = "all_agent_work_and_waiting_after_turn_transfer_until_action_submission"
+off_turn_work = "observation_updates_only_no_search"
+require_full_budget_consumption = false
+on_exhaustion = "d04_last_valid_current_decision_snapshot_or_explicit_failure"
+initial_solution_reserve_seconds = 0.5
+further_expansion_reserve_seconds = 2.0
+game_clock_adjudication = "deferred_under_d10"
+
+[baseline]
+status = "implemented_local_validation"
+base_agent = "paper_agent"
+fow_search_depth = 1
+depth_unit = "ply_from_current_real_game_root"
+count_gadget_edges_in_depth = false
+continuation = "stockfish_13_perfect_information_iterative_deepening"
+inherit_main_agent_settings = true
+allowed_algorithm_differences = ["fow_search_depth", "stockfish_continuation_search"]
+information_source = "own_permitted_history_derived_candidate_states"
+root_action_aggregation = "same_gadget_and_lp_as_main_agent"
+induced_implementation_differences = "record_and_validate_without_disabling_shared_mechanisms"
+
+[execution]
+status = "implemented_local_validation"
+engine_pool_count = 1
+engine_workers_source = "value.execution"
+pool_sharing = "acting_agent_uses_pool_other_agent_does_not_search"
+lp_threads = 1
+parallel_games = 1
+evaluation_cache_scope = "per_agent_per_game"
+include_search_mode_and_limits_in_cache_key = true
+
+[evaluation]
+status = "historical_batch_stopped_at_34_no_new_release_tournament"
+participants = ["paper_agent", "baseline"]
+value_variant = "main"
+initial_position = "standard_initial_position"
+games = 100
+paper_agent_white_games = 50
+paper_agent_black_games = 50
+color_schedule = "alternate_paper_agent_color"
+seed_policy = "record_independent_streams_per_game_and_agent"
+require_paired_seeds = false
+reset_agent_state_each_game = true
+result_perspective = "paper_agent"
+primary_metrics = ["wins", "draws", "losses"]
+report_by_color = true
+outcomes_source = "referee_not_search_utility"
+incomplete_runs = "record_separately_do_not_convert_to_wdl_or_silently_drop"
+
+[evaluation.acceptance]
+implementation = "paper_description_with_confirmed_decisions"
+correctness = "required_checks_pass_no_unresolved_known_bugs"
+completed_games = 100
+required_reports = ["agent_white_wdl", "agent_black_wdl", "agent_total_wdl"]
+require_beating_baseline = false
+require_paper_score = false
+require_rating_target = false
+require_confidence_interval = false
+require_ablation_matches = false
+require_extra_seed_batches = false
+
+[mode_switch]
+policy = "fixed_absolute_epsilon"
+epsilon = 1e-15
+zero_interval = "closed"
+payoff = "full_current_gadget_A_plus_B_after_undoing_solver_only_scaling"
+near_zero_mode = "MAXMARGIN"
+status = "fixed_epsilon_integrated"
+
+[planned_lp]
+backend = "scipy_highs"
+method = "highs-ds"
+paper_backend = "gurobi_9.0_for_reported_medium_games"
+feasibility_tolerance = 1e-8
+dual_feasibility_tolerance = 1e-8
+certificate_retry_tolerances = [1e-9, 1e-10]
+certificate_retry_policy = "same_LP_cold_resolve_only_after_full_certificate_failure_within_original_deadline"
+validation_flow_tolerance = 1e-8
+validation_nonnegative_tolerance = 1e-8
+validation_gap_tolerance = 1e-8
+support_tolerance = 1e-9
+support_measure = "individual_sequence_form_realization_weight"
+support_comparison = "strict_greater_than"
+support_threshold_changes = "expansion_mask_only"
+support_sensitivity_candidates = [1e-7, 1e-9, 1e-11]
+presolve = true
+simplex_dual_edge_weight_strategy = "steepest-devex"
+warm_start = false
+equilibrium_selection = "single_solver_returned_pair_with_fixed_matrix_order"
+failure_policy = "d04_last_valid_current_decision_snapshot"
+status = "substitution_validated_on_small_games"
+
+[rules]
+profile = "paper2021_fow_no_moves_draw_v1"
+no_move_rule = "terminal_draw_v1"
+no_move_source = "project_convention_PR28_authorized_2026-10-26"
+terminal_precedence = ["king_capture", "fifty_move", "threefold_repetition", "no_legal_moves"]
+implementation_status = "pair_a_rules_adapter_and_native_oracle_validated"
+capture_king = true
+check_restrictions = false
+automatic_threefold = true
+automatic_fifty_full_moves = true
+repetition_count = 3
+quiet_ply_limit = 100
+draw_history_visibility = "referee_private"
+platform_edge_cases = "pair_a_then_official_rules_unknown_edges_fail_explicitly"
+d10_status = "pair_a_reuse_authorized_see_d10_integration"
+d10_deferred_topics = ["undocumented_administrative_end_conditions"]
+
+[rules.information]
+status = "implemented_local_validation"
+agent_input = "own_rules_permitted_observation_history_and_action_information"
+material_knowledge = "derived_from_permitted_history_not_referee_oracle"
+unobserved_promotions = "not_disclosed"
+expose_true_global_material_table = false
+expose_hidden_board_or_opponent_private_observations = false
+leaf_evaluation_input = "agent_candidate_states_not_referee_state"
+
+[rules.en_passant_observation]
+status = "official_disclosure_implemented_and_tested"
+source = "https://support.chess.com/en/articles/8708650-what-is-fog-of-war-chess"
+source_archive = "sources/web/d10-rules-2026-10-24/manifest.json"
+require_legal_capture = true
+recipient = "side_to_move_with_legal_en_passant_capture"
+show_target_square = true
+show_capturable_pawn_square = true
+extra_visibility_expires = "end_of_capturing_players_current_turn"
+extra_notice_to_non_capturing_player = false
+normal_visibility_after_expiry = "recompute_under_normal_rules"
+retain_observation_history = true
