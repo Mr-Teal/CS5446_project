@@ -10,15 +10,16 @@ Semester 1, AY2026/27
 
 ## Project Report Draft
 
-27 October 2026 | For team review, not final submission
+28 October 2026 | For team review, not final submission
 
 **Team:** DING Chiyu; PEI Shengxin; QUEK Hongqiang Colin; WANG Zhijian;
 Kuah Jun Hong, Bryan; LIN Tzu-Chun.
 
 **Draft status.** This is a full report draft assembled from the available
 implementation, development results, historical validation and the completed
-seven-row batch, independently audited at PR38 head 5e9393a. Publication remains
-subject to the 27 October 23:59 SGT objection window. The team must confirm the
+seven-row batch, independently audited at PR38 head 5e9393a. The objection
+window closed on 27 October at 23:59 SGT; PR38 merged on 28 October at
+01:18 SGT. The team must confirm the
 final integrated revision, contributions and conclusions before submission.
 
 **Major revisions expected.** Major changes are likely as implementation,
@@ -38,7 +39,8 @@ are manually prepared and have not been imported into one.
 
 **Reading guide.** Development-label results, historical match checks and the
 archived pre-rule batch are separate evidence populations. An unmerged
-experimental branch is not reviewed main functionality. Detailed review logs are linked rather than
+experimental branch remains separate from main even after scoped approval.
+Detailed review logs are linked rather than
 reproduced in the main report. Remove this cover guidance before final submission.
 
 ---
@@ -141,12 +143,14 @@ computed strategy. Retaining accumulated solver state during growth avoids
 restarting all previous learning when a deeper continuation is added.
 
 Our implementation follows selected mechanisms, not every mechanism of either
-paper. At main abfc868, the budgeted prototype uses uniform complete-frontier
-growth and rebuilds each turn. The later PR39–PR48 review stack adds selective
-expansion, retained search, sampled gadget boundaries and purification; these
-are unmerged experiments with open fixes and stale reference measurements,
-not reviewed main functionality or a complete Obscuro reproduction. ZS21 and
-the shared en-passant repetition fix are separately reviewed in PR37 [4,14].
+paper. Main 9871083 includes the uniform-growth prototype, which rebuilds each
+turn, and the ZS21 delivery and shared en-passant repetition fix merged in PR37.
+The optional PR39–PR48 stack adds selective expansion, retained search,
+sampled gadget boundaries and purification. It remains unmerged; scoped
+approvals of PR42, PR46, PR48 and the test-only PR52 do not certify the whole
+stack. Projected training labels remain disabled pending agreement on root
+sets and weights. Gift lineage is audit-only; numerical ancestor-payment
+transfer and full Obscuro reproduction remain open [4,14].
 
 ---
 
@@ -268,9 +272,10 @@ legal plies with seed 0 under the recorded generation rule [6,7,13].
 
 Colin ran all rows on one M5 Pro Mac at a5c5fb6 (main 2af8f1f plus PR34),
 26–27 October. The summaries record code, engine, checkpoint and environment
-identities. The batch used stand-in rules before PR28 reached main with PR15;
-`no_move_rule` remains `unresolved` in these historical artifacts. No game hit a
-no-move case. Keep the original provenance and never pool with post-rule runs.
+identities. The batch predates both PR28's no-move draw rule, merged through
+PR15, and PR37's fog-of-war en passant repetition key. Its stand-in summaries
+retain `no_move_rule=unresolved`; no game hit a no-move case. Keep the original
+provenance and never pool with later-rule runs.
 Bryan independently audited the records; he did not rerun the matches [7,13].
 
 Game scores are 1/0.5/0 for win/draw/loss. The primary estimate averages the
@@ -287,7 +292,8 @@ per-call watchdog is failure protection, not an enforced action-time limit.
 Report both players' mean/p95 decision latency, game wall time and tracker health.
 Each row must footnote unresolved no-move exclusions or recorded no-move draws
 under its pinned rule. PR28 is now on main and also changes evaluated stand-in
-children, so zero no-move failures does not establish rule-version equivalence.
+children; PR37 also changes repetition adjudication. Zero no-move failures
+does not establish rule-version equivalence.
 Compare engine binary hashes alongside source/checkpoint identities.
 Outer planning, not compute/time, is controlled; timing excludes tracker updates.
 Per-row intervals are not multiple-comparison-adjusted evidence [6,7].
@@ -352,7 +358,8 @@ are not runner equivalence or neural strength evidence; the runs are not pooled.
 Table 2 reports the seven comparisons against quick Stockfish. Score and
 intervals use complete color pairs (100 per row, 99 for random); W/D/L counts
 every finished game (199 for random). All figures were recomputed from the
-archived game records at PR38 head 5e9393a [13].
+archived game records at PR38 head 5e9393a [13]. Scores and intervals follow
+the published table's half-up rounding; a few log cells round differently [7].
 
 | Candidate | Score | Bootstrap 95% | W/D/L | ms/move median (p95) |
 | --- | --- | --- | --- | --- |
@@ -407,8 +414,18 @@ below. Test counts overlap across revisions and must not be summed.
 PR27's 110 focused tests are included in its 404. The reviewed revisions are
 7b14bbb and 5f334b1 respectively; full identifiers and artifacts are in the
 references. Their search snapshots exclude the separate no-move-rule update
-in PR28 [12]. These are not final integrated-release checks. No additional
-solver tests or matches were run to prepare this report draft.
+in PR28 [12]. These are not final integrated-release checks.
+
+Scoped reviews on 28 October checked subgame diagnostics, label rejection,
+fallback recovery and weighted values. PR52's 185 selected tests passed;
+six defect mutations were caught and four Black-perspective probes passed.
+PR46's 42 selected tests support functional correctness; its timing matrices
+remain historical. PR48's 33 selected tests passed, both 100-entry manifests
+and its portable clock link verified, and the gift probe reproduced non-timing
+fields. Exact reviewed heads and limits are linked in [14]. These overlapping
+selections are not summed or treated as release, timing or strength evidence.
+The reviews and this revision added no training, formal match batch or
+engine/network execution.
 
 ### 7.2 What the Evidence Establishes
 
@@ -468,7 +485,8 @@ Teal confirmed his prototype work; other members' statements remain provisional.
 | LIN Tzu-Chun | Role and completed contribution await confirmation |
 
 GitHub Copilot assisted Bryan's inspections, probes, artifact checks and drafting
-under his direction. Codex assisted this archive audit and revision.
+under his direction. Codex assisted the archive audit, scoped search reviews
+and this document revision.
 Teal reports Codex assistance; the proposal records
 Claude-assisted drafting. Others must disclose their use. Human verification
 and team approval remain necessary.
@@ -497,7 +515,7 @@ comparisons do not establish full-agent strength or strategic belief value.
 
 6. CS5446_project contributors. Match protocol [Internet]. 2026 [cited 2026 Oct 26]. Revision 2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d. Available from: [pinned protocol](https://github.com/Mr-Teal/CS5446_project/blob/2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d/pair_b/docs/match_protocol.md); [protocol discussion, issue 17](https://github.com/Mr-Teal/CS5446_project/issues/17).
 
-7. bryankuah. Evaluation methods and batch validation [Internet]. 2026 Oct 27 [cited 2026 Oct 27]. PR50, revision bc8047b172c625a8b2463dbffcbb6a26da86a6b5. Available from: [pinned updated methods](https://github.com/Mr-Teal/CS5446_project/blob/bc8047b172c625a8b2463dbffcbb6a26da86a6b5/pair_b/docs/evaluation-methods-draft.md).
+7. bryankuah. Evaluation methods and batch validation [Internet]. 2026 Oct 28 [cited 2026 Oct 28]. Draft PR50, revision 182ec7a6abe3ef649270edbb1a0cbeb9ecb07fc1. Available from: [pinned updated methods](https://github.com/Mr-Teal/CS5446_project/blob/182ec7a6abe3ef649270edbb1a0cbeb9ecb07fc1/pair_b/docs/evaluation-methods-draft.md).
 
 8. bryankuah. Independent D1-versus-material historical cross-check [Internet]. 2026 [cited 2026 Oct 26]. Publication revision 8735be4cc7e06928db6d12ee2487a08bb86e5ba7; historical run source differs as stated in the text. Available from: [pinned raw artifacts and audit](https://github.com/Mr-Teal/CS5446_project/tree/8735be4cc7e06928db6d12ee2487a08bb86e5ba7/pair_b/experiments/matches/crosscheck-bryan-d1-vs-material-standard-start).
 
@@ -511,4 +529,4 @@ comparisons do not establish full-agent strength or strategic belief value.
 
 13. emalcolin. Seven-row match batch [Internet]. 2026 Oct 27 [cited 2026 Oct 27]. PR38, reviewed revision 5e9393ab8537088e8ea6542ce21e11f42218ee15; execution source a5c5fb6. Available from: [pinned records, checksums and tables](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27).
 
-14. CS5446_project contributors. Current integration and pending search reviews [Internet]. 2026 Oct 27 [cited 2026 Oct 27]. Main abfc8686ff3e4948a310f3753b25e702226d7ca0; later work remains separately reviewed. Available from: [pinned main](https://github.com/Mr-Teal/CS5446_project/tree/abfc8686ff3e4948a310f3753b25e702226d7ca0); [PR37](https://github.com/Mr-Teal/CS5446_project/pull/37); [PR42 review discussion](https://github.com/Mr-Teal/CS5446_project/pull/42).
+14. CS5446_project contributors, bryankuah. Integration status and scoped search reviews [Internet]. 2026 Oct 28 [cited 2026 Oct 28]. Main 987108329d19fd1b4113883131d551fc68d39dd3 includes PR37, PR38 and PR45. Reviewed unmerged heads: PR42 25688180178589d41daadfaa5a23117a115fe96d; PR52 5e74ede8ef874a3bdc31564830e889f113951f87; PR46 ee42c8f8e41858431e000825a437ee39b2e88b7b; PR48 879818c16518e1d706cf60fe5f666979d532aec9. Available from: [pinned main](https://github.com/Mr-Teal/CS5446_project/tree/987108329d19fd1b4113883131d551fc68d39dd3); [PR37 delivery](https://github.com/Mr-Teal/CS5446_project/pull/37); [PR42 review](https://github.com/Mr-Teal/CS5446_project/pull/42#pullrequestreview-5679229932); [PR52 review](https://github.com/Mr-Teal/CS5446_project/pull/52#pullrequestreview-5679231586); [PR46 review](https://github.com/Mr-Teal/CS5446_project/pull/46#pullrequestreview-5679261471); [PR48 review](https://github.com/Mr-Teal/CS5446_project/pull/48#pullrequestreview-5679267479).

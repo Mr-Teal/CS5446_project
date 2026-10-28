@@ -2,7 +2,7 @@
 
 Presentation Plan and Slide Draft
 
-CS4246/CS5446 | AY2026/27 | 27 October 2026 | For team discussion
+CS4246/CS5446 | AY2026/27 | 28 October 2026 | For team discussion
 
 **Major revisions expected.** Major changes are likely as implementation,
 integration, experiments and team review progress. This is a provisional
@@ -125,11 +125,13 @@ support selected contracts, not stronger play or full Obscuro reproduction."
 
 **Visual:** A before/after tree with unchanged old nodes and highlighted new
 frontiers. Limit verification to a 20-second callout; test counts go in backup.
-Show uniform complete-frontier growth at main abfc868 and cooperative
-deadlines. Later selective/retained/gadget/purification work is in the unmerged
-PR39–PR48 stack with open review and historical measurements; label it experimental.
-ZS21 and the shared EP fix remain in separate PR37 review. Sources: S3, S7. Teal has volunteered
+Show uniform complete-frontier growth at main 9871083 and cooperative
+deadlines. ZS21 and the shared EP repetition fix are now on main through PR37.
+The selective/retained/gadget/purification stack remains unmerged; scoped
+approvals of PR42/46/48/52 cover selected checks, not the complete system.
+Projected training labels remain disabled and gift lineage remains audit-only. Sources: S3, S7. Teal has volunteered
 content and a retained-state growth visual; speaking allocation remains open.
+Use S9 for review details in backup, outside the timed explanation.
 
 ### Slide 6. Swap the Evaluator, Keep the Interface (1:15)
 
@@ -231,7 +233,8 @@ Show median decision costs: D1 11.1 ms, Network 1 36.1, belief 149.8,
 D11 2452.2. State 99 pairs for random, 100 elsewhere. W/D/L counts every
 finished game; the failed random game's partner is excluded only from pairing.
 Two linear and four D11 draws are 200-ply caps. No no-move failures occurred,
-but the source is pre-rule and never pooled with later runs. Keep historical
+but the source predates both the no-move and EP repetition updates and is
+never pooled with later runs. The table uses half-up rounding (S5). Keep historical
 20-game D1/material checks separate in backup. Sources: S5, S6, S8.
 
 ### Slide 12. What We Can Conclude (1:15)
@@ -301,13 +304,14 @@ are different objectives; show slide 8's value-lost interval.
 
 **Did we reproduce Obscuro?** No complete reproduction claim. Keep a mechanism
 status table separating main's uniform-growth baseline, unmerged sampled
-search mechanisms, open fixes and the separately reviewed ZS21 delivery.
+search mechanisms with scoped approvals, remaining label/payment contracts
+and the merged ZS21 delivery. Prototype verification does not establish strength.
 
 **Is the comparison fair?** Outer planning is fixed, total compute is not.
 Explain paired openings, timing, failures and engine resets.
 
 **Prepare backup assets:** full metric tables; interval and exclusion rules;
-search-test evidence; rules/version differences; the coin example; individual
+search-test evidence (S9); rules/version differences; the coin example; individual
 contributions and AI disclosures. These are outside the timed core talk.
 
 ---
@@ -324,7 +328,7 @@ Use the [pinned mechanism checklist](https://github.com/Mr-Teal/CS5446_project/b
 
 S4. [Pinned evaluator documentation and linked artifacts](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/README.md). Plot the recorded values; distinguish development checks, offline beliefs, sealed tests and gameplay.
 
-S5. [Updated methods, PR50](https://github.com/Mr-Teal/CS5446_project/blob/bc8047b172c625a8b2463dbffcbb6a26da86a6b5/pair_b/docs/evaluation-methods-draft.md) and [batch discussion, issue 17](https://github.com/Mr-Teal/CS5446_project/issues/17). The batch is complete; preserve its pre-rule source and the 27 October 23:59 SGT publication gate.
+S5. [Updated methods, PR50](https://github.com/Mr-Teal/CS5446_project/blob/182ec7a6abe3ef649270edbb1a0cbeb9ecb07fc1/pair_b/docs/evaluation-methods-draft.md) and [batch discussion, issue 17](https://github.com/Mr-Teal/CS5446_project/issues/17). The objection window closed on 27 October at 23:59 SGT; PR38 merged on 28 October at 01:18 SGT. Preserve its pre-rule source. PR50 remains a draft.
 
 S6. [Historical artifacts, PR31](https://github.com/Mr-Teal/CS5446_project/tree/8735be4cc7e06928db6d12ee2487a08bb86e5ba7/pair_b/experiments/matches/crosscheck-bryan-d1-vs-material-standard-start). Historical source: 3afc5945dfa5a98e5a90275782b8658b69bb9bcf; do not pool with the archived seven-row batch.
 
@@ -336,10 +340,12 @@ the academic-year heading; confirm on Canvas rather than infer a correction.
 
 **AI assistance:** GitHub Copilot prepared the earlier outline, wording, visual
 briefs and checks under Bryan's direction. Codex assisted this revision and
-the independent batch archive audit. It is not yet
+the independent batch archive audit and scoped search reviews. It is not yet
 team-approved. Members must verify claims, create/review visuals, add their
-own contribution and AI-use disclosures, and rehearse. No new games, training
-or experiments were run. Major revisions to both this plan and the report
+own contribution and AI-use disclosures, and rehearse. This revision adds no
+new training or formal matches; S9 records the separately completed review probes. Major revisions to both this plan and the report
 are expected as more work and results become available.
 
-S8. [Reviewed batch, PR38 at 5e9393a](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27). Execution source a5c5fb6; paired scores and intervals, failures, timing and capped-draw notes. [Pending Pair A stack](https://github.com/Mr-Teal/CS5446_project/pull/42) and [ZS21/shared EP review](https://github.com/Mr-Teal/CS5446_project/pull/37) are separate from the batch.
+S8. [Reviewed batch, PR38 at 5e9393a](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27). Execution source a5c5fb6; paired scores and intervals, failures, timing and capped-draw notes. [Pending Pair A stack](https://github.com/Mr-Teal/CS5446_project/pull/42) is separate from the batch. [ZS21/shared EP delivery](https://github.com/Mr-Teal/CS5446_project/pull/37) merged at 04f992d. Current main is [9871083](https://github.com/Mr-Teal/CS5446_project/tree/987108329d19fd1b4113883131d551fc68d39dd3).
+
+S9. Scoped reviews on 28 October: [PR42 at 2568818](https://github.com/Mr-Teal/CS5446_project/pull/42#pullrequestreview-5679229932), [PR52 at 5e74ede](https://github.com/Mr-Teal/CS5446_project/pull/52#pullrequestreview-5679231586), [PR46 at ee42c8f](https://github.com/Mr-Teal/CS5446_project/pull/46#pullrequestreview-5679261471), and [PR48 at 879818c](https://github.com/Mr-Teal/CS5446_project/pull/48#pullrequestreview-5679267479). For backup: PR52 had 185 selected tests, six detected defect mutations and four additional Black-perspective value probes; PR46 had 42 selected tests within its functional scope; PR48 had 33 selected tests, two verified 100-entry source manifests, a portable clock link and a gift-probe rerun matching non-timing fields. Counts overlap across heads and must not be summed. No new clock matrix or formal match batch was run. Projected labels remain disabled; the ledger does not transfer ancestor payments numerically. Scoped approval is not final integration approval, a timing guarantee or strength evidence.
