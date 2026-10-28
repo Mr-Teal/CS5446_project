@@ -530,3 +530,57 @@ comparisons do not establish full-agent strength or strategic belief value.
 13. emalcolin. Seven-row match batch [Internet]. 2026 Oct 27 [cited 2026 Oct 27]. PR38, reviewed revision 5e9393ab8537088e8ea6542ce21e11f42218ee15; execution source a5c5fb6. Available from: [pinned records, checksums and tables](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27).
 
 14. CS5446_project contributors, bryankuah. Integration status and scoped search reviews [Internet]. 2026 Oct 28 [cited 2026 Oct 28]. Main 987108329d19fd1b4113883131d551fc68d39dd3 includes PR37, PR38 and PR45. Reviewed unmerged heads: PR42 25688180178589d41daadfaa5a23117a115fe96d; PR52 5e74ede8ef874a3bdc31564830e889f113951f87; PR46 ee42c8f8e41858431e000825a437ee39b2e88b7b; PR48 879818c16518e1d706cf60fe5f666979d532aec9. Available from: [pinned main](https://github.com/Mr-Teal/CS5446_project/tree/987108329d19fd1b4113883131d551fc68d39dd3); [PR37 delivery](https://github.com/Mr-Teal/CS5446_project/pull/37); [PR42 review](https://github.com/Mr-Teal/CS5446_project/pull/42#pullrequestreview-5679229932); [PR52 review](https://github.com/Mr-Teal/CS5446_project/pull/52#pullrequestreview-5679231586); [PR46 review](https://github.com/Mr-Teal/CS5446_project/pull/46#pullrequestreview-5679261471); [PR48 review](https://github.com/Mr-Teal/CS5446_project/pull/48#pullrequestreview-5679267479).
+
+---
+
+## Editorial Revision Checklist
+
+**Working notes for the team.** Complete this pass once the project scope,
+results and interpretation are stable. The draft currently reads too much
+like an implementation audit in places. These are known writing problems to
+resolve, not new experimental findings. Keep the evidence and uncertainty
+while making the argument easier to follow. Remove this section from the
+submitted report after completing the checks.
+
+**1 Reduce GitHub bookkeeping.** PR numbers, commit hashes, test counts and
+publication-window details interrupt the academic explanation. Move operational
+history and detailed validation into linked technical notes. In the main text,
+retain the source and rules needed to interpret each result. Check: a reader
+can follow the argument without opening a pull request.
+
+**2 Consolidate repeated qualifications.** Several sections repeat that the
+work does not establish playing strength or full reproduction. Explain each
+limitation where it affects interpretation, then collect the remaining limits
+in Section 8. Check: uncertainty is preserved without repeating the same
+disclaimer throughout the report.
+
+**3 Explain technical terms before using them.** Terms such as projected
+root sets, counterfactual reach, purification and ancestor-payment transfer
+need a plain explanation of their purpose and what can go wrong. Keep precise
+terminology after that explanation. Check: a classmate familiar with AI can
+understand the design without knowing the codebase.
+
+**4 Strengthen the research narrative.** Connect the research questions to the
+design choices, experiments and conclusions. Explain why we selected the
+baselines, what the results changed in our understanding, and which decisions
+followed. Check: each major section advances that argument rather than listing
+components or completed work. Do not invent motivations or experiences.
+
+**5 Replace generic and formulaic prose.** Review stock transitions, repeated
+sentence patterns and broad responsible-AI statements. Tie discussion to this
+project's information boundaries, data, attribution and experimental practice.
+Check: every paragraph makes a specific, supported point in direct language.
+
+**6 Have the team review the voice and interpretation.** Contributors should
+verify the account of their work and revise passages they would not naturally
+say or cannot explain. Resolve provisional contribution and AI-use statements.
+Check: the authors can defend the wording and conclusions; editing must not
+hide assistance or turn uncertain findings into stronger claims.
+
+**7 Check readability after the rewrite.** Shorten dense paragraphs, use a
+diagram or compact table where it clarifies the method, and explain captions,
+units and denominators. Recheck Word and Markdown agreement, bibliography,
+12-point text, one-inch margins and the ten-page main-text limit. Check: the
+rendered report reads coherently from start to finish, with no clipped tables
+or awkward page breaks. Final team approval and submission details are still
+required.
