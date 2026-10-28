@@ -75,6 +75,8 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
                            if hasattr(self.evaluator, key)}},
                        roots="input_belief_weights", infosets="complete_private_stream",
                        growth=self.config.growth, policy="raw_last_iterate",
+                       evaluation_cache="solve_local_fen_estimates_v1",
+                       uniform_depth="per_frontier_cap_v2",
                        no_move_rule="terminal_draw_v1",
                        fallback="uniform_observed_legal_moves_no_labels")
         return self.name + ":" + sha256(json.dumps(
@@ -108,15 +110,20 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
         owner = self
 
         class CountedLeaf:
+            def __init__(self):
+                self.cache = {}
+
             def evaluate_children(self, fen):
                 nonlocal calls
-                if calls >= owner.config.max_evaluator_calls:
-                    raise SearchBudgetError("evaluator_limit")
                 if growth_deadline is not None and perf_counter() >= growth_deadline:
                     raise SearchBudgetError("growth_deadline")
-                calls += 1
-                owner.last_evaluator_calls = calls
-                return owner.evaluator.evaluate_children(fen)
+                if fen not in self.cache:
+                    if calls >= owner.config.max_evaluator_calls:
+                        raise SearchBudgetError("evaluator_limit")
+                    calls += 1
+                    owner.last_evaluator_calls = calls
+                    self.cache[fen] = dict(owner.evaluator.evaluate_children(fen))
+                return dict(self.cache[fen])
 
         leaf = CountedLeaf()
         try:
@@ -145,7 +152,7 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
             solving_ms += (perf_counter() - stage_started) * 1000
             if growth_reason is not None or solver.rounds < next_growth:
                 continue
-            if depth >= self.config.max_depth and sampler is None:
+            if sampler is None and not any(len(path)-1 < self.config.max_depth for path in tree.frontiers):
                 growth_reason = "max_depth"
             elif not tree.frontiers:
                 growth_reason = "terminal_tree"
@@ -164,7 +171,8 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
                         continue
                     tree = expand_chess_tree(tree, solver, leaf, max_nodes=self.config.max_nodes,
                                              deadline=growth_deadline,
-                                             selected_paths=(proposal[0],) if sampler else None,
+                                             selected_paths=(proposal[0],) if sampler else tuple(
+                                                 path for path in tree.frontiers if len(path)-1 < self.config.max_depth),
                                              initialize_best=sampler is not None)
                 except TreeCapacityError:
                     growth_reason = "node_limit"
@@ -176,7 +184,7 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
                         sampler.commit(proposal)
                         depth = max(depth, len(proposal[0]))
                     else:
-                        depth += 1
+                        depth = max(depth, max((len(path)-1 for path in tree.frontiers), default=depth))
                     expansions += 1
                     next_growth = solver.rounds + self.config.rounds_per_stage
                 finally:
