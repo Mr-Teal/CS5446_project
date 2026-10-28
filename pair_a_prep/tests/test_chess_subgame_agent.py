@@ -154,3 +154,96 @@ def test_projected_labels_are_explicitly_blocked_until_root_contract_agreement()
     decision = agent.act(turn_after(moves=("a1b1", "h8g8")))
     assert decision.diagnostics["label_root_contract_pending"] == 1
     assert decision.diagnostics["fallback"] == 0
+
+
+class PositionLeaf:
+    name = "test-position-dependent-leaf"
+
+    @staticmethod
+    def white_value(board):
+        import chess
+        return (board.king(chess.BLACK)-board.king(chess.WHITE))/100
+
+    def evaluate_children(self, fen):
+        import chess
+        from fow_shared.values import fog_legal_moves
+        board = chess.Board(fen)
+        sign = 1 if board.turn else -1
+        values = {}
+        for action in fog_legal_moves(board):
+            child = board.copy()
+            child.push(action)
+            values[action.uci()] = sign*self.white_value(child)
+        return values
+
+
+@pytest.mark.parametrize("warm", [False, True])
+def test_varied_values_follow_input_root_order_and_exclude_gadget_payments(warm):
+    import chess
+    leaf = PositionLeaf()
+    turn = turn_after(moves=("a1b1", "h8g8"))
+    hypotheses = tuple(replace(h, weight=w) for h, w in zip(turn.belief.hypotheses, (.1, .2, .7)))
+    turn = replace(turn, belief=replace(turn.belief, hypotheses=hypotheses))
+    outputs = []
+    for hypotheses in (hypotheses, tuple(reversed(hypotheses))):
+        current = replace(turn, belief=replace(turn.belief, hypotheses=hypotheses))
+        agent = ChessSubgameAgent(leaf, AnytimeConfig(growth="one_sided", initial_depth=1,
+            max_depth=1, rounds=8, final_rounds=1, stop_on_time=False,
+            max_nodes=5000, max_evaluator_calls=256), KINGS)
+        agent.reset("white", 17)
+        if warm:
+            old = turn_after()
+            tree = build_chess_tree(old, leaf, initial_fen=KINGS, depth=3)
+            agent.saved = SavedChessBlueprint(old, tree, ((),), PCFRPlus(tree.root), .23)
+        result = agent.solve(current)
+        expected = []
+        for hypothesis in hypotheses:
+            board = chess.Board(hypothesis.fen)
+            value = 0.
+            for action, probability in result.decision.root_policy.items():
+                child = board.copy()
+                child.push(chess.Move.from_uci(action))
+                value += probability*leaf.white_value(child)
+            expected.append(value)
+        assert len(set(round(v, 8) for v in expected)) > 1
+        assert result.hypothesis_values == pytest.approx(expected)
+        assert result.root_value == pytest.approx(sum(h.weight*v for h, v in zip(hypotheses, expected)))
+        if warm:
+            assert agent.last_bridge is not None
+            assert result.decision.diagnostics["label_root_contract_pending"] == 1
+        outputs.append(dict(zip((h.fen for h in hypotheses), result.hypothesis_values)))
+    assert outputs[0] == pytest.approx(outputs[1])
+
+
+def test_deep_blueprint_forced_fallback_then_real_next_turn_starts_cold(monkeypatch):
+    from pair_a_prep.rules_adapter import RulesAdapter
+    fen = "4k3/8/8/3p4/4P3/8/8/4K3 w - - 0 1"
+    rules = RulesAdapter()
+    config = AnytimeConfig(growth="one_sided", initial_depth=4, max_depth=5, rounds=8,
+        final_rounds=2, stop_on_time=False, max_nodes=50000, max_evaluator_calls=700)
+    agent = ChessSubgameAgent(ConstantLeaf(), config, fen)
+    agent.reset("white", 17)
+    first = agent.act(single_path_turn(fen, (), "white"))
+    assert first.diagnostics["fallback"] == 0
+    saved = agent.saved
+    def height(node):
+        return 0 if not node.children else 1+max(height(child) for child in node.children.values())
+    assert height(saved.tree.root)-1 >= 4
+    moves = [first.move]
+    state = rules.apply_move(rules.initial_state(fen), first.move)
+    moves.append(rules.legal_moves(state)[0])
+    state = rules.apply_move(state, moves[-1])
+    original = agent.solve
+    def force_fallback(turn):
+        raise SearchBudgetError("forced budget failure with deep saved blueprint")
+    monkeypatch.setattr(agent, "solve", force_fallback)
+    fallback = agent.act(single_path_turn(fen, tuple(moves), "white"))
+    assert fallback.diagnostics["fallback"] == 1
+    assert agent.saved is None
+    moves.append(fallback.move)
+    state = rules.apply_move(state, fallback.move)
+    moves.append(rules.legal_moves(state)[0])
+    monkeypatch.setattr(agent, "solve", original)
+    following = agent.act(single_path_turn(fen, tuple(moves), "white"))
+    assert following.diagnostics["fallback"] == 0
+    assert agent.last_projection.boundaries is None
