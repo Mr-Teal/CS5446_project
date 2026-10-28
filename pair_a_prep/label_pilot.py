@@ -205,6 +205,7 @@ def main(argv=None):
             "rules_adapter.py", "belief_tracker.py")]
         source_paths += [root / "fow_shared" / name for name in (
             "contracts.py", "values.py", "evaluation.py", "recording.py")]
+        source_paths.append(root / "pair_b/src/pairb/values.py")
         report["source_sha256"] = {p.relative_to(root).as_posix(): sha256(p.read_bytes()).hexdigest()
                                     for p in source_paths}
         from pairb.label_validation import validate

@@ -1,0 +1,8 @@
+row	command	start	end	exit_code
+material-vs-d1	python scripts/play_matches.py --a material --b stockfish-d1 --games 200 --seed 0 --rules standin --out runs/matches/material-vs-d1	2026-10-26T22:47:10+0800	2026-10-26T23:20:55+0800	0
+stockfish-d1-vs-d1	python scripts/play_matches.py --a stockfish-d1 --b stockfish-d1 --games 200 --seed 0 --rules standin --out runs/matches/stockfish-d1-vs-d1	2026-10-26T23:20:55+0800	2026-10-26T23:51:05+0800	0
+linear-vs-d1	python scripts/play_matches.py --a linear --b stockfish-d1 --games 200 --seed 0 --rules standin --out runs/matches/linear-vs-d1	2026-10-26T23:51:05+0800	2026-10-27T00:30:34+0800	0
+random-vs-d1	python scripts/play_matches.py --a random --b stockfish-d1 --games 200 --seed 0 --rules standin --out runs/matches/random-vs-d1	2026-10-27T00:30:34+0800	2026-10-27T00:59:01+0800	1
+network1-vs-d1	python scripts/play_matches.py --a network1 --b stockfish-d1 --games 200 --seed 0 --rules standin --out runs/matches/network1-vs-d1	2026-10-27T00:59:01+0800	2026-10-27T01:30:38+0800	0
+belief-vs-d1	python scripts/play_matches.py --a belief --b stockfish-d1 --games 200 --seed 0 --rules standin --out runs/matches/belief-vs-d1	2026-10-27T01:30:38+0800	2026-10-27T02:13:27+0800	0
+stockfish-d11-vs-d1	python scripts/play_matches.py --a stockfish-d11 --b stockfish-d1 --games 200 --seed 0 --rules standin --out runs/matches/stockfish-d11-vs-d1	2026-10-27T02:13:27+0800	2026-10-27T08:09:15+0800	0

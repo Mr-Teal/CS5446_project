@@ -1,6 +1,41 @@
 # Verification and handoff
 
-## Current chess integration validation: 24 October 2026
+## Main integration and review follow-ups: 27 October 2026
+
+#15 merged at reviewed head `dfeea4c5067d0b2d3dd0eef52f2527c9653c240f`;
+its tree matches the previously tested #30 integration head `a9e5b27`.
+#26 then merged with #35's capped-outcome and evaluator-depth fixes. The
+follow-up below is based on main `e875fbf`, not the separate #39-#44 stack.
+
+- Final #15 shared/Pair A baseline: **430 passed**, using
+  `python -m pytest -q tests pair_a_prep/tests`. Earlier recorded evidence;
+  this count excludes `pair_b_prep` and the full Pair B suite.
+- Colin's final-head review independently reports **441 tests and 2 subtests**
+  with `pair_b_prep`, **17/17 fixtures**, and a full Pair B run of **1176 passed**
+  on main plus #15, or **1188 passed** with #34. These are his scoped review
+  counts, not new local reruns or evidence that #34 has merged.
+- This review-follow-up tree: **433 passed** for `tests pair_a_prep/tests`,
+  Python 3.12.15 in `pair_b/.venv`. It adds the blocked-child forced-draw FEN
+  and mirror, plus rule-revision gadget-ID coverage. The overlapping focused
+  values/gadget/archive-CLI run passed **71 tests**; do not add it to 433.
+- An independent mutation probe ignoring no-move child outcomes changes
+  forced-draw to None on both new FENs, so the new expected-result assertions
+  detect the blind spot identified in review. Runtime scoring is unchanged.
+- The unchanged #26 Pair C implementation passed **13 regression tests** with
+  the integrated shared-rule package supplied as a dependency. A pytest cache
+  permission warning did not affect results. No formal games or engines rerun.
+
+The follow-up adds `rules`, `rules_id` and `no_move_rule` to hashed gadget
+configuration and hashes `pair_b/src/pairb/values.py` in pilot provenance,
+including failed setup reports. Historical artifacts keep their old IDs,
+source hashes and rules; they are not regenerated or relabelled here.
+
+#28's no-legal-move terminal draw is now on main through #15 and affects
+Pair B stand-in/evaluator behavior too. The #34 time gate and #38's pre-rule
+batch provenance remain separate. The newer 483-test experimental search stack
+is pending review; it is not the implementation exercised by this entry.
+
+## Historical chess integration validation: 24 October 2026
 
 Using `pair_b/.venv/Scripts/python.exe` (Python 3.12.15), with the declared
 Pair A requirements installed into that environment:
@@ -61,7 +96,8 @@ Existing sibling-isolation and repetition-history tests still pass.
 The new tests check private-stream information sets (including hidden actions
 that must share a key), same-FEN histories, complete path validation, retained
 repetition history, Black/White payoff signs, shared-profile root labels,
-explicit tree capacity and no-move failures, shared match integration, JSONL
+explicit tree capacity and historical no-move failure handling (superseded by
+the #28 terminal draw above), shared match integration, JSONL
 round trips and a chess-tree value checked against the independent LP oracle.
 
 Two small real-evaluator pilots passed: Material plus D1 features (12 records
