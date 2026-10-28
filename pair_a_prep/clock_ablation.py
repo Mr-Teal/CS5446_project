@@ -19,6 +19,7 @@ from .belief_tracker import BeliefTracker, BeliefCapacityError
 from .chess_subgame_agent import ChessSubgameAgent
 from .rules_adapter import RulesAdapter, RulesReferee
 from .subgame_validation import fixture_turn
+from .rule_readiness import effective_rule_metadata
 
 
 ROOT = Path(__file__).parent
@@ -144,7 +145,7 @@ def run(budgets=(20, 100, 500), seeds=(17, 29), repeats=2, reserve=.1):
         python=platform.python_version(), numpy=numpy.__version__, chess=chess.__version__,
         source_sha256=sources, source_hash_convention=NORMALIZATION,
         base_commit_at_execution=git_revision(), evaluator="material", leaf_depth=0,
-        rules_id="paper_fow_v1_proposed", pending_rule_difference="PR37 effective EP repetition",
+        rules_id="paper_fow_v1_proposed", **effective_rule_metadata(),
         config=asdict(config), budgets_ms=budgets, seeds=seeds, repeats=repeats,
         submission_reserve_fraction=reserve,
         warm_preparation="outside measured call; shared readonly saved blueprint, no hidden referee input",

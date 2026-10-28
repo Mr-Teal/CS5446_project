@@ -108,7 +108,7 @@
   "evaluator": "material",
   "leaf_depth": 0,
   "rules_id": "paper_fow_v1_proposed",
-  "pending_rule_difference": "PR37 effective EP repetition",
+  "pending_rule_difference": null,
   "config": {
     "initial_depth": 1,
     "max_depth": 3,
@@ -7601,5 +7601,30 @@
     "capped": 12,
     "terminal": 0,
     "tracker_capacity": 0
-  }
+  },
+  "rule_readiness": {
+    "scope": "shared FoW-effective EP repetition fixture, not every rule",
+    "status": "passed",
+    "checks": [
+      {
+        "id": "fow_effective_ep_repetition",
+        "expected_terminal": null,
+        "actual_terminal": null,
+        "status": "passed"
+      }
+    ]
+  },
+  "metadata_corrections": [
+    {
+      "correction": "hardcoded_EP_pending_field_v1",
+      "original_pending": "PR37 effective EP repetition",
+      "corrected_pending": null,
+      "verified_shared_rule_sha256": "8288dc8fcd117513b27f82fedd45d8817849ba13081c55f194a252940d70517b",
+      "pre_correction_sha256_lf": "87915da929f0b0ed555c87a2811f390b56a22e1a317f790d3465fb666154c7a8",
+      "reason": "recorded shared-rule bytes match the implementation passing the EP history check",
+      "measured_arrays_unchanged": true,
+      "execution_source_manifest_unchanged": true,
+      "timing_rerun": false
+    }
+  ]
 }
