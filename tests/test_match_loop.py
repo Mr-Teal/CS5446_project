@@ -80,3 +80,35 @@ def test_each_tracker_is_told_its_own_last_move_and_never_the_opponents():
 def test_a_snapshot_naming_the_wrong_side_to_move_stops_the_game():
     with pytest.raises(ValueError, match="side to move"):
         play(ScriptedReferee(wrong_side_at_ply=1))
+
+
+def test_diagnostics_snapshot_preserves_fallback_without_inventing_missing_values():
+    from dataclasses import asdict
+    import json
+
+    class DiagnosticAgent(ScriptedAgent):
+        def reset(self, player, seed):
+            super().reset(player, seed)
+            self.calls = 0
+            self.values = {}
+
+        def act(self, turn):
+            move = turn.observation.legal_moves[0]
+            self.calls += 1
+            self.values.clear()
+            self.values.update(fallback=float(self.calls == 1), search_nodes=0.0,
+                               evaluator_calls=float(self.calls * 3), custom_work=7.0)
+            return Decision(move, {move: 1.0}, self.values)
+
+    white, black = DiagnosticAgent(), ScriptedAgent()
+    result = play_game(ScriptedReferee(), {"white": white, "black": black},
+                       {side: RecordingTracker() for side in ("white", "black")},
+                       MatchConfig(1000, 10, 7, "fow-v1", "test", 0))
+    white.values.clear()
+    rows = json.loads(json.dumps([asdict(ply) for ply in result.plies]))
+    assert rows[0]["diagnostics"] == dict(fallback=1.0, search_nodes=0.0,
+                                          evaluator_calls=3.0, custom_work=7.0)
+    assert rows[1]["diagnostics"] == {}
+    assert rows[2]["diagnostics"] == dict(fallback=0.0, search_nodes=0.0,
+                                          evaluator_calls=6.0, custom_work=7.0)
+    assert all(row["search_nodes"] == 0.0 for row in rows)
