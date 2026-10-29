@@ -1,5 +1,7 @@
 # Independent Pair A preparation
 
+Current [delivery candidate freeze and acceptance record](docs/delivery_candidate.md): runtime `f821781`, bounded integration verified; upstream review and long-game tracker gates remain.
+
 For real engine evaluation, use the [pinned Stockfish / Pair C handoff](docs/stockfish_evaluation_handoff.md). Its short smoke validation does not establish long-game strength.
 
 The opt-in [integrated chess subgame prototype](docs/chess_subgame_integration.md)
