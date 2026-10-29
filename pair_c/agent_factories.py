@@ -7,6 +7,7 @@ Its required interface and relevant source files are documented there.
 from __future__ import annotations
 
 import shutil
+from pathlib import Path
 from typing import Mapping
 
 from pairb.bot import OnePlyBot
@@ -89,17 +90,19 @@ class Factory:
             stockfish_path = str(stockfish_file.resolve())
         else:
             executable = shutil.which(stockfish_setting)
-            stockfish_path = str(project_path(executable).resolve()) if executable else stockfish_setting
+            stockfish_path = str(Path(executable).resolve()) if executable else stockfish_setting
         device = self.settings.get("device", "").strip() or None
         checkpoint_setting = self.settings.get("checkpoint_path", "").strip()
+        checkpoint_path = None
 
         if scorer_id == "network1":
             if not checkpoint_setting:
                 raise ValueError("network1 requires checkpoint_path pointing to a .pt file")
             from pairb.network_evaluator import NetworkEvaluator
 
+            checkpoint_path = project_path(checkpoint_setting).resolve()
             scorer = NetworkEvaluator.from_checkpoint(
-                project_path(checkpoint_setting),
+                checkpoint_path,
                 stockfish_path=stockfish_path,
                 device=device,
                 new_game_each_call=False,
@@ -109,8 +112,9 @@ class Factory:
                 raise ValueError("belief requires checkpoint_path pointing to a .pt file")
             from pairb.belief_evaluator import BeliefNetworkEvaluator
 
+            checkpoint_path = project_path(checkpoint_setting).resolve()
             scorer = BeliefNetworkEvaluator.from_checkpoint(
-                project_path(checkpoint_setting),
+                checkpoint_path,
                 stockfish_path=stockfish_path,
                 device=device,
                 new_game_each_call=False,
@@ -124,6 +128,7 @@ class Factory:
             raise ValueError(f"Unknown scorer_id: {scorer_id!r}")
 
         self._scorer = scorer  # Retain the resources reset_game must clear.
+        scorer.provenance_checkpoint_path = checkpoint_path
         # Keep the exact launch path, including PATH resolution, for provenance.
         # Pure belief networks may have no Stockfish instance at all.
         engine_scorer = (getattr(scorer, "stockfish", None)

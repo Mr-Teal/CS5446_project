@@ -1,0 +1,468 @@
+diff --git a/pair_c/agent_factories.py b/pair_c/agent_factories.py
+--- a/pair_c/agent_factories.py
++++ b/pair_c/agent_factories.py
+@@ -7,6 +7,7 @@
+ from __future__ import annotations
+ 
+ import shutil
++from pathlib import Path
+ from typing import Mapping
+ 
+ from pairb.bot import OnePlyBot
+@@ -89,17 +90,19 @@
+             stockfish_path = str(stockfish_file.resolve())
+         else:
+             executable = shutil.which(stockfish_setting)
+-            stockfish_path = str(project_path(executable).resolve()) if executable else stockfish_setting
++            stockfish_path = str(Path(executable).resolve()) if executable else stockfish_setting
+         device = self.settings.get("device", "").strip() or None
+         checkpoint_setting = self.settings.get("checkpoint_path", "").strip()
++        checkpoint_path = None
+ 
+         if scorer_id == "network1":
+             if not checkpoint_setting:
+                 raise ValueError("network1 requires checkpoint_path pointing to a .pt file")
+             from pairb.network_evaluator import NetworkEvaluator
+ 
++            checkpoint_path = project_path(checkpoint_setting).resolve()
+             scorer = NetworkEvaluator.from_checkpoint(
+-                project_path(checkpoint_setting),
++                checkpoint_path,
+                 stockfish_path=stockfish_path,
+                 device=device,
+                 new_game_each_call=False,
+@@ -109,8 +112,9 @@
+                 raise ValueError("belief requires checkpoint_path pointing to a .pt file")
+             from pairb.belief_evaluator import BeliefNetworkEvaluator
+ 
++            checkpoint_path = project_path(checkpoint_setting).resolve()
+             scorer = BeliefNetworkEvaluator.from_checkpoint(
+-                project_path(checkpoint_setting),
++                checkpoint_path,
+                 stockfish_path=stockfish_path,
+                 device=device,
+                 new_game_each_call=False,
+@@ -124,6 +128,7 @@
+             raise ValueError(f"Unknown scorer_id: {scorer_id!r}")
+ 
+         self._scorer = scorer  # Retain the resources reset_game must clear.
++        scorer.provenance_checkpoint_path = checkpoint_path
+         # Keep the exact launch path, including PATH resolution, for provenance.
+         # Pure belief networks may have no Stockfish instance at all.
+         engine_scorer = (getattr(scorer, "stockfish", None)
+diff --git a/pair_c/provenance.py b/pair_c/provenance.py
+--- a/pair_c/provenance.py
++++ b/pair_c/provenance.py
+@@ -16,10 +16,31 @@
+     return hasher.hexdigest()
+ 
+ 
++def _player_component(agent):
++    for name in ("scorer", "evaluator"):
++        component = getattr(agent, name, None)
++        if component is not None:
++            return component
++    return agent
++
++
++def checkpoint_provenance(agent) -> tuple[str | None, str | None, str | None]:
++    """Read a loader's explicit checkpoint declaration, never an INI guess."""
++    component = _player_component(agent)
++    if not hasattr(component, "provenance_checkpoint_path"):
++        component = agent
++    if not hasattr(component, "provenance_checkpoint_path"):
++        return None, None, "Agent/scorer/evaluator does not expose provenance_checkpoint_path"
++    checkpoint = component.provenance_checkpoint_path
++    if checkpoint is None:
++        return None, None, None
++    path = Path(checkpoint).expanduser().resolve()
++    return str(path), sha256_file(path), None
++
++
+ def stockfish_provenance(agent) -> tuple[dict | None, str | None]:
+     """Read the existing UCI instance; hash its recorded launch executable."""
+-    scorer = getattr(agent, "scorer", None)
+-    component = scorer if scorer is not None else agent
++    component = _player_component(agent)
+     engine_scorer = getattr(component, "stockfish", None)
+     if engine_scorer is None and hasattr(component, "engine"):
+         engine_scorer = component
+@@ -89,8 +110,7 @@
+ 
+ def player_device(agent, torch):
+     """Use loaded tensor placement, then effective device; never infer from config."""
+-    scorer = getattr(agent, "scorer", None)
+-    component = scorer if scorer is not None else agent
++    component = _player_component(agent)
+     device = getattr(component, "device", None)
+     net = getattr(component, "net", None)
+     if net is not None:
+@@ -98,12 +118,15 @@
+             device = next(net.parameters()).device
+         except StopIteration:
+             pass
+-    if device is None and type(component).__module__ in ("pairb.material", "pairb.stockfish"):
++    if device is None and any(
++        base.__module__ in ("pairb.material", "pairb.stockfish")
++        for base in type(component).__mro__
++    ):
+         device = "cpu"
+     info = {"device": str(device) if device is not None else None,
+             "backend": None, "gpu_model": None, "detection_note": None}
+     if device is None:
+-        info["detection_note"] = "Agent/scorer does not expose an effective device"
++        info["detection_note"] = "Agent/scorer/evaluator does not expose an effective device"
+         return info
+     backend = str(device).split(":", 1)[0]
+     info["backend"] = backend
+diff --git a/pair_c/run_evaluation.py b/pair_c/run_evaluation.py
+--- a/pair_c/run_evaluation.py
++++ b/pair_c/run_evaluation.py
+@@ -24,7 +24,7 @@
+ from pair_c.agent_api import load_player, project_path
+ from pair_c.tracker_api import load_tracker_factory
+ from pair_c.provenance import (
+-    cpu_model, player_device, sha256_file, source_file_hashes, stockfish_provenance,
++    checkpoint_provenance, cpu_model, player_device, source_file_hashes, stockfish_provenance,
+ )
+ 
+ 
+@@ -88,16 +88,9 @@
+         source_bytes = source_config.read_bytes()
+     checkpoint_paths = {}
+     checkpoint_hashes = {}
+-    for side, settings in config["players"].items():
+-        checkpoint = settings.get("checkpoint_path", "").strip()
+-        # The built-in non-network scorers ignore checkpoint_path, even when
+-        # the configuration retains a path from an earlier experiment.
+-        if (settings["factory"] == "pair_c.agent_factories:Factory"
+-                and settings.get("scorer_id") not in ("network1", "belief")):
+-            checkpoint = ""
+-        path = project_path(checkpoint).resolve() if checkpoint else None
+-        checkpoint_paths[side] = str(path) if path is not None else None
+-        checkpoint_hashes[side] = sha256_file(path) if path is not None else None
++    checkpoint_notes = {}
++    for side, agent in players.items():
++        checkpoint_paths[side], checkpoint_hashes[side], checkpoint_notes[side] = checkpoint_provenance(agent)
+     stockfish = {}
+     stockfish_hashes = {}
+     for side, agent in players.items():
+@@ -111,6 +104,7 @@
+         "player_devices": {side: player_device(agent, torch) for side, agent in players.items()},
+         "config_path": str(source_config.resolve()),
+         "checkpoint_paths": checkpoint_paths,
++        "checkpoint_detection_notes": checkpoint_notes,
+         "stockfish": stockfish,
+         "sha256": {
+             "config": hashlib.sha256(source_bytes).hexdigest(),
+diff --git a/pair_c/README.md b/pair_c/README.md
+--- a/pair_c/README.md
++++ b/pair_c/README.md
+@@ -69,13 +69,18 @@
+   a standard macOS PyTorch build records `cuda_version: null`.
+   Start time is captured on entry to `run()`, before model loading.
+   All hashes are grouped under `sha256`: `config`, `player_a_checkpoint`, and
+-  `player_b_checkpoint`. Checkpoint hashes are calculated from the configured
+-  files after model loading, using repository-relative path resolution;
+-  `checkpoint_paths` records the absolute paths. Missing checkpoint settings
+-  and built-in non-network scorers produce `null` paths and hashes. Custom
+-  factories should use `checkpoint_path` for their checkpoint file. Files are
+-  hashed in chunks; an unreadable configured checkpoint fails the run rather
+-  than silently omitting its hash. Keep checkpoints unchanged throughout loading
++  `player_b_checkpoint`. Checkpoint hashes come from the loaded component's
++  explicit `provenance_checkpoint_path`, not the configured `checkpoint_path`.
++  The built-in factory records the resolved file passed to its network loader,
++  or `None` for a non-network scorer. `checkpoint_paths` records absolute paths.
++  Custom factories should set `provenance_checkpoint_path` on their returned
++  Agent, `agent.scorer`, or `agent.evaluator` to the actual loaded checkpoint
++  path (preferably absolute), or explicitly to `None` when none was loaded.
++  A missing declaration produces null path/hash and an explanation under
++  `checkpoint_detection_notes`; it is not evidence that no weights were used.
++  Stale unused INI paths are ignored. Files are hashed in chunks; an unreadable
++  declared loaded checkpoint fails the run rather than silently omitting its
++  hash. Keep checkpoints unchanged throughout loading
+   and evaluation so these hashes describe the loaded weights.
+   `stockfish.a` and `stockfish.b` record each player's actual engine executable
+   path and the running engine's UCI `name` and `author`. The built-in factory
+@@ -84,6 +89,10 @@
+   stored in `sha256.player_a_stockfish` and `sha256.player_b_stockfish`.
+   Network scorers' nested Stockfish instances are included; players without an
+   engine (including pure belief networks) have `null` metadata and hashes.
++  Resource discovery checks `agent.scorer`, then `agent.evaluator`, then the
++  Agent itself, using the first non-null component. Its nested `stockfish`
++  instance is also supported. This includes Pair A's managed Stockfish leaves;
++  their CPU device is recognized through the evaluator's base classes.
+   Custom factories wrapping engines should expose `provenance_executable_path`
+   on their engine scorer; missing launch-path metadata is explicitly noted.
+   Executables must remain unchanged during loading and evaluation; unreadable
+diff --git a/pair_c/regression_tests/README.md b/pair_c/regression_tests/README.md
+--- a/pair_c/regression_tests/README.md
++++ b/pair_c/regression_tests/README.md
+@@ -113,15 +113,27 @@
+ checkpoint and engine files are hashed without loading models or starting an
+ engine. The real runner, game loop and provenance writer generate the output.
+ 
+-The test reads the saved `provenance.json` and checks only its field names and
+-nested field structure, including both players' device, checkpoint and Stockfish
+-sections and the grouped hashes. It does not compare field values or inspect
+-the dynamic `sha256.source_files` entries. Source discovery is stubbed so the
+-test does not depend on the current Git index. Actual GPU inference, hardware
+-detection, checkpoint loading and engine execution are not exercised.
++The test checks the saved field structure and actual values: exact INI bytes,
++configuration/checkpoint/engine hashes, declared checkpoint paths, UCI identity,
++CPU/CUDA/MPS device metadata and software versions. The factory double explicitly
++declares checkpoint metadata to simulate a loader. Source discovery is stubbed
++in this output test; actual GPU inference, checkpoint loading and engine execution
++are not exercised.
+ 
+ Run from the repository root:
+ 
+ ```powershell
+ python -m pytest pair_c/regression_tests/test_provenance.py -v
+ ```
++
++## PR51 follow-up: actual loaded resources
++
++`test_provenance_resources.py` covers unused/missing configured checkpoints,
++explicit loaded-checkpoint declarations, direct/scorer/evaluator engine discovery,
++CPU evaluator subclasses, relative PATH resolution, and dynamic tracked-file
++hash changes/deletions. Checkpoint declarations are supplied by loaders, never
++inferred from an INI or a hard-coded factory name. Unknown declarations produce
++an explicit detection note. Git-index requirements and raw working-tree hash
++semantics are unchanged.
++
++Run with `python -m pytest pair_c/regression_tests -q`.
+diff --git a/pair_c/regression_tests/test_provenance.py b/pair_c/regression_tests/test_provenance.py
+--- a/pair_c/regression_tests/test_provenance.py
++++ b/pair_c/regression_tests/test_provenance.py
+@@ -1,6 +1,7 @@
+ """Review issue 4: saved provenance schema for CPU and GPU players."""
+ 
+ import configparser
++import hashlib
+ import json
+ import sys
+ from pathlib import Path
+@@ -22,6 +23,7 @@
+         agent = LegalMoveAgent(self.settings["name"])
+         agent.scorer = SimpleNamespace(
+             device=self.settings["device"],
++            provenance_checkpoint_path=self.settings["checkpoint_path"],
+             stockfish=SimpleNamespace(
+                 engine=SimpleNamespace(id={"name": "Test Stockfish", "author": "Test author"}),
+                 provenance_executable_path=self.settings["stockfish_path"],
+@@ -35,7 +37,7 @@
+ 
+ @pytest.mark.parametrize("gpu_device", ["cuda:0", "mps"])
+ def test_saved_provenance_fields(tmp_path, monkeypatch, gpu_device):
+-    """Check keys only; simulate hardware while retaining real output writing."""
++    """Check saved values using explicit loader metadata and simulated hardware."""
+     fake_torch = SimpleNamespace(
+         __version__="test-torch",
+         version=SimpleNamespace(cuda="test-cuda" if gpu_device.startswith("cuda") else None),
+@@ -83,6 +85,7 @@
+     assert set(report) == {
+         "started_at", "python_version", "torch_version", "cuda_version", "cpu_model",
+         "player_devices", "config_path", "checkpoint_paths", "stockfish", "sha256",
++        "checkpoint_detection_notes",
+     }
+     for field in ("player_devices", "checkpoint_paths", "stockfish"):
+         assert set(report[field]) == {"a", "b"}
+@@ -95,4 +98,26 @@
+         "config", "player_a_checkpoint", "player_b_checkpoint",
+         "player_a_stockfish", "player_b_stockfish", "source_files",
+     }
+-    # Intentionally do not inspect values or the dynamic source_files mapping.
++    assert (output / "evaluate_config.ini").read_bytes() == source.read_bytes()
++    assert report["sha256"]["config"] == hashlib.sha256(source.read_bytes()).hexdigest()
++    assert report["cpu_model"] == "Test CPU"
++    assert report["torch_version"] == "test-torch"
++    assert report["cuda_version"] == fake_torch.version.cuda
++    assert report["checkpoint_detection_notes"] == {"a": None, "b": None}
++    for side in ("a", "b"):
++        checkpoint = tmp_path / f"{side}.pt"
++        assert report["checkpoint_paths"][side] == str(checkpoint.resolve())
++        assert report["sha256"][f"player_{side}_checkpoint"] == hashlib.sha256(checkpoint.read_bytes()).hexdigest()
++        assert report["stockfish"][side] == {
++            "path": str(engine.resolve()), "name": "Test Stockfish", "author": "Test author",
++        }
++        assert report["sha256"][f"player_{side}_stockfish"] == hashlib.sha256(engine.read_bytes()).hexdigest()
++    assert report["player_devices"]["a"] == {
++        "device": "cpu", "backend": "cpu", "gpu_model": None, "detection_note": None,
++    }
++    assert report["player_devices"]["b"] == {
++        "device": gpu_device, "backend": gpu_device.split(":")[0],
++        "gpu_model": "Test GPU" if gpu_device.startswith("cuda") else "Test Apple GPU",
++        "detection_note": None,
++    }
++    assert report["sha256"]["source_files"] == {}
+diff --git a/pair_c/regression_tests/test_provenance_resources.py b/pair_c/regression_tests/test_provenance_resources.py
+new file mode 100644
+--- /dev/null
++++ b/pair_c/regression_tests/test_provenance_resources.py
+@@ -0,0 +1,165 @@
++"""Actual resource declarations, custom evaluator wrappers and path resolution."""
++
++import hashlib
++from pathlib import Path
++import subprocess
++from types import SimpleNamespace
++
++import pytest
++
++from pairb.material import MaterialEvaluator
++from pairb.stockfish import StockfishEvaluator
++from pair_c import agent_factories, provenance, run_evaluation
++
++
++@pytest.mark.parametrize("existing", [True, False])
++def test_unused_custom_checkpoint_is_not_hashed(tmp_path, monkeypatch, existing):
++    checkpoint = tmp_path / "unused.pt"
++    if existing:
++        checkpoint.write_bytes(b"never loaded")
++    source = tmp_path / "input.ini"
++    source.write_bytes(b"original configuration\r\n")
++    config = {"players": {
++        side: {"factory": "custom:Factory", "checkpoint_path": str(checkpoint)}
++        for side in ("a", "b")
++    }}
++    players = {side: SimpleNamespace(evaluator=MaterialEvaluator()) for side in ("a", "b")}
++    monkeypatch.setattr(run_evaluation, "cpu_model", lambda: "Test CPU")
++    monkeypatch.setattr(run_evaluation, "source_file_hashes", lambda root: {})
++    report = run_evaluation.collect_provenance(config, source, "test-start", players)
++    assert report["checkpoint_paths"] == {"a": None, "b": None}
++    assert report["sha256"]["player_a_checkpoint"] is None
++    assert report["sha256"]["player_b_checkpoint"] is None
++    assert all(report["checkpoint_detection_notes"].values())
++    assert report["sha256"]["config"] == hashlib.sha256(source.read_bytes()).hexdigest()
++
++
++@pytest.mark.parametrize("location", ["agent", "scorer", "evaluator", "agent-with-evaluator"])
++def test_explicit_loaded_checkpoint_path_is_hashed(tmp_path, location):
++    path = tmp_path / "loaded.pt"
++    path.write_bytes(b"loaded checkpoint bytes")
++    component = SimpleNamespace(provenance_checkpoint_path=path)
++    if location == "agent-with-evaluator":
++        component.evaluator = MaterialEvaluator()
++        agent = component
++    else:
++        agent = component if location == "agent" else SimpleNamespace(**{location: component})
++    assert provenance.checkpoint_provenance(agent) == (
++        str(path.resolve()), hashlib.sha256(path.read_bytes()).hexdigest(), None,
++    )
++
++
++def test_explicit_no_checkpoint_and_missing_loaded_file(tmp_path):
++    assert provenance.checkpoint_provenance(SimpleNamespace(provenance_checkpoint_path=None)) == (
++        None, None, None,
++    )
++    with pytest.raises(FileNotFoundError):
++        provenance.checkpoint_provenance(SimpleNamespace(
++            provenance_checkpoint_path=tmp_path / "missing-loaded.pt",
++        ))
++
++
++@pytest.mark.parametrize("location", ["agent", "scorer", "evaluator", "nested-scorer", "nested-evaluator"])
++def test_engine_discovery_uses_actual_component(tmp_path, location):
++    path = tmp_path / "engine.exe"
++    path.write_bytes(b"test engine bytes")
++    engine = SimpleNamespace(
++        engine=SimpleNamespace(id={"name": "Test engine", "author": "Test author"}),
++        provenance_executable_path=str(path),
++    )
++    if location == "agent":
++        agent = engine
++    elif location.startswith("nested-"):
++        agent = SimpleNamespace(**{location.removeprefix("nested-"): SimpleNamespace(stockfish=engine)})
++    else:
++        agent = SimpleNamespace(**{location: engine})
++    assert provenance.stockfish_provenance(agent) == (
++        {"path": str(path.resolve()), "name": "Test engine", "author": "Test author"},
++        hashlib.sha256(path.read_bytes()).hexdigest(),
++    )
++
++
++def test_evaluator_used_when_scorer_is_none():
++    class OwnedStockfish(StockfishEvaluator):
++        def __init__(self):
++            pass
++    agent = SimpleNamespace(scorer=None, evaluator=OwnedStockfish())
++    assert provenance.player_device(agent, None) == {
++        "device": "cpu", "backend": "cpu", "gpu_model": None, "detection_note": None,
++    }
++
++
++def test_evaluator_tensor_device_takes_precedence():
++    net = SimpleNamespace(parameters=lambda: iter([SimpleNamespace(device="cpu")]))
++    agent = SimpleNamespace(evaluator=SimpleNamespace(net=net, device="cuda:2"))
++    assert provenance.player_device(agent, None)["device"] == "cpu"
++
++
++@pytest.mark.parametrize("scorer_id,module_name,class_name", [
++    ("network1", "pairb.network_evaluator", "NetworkEvaluator"),
++    ("belief", "pairb.belief_evaluator", "BeliefNetworkEvaluator"),
++])
++def test_builtin_factory_records_the_path_passed_to_loader(
++    tmp_path, monkeypatch, scorer_id, module_name, class_name,
++):
++    from importlib import import_module
++
++    calls = []
++    scorer = SimpleNamespace(name="test-network", stockfish=None)
++
++    def load(path, **kwargs):
++        calls.append(path)
++        return scorer
++
++    monkeypatch.setattr(getattr(import_module(module_name), class_name), "from_checkpoint", load)
++    path = tmp_path / "actual.pt"
++    agent = agent_factories.Factory({
++        "scorer_id": scorer_id, "leaf_depth": "1", "checkpoint_path": str(path),
++    }).load_model()
++    assert calls == [path.resolve()]
++    assert agent.scorer.provenance_checkpoint_path == path.resolve()
++
++
++def test_builtin_material_explicitly_declares_no_checkpoint():
++    agent = agent_factories.Factory({
++        "scorer_id": "material", "leaf_depth": "0", "checkpoint_path": "unused.pt",
++    }).load_model()
++    assert provenance.checkpoint_provenance(agent) == (None, None, None)
++
++
++def test_relative_path_result_is_resolved_from_current_directory(tmp_path, monkeypatch):
++    bin_dir = tmp_path / "bin"
++    bin_dir.mkdir()
++    path = bin_dir / "test-engine.exe"
++    path.write_bytes(b"not executed")
++    seen = []
++
++    def load(depth, *, path, **kwargs):
++        seen.append(path)
++        return SimpleNamespace(name="test-stockfish")
++
++    monkeypatch.chdir(tmp_path)
++    monkeypatch.setattr(agent_factories.shutil, "which", lambda value: str(Path("bin") / path.name))
++    monkeypatch.setattr(agent_factories, "StockfishEvaluator", load)
++    agent = agent_factories.Factory({
++        "scorer_id": "stockfish-d1", "leaf_depth": "1", "stockfish_path": path.name,
++    }).load_model()
++    assert seen == [str(path.resolve())]
++    assert agent.scorer.provenance_executable_path == str(path.resolve())
++
++
++def test_source_hashes_track_current_bytes_and_deletions(tmp_path):
++    subprocess.run(["git", "init", "--quiet", str(tmp_path)], check=True, capture_output=True)
++    path = tmp_path / "tracked file.py"
++    path.write_bytes(b"original\n")
++    subprocess.run(["git", "-C", str(tmp_path), "add", path.name], check=True, capture_output=True)
++    assert provenance.source_file_hashes(tmp_path) == {
++        path.name: hashlib.sha256(path.read_bytes()).hexdigest(),
++    }
++    path.write_bytes(b"modified\r\n")
++    (tmp_path / "untracked.py").write_bytes(b"not tracked\n")
++    assert provenance.source_file_hashes(tmp_path) == {
++        path.name: hashlib.sha256(path.read_bytes()).hexdigest(),
++    }
++    path.unlink()
++    assert provenance.source_file_hashes(tmp_path) == {path.name: None}

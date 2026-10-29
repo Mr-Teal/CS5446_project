@@ -1,0 +1,63 @@
+{
+  "pr": 51,
+  "head": "250e781e32d9cdad5c61150b76b1c6717a6e1385",
+  "reviewed_at": "2026-10-29T14:53:30.934823+08:00",
+  "pr57_compatibility_head": "6fa0c5d1a04dbe03c90725e6d1ebee1758120f9f",
+  "archive_sha256": "314cf9f2098d942f6b7e7327051ebfa9465f7870dc269a8c03ae43f29af5aff7",
+  "original_files_byte_identical": 550,
+  "synthetic_git_index": {
+    "archive_paths": 550,
+    "commits_created": 0,
+    "remotes_added": 0
+  },
+  "python": "3.12.10",
+  "test_results": {
+    "zip-regressions": {
+      "tests": 15,
+      "failures": 5,
+      "errors": 0,
+      "skipped": 0
+    },
+    "indexed-regressions": {
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "value-probes": {
+      "tests": 11,
+      "failures": 3,
+      "errors": 0,
+      "skipped": 0
+    },
+    "pr57-compatibility": {
+      "tests": 4,
+      "failures": 4,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "confirmed_findings": [
+    {
+      "priority": "P2",
+      "file": "pair_c/run_evaluation.py",
+      "lines": "91-100",
+      "finding": "Configured but unloaded custom-factory checkpoints are reported or cause FileNotFoundError"
+    },
+    {
+      "priority": "P2",
+      "file": "pair_c/provenance.py",
+      "lines": "21-27",
+      "finding": "Actual PR57 evaluator engine omitted in all four modes; compatibility helper check, not merged-stack run"
+    },
+    {
+      "priority": "P2",
+      "file": "pair_c/agent_factories.py",
+      "lines": "92",
+      "finding": "Relative PATH-resolved executable is incorrectly resolved against repository root"
+    }
+  ],
+  "attribution": "Corroborates Colin review5677286905; adds actual PR57 compatibility evidence",
+  "recommendation": "Request changes; awaiting user confirmation before publication",
+  "scope": "No source patches or merges. Git-index requirement and raw-hash/git-state policy are separate follow-ups. CPU real runs and simulated GPU metadata only; no full suite or formal strength evidence."
+}

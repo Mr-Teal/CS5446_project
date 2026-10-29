@@ -1,0 +1,56 @@
+<testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="15" time="24.811" timestamp="2026-10-29T14:47:47.219348+08:00" hostname="redacted"><testcase classname="pair_c.regression_tests.test_failure_exit_status" name="test_cli_exit_status_preserves_results[all-successful]" time="6.901"><failure message="AssertionError: Starting evaluation: 2 games | rules=pairb-standin | time budget=5000 ms per move | max plies=2&#10;  Evaluation failed: RuntimeError: Cannot query Git-tracked files for provenance&#10;  &#10;assert 1 == 0&#10; +  where 1 = CompletedProcess(args=['<HOME>\\Desktop\\CS5446\\.agent\\venv\\Scripts\\python.exe', '<HOME>\\...s per move | max plies=2\n', stderr='Evaluation failed: RuntimeError: Cannot query Git-tracked files for provenance\n').returncode">pair_c\regression_tests\test_failure_exit_status.py:75: in test_cli_exit_status_preserves_results
+    assert process.returncode == expected_exit_code, process.stdout + process.stderr
+E   AssertionError: Starting evaluation: 2 games | rules=pairb-standin | time budget=5000 ms per move | max plies=2
+E     Evaluation failed: RuntimeError: Cannot query Git-tracked files for provenance
+E     
+E   assert 1 == 0
+E    +  where 1 = CompletedProcess(args=['<HOME>\\Desktop\\CS5446\\.agent\\venv\\Scripts\\python.exe', '<HOME>\\...s per move | max plies=2\n', stderr='Evaluation failed: RuntimeError: Cannot query Git-tracked files for provenance\n').returncode</failure></testcase><testcase classname="pair_c.regression_tests.test_failure_exit_status" name="test_cli_exit_status_preserves_results[one-failure]" time="5.357"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '<HOME>\\AppData\\Local\\Temp\\pytest-of-<USER>\\pytest-28\\test_cli_exit_status_preserves1\\results\\games.jsonl'">pair_c\regression_tests\test_failure_exit_status.py:78: in test_cli_exit_status_preserves_results
+    (output_dir / "games.jsonl").read_text(encoding="utf-8").splitlines()]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\tools\python312\Lib\pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\tools\python312\Lib\pathlib.py:1013: in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '<HOME>\\AppData\\Local\\Temp\\pytest-of-<USER>\\pytest-28\\test_cli_exit_status_preserves1\\results\\games.jsonl'</failure></testcase><testcase classname="pair_c.regression_tests.test_leaf_depth_metadata" name="test_mismatched_metadata_is_rejected_before_loading[material-1]" time="0.001" /><testcase classname="pair_c.regression_tests.test_leaf_depth_metadata" name="test_mismatched_metadata_is_rejected_before_loading[stockfish-d1-11]" time="0.001" /><testcase classname="pair_c.regression_tests.test_leaf_depth_metadata" name="test_mismatched_metadata_is_rejected_before_loading[stockfish-d11-1]" time="0.001" /><testcase classname="pair_c.regression_tests.test_leaf_depth_metadata" name="test_mismatched_metadata_is_rejected_before_loading[network1-11]" time="0.001" /><testcase classname="pair_c.regression_tests.test_leaf_depth_metadata" name="test_mismatched_metadata_is_rejected_before_loading[belief-0]" time="0.001" /><testcase classname="pair_c.regression_tests.test_leaf_depth_metadata" name="test_valid_stockfish_depth_reaches_constructor" time="0.003" /><testcase classname="pair_c.regression_tests.test_leaf_depth_metadata" name="test_material_needs_no_engine_or_network" time="0.003" /><testcase classname="pair_c.regression_tests.test_outcome_accounting" name="test_mixed_results_score_only_terminal_outcomes" time="0.002" /><testcase classname="pair_c.regression_tests.test_outcome_accounting" name="test_cli_only_capped_games_has_no_outcome_rate" time="5.406"><failure message="AssertionError: Starting evaluation: 2 games | rules=pairb-standin | time budget=5000 ms per move | max plies=1&#10;  Evaluation failed: RuntimeError: Cannot query Git-tracked files for provenance&#10;  &#10;assert 1 == 0&#10; +  where 1 = CompletedProcess(args=['<HOME>\\Desktop\\CS5446\\.agent\\venv\\Scripts\\python.exe', '<HOME>\\...s per move | max plies=1\n', stderr='Evaluation failed: RuntimeError: Cannot query Git-tracked files for provenance\n').returncode">pair_c\regression_tests\test_outcome_accounting.py:52: in test_cli_only_capped_games_has_no_outcome_rate
+    assert process.returncode == 0, process.stdout + process.stderr
+E   AssertionError: Starting evaluation: 2 games | rules=pairb-standin | time budget=5000 ms per move | max plies=1
+E     Evaluation failed: RuntimeError: Cannot query Git-tracked files for provenance
+E     
+E   assert 1 == 0
+E    +  where 1 = CompletedProcess(args=['<HOME>\\Desktop\\CS5446\\.agent\\venv\\Scripts\\python.exe', '<HOME>\\...s per move | max plies=1\n', stderr='Evaluation failed: RuntimeError: Cannot query Git-tracked files for provenance\n').returncode</failure></testcase><testcase classname="pair_c.regression_tests.test_provenance" name="test_saved_provenance_fields[cuda:0]" time="0.048" /><testcase classname="pair_c.regression_tests.test_provenance" name="test_saved_provenance_fields[mps]" time="0.045" /><testcase classname="pair_c.regression_tests.test_reset_game" name="test_reset_game_before_each_game" time="4.643"><failure message="RuntimeError: Cannot query Git-tracked files for provenance">pair_c\provenance.py:47: in source_file_hashes
+    result = subprocess.run(
+..\..\tools\python312\Lib\subprocess.py:571: in run
+    raise CalledProcessError(retcode, process.args,
+E   subprocess.CalledProcessError: Command '['git', 'ls-files', '--cached', '--full-name', '-z']' returned non-zero exit status 128.
+
+The above exception was the direct cause of the following exception:
+pair_c\regression_tests\test_reset_game.py:66: in test_reset_game_before_each_game
+    summary = run_evaluation.run(run_evaluation.load_config(source), source)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pair_c\run_evaluation.py:214: in run
+    provenance = collect_provenance(
+pair_c\run_evaluation.py:121: in collect_provenance
+    "source_files": source_file_hashes(ROOT),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^
+pair_c\provenance.py:52: in source_file_hashes
+    raise RuntimeError("Cannot query Git-tracked files for provenance") from error
+E   RuntimeError: Cannot query Git-tracked files for provenance</failure></testcase><testcase classname="pair_c.regression_tests.test_tracker_factory" name="test_independent_tracker_outputs" time="1.910"><failure message="RuntimeError: Cannot query Git-tracked files for provenance">pair_c\provenance.py:47: in source_file_hashes
+    result = subprocess.run(
+..\..\tools\python312\Lib\subprocess.py:571: in run
+    raise CalledProcessError(retcode, process.args,
+E   subprocess.CalledProcessError: Command '['git', 'ls-files', '--cached', '--full-name', '-z']' returned non-zero exit status 128.
+
+The above exception was the direct cause of the following exception:
+pair_c\regression_tests\test_tracker_factory.py:177: in test_independent_tracker_outputs
+    summary = run_evaluation.run(config, source)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pair_c\run_evaluation.py:214: in run
+    provenance = collect_provenance(
+pair_c\run_evaluation.py:121: in collect_provenance
+    "source_files": source_file_hashes(ROOT),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^
+pair_c\provenance.py:52: in source_file_hashes
+    raise RuntimeError("Cannot query Git-tracked files for provenance") from error
+E   RuntimeError: Cannot query Git-tracked files for provenance</failure></testcase></testsuite></testsuites>

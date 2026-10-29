@@ -1,0 +1,38 @@
+{
+  "player_a": "Obscuro-inspired sampled subgame / SF19 D1",
+  "player_b": "Fixed depth 1 reference / SF19 D1",
+  "player_a_factory": "pair_a_prep.stockfish_handoff:TraceFactory",
+  "player_b_factory": "pair_a_prep.stockfish_handoff:TraceFactory",
+  "player_a_tracker_factory": "pair_a_prep.evaluation_factories:HistoryTrackerFactory",
+  "player_b_tracker_factory": "pair_a_prep.evaluation_factories:HistoryTrackerFactory",
+  "games_requested": 2,
+  "games_completed": 2,
+  "games_scored": 0,
+  "games_capped": 2,
+  "games_failed": 0,
+  "ply_limit_policy": "exclude_from_outcome_rates",
+  "player_a_wins": 0,
+  "draws": 0,
+  "player_a_losses": 0,
+  "player_a_win_rate": null,
+  "player_a_score_rate": null,
+  "player_b_score_rate": null,
+  "color_assignment": "Player A is White in odd-numbered games and Black in even-numbered games",
+  "timing": {
+    "player_a": {
+      "moves": 4,
+      "mean_ms_per_move": 65.46082499880868,
+      "max_ms_per_move": 102.37570000026608,
+      "over_budget_moves": 0
+    },
+    "player_b": {
+      "moves": 4,
+      "mean_ms_per_move": 28.817275000619702,
+      "max_ms_per_move": 44.79749999882188,
+      "over_budget_moves": 0
+    }
+  },
+  "runner_forcibly_interrupts_agents": false,
+  "current_one_ply_agent_uses_time_budget": false,
+  "failed_games": []
+}
