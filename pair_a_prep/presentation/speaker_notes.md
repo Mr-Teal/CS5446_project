@@ -108,8 +108,7 @@ remain unchanged during the graft. Counts and evidence are in `evidence.json`.
 - Paper: Zhang and Sandholm, arXiv:2506.01242v2, sections 3.3-3.4 and C.4-C.5.
   These mechanisms are described in `../docs/expansion_mechanism_audit.md`.
 - The two main figures are structural fixtures, not playing-strength evidence.
-  #28 is integrated into Pair A; its main rollout still
-  depends on #15. The displayed kings fixtures are unchanged by that rule.
+  The rules adapter and shared-rule corrections are now integrated. The displayed kings fixtures remain structural examples rather than current-source game measurements.
 
 ## Slide 5 backup: Clock budgets and purification (45 seconds)
 
@@ -133,3 +132,7 @@ reasons honestly. Source JSON, configuration and caveats are in
 ## Historical clock evidence clarification
 
 Every non-fallback raw policy in the archived matrix was an exact tie; purification measures move-order tie-breaking. Only 16/48 standalone turns exercised the guard (24 hit the round cap; 8 fell back). The reserved live run had 11/48 fallbacks. The archived source predates the gift-sign and blueprint fixes; do not describe these counts as updated-source measurements.
+
+## Optional real-engine integration backup
+
+Use [the slide content, 45-second script and Q&A](stockfish_integration_backup.md) when discussing delivery to Pair C. It separates current real-engine smoke evidence from historical structural and clock fixtures. No formal strength results are available from those capped attempts.
