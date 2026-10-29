@@ -8,6 +8,12 @@ from pair_a_prep.zs21.protocol import ProcessAgent
 from pair_a_prep.zs21.model import Referee
 
 
+from pair_a_prep.zs21.platform_support import locked_runtime_available
+
+_LOCKED_OK, _LOCKED_WHY = locked_runtime_available()
+pytestmark = pytest.mark.skipif(not _LOCKED_OK, reason=f"ZS21 process service: {_LOCKED_WHY}")
+
+
 @pytest.mark.parametrize("player", ["white", "black"])
 def test_external_process_uses_only_the_selected_private_seat(tmp_path, player):
     repository = Path(__file__).resolve().parents[2]

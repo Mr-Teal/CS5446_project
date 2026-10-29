@@ -11,6 +11,7 @@ from pair_a_prep.zs21.agent import PaperAgent
 from pair_a_prep.zs21.engine import Estimate
 from pair_a_prep.zs21.integration import SharedAgent
 from pair_a_prep.zs21.model import Referee
+from pair_a_prep.zs21.platform_support import locked_runtime_available
 from pair_a_prep.zs21.protocol import ProcessAgent
 from pair_a_prep.zs21.rule_profile import RULES_ID
 from pair_a_prep.zs21.serve import serve
@@ -127,6 +128,10 @@ def test_json_server_runs_the_real_paper_agent_and_closes_pool_on_eof():
     assert pool.closed
 
 
+_LOCKED_OK, _LOCKED_WHY = locked_runtime_available()
+
+
+@pytest.mark.skipif(not _LOCKED_OK, reason=f"ZS21 process service: {_LOCKED_WHY}")
 def test_actual_paper_agent_process_can_play_and_exit_cleanly(tmp_path):
     repository = Path(__file__).resolve().parents[2]
     spec = tmp_path / "paper.json"

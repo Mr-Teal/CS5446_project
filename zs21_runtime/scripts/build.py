@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 
 RUNTIME = Path(__file__).resolve().parents[1]
 ROOT = RUNTIME.parent
@@ -16,14 +17,26 @@ def main():
     parser.add_argument("--native-only", action="store_true")
     parser.add_argument("--generic", action="store_true", help="SSE2 engine instead of AVX2/BMI2; timing requires separate validation")
     parser.add_argument("--output", type=Path, help="optional separate build directory for verification")
+    parser.add_argument("--native", action="store_true",
+                        help="build the inference library for this host instead of the mingw DLL; "
+                             "implies --native-only and does not reproduce the audited Windows artifact")
     args = parser.parse_args()
-    compiler = shutil.which(os.environ.get("CXX", "x86_64-w64-mingw32-g++"))
+    default_cxx = "c++" if args.native else "x86_64-w64-mingw32-g++"
+    compiler = shutil.which(os.environ.get("CXX", default_cxx))
     if compiler is None:
-        raise RuntimeError("run with the Pixi darkchess environment")
+        raise RuntimeError("no C++ compiler found; run with the Pixi darkchess environment"
+                           if not args.native else "no host C++ compiler found; set CXX")
     native_source = ROOT / "pair_a_prep/zs21/native/inference.cpp"
-    native_target = (args.output / "inference.dll") if args.output else native_source.with_suffix(".dll")
+    suffix = ".dll"
+    if args.native:
+        suffix = ".dylib" if sys.platform == "darwin" else ".so"
+    native_target = (args.output / f"inference{suffix}") if args.output else native_source.with_suffix(suffix)
     native_target.parent.mkdir(parents=True, exist_ok=True)
-    common = ["-O3", "-std=c++17", "-static-libgcc", "-static-libstdc++", "-static"]
+    if args.native:
+        args.native_only = True
+        common = ["-O3", "-std=c++17", "-fPIC", "-fvisibility=hidden"]
+    else:
+        common = ["-O3", "-std=c++17", "-static-libgcc", "-static-libstdc++", "-static"]
     subprocess.run([compiler, "-shared", *common, str(native_source), "-o", str(native_target)], check=True)
     targets = [native_target]
     sources = [native_source]
