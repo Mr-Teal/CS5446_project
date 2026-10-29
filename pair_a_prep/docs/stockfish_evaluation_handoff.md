@@ -71,3 +71,5 @@ population cap, sampled synchronous knowledge restriction and cross-turn
 reuse are approximations, and ancestor gifts are audit-only. Projected
 training labels remain disabled pending the root/weight agreement. This
 handoff enables evaluation integration; it does not resolve those gates.
+
+Before planning a formal batch, use the [acceptance gates and proposed protocol](formal_evaluation_readiness.md). The smoke caps and opponents are not a formal strength configuration.
