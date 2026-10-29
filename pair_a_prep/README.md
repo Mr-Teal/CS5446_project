@@ -1,5 +1,7 @@
 # Independent Pair A preparation
 
+For real engine evaluation, use the [pinned Stockfish / Pair C handoff](docs/stockfish_evaluation_handoff.md). Its short smoke validation does not establish long-game strength.
+
 The opt-in [integrated chess subgame prototype](docs/chess_subgame_integration.md)
 now connects sampled-tree knowledge projection, gadget boundaries, growth,
 warm starts and purification. [Richer-position verification](docs/subgame_position_validation.md)
