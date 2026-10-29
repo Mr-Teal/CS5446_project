@@ -4,3 +4,7 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .pytest_cache/
+
+# Locally built ZS21 inference library; the audited Windows DLL is committed.
+pair_a_prep/zs21/native/inference.so
+pair_a_prep/zs21/native/inference.dylib

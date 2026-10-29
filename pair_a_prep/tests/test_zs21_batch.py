@@ -12,6 +12,10 @@ from pair_a_prep.zs21.engine import EnginePool, EvaluationError
 @pytest.fixture(scope="module")
 def batch_pool():
     from pair_a_prep.zs21.config import load
+    from pair_a_prep.zs21.platform_support import audited_engine_available
+    available, why = audited_engine_available()
+    if not available:
+        pytest.skip(f"ZS21 batch engine: {why}")
     with EnginePool(load()["engine"]) as pool:
         yield pool
 
