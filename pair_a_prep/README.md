@@ -173,3 +173,7 @@ it does not establish that a FoW rules implementation passes the cases.
 ### Actual transition diagnostics
 
 [Cross-turn reach/state audit](docs/transition_audit.md) records real private projections, checks candidate-path identities and distinguishes current CF reach ratios from cumulative solver-state conversion. Run `python -m pair_a_prep.transition_probe --output pair_a_prep/local_runs/transition-audit.json`. This offline diagnostic does not change agent decisions or authorize exact warm-state transfer.
+
+### Frozen warm/cold comparison
+
+[Controlled frozen-target diagnostics](docs/frozen_warm_cold.md) compare existing heuristic warm state with seeded and round-aligned cold controls on identical sampled gadget trees. Finite-game gaps are not full-game exploitability or win rates; live defaults and projected labels are unchanged.
