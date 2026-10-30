@@ -1,5 +1,10 @@
 # Independent Pair A preparation
 
+The optional [serial one-sided search mode](docs/one_sided_search.md) now
+selects individual history frontiers and retains within-turn PCFR+ state.
+Its engineering evidence and updated slide materials are reproducible; it is
+not yet a complete Obscuro agent or a strength-tested teacher.
+
 This directory contains preparation tools, a rules adapter prototype, and an
 exact history-preserving belief tracker with optional output sampling.
 The standalone preparation tools run independently of `fow_shared`; the new
@@ -34,6 +39,11 @@ and provides an observation-only action fallback if initial preparation exceeds
 a budget. See [the Obscuro status map](docs/obscuro_status.md) for remaining
 paper mechanisms and [budget probes](docs/budget_experiments.md) for measured
 costs and short-game integration limits.
+
+For draft slides 4-5, open [the local material viewer](presentation/index.html).
+The [material guide](presentation/README.md) includes SVG export and evidence
+regeneration; [the expansion audit](docs/expansion_mechanism_audit.md) separates
+the paper's one-sided leaf selection from our uniform complete-cut baseline.
 
 | Work | File | Contents |
 |---|---|---|

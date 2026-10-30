@@ -1,6 +1,11 @@
 # Obscuro implementation status
 
 This is a repository implementation map, not a claim of exact reproduction.
+The latest incremental implementation is described in
+[Serial one-sided search](one_sided_search.md): selected-history growth,
+support/variance-PUCT sampling and growth-node best-child initialization are
+implemented. The historical baseline checklist below describes the uniform
+prototype; it must not be read as the status of the new optional growth mode.
 The source anchors below follow the existing [paper specification map](paper_specs.md)
 for Zhang and Sandholm, *General search techniques without common knowledge
 for imperfect-information games*, arXiv:2506.01242v2. The authors' original
@@ -25,6 +30,11 @@ are explicitly separated from the source-mapped mechanisms.
 | Whole agent and labels | Fixed-depth prototype, optional gadget API, budgeted uniform-growth agent; continuation labels are belief-weighted and unshifted | Budgeted agent currently uses the original sampled-root tree, not gadgets. Full paper mechanisms above remain necessary before calling it a complete Obscuro reproduction. |
 
 ## Ownership and immediate sequence
+
+The [expansion audit](expansion_mechanism_audit.md) now checks the local paper's
+exact support/PUCT mixture and initialization. It also clarifies that our
+complete-cut requirement is an engineering restriction; the paper can expand
+one history leaf without expanding every member of its information set.
 
 1. User: integrate and test the within-turn budgeted agent and document baseline costs.
 2. User: derive selective expansion and new-node initialization from the source

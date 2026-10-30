@@ -1,4 +1,4 @@
-"""Budgeted sampled-root search with uniform growth, not complete Obscuro."""
+"""Budgeted sampled-root search with optional selective growth, not full Obscuro."""
 
 from dataclasses import asdict, dataclass
 from hashlib import sha256
@@ -8,6 +8,7 @@ from time import perf_counter
 from fow_shared.contracts import Decision
 from .chess_search import build_chess_tree, expand_chess_tree, SearchBudgetError, TreeCapacityError
 from .pcfr import PCFRPlus
+from .one_sided import OneSidedExpansion
 from .search_agent import FixedDepthPCFRAgent, SearchResult
 from .toy_games import behavioral_value, information_sets
 
@@ -24,6 +25,7 @@ class AnytimeConfig:
     schedule: str = "alternating"
     stop_on_time: bool = True
     expansion_fraction: float = 0.7
+    growth: str = "uniform"
 
     def __post_init__(self):
         for key in ("initial_depth", "max_depth", "rounds", "rounds_per_stage",
@@ -36,10 +38,12 @@ class AnytimeConfig:
             raise ValueError("invalid final-round reserve or schedule")
         if type(self.stop_on_time) is not bool or not 0 < self.expansion_fraction < 1:
             raise ValueError("invalid clock configuration")
+        if self.growth not in ("uniform", "one_sided"):
+            raise ValueError("growth must be uniform or one_sided")
 
 
 class AnytimePCFRAgent(FixedDepthPCFRAgent):
-    """Rebuild per turn, then retain solver state across uniform growth steps.
+    """Rebuild per turn, then retain solver state across configured growth steps.
 
     act() can return an observation-only uniform fallback if initial preparation
     exceeds a budget. solve()/label() instead raise: no values are invented for
@@ -50,6 +54,8 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
 
     def __init__(self, evaluator, config=None, initial_fen=None):
         super().__init__(evaluator, config or AnytimeConfig(), initial_fen)
+        if self.config.growth == "one_sided":
+            self.name = "one-sided-pcfr-prototype-v1"
         self.last_stop_reason = None
         self.last_tree = self.last_solver = None
         self.last_evaluator_calls = 0
@@ -68,10 +74,10 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
                            ("depth", "new_game_each_call", "call_timeout_s")
                            if hasattr(self.evaluator, key)}},
                        roots="input_belief_weights", infosets="complete_private_stream",
-                       growth="uniform_all_frontiers", policy="raw_last_iterate",
+                       growth=self.config.growth, policy="raw_last_iterate",
                        no_move_rule="terminal_draw_v1",
                        fallback="uniform_observed_legal_moves_no_labels")
-        return "uniform-growth-v1:" + sha256(json.dumps(
+        return self.name + ":" + sha256(json.dumps(
             payload, sort_keys=True, allow_nan=False).encode()).hexdigest()[:16]
 
     def solve(self, turn):
@@ -113,6 +119,7 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
         initial_ms = (perf_counter() - started) * 1000
         solving_ms = growth_ms = 0.0
         depth, expansions, growth_reason = self.config.initial_depth, 0, None
+        sampler = OneSidedExpansion(self._rng.getrandbits(64)) if self.config.growth == "one_sided" else None
         next_growth = self.config.rounds_per_stage
         while solver.rounds < self.config.rounds:
             if deadline is not None and perf_counter() >= deadline:
@@ -122,7 +129,7 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
             solving_ms += (perf_counter() - stage_started) * 1000
             if growth_reason is not None or solver.rounds < next_growth:
                 continue
-            if depth >= self.config.max_depth:
+            if depth >= self.config.max_depth and sampler is None:
                 growth_reason = "max_depth"
             elif not tree.frontiers:
                 growth_reason = "terminal_tree"
@@ -135,15 +142,25 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
             else:
                 stage_started = perf_counter()
                 try:
+                    proposal = sampler.select(tree, solver, self.config.max_depth, growth_deadline) if sampler else None
+                    if sampler and proposal is None:
+                        next_growth = solver.rounds + self.config.rounds_per_stage
+                        continue
                     tree = expand_chess_tree(tree, solver, leaf, max_nodes=self.config.max_nodes,
-                                             deadline=growth_deadline)
+                                             deadline=growth_deadline,
+                                             selected_paths=(proposal[0],) if sampler else None,
+                                             initialize_best=sampler is not None)
                 except TreeCapacityError:
                     growth_reason = "node_limit"
                 except SearchBudgetError:
                     growth_reason = ("evaluator_limit" if calls >= self.config.max_evaluator_calls
                                      else "growth_deadline")
                 else:
-                    depth += 1
+                    if sampler:
+                        sampler.commit(proposal)
+                        depth = max(depth, len(proposal[0]))
+                    else:
+                        depth += 1
                     expansions += 1
                     next_growth = solver.rounds + self.config.rounds_per_stage
                 finally:
@@ -175,6 +192,8 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
         self.last_tree, self.last_solver = tree, solver
         self.last_result = SearchResult(decision, values, value)
         return self.last_result
+
+
 
     def act(self, turn):
         started = perf_counter()

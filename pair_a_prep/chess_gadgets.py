@@ -114,7 +114,8 @@ class ChessGadget:
 
     def expand(self, solver: PCFRPlus, evaluator: LeafEvaluator, *,
                additional_depth: int = 1, max_nodes: int = 5000,
-               max_evaluator_calls: Optional[int] = None, deadline=None) -> ChessGadget:
+               max_evaluator_calls: Optional[int] = None, deadline=None,
+               selected_paths=None) -> ChessGadget:
         """Grow a complete chess frontier cut and preserve gadget solver state.
 
         Return a new bridge only after an atomic graft. Resolve paths include
@@ -129,25 +130,31 @@ class ChessGadget:
             raise ValueError("growth must use the same evaluator identity as preparation")
         if not self.roots.chess_tree.frontiers:
             return self
+        paths = tuple(self.roots.chess_tree.frontiers) if selected_paths is None else tuple(selected_paths)
+        if not paths:
+            return self
         # This temporary solver validates the raw graft; it has no trained state.
         # The caller's trained gadget solver is untouched until all preparation
         # and cloning succeed. A future builder can remove this extra workspace.
         raw_solver = PCFRPlus(self.roots.chess_tree.root, schedule=solver.schedule)
         grown = expand_chess_tree(self.roots.chess_tree, raw_solver, evaluator,
                                   additional_depth=additional_depth, max_nodes=max_nodes,
-                                  max_evaluator_calls=max_evaluator_calls, deadline=deadline)
+                                  max_evaluator_calls=max_evaluator_calls, deadline=deadline,
+                                  selected_paths=paths)
         settings = {**self.roots.settings,
-                    "depth": self.roots.settings["depth"] + additional_depth,
-                    "max_nodes": max_nodes, "growth": "uniform_frontier_v1",
+                    "depth": max(self.roots.settings["depth"], max(len(p) - 1 + additional_depth for p in paths)),
+                    "max_nodes": max_nodes,
+                    "growth": "uniform_frontier_v1" if selected_paths is None else "selected_history_v1",
                     "growth_steps": [*self.roots.settings.get("growth_steps", []),
                                      dict(rounds_before=solver.rounds,
+                                          selected_paths=paths,
                                           additional_depth=additional_depth,
                                           max_nodes=max_nodes)]}
         roots = replace(self.roots, chess_tree=grown, settings=settings)
         candidate = roots.build(self.gadget.alternate_player0, reach_mass=self.reach_mass,
                                 mode=self.gadget.mode, group_prior=self.group_prior)
         replacements = {}
-        for path in self.roots.chess_tree.frontiers:
+        for path in paths:
             index = int(path[0])
             root_id = self.roots.root_ids[index]
             if self.gadget.mode == "resolve":
