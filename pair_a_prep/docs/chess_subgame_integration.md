@@ -98,6 +98,11 @@ under the raw continuation profile. Do not report purified actions as raw draws.
 
 Deadlines remain cooperative; evaluator calls, tree validation/cloning and CFR
 rounds are not preemptible. Count actual evaluator calls, fallbacks and overruns.
+The optional submission guard now reserves 10% of a clock budget and estimates
+the next round using its previous duration; both guard and purification can be
+configured through the evaluation factory. See the measured
+[clock ablation](clock_purification_ablation.md), including unreserved failures,
+fallback work and examples that still exceed an in-flight operation's budget.
 Failed preparation leaves the saved blueprint unchanged; label generation
 raises rather than inventing values. A raw projected game renormalizes retained
 counterfactual masses, so its next CF units are local to that saved sampled game.

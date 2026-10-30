@@ -63,6 +63,8 @@ class SearchFactory:
         if int(self.settings.get("leaf_depth", "0")) != 0:
             raise ValueError("the Material handoff requires leaf_depth=0; search depth is separate")
         mode = self.settings.get("search_mode", "anytime").strip()
+        if mode != "subgame" and any(key in self.settings for key in ("purify", "submission_reserve_fraction")):
+            raise ValueError("purify and submission_reserve_fraction require search_mode=subgame")
         common = dict(rounds=_positive(self.settings, "solver_rounds", 8),
                       max_nodes=_positive(self.settings, "max_nodes", 1024 if mode == "subgame" else 512),
                       schedule="alternating", stop_on_time=_clock(self.settings))
@@ -84,7 +86,14 @@ class SearchFactory:
             agent_type = _ManagedFixed
         else:
             raise ValueError("search_mode must be anytime, retained, subgame or fixed")
-        self._agent = agent_type(MaterialEvaluator(), config, _initial_fen(self.settings))
+        extra = {}
+        if mode == "subgame":
+            purify = self.settings.get("purify", "true").strip().lower()
+            if purify not in ("true", "false"):
+                raise ValueError("purify must be true or false")
+            extra = dict(purify=purify == "true", submission_reserve_fraction=float(
+                self.settings.get("submission_reserve_fraction", "0.1")))
+        self._agent = agent_type(MaterialEvaluator(), config, _initial_fen(self.settings), **extra)
         return self._agent
 
     def reset_game(self):

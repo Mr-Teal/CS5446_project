@@ -61,8 +61,10 @@ solving and growth, then reserves work for final solving. If a growth attempt
 does not fit, it retains the old tree. If even initial preparation cannot
 finish, it can still return a legal action, but does not fabricate a training
 label. These checks support implementation behavior, not stronger play. Our
-growth is serial and within one turn. Cross-turn retention, complete KLUSS and
-paper-derived boundary updates remain unfinished. Deadlines remain cooperative.
+displayed fixture grows within one turn. The integrated prototype also retains
+raw blueprints across turns and projects boundaries inside the saved sampled
+tree. Complete history-space KLUSS and gift bookkeeping remain unfinished.
+Deadlines remain cooperative.
 
 **Point to:** the blue White node retained in both panels, then the new green
 Black node and yellow estimates. If another hidden occurrence of the same Black
@@ -79,8 +81,9 @@ remain unchanged during the graft. Counts and evidence are in `evidence.json`.
   expansion, select a leaf using a half support-uniform / half PUCT policy.
   The other player keeps its current strategy. See the audit for exact formula.
 - This implementation: optional one-sided growth, serial stages, best-child
-  initialization for growth infosets, uniform initial shallow-tree state,
-  no cross-turn retained tree, no complete Obscuro claim.
+  initialization for initial and growth infosets in selective modes,
+  opt-in cross-turn raw blueprints and sampled-tree gadgets, no complete
+  Obscuro claim. The shown picture is the small within-turn graft fixture.
 - One-sided exploration is different from alternating PCFR+ updates. Keeping
   those concepts separate is essential when explaining the current code.
 - The budgeted agent follows the raw sampled-root path. The gadget growth API
@@ -104,6 +107,29 @@ remain unchanged during the graft. Counts and evidence are in `evidence.json`.
   Materials and verification code were prepared with Codex assistance.
 - Paper: Zhang and Sandholm, arXiv:2506.01242v2, sections 3.3-3.4 and C.4-C.5.
   These mechanisms are described in `../docs/expansion_mechanism_audit.md`.
-- No new performance experiment, strength claim or final release is represented
-  by the two slides. #28 is integrated into Pair A; its main rollout still
+- The two main figures are structural fixtures, not playing-strength evidence.
+  #28 is integrated into Pair A; its main rollout still
   depends on #15. The displayed kings fixtures are unchanged by that rule.
+
+## Slide 5 backup: Clock budgets and purification (45 seconds)
+
+The table reports four caller-timed samples per condition, with cold standard
+positions and a separately prepared saved-blueprint fixture. Purification has
+matched fixed-work controls: the raw strategy and labels stay unchanged, while
+the output distribution can change. With wall-clock stopping, actual solver
+work may differ between runs, so this is not an isolated strength comparison.
+
+The first matrix with no submission reserve had 16 overruns in 48 single-turn
+checks. A 10% finalization reserve and previous-round estimate gave zero in the
+matching reserved matrix. This is an observed small-sample result, not a hard
+deadline guarantee: an executing CFR round or evaluator call cannot be stopped.
+The 20 ms cold turns all fell back, so their low latency is not completed search.
+
+Both live matrices used 12 four-ply pawn games, all capped with null outcomes.
+The reserved run had no overruns but still 11 fallbacks. Report fallback work and
+reasons honestly. Source JSON, configuration and caveats are in
+`../docs/clock_purification_ablation.md`; the SVG table is generated from them.
+
+## Historical clock evidence clarification
+
+Every non-fallback raw policy in the archived matrix was an exact tie; purification measures move-order tie-breaking. Only 16/48 standalone turns exercised the guard (24 hit the round cap; 8 fell back). The reserved live run had 11/48 fallbacks. The archived source predates the gift-sign and blueprint fixes; do not describe these counts as updated-source measurements.
