@@ -158,6 +158,9 @@ class RetainedPCFRAgent(AnytimePCFRAgent):
         if self.saved is None:
             return super()._prepare_solver(tree)
         solver, retained = rebase_solver(self.saved[2], tree.root)
+        if self.config.growth == "one_sided":
+            from .search_policies import seed_new
+            seed_new(solver, retained)
         self.retention["retained_infosets"] = sum(len(keys) for keys in retained)
         return solver
 

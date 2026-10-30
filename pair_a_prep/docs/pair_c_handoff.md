@@ -86,3 +86,5 @@ execution, formal batch or new model training is covered by this handoff.
 ## Retained depth contract
 
 The optional retained factory requires `max_depth >= 3` (default 3). A saved tree must contain a nonterminal two plies below its old root for next-turn reuse. Merely switching the supplied shallow anytime smoke config to retained mode is rejected. Reused branches are restored to `initial_depth` before solving, including mixed fresh/deep roots; normal limits still apply, so recovery can fail explicitly. The baseline anytime smoke configuration is unchanged.
+
+Subgame mode now defaults to 1024 nodes and 48 evaluator calls, matching the richer-position validation budget. Smaller explicitly configured budgets remain possible and may fall back. `diagnostics["fallback"] == 1` identifies fallback; a reported zero search-node count alone is insufficient. Pair C should retain this flag in exported records. Projected subgame training labels remain disabled pending the complete solver-root/weight contract.

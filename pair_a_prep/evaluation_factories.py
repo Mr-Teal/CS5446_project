@@ -9,6 +9,7 @@ from typing import Mapping
 from .anytime_agent import AnytimeConfig, AnytimePCFRAgent
 from .belief_tracker import BeliefTracker
 from .cross_turn import RetainedPCFRAgent
+from .chess_subgame_agent import ChessSubgameAgent
 from .rules_adapter import RulesAdapter
 from .search_agent import FixedDepthPCFRAgent, SearchConfig
 
@@ -46,6 +47,11 @@ class _ManagedRetained(RetainedPCFRAgent):
         self.evaluator.close()
 
 
+class _ManagedSubgame(ChessSubgameAgent):
+    def close(self):
+        self.evaluator.close()
+
+
 class SearchFactory:
     """Create a Material-only search baseline with independent owned resources."""
 
@@ -56,26 +62,28 @@ class SearchFactory:
         from pairb.material import MaterialEvaluator
         if int(self.settings.get("leaf_depth", "0")) != 0:
             raise ValueError("the Material handoff requires leaf_depth=0; search depth is separate")
+        mode = self.settings.get("search_mode", "anytime").strip()
         common = dict(rounds=_positive(self.settings, "solver_rounds", 8),
-                      max_nodes=_positive(self.settings, "max_nodes", 512),
+                      max_nodes=_positive(self.settings, "max_nodes", 1024 if mode == "subgame" else 512),
                       schedule="alternating", stop_on_time=_clock(self.settings))
         mode = self.settings.get("search_mode", "anytime").strip()
-        if mode in ("anytime", "retained"):
+        if mode in ("anytime", "retained", "subgame"):
             config = AnytimeConfig(**common,
-                growth=self.settings.get("growth", "uniform").strip(),
+                growth=self.settings.get("growth", "one_sided" if mode == "subgame" else "uniform").strip(),
                 initial_depth=_positive(self.settings, "initial_depth", 1),
                 max_depth=_positive(self.settings, "max_depth", 3 if mode == "retained" else 2),
                 rounds_per_stage=_positive(self.settings, "rounds_per_stage", 2),
                 final_rounds=_positive(self.settings, "final_rounds", 2),
-                max_evaluator_calls=_positive(self.settings, "max_evaluator_calls", 16))
+                max_evaluator_calls=_positive(self.settings, "max_evaluator_calls", 48 if mode == "subgame" else 16))
             if mode == "retained" and config.max_depth < 3:
                 raise ValueError("retained mode requires max_depth >= 3 for cross-turn reuse")
-            agent_type = _ManagedRetained if mode == "retained" else _ManagedAnytime
+            agent_type = (_ManagedSubgame if mode == "subgame" else
+                          _ManagedRetained if mode == "retained" else _ManagedAnytime)
         elif mode == "fixed":
             config = SearchConfig(**common, depth=_positive(self.settings, "search_depth", 1))
             agent_type = _ManagedFixed
         else:
-            raise ValueError("search_mode must be anytime, retained or fixed")
+            raise ValueError("search_mode must be anytime, retained, subgame or fixed")
         self._agent = agent_type(MaterialEvaluator(), config, _initial_fen(self.settings))
         return self._agent
 

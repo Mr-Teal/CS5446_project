@@ -71,7 +71,7 @@ class PCFRPlus:
     """
 
     def __init__(self, root: Node, predictive: bool = True, averaging_power: int = 2,
-                 schedule: str = "simultaneous"):
+                 schedule: str = "simultaneous", initial_actions=None):
         if schedule not in ("simultaneous", "alternating"):
             raise ValueError("schedule must be simultaneous or alternating")
         self.schedule = schedule
@@ -83,13 +83,20 @@ class PCFRPlus:
         self.predictive = predictive
         self.averaging_power = averaging_power
         self.rounds = 0
-        self._growth_seeds = {}
         self.minimizers = tuple({key: PredictiveRMPlus(len(actions), predictive)
                                  for key, actions in sets.items()} for sets in self.sets)
         self._strategy = tuple({key: np.full(len(actions), 1 / len(actions))
                                 for key, actions in sets.items()} for sets in self.sets)
         self._sums = tuple({key: np.zeros(len(actions)) for key, actions in sets.items()}
                            for sets in self.sets)
+        self._initial_actions = dict(initial_actions or {})
+        for (p, key), action in self._initial_actions.items():
+            if p not in (0, 1) or key not in self.sets[p] or action not in self.sets[p][key]:
+                raise ValueError("invalid initial action")
+            strategy = self._strategy[p][key]
+            strategy[:] = 0
+            strategy[self.sets[p][key].index(action)] = 1
+            self.minimizers[p][key].strategy = strategy.copy()
 
     def _index_tree(self, root):
         sets = information_sets(root)
@@ -172,8 +179,8 @@ class PCFRPlus:
             self._sums[player].update(sums[player])
         self._previous_opponent = previous_opponent
         if self.schedule == "simultaneous" or not self.rounds:
-            self._growth_seeds.update({(p, key): action for (p, key), action in (initial_actions or {}).items()
-                                       if key in added[p]})
+            self._initial_actions.update({(p, key): action for (p, key), action in (initial_actions or {}).items()
+                                          if key in added[p]})
 
     def _check_recall(self, node, histories, seen):
         if node.payoff is not None:
@@ -242,7 +249,7 @@ class PCFRPlus:
             prediction = (np.zeros_like(minimizer.regrets) if previous is None
                           else self._utilities(player, previous)[key])
             self._strategy[player][key] = minimizer.next_strategy(prediction)
-            action = self._growth_seeds.pop((player, key), None)
+            action = self._initial_actions.pop((player, key), None)
             if action is not None:
                 self._strategy[player][key][:] = 0
                 self._strategy[player][key][self.sets[player][key].index(action)] = 1

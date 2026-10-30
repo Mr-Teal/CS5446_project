@@ -1,5 +1,12 @@
 # Obscuro implementation status
 
+Latest optional integration: [sampled-tree chess subgame agent](chess_subgame_integration.md)
+connects saved-tree I^2 projection, finite-cut boundaries, fresh-root caps,
+serial gadget switching, selective growth, initial best policies and C.8-style
+purification. Earlier tables below are the historical uniform baseline. The
+new integration has explicit sampling, gift-scope and heuristic approximations;
+it is not complete full-history KLUSS or a full reproduction.
+
 This is a repository implementation map, not a claim of exact reproduction.
 The latest incremental implementation is described in
 [Serial one-sided search](one_sided_search.md): selected-history growth,
