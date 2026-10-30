@@ -1,0 +1,145 @@
+{
+  "scope": "Public synthetic starts and selected consistent histories; not a strength corpus or full posterior",
+  "cases": [
+    {
+      "id": "standard_white",
+      "category": "standard_start",
+      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      "required_moves": [
+        "e2e4",
+        "g1f3"
+      ]
+    },
+    {
+      "id": "standard_black",
+      "category": "black_perspective",
+      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1",
+      "required_moves": [
+        "e7e5",
+        "g8f6"
+      ]
+    },
+    {
+      "id": "pawn_capture",
+      "category": "capture",
+      "fen": "7k/8/8/5n2/4P3/8/8/K7 w - - 0 1",
+      "required_moves": [
+        "e4f5"
+      ]
+    },
+    {
+      "id": "white_promotion",
+      "category": "promotion",
+      "fen": "7k/P7/8/8/8/8/8/7K w - - 0 1",
+      "required_moves": [
+        "a7a8q",
+        "a7a8n"
+      ]
+    },
+    {
+      "id": "black_promotion",
+      "category": "promotion_black",
+      "fen": "7k/8/8/8/8/8/p7/7K b - - 0 1",
+      "required_moves": [
+        "a2a1q",
+        "a2a1n"
+      ]
+    },
+    {
+      "id": "en_passant",
+      "category": "en_passant",
+      "fen": "7k/8/8/3pP3/8/8/8/K7 w - d6 0 1",
+      "required_moves": [
+        "e5d6"
+      ]
+    },
+    {
+      "id": "castle_through_attack",
+      "category": "fog_castling",
+      "fen": "k4r2/8/8/8/8/8/8/4K2R w K - 0 1",
+      "required_moves": [
+        "e1g1"
+      ]
+    },
+    {
+      "id": "expose_own_king",
+      "category": "fog_king_safety",
+      "fen": "k3r3/8/8/8/8/8/4R3/4K3 w - - 0 1",
+      "required_moves": [
+        "e2f2"
+      ]
+    },
+    {
+      "id": "king_capture",
+      "category": "terminal_capture",
+      "fen": "4k3/8/8/8/8/8/4R3/4K3 w - - 0 1",
+      "required_moves": [
+        "e2e8"
+      ],
+      "terminal_after": {
+        "e2e8": "king_capture"
+      }
+    },
+    {
+      "id": "fifty_move_boundary",
+      "category": "draw_history",
+      "fen": "7k/8/8/8/8/8/P7/K7 w - - 99 1",
+      "required_moves": [
+        "a1b1",
+        "a2a3"
+      ],
+      "terminal_after": {
+        "a1b1": "fifty_move"
+      }
+    },
+    {
+      "id": "third_repetition_boundary",
+      "category": "repetition_history",
+      "fen": "7k/8/8/8/8/8/8/K7 w - - 0 1",
+      "candidate_moves": [
+        "a1b1",
+        "h8g8",
+        "b1a1",
+        "g8h8",
+        "a1b1",
+        "h8g8",
+        "b1a1"
+      ],
+      "required_moves": [
+        "g8h8"
+      ],
+      "terminal_after": {
+        "g8h8": "threefold_repetition"
+      }
+    },
+    {
+      "id": "forced_no_move_draw",
+      "category": "terminal_no_moves",
+      "fen": "6rk/6P1/6P1/8/1p6/pPp5/PRP5/KB6 b - - 0 1",
+      "required_moves": [
+        "g8g7"
+      ],
+      "terminal_after": {
+        "g8g7": "no_legal_moves"
+      }
+    }
+  ],
+  "rule_histories": [
+    {
+      "id": "fow_effective_ep_repetition",
+      "fen": "r3k1nr/p1p2ppp/8/1pP1n3/2PP2b1/8/PP3PPP/RNBK1B1R w kq b6 0 1",
+      "candidate_moves": [
+        "b1c3",
+        "e5f3",
+        "c3b1",
+        "f3e5",
+        "b1c3",
+        "e5f3",
+        "c3b1",
+        "f3e5"
+      ],
+      "expected_terminal": null,
+      "requires_shared_fow_ep_fix": true
+    }
+  ]
+}
