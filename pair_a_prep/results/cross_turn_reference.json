@@ -1,0 +1,293 @@
+{
+  "scope": "synthetic engineering checks, not playing strength or complete Obscuro",
+  "python": "3.12.15",
+  "public_initial_fen": "7k/8/8/8/8/8/8/K7 w - - 0 1",
+  "seed": 17,
+  "source_sha256": {
+    "cross_turn.py": "3ca78db6d21b406c4b771fa54556f019d1f243f48bd809eb778c66dc32563d01",
+    "warm_start.py": "b9986cbc0d15ca0816e366ab14847d4e2a26ae9a33e8c30a6e000bf9a3aaec61",
+    "subgame_boundaries.py": "dd0b969036c6fd0eff8f2458f76905fcdfecc31e399975ddffb1d1e77a68a873",
+    "anytime_agent.py": "8dd4f0900ae194bc6bd9255ac40e3aeac8f4cc7b954b9cbd24796931841e7ace",
+    "cross_turn_experiment.py": "b0f8f21f105ba762dfd5d2b220a0e7d7c50e14c9ee79c1a4967b358010bcd990"
+  },
+  "games": [
+    {
+      "growth": "uniform",
+      "config": {
+        "initial_depth": 3,
+        "max_depth": 3,
+        "rounds": 4,
+        "rounds_per_stage": 4,
+        "final_rounds": 1,
+        "max_nodes": 2000,
+        "max_evaluator_calls": 256,
+        "schedule": "alternating",
+        "stop_on_time": false,
+        "expansion_fraction": 0.7,
+        "growth": "uniform"
+      },
+      "capped": true,
+      "outcome": null,
+      "plies": [
+        {
+          "ply": 0,
+          "player": "white",
+          "agent_name": "retained-uniform-growth-pcfr-prototype-v1",
+          "move": "a1b1",
+          "elapsed_ms": 25.838800007477403,
+          "over_budget": false,
+          "search_nodes": 68.0
+        },
+        {
+          "ply": 1,
+          "player": "black",
+          "agent_name": "retained-uniform-growth-pcfr-prototype-v1",
+          "move": "h8g7",
+          "elapsed_ms": 131.3050000462681,
+          "over_budget": false,
+          "search_nodes": 391.0
+        },
+        {
+          "ply": 2,
+          "player": "white",
+          "agent_name": "retained-uniform-growth-pcfr-prototype-v1",
+          "move": "b1c2",
+          "elapsed_ms": 3.413100028410554,
+          "over_budget": false,
+          "search_nodes": 19.0
+        },
+        {
+          "ply": 3,
+          "player": "black",
+          "agent_name": "retained-uniform-growth-pcfr-prototype-v1",
+          "move": "g7h6",
+          "elapsed_ms": 4.2195001151412725,
+          "over_budget": false,
+          "search_nodes": 28.0
+        }
+      ],
+      "last_turn": {
+        "white": {
+          "config_id": "retained-uniform-growth-pcfr-prototype-v1:9b78a738c2614fe2:private-history-warm-v1",
+          "diagnostics": {
+            "search_nodes": 19.0,
+            "solver_rounds": 8.0,
+            "search_depth": 1.0,
+            "expansions": 0.0,
+            "evaluator_calls": 0.0,
+            "elapsed_ms": 3.3481998834758997,
+            "over_budget": 0.0,
+            "terminal_leaves": 0.0,
+            "frontier_leaves": 15.0,
+            "solver_root_value": 0.0,
+            "fallback": 0.0,
+            "solver_rounds_this_turn": 4.0,
+            "initial_ms": 2.692099893465638,
+            "solving_ms": 0.45669986866414547,
+            "growth_ms": 0.0,
+            "finalizing_ms": 0.18300022929906845,
+            "stop:round_limit": 1.0,
+            "growth_stop:final_round_reserve": 1.0,
+            "played_policy:b1a1": 0.2,
+            "played_policy:b1a2": 0.2,
+            "played_policy:b1b2": 0.2,
+            "played_policy:b1c1": 0.2,
+            "played_policy:b1c2": 0.2,
+            "retention:reused_roots": 3.0,
+            "retention:fresh_roots": 0.0,
+            "retention:discarded_previous_roots": 0.0,
+            "retention:retained_infosets": 1.0
+          }
+        },
+        "black": {
+          "config_id": "retained-uniform-growth-pcfr-prototype-v1:9b78a738c2614fe2:private-history-warm-v1",
+          "diagnostics": {
+            "search_nodes": 28.0,
+            "solver_rounds": 8.0,
+            "search_depth": 1.0,
+            "expansions": 0.0,
+            "evaluator_calls": 0.0,
+            "elapsed_ms": 4.145799903199077,
+            "over_budget": 0.0,
+            "terminal_leaves": 0.0,
+            "frontier_leaves": 24.0,
+            "solver_root_value": 0.0,
+            "fallback": 0.0,
+            "solver_rounds_this_turn": 4.0,
+            "initial_ms": 3.338299924507737,
+            "solving_ms": 0.49369968473911285,
+            "growth_ms": 0.0,
+            "finalizing_ms": 0.2921000123023987,
+            "stop:round_limit": 1.0,
+            "growth_stop:final_round_reserve": 1.0,
+            "played_policy:g7f6": 0.125,
+            "played_policy:g7f7": 0.125,
+            "played_policy:g7f8": 0.125,
+            "played_policy:g7g6": 0.125,
+            "played_policy:g7g8": 0.125,
+            "played_policy:g7h6": 0.125,
+            "played_policy:g7h7": 0.125,
+            "played_policy:g7h8": 0.125,
+            "retention:reused_roots": 3.0,
+            "retention:fresh_roots": 0.0,
+            "retention:discarded_previous_roots": 0.0,
+            "retention:retained_infosets": 1.0
+          }
+        }
+      }
+    },
+    {
+      "growth": "one_sided",
+      "config": {
+        "initial_depth": 3,
+        "max_depth": 3,
+        "rounds": 4,
+        "rounds_per_stage": 4,
+        "final_rounds": 1,
+        "max_nodes": 2000,
+        "max_evaluator_calls": 256,
+        "schedule": "alternating",
+        "stop_on_time": false,
+        "expansion_fraction": 0.7,
+        "growth": "one_sided"
+      },
+      "capped": true,
+      "outcome": null,
+      "plies": [
+        {
+          "ply": 0,
+          "player": "white",
+          "agent_name": "retained-one-sided-pcfr-prototype-v1",
+          "move": "a1b2",
+          "elapsed_ms": 23.387499852105975,
+          "over_budget": false,
+          "search_nodes": 68.0
+        },
+        {
+          "ply": 1,
+          "player": "black",
+          "agent_name": "retained-one-sided-pcfr-prototype-v1",
+          "move": "h8g8",
+          "elapsed_ms": 127.46830005198717,
+          "over_budget": false,
+          "search_nodes": 391.0
+        },
+        {
+          "ply": 2,
+          "player": "white",
+          "agent_name": "retained-one-sided-pcfr-prototype-v1",
+          "move": "b2a3",
+          "elapsed_ms": 3.5023000091314316,
+          "over_budget": false,
+          "search_nodes": 28.0
+        },
+        {
+          "ply": 3,
+          "player": "black",
+          "agent_name": "retained-one-sided-pcfr-prototype-v1",
+          "move": "g8f7",
+          "elapsed_ms": 4.267799900844693,
+          "over_budget": false,
+          "search_nodes": 19.0
+        }
+      ],
+      "last_turn": {
+        "white": {
+          "config_id": "retained-one-sided-pcfr-prototype-v1:0703f1764e17877f:private-history-warm-v1",
+          "diagnostics": {
+            "search_nodes": 28.0,
+            "solver_rounds": 8.0,
+            "search_depth": 1.0,
+            "expansions": 0.0,
+            "evaluator_calls": 0.0,
+            "elapsed_ms": 3.4573001321405172,
+            "over_budget": 0.0,
+            "terminal_leaves": 0.0,
+            "frontier_leaves": 24.0,
+            "solver_root_value": 0.0,
+            "fallback": 0.0,
+            "solver_rounds_this_turn": 4.0,
+            "initial_ms": 2.701899968087673,
+            "solving_ms": 0.49649993889033794,
+            "growth_ms": 0.0,
+            "finalizing_ms": 0.2142000012099743,
+            "stop:round_limit": 1.0,
+            "growth_stop:final_round_reserve": 1.0,
+            "played_policy:b2a1": 0.125,
+            "played_policy:b2a2": 0.125,
+            "played_policy:b2a3": 0.125,
+            "played_policy:b2b1": 0.125,
+            "played_policy:b2b3": 0.125,
+            "played_policy:b2c1": 0.125,
+            "played_policy:b2c2": 0.125,
+            "played_policy:b2c3": 0.125,
+            "retention:reused_roots": 3.0,
+            "retention:fresh_roots": 0.0,
+            "retention:discarded_previous_roots": 0.0,
+            "retention:retained_infosets": 1.0
+          }
+        },
+        "black": {
+          "config_id": "retained-one-sided-pcfr-prototype-v1:0703f1764e17877f:private-history-warm-v1",
+          "diagnostics": {
+            "search_nodes": 19.0,
+            "solver_rounds": 8.0,
+            "search_depth": 1.0,
+            "expansions": 0.0,
+            "evaluator_calls": 0.0,
+            "elapsed_ms": 4.194800043478608,
+            "over_budget": 0.0,
+            "terminal_leaves": 0.0,
+            "frontier_leaves": 15.0,
+            "solver_root_value": 0.0,
+            "fallback": 0.0,
+            "solver_rounds_this_turn": 4.0,
+            "initial_ms": 3.517699893563986,
+            "solving_ms": 0.45779999345541,
+            "growth_ms": 0.0,
+            "finalizing_ms": 0.19379984587430954,
+            "stop:round_limit": 1.0,
+            "growth_stop:final_round_reserve": 1.0,
+            "played_policy:g8f7": 0.2,
+            "played_policy:g8f8": 0.2,
+            "played_policy:g8g7": 0.2,
+            "played_policy:g8h7": 0.2,
+            "played_policy:g8h8": 0.2,
+            "retention:reused_roots": 3.0,
+            "retention:fresh_roots": 0.0,
+            "retention:discarded_previous_roots": 0.0,
+            "retention:retained_infosets": 1.0
+          }
+        }
+      }
+    }
+  ],
+  "toy": {
+    "alternates": {
+      "JA": 2.5,
+      "JB": -1.0
+    },
+    "gifts": {
+      "JA": 1.5,
+      "JB": 0.0
+    },
+    "alpha": {
+      "JA": 0.375,
+      "JB": 0.625
+    },
+    "transitions": [
+      {
+        "round": 1,
+        "previous": "maxmargin",
+        "mode": "resolve",
+        "margin": -1.5,
+        "retained": [
+          2,
+          0
+        ]
+      }
+    ],
+    "final_mode": "resolve",
+    "rounds": 6
+  }
+}

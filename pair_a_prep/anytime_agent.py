@@ -75,10 +75,23 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
                            if hasattr(self.evaluator, key)}},
                        roots="input_belief_weights", infosets="complete_private_stream",
                        growth=self.config.growth, policy="raw_last_iterate",
+                       evaluation_cache="solve_local_fen_estimates_v1",
+                       uniform_depth="per_frontier_cap_v2",
                        no_move_rule="terminal_draw_v1",
                        fallback="uniform_observed_legal_moves_no_labels")
         return self.name + ":" + sha256(json.dumps(
             payload, sort_keys=True, allow_nan=False).encode()).hexdigest()[:16]
+
+    def _prepare_tree(self, turn, leaf, deadline):
+        return build_chess_tree(turn, leaf, initial_fen=self.initial_fen,
+                                depth=self.config.initial_depth, max_nodes=self.config.max_nodes,
+                                deadline=deadline)
+
+    def _prepare_solver(self, tree):
+        return PCFRPlus(tree.root, schedule=self.config.schedule)
+
+    def _remember(self, turn, tree, solver):
+        pass
 
     def solve(self, turn):
         if self._player != turn.observation.player:
@@ -97,31 +110,41 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
         owner = self
 
         class CountedLeaf:
+            def __init__(self):
+                self.cache = {}
+
             def evaluate_children(self, fen):
                 nonlocal calls
-                if calls >= owner.config.max_evaluator_calls:
-                    raise SearchBudgetError("evaluator_limit")
                 if growth_deadline is not None and perf_counter() >= growth_deadline:
                     raise SearchBudgetError("growth_deadline")
-                calls += 1
-                owner.last_evaluator_calls = calls
-                return owner.evaluator.evaluate_children(fen)
+                if fen not in self.cache:
+                    if calls >= owner.config.max_evaluator_calls:
+                        raise SearchBudgetError("evaluator_limit")
+                    calls += 1
+                    owner.last_evaluator_calls = calls
+                    self.cache[fen] = dict(owner.evaluator.evaluate_children(fen))
+                return dict(self.cache[fen])
 
         leaf = CountedLeaf()
         try:
-            tree = build_chess_tree(turn, leaf, initial_fen=self.initial_fen,
-                                    depth=self.config.initial_depth, max_nodes=self.config.max_nodes,
-                                    deadline=growth_deadline)
+            tree = self._prepare_tree(turn, leaf, growth_deadline)
         except (SearchBudgetError, TreeCapacityError):
             self.last_stop_reason = "initial_budget"
             raise
-        solver = PCFRPlus(tree.root, schedule=self.config.schedule)
+        solver = self._prepare_solver(tree)
+        starting_rounds = solver.rounds
+        target_rounds = starting_rounds + self.config.rounds
         initial_ms = (perf_counter() - started) * 1000
         solving_ms = growth_ms = 0.0
-        depth, expansions, growth_reason = self.config.initial_depth, 0, None
+        stack, depth = [(tree.root, -1)], 0
+        while stack:
+            node, level = stack.pop()
+            depth = max(depth, level)
+            stack.extend((child, level+1) for child in node.children.values())
+        expansions, growth_reason = 0, None
         sampler = OneSidedExpansion(self._rng.getrandbits(64)) if self.config.growth == "one_sided" else None
-        next_growth = self.config.rounds_per_stage
-        while solver.rounds < self.config.rounds:
+        next_growth = starting_rounds + self.config.rounds_per_stage
+        while solver.rounds < target_rounds:
             if deadline is not None and perf_counter() >= deadline:
                 break
             stage_started = perf_counter()
@@ -129,11 +152,11 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
             solving_ms += (perf_counter() - stage_started) * 1000
             if growth_reason is not None or solver.rounds < next_growth:
                 continue
-            if depth >= self.config.max_depth and sampler is None:
+            if sampler is None and not any(len(path)-1 < self.config.max_depth for path in tree.frontiers):
                 growth_reason = "max_depth"
             elif not tree.frontiers:
                 growth_reason = "terminal_tree"
-            elif solver.rounds >= self.config.rounds - self.config.final_rounds:
+            elif solver.rounds >= target_rounds - self.config.final_rounds:
                 growth_reason = "final_round_reserve"
             elif growth_deadline is not None and perf_counter() >= growth_deadline:
                 growth_reason = "growth_deadline"
@@ -148,7 +171,8 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
                         continue
                     tree = expand_chess_tree(tree, solver, leaf, max_nodes=self.config.max_nodes,
                                              deadline=growth_deadline,
-                                             selected_paths=(proposal[0],) if sampler else None,
+                                             selected_paths=(proposal[0],) if sampler else tuple(
+                                                 path for path in tree.frontiers if len(path)-1 < self.config.max_depth),
                                              initialize_best=sampler is not None)
                 except TreeCapacityError:
                     growth_reason = "node_limit"
@@ -160,12 +184,12 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
                         sampler.commit(proposal)
                         depth = max(depth, len(proposal[0]))
                     else:
-                        depth += 1
+                        depth = max(depth, max((len(path)-1 for path in tree.frontiers), default=depth))
                     expansions += 1
                     next_growth = solver.rounds + self.config.rounds_per_stage
                 finally:
                     growth_ms += (perf_counter() - stage_started) * 1000
-        self.last_stop_reason = ("deadline" if solver.rounds < self.config.rounds else "round_limit")
+        self.last_stop_reason = ("deadline" if solver.rounds < target_rounds else "round_limit")
         final_started = perf_counter()
         profile = solver.policy()
         policy = profile[0][tree.root_infoset]
@@ -182,6 +206,7 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
                            terminal_leaves=float(tree.terminal_leaves),
                            frontier_leaves=float(tree.frontier_leaves), solver_root_value=value,
                            fallback=0.0)
+        diagnostics["solver_rounds_this_turn"] = float(solver.rounds - starting_rounds)
         diagnostics.update(initial_ms=initial_ms, solving_ms=solving_ms, growth_ms=growth_ms,
                            finalizing_ms=(perf_counter() - final_started) * 1000)
         diagnostics["stop:" + self.last_stop_reason] = 1.0
@@ -191,6 +216,7 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
         decision.validate_for(turn.observation)
         self.last_tree, self.last_solver = tree, solver
         self.last_result = SearchResult(decision, values, value)
+        self._remember(turn, tree, solver)
         return self.last_result
 
 
