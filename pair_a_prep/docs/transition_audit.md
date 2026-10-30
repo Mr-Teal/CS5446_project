@@ -63,3 +63,7 @@ The focused selection has 59 passing cases. Tests include independent nonuniform
 ## Next integration decision
 
 The existing cross-turn rebase remains a heuristic warm start, not an exact transport justified by this audit. Next, compare heuristic warm versus cold solving on the same frozen target tree and track any per-history data needed for a justified reweighting. Do not infer numerical ancestor-payment lifting, add old gifts to new boundaries or enable projected labels from these diagnostic results.
+
+## Frozen-target follow-up
+
+The first controlled warm/cold target-tree comparison is documented in [frozen_warm_cold.md](frozen_warm_cold.md). It measures an initialization bundle with explicit round and average-policy caveats, not exact changed-game transport or comparative playing strength.
