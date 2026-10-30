@@ -32,6 +32,7 @@ class SavedChessBlueprint:
     paths: tuple
     raw_solver: object
     previous_value: float
+    gift_ledger: object = None
 
 
 @dataclass
@@ -44,6 +45,7 @@ class ChessProjection:
     current_ids: tuple
     boundaries: object
     audit: dict
+    parent_events: tuple = ()
 
     def bridge(self, mode, evaluator_name):
         roots = ChessRootGroups(self.turn, self.tree, self.root_ids, self.groups,
@@ -117,7 +119,7 @@ def project_chess(turn, evaluator, *, initial_fen, depth, max_nodes, saved=None,
         entries = tuple(BoundaryRoot(root_identity(c.state.fen, moves), path,
                                      "opponent:"+c.memories[1-own_index])
                         for path, _, c, moves in selected)
-        boundary = derive_boundaries(saved.tree.root, saved.raw_solver.policy(), entries)
+        boundary = derive_boundaries(saved.tree.root, saved.raw_solver.policy(), entries, deadline=deadline)
     branches, contexts, paths, ids, groups, frontiers = [], [], [], [], [], {}
     reaches, alternates, gifts, y = {}, {}, {}, {}
     if boundary:
@@ -126,6 +128,7 @@ def project_chess(turn, evaluator, *, initial_fen, depth, max_nodes, saved=None,
         y.update(boundary.audit["opponent_sequence_reach"])
     calls, retained, fresh = 0, 0, 0
     prepared_nodes = 1
+    parent_events = []
     lazy_neighbours = 0
     evaluation_cache = {}
 
@@ -187,6 +190,8 @@ def project_chess(turn, evaluator, *, initial_fen, depth, max_nodes, saved=None,
         paths.append(moves)
         ids.append(identity)
         groups.append(group)
+        parent_events.append(None if old_path is None or saved.gift_ledger is None else
+                             saved.gift_ledger.roots[int(old_path[0])])
 
     for path, node, context, moves in selected:
         append(context, moves, node, path)
@@ -222,4 +227,5 @@ def project_chess(turn, evaluator, *, initial_fen, depth, max_nodes, saved=None,
     return ChessProjection(turn, tree, tuple(paths), tuple(ids), tuple(groups), current_ids,
         boundaries, dict(retained=retained, fresh=fresh, knowledge_roots=len(branches),
             outside_current=sum(c.memories[own_index] != own_memory for c in contexts),
-            depth=depth_seen, incomplete_cut=incomplete, lazy_neighbours=lazy_neighbours))
+            depth=depth_seen, incomplete_cut=incomplete, lazy_neighbours=lazy_neighbours),
+        tuple(parent_events))

@@ -49,3 +49,29 @@ def correct_ep_archive_metadata(report, original_bytes):
         measured_arrays_unchanged=True, execution_source_manifest_unchanged=True,
         timing_rerun=False))
     return result
+
+
+def correct_linked_clock_metadata(audit, original_audit_bytes, clock, corrected_clock_bytes):
+    """Update a linked audit after a proven metadata-only clock correction."""
+    from .provenance import artifact_sha256, ARTIFACT_HASH_CONVENTION
+    result = deepcopy(audit)
+    link = result["clock_artifact"]
+    digest = artifact_sha256(corrected_clock_bytes)
+    if link.get("hash_convention") != ARTIFACT_HASH_CONVENTION:
+        raise ValueError("portable clock link convention required")
+    if audit.get("source_sha256") != clock.get("source_sha256"):
+        raise ValueError("audit and clock must retain the same execution source manifest")
+    if link["sha256"] != digest:
+        corrections = [row for row in clock.get("metadata_corrections", [])
+                       if row.get("correction") == "hardcoded_EP_pending_field_v1"]
+        if not corrections or link["sha256"] != corrections[0]["pre_correction_sha256_lf"]:
+            raise ValueError("old link does not identify the pre-correction clock artifact")
+        result.setdefault("metadata_corrections", []).append(dict(
+            correction="linked_clock_EP_metadata_v1", original_clock_sha256=link["sha256"],
+            corrected_clock_sha256=digest,
+            pre_correction_audit_sha256_lf=artifact_sha256(original_audit_bytes),
+            measured_arrays_unchanged=True, execution_source_manifest_unchanged=True, timing_rerun=False))
+        link["sha256"] = digest
+    link["rule_readiness"] = deepcopy(clock.get("rule_readiness"))
+    link["pending_rule_difference"] = clock.get("pending_rule_difference")
+    return result

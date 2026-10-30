@@ -6,6 +6,9 @@ asynchronous KLUSS: callers explicitly supply a cut and opponent observations.
 
 from dataclasses import dataclass
 from math import isfinite, fsum
+from time import perf_counter
+from hashlib import sha256
+import json
 
 from .gadgets import SubgameRoot, build_gadget
 from .toy_games import behavioral_value, information_sets
@@ -31,7 +34,7 @@ class BlueprintBoundaries:
                             self.group_prior if mode == "resolve" else None)
 
 
-def derive_boundaries(root, profile, cut):
+def derive_boundaries(root, profile, cut, deadline=None):
     """Derive p(h)x(h), current-profile alternates, positive CF gifts and alpha.
 
     The cut must contain full opponent observation classes selected by the
@@ -56,26 +59,36 @@ def derive_boundaries(root, profile, cut):
     if any(a != b and b[:len(a)] == a for a in paths for b in paths):
         raise ValueError("cut paths must form an antichain")
     nodes, cf = {}, {}
+    cut_paths = set(paths)
 
-    def visit(node, path, px, y, opponent_sequence):
+    def visit(node, path, px, y, opponent_sequence, retained=False):
+        if deadline is not None and perf_counter() >= deadline:
+            from .chess_search import SearchBudgetError
+            raise SearchBudgetError("boundary accounting deadline")
+        retained = retained or path in cut_paths
         if node.payoff is not None:
             value = node.payoff
+            kept_value = value if retained else 0.
         else:
             policy = node.probabilities if node.player is None else profile[node.player][node.infoset]
-            values = {}
+            values, kept = {}, {}
             for action, child in node.children.items():
                 next_px = px * policy[action] if node.player in (None, 0) else px
                 next_y = y * policy[action] if node.player == 1 else y
                 sequence = opponent_sequence + ((node.infoset, action),) if node.player == 1 else opponent_sequence
-                values[action] = visit(child, path + (action,), next_px, next_y, sequence)
+                values[action], kept[action] = visit(child, path + (action,), next_px, next_y, sequence, retained)
             value = fsum(policy[a] * values[a] for a in values)
+            kept_value = fsum(policy[a] * kept[a] for a in kept)
             if node.player == 1:
-                row = cf.setdefault(node.infoset, dict(value=0.0, actions=dict.fromkeys(values, 0.0)))
+                row = cf.setdefault(node.infoset, dict(value=0.0, actions=dict.fromkeys(values, 0.0),
+                    retained_value=0.0, retained_actions=dict.fromkeys(values, 0.0)))
                 row["value"] += px * value
+                row["retained_value"] += px * kept_value
                 for a in values:
                     row["actions"][a] += px * values[a]
+                    row["retained_actions"][a] += px * kept[a]
         nodes[path] = (node, px, y, value, opponent_sequence)
-        return value
+        return value, kept_value
 
     visit(root, (), 1.0, 1.0, ())
     groups = {}
@@ -96,9 +109,14 @@ def derive_boundaries(root, profile, cut):
         conditional = (fsum(row[1] * row[2] * row[3] for row in rows) / joint if joint > 0 else
                        fsum(row[1] * row[3] for row in rows) / mass)
         sequence = rows[0][4]
-        terms = [dict(infoset=key, action=action,
-                      gift=max(cf[key]["actions"][action] - cf[key]["value"], 0.0))
-                 for key, action in sequence]
+        terms = []
+        for key, action in sequence:
+            row = cf[key]
+            full_delta = row["actions"][action]-row["value"]
+            retained_delta = row["retained_actions"][action]-row["retained_value"]
+            terms.append(dict(infoset=key, action=action, full_delta=full_delta,
+                retained_delta=retained_delta, discarded_delta=full_delta-retained_delta,
+                gift=max(full_delta, 0.)))
         gift = fsum(term["gift"] for term in terms)
         gifts[group], alternates[group] = gift, conditional - gift
         y_reaches[group] = rows[0][2]
@@ -109,8 +127,14 @@ def derive_boundaries(root, profile, cut):
     total_y = fsum(y_reaches.values())
     prior = {key: 0.5 / len(groups) + 0.5 * (y / total_y if total_y > 0 else 1 / len(groups))
              for key, y in y_reaches.items()}
+    source_unit = sha256(json.dumps(dict(scope="player0_raw_tree_counterfactual_v1",
+        profile=profile, chance=[(path, row[0].probabilities) for path, row in nodes.items()
+                               if row[0].payoff is None and row[0].player is None]),
+        sort_keys=True, allow_nan=False).encode()).hexdigest()
     return BlueprintBoundaries(tuple(roots), alternates, gifts, prior,
                                dict(groups=audit, opponent_sequence_reach=y_reaches,
+                                    gift_partition="positive_part_after_retained_plus_discarded",
+                                    source_unit_id=source_unit,
                                     all_zero_y_uniform=total_y == 0))
 
 
