@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from time import perf_counter
 from typing import Mapping, Tuple
 
@@ -35,6 +35,7 @@ class PlyResult:
     elapsed_ms: float
     over_budget: bool
     search_nodes: float
+    diagnostics: Mapping[str, float] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -83,7 +84,8 @@ def play_game(referee: Referee, agents: Mapping[str, Agent],
         history.append(PlyResult(len(history), player, agents[player].name,
                                  decision.move, elapsed_ms,
                                  elapsed_ms > config.time_budget_ms,
-                                 decision.diagnostics.get("search_nodes", 0.0)))
+                                 decision.diagnostics.get("search_nodes", 0.0),
+                                 dict(decision.diagnostics)))
         for viewer in ("white", "black"):
             private_history[viewer].append(HistoryEvent(
                 observations[viewer], decision.move if viewer == player else None))

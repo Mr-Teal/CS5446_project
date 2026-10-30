@@ -148,5 +148,16 @@ def test_real_pair_c_handoff_wrapper_and_pinned_production_config(engine, tmp_pa
     from pair_c.run_evaluation import load_config, run as production_run
     summary = production_run(load_config(Path(report["pinned_config"])), Path(report["pinned_config"]))
     assert summary["games_completed"] == 2 and summary["games_failed"] == 0
+    import json
+    records = [json.loads(line) for line in
+               (output/"pinned-evaluation"/"games.jsonl").read_text(encoding="utf-8").splitlines()]
+    plies = [ply for record in records for ply in record["plies"]]
+    assert len(plies) == 8
+    assert all("evaluator_calls" in ply["diagnostics"] for ply in plies)
+    subgame = [ply for record in records for ply in record["plies"]
+               if record["player_by_color"][ply["player"]] == "a"]
+    assert len(subgame) == 4
+    assert all(ply["diagnostics"]["fallback"] == 0 for ply in subgame)
+    assert all(ply["diagnostics"]["search_nodes"] == ply["search_nodes"] for ply in plies)
     with pytest.raises(FileExistsError, match="fresh"):
         run(incoming, output, str(path))

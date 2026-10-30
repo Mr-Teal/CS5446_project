@@ -30,7 +30,7 @@ partner's actual agent factory and a separately reviewed configuration.
 | Runtime dependencies | Review and merge actual heads in dependency order; rerun on resulting checkout | Pair A / pending upstream reviews |
 | Short integration | Real engine, both colours, valid moves, no failures, reset and cleanup checks | Pair A / archived smoke passed |
 | Actual resources | Saved config bytes/hash; actual loaded engine/model identity and device; commit/dirty state and documented hash convention | Pair C + evaluator owner / PR51 fixes pending author integration |
-| Per-action recording | Preserve fallback flag, elapsed time, actual evaluator calls and work diagnostics; do not infer fallback from zero nodes | Pair C + Pair A / trace harness exists, production export needs verification |
+| Per-action recording | Preserve fallback flag, elapsed time, actual evaluator calls and work diagnostics; do not infer fallback from zero nodes | Pair C + Pair A / production diagnostic-copy change validated on its separate branch; pending review/integration |
 | Tracker capacity | Longer observation sequences, consistent complete histories, recorded population/work/memory, explicit exhaustion handling | Tracker owner + Pair A / unresolved |
 | Frozen match protocol | Agree opponents, seeds, colour pairs, resource controls, ply caps and failure policy before running | Pair C + team / pending agreement |
 | Formal run | Fresh outputs, frozen source/config, no runtime edits during execution; retain failed and capped attempts | Evaluation operator / not started by this handoff |
@@ -89,3 +89,5 @@ baseline for integration checks, not a target win rate. Ready-to-adapt
 [report paragraphs](stockfish_report_material.md) and
 [presentation backup](../presentation/stockfish_integration_backup.md) preserve
 the same scope and limitations.
+
+The additive [per-action diagnostics change](per_action_diagnostics.md) preserves numeric decision diagnostics in successful production records. Partial records from failed attempts remain a separate limitation.
