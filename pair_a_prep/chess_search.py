@@ -136,11 +136,12 @@ def build_chess_tree(turn: AgentInput, evaluator: LeafEvaluator, *,
                         evaluator, depth, max_nodes, deadline)
 
 
-def _build_roots(roots, viewer, weights, evaluator, depth, max_nodes, deadline):
+def _build_roots(roots, viewer, weights, evaluator, depth, max_nodes, deadline,
+                 evaluation_cache=None):
     """Build independent continuations from retained history, without replay."""
     rules = RulesAdapter()
     stats = dict(nodes=0, frontier_leaves=0, terminal_leaves=0, evaluator_calls=0)
-    cache = {}
+    cache = {} if evaluation_cache is None else evaluation_cache
     frontiers = {}
 
     def reserve():
