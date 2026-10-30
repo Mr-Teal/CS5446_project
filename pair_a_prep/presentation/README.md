@@ -46,3 +46,7 @@ Expansion audit: [mechanism and implementation comparison](../docs/expansion_mec
 
 Clock backup: [matrix, submission guard and recorded limitations](../docs/clock_purification_ablation.md).
 It adds a backup page, not a new agreed speaking assignment or final team deck.
+
+## Real engine integration backup
+
+[Optional slide content and 45-second script](stockfish_integration_backup.md) summarize the two real Stockfish smoke runs. [Report-ready paragraphs](../docs/stockfish_report_material.md) include an evidence map. These are maintained prose, not generated SVGs, and do not change the agreed slide allocation. All attempts were capped; no win rate is available.
