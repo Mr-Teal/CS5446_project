@@ -25,7 +25,8 @@ class BeliefBudgetError(RuntimeError):
     def __init__(self, result):
         self.result = result
         remedy = ("no descendants of retained support; rebuild from the private stream"
-                  if result.expansion_complete else "resume the pending update")
+                  if result.expansion_complete and result.generated_valid_count == 0
+                  else "resume the pending update")
         super().__init__(f"{result.status}: stopped by {result.stopped_by}; {remedy}")
 
 
@@ -119,7 +120,9 @@ class BeliefTracker:
 
     @property
     def support_complete(self):
-        return self._complete and self._pending is None
+        pending = self._pending
+        return self._complete and (pending is None or (
+            pending.finished and self._previous is pending.observation))
 
     def reset(self, player, seed, initial_fen=None):
         if player not in ("white", "black"):
@@ -182,10 +185,11 @@ class BeliefTracker:
         _positive("time_budget_ms", time_budget_ms, zero=True)
         _positive("memory_budget_mb", memory_budget_mb, zero=True)
         observation = self._validate(observation, own_move)
-        if self._pending is not None and not self._pending.count:
-            raise ValueError("pending update has no current candidate; call resume()")
+        if self._pending is not None and self._previous is not self._pending.observation:
+            raise ValueError("pending update has no accepted current belief; call resume()")
         if self._pending is not None:
-            self._complete = False
+            # Discarding unfinished output loses no branches of a finished graph.
+            self._complete = self.support_complete
             self._pending = None
         expected = ObservationFilter(observation)
         initial = self._previous is None
@@ -209,7 +213,11 @@ class BeliefTracker:
         return self._run_pending(began, time_budget_ms, memory_budget_mb, initial=initial)
 
     def resume(self, *, time_budget_ms=None, memory_budget_mb=None):
-        """Continue the same observation without regenerating completed branches."""
+        """Continue expansion, then re-materialize output using the saved RNG.
+
+        Finished graphs are reused. Output is regenerated from its start, so
+        enough output budget is required to return the entire requested sample.
+        """
         if self._pending is None:
             raise ValueError("no pending update")
         return self._run_pending(perf_counter(), time_budget_ms, memory_budget_mb,
@@ -333,7 +341,7 @@ class BeliefTracker:
             self._previous = pending.observation
             self._rng.setstate(rng.getstate())
             self._complete = complete
-        if finished and belief is not None:
+        if finished and belief is not None and output_stopped is None:
             self._pending = None
         status = "complete" if complete and stopped is None else "partial" if belief else "no_candidate"
         return self._result(pending, belief, status, stopped, complete, finished, began)

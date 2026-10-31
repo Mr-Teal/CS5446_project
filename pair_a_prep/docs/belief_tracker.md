@@ -115,11 +115,14 @@ Budget use is opt-in:
 tracker = BeliefTracker(sample_size=128, time_budget_ms=500, memory_budget_mb=256)
 tracker.reset("white", 17)
 result = tracker.update_budgeted(view, own_move=own_move)
-if result.belief is not None:
+if result.stopped_by is not None:
+    # Optional: provide another budget for incomplete expansion OR output.
+    result = tracker.resume(time_budget_ms=1000, memory_budget_mb=512)
+if result.status == "complete":
     use_current_belief(result.belief)
 else:
-    # The runner must choose whether to provide more resources or stop.
-    result = tracker.resume(time_budget_ms=1000, memory_budget_mb=512)
+    # Caller policy: accept a labelled partial result, resume, or stop.
+    handle_partial_or_empty(result)
 ```
 
 Per-call non-`None` budgets override constructor settings. Zero is a valid
@@ -143,17 +146,35 @@ a stale-ply belief or fabricates a hidden board.
 
 `resume()` continues the same pending observation. It does not duplicate already
 processed branches. If every branch is eventually processed, completeness is
-restored provided the incoming support was exact. If a **new** observation is
-supplied after a nonempty partial result, unexpanded alternatives are discarded
-and `support_complete` stays false on future turns. Every remaining path is still
-consistent with every observation; local completion does not undo past loss.
+restored provided the incoming support was exact.
+
+Expansion completion and output completion are separate. A finished graph can
+report `support_complete=True` and `expansion_complete=True` while output hits a
+time/memory limit: `status="partial"`, `stopped_by="time"` or `"memory"`, and
+`weighting="uniform_over_returned_histories"`. The exact population remains
+known, but the returned prefix is not a uniform sample of that full population.
+Since the PR #59 output-continuation correction, this result remains resumable.
+With more resources, `resume()` reuses the graph and re-materializes the requested
+sample from the saved pre-update RNG state. Final histories, weights and later
+sampling agree with an uninterrupted update. It does not cache partially built
+output: repeated small slices can repeat the same prefix; one call needs enough
+budget to produce the requested sample. The documented cooperative granularity
+still applies. A completed output clears the continuation.
+
+If a **new** observation follows an accepted partial Belief from a finished
+graph, skipping unfinished output preserves exact support. If expansion itself
+is unfinished, advancing discards unexpanded alternatives and `support_complete`
+stays false on future turns. Every remaining path is still consistent with every
+observation; finishing output never undoes earlier pruning or lost branches.
 
 For incomplete support, `Belief.population_size=None` and
 `weighting="uniform_over_returned_histories"` avoid claiming a uniform posterior
 over the unknown complete information set. Time-limited expansion can favor
 earlier branches; its partial result is not an unbiased sample of unseen branches.
 
-If no branch has produced a current hypothesis, resume before advancing. An
+If no current-ply Belief has been returned, resume before advancing, even when
+the graph already contains valid histories. The accepted observation is unchanged;
+`TrackerUpdate` describes the pending graph. An
 exhaustively inconsistent observation from exact support raises `ValueError`;
 an empty successor set after earlier pruning is not proof of global inconsistency.
 There is no automatic true-state injection or random-action fallback. Recovery

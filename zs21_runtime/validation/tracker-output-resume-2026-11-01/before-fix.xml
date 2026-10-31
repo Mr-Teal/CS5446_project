@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.480" timestamp="2026-11-01T00:22:30.019007+08:00" hostname="DESKTOP-AKH8979"><testcase classname="pair_a_prep.tests.test_belief_output_resume" name="test_output_resume_matches_uninterrupted_histories_weights_and_future_rng[python-2-7-time]" time="0.019"><failure message="assert None is not None&#10; +  where None = &lt;pair_a_prep.belief_tracker.BeliefTracker object at 0x000001ED7D383650&gt;._pending">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x000001ED7D382990&gt;
+backend = 'python', reason = 'time', target = 2, sample_size = 7
+
+    @pytest.mark.parametrize("reason", ("time", "memory"))
+    @pytest.mark.parametrize("target,sample_size", ((2, 7), (2, 2), (4, 7), (4, None)))
+    def test_output_resume_matches_uninterrupted_histories_weights_and_future_rng(
+            monkeypatch, backend, reason, target, sample_size):
+        actual, reference, stream = prepare(backend, sample_size, target)
+        expected = reference.update(*stream[target])
+        partial = interrupt_output(monkeypatch,
+            lambda **budget: actual.update_budgeted(*stream[target], **budget), reason)
+        assert partial.status == "partial" and partial.stopped_by == reason
+        assert partial.expansion_complete and partial.support_complete and actual.support_complete
+        assert partial.belief.population_size == expected.population_size
+        assert len(partial.belief.hypotheses) == 1
+        assert partial.belief.weighting == "uniform_over_returned_histories"
+&gt;       assert actual._pending is not None
+E       assert None is not None
+E        +  where None = &lt;pair_a_prep.belief_tracker.BeliefTracker object at 0x000001ED7D383650&gt;._pending
+
+pair_a_prep\tests\test_belief_output_resume.py:88: AssertionError</failure></testcase></testsuite></testsuites>
