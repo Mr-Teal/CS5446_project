@@ -1,0 +1,39 @@
+{
+  "completed_utc": "2026-10-31T16:06:16.061711+00:00",
+  "kind": "numerical_solver_recovery_not_playing_strength",
+  "tests": {
+    "tests": 915,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 109.762
+  },
+  "source_sha256": {
+    "pair_a_prep/zs21/sequence_form.py": "aef850b0da1f1f9608e7d99ceba2c41b17ae0fe497dd57b9647fdc9280235fa0",
+    "pair_a_prep/zs21/lp_diagnostics.py": "eda87106b901edd305c348705d3f7d02af199ac43a7efcf4f6d77e75e0732a87",
+    "pair_a_prep/tests/test_zs21_agent.py": "7c489087ee9d032a3b1f3b5f2be75fc7ea48553cccc0ec3b332f57284763f0ed",
+    "pair_a_prep/tests/test_zs21_not_set.py": "816b5c1ef7f5dc8bbfec67370a35f98d85c92cad6b704257a35f53bf5773f89b",
+    "pair_a_prep/tests/test_zs21_precision.py": "addd61ba17e9145016ee046dfe9a636f1a5df5f4dae0e41a156d1c2754da7b7a",
+    "zs21_runtime/configs/runtime.toml": "0f80bb9c27c8a7505ffd1974024f239c385386bbd8ef5bb091fe060b29a7bf34",
+    "zs21_runtime/scripts/check_highs_recovery.py": "ebbbd002ea4ce76b0e08b52b9e174099bef8cb893d4619b8395413332797e100",
+    "pair_a_prep/tests/fixtures/zs21_lp_not_set_game001_ply61.npz": "ab0ab6f6980ef5ec19f99ab82c56836d49bab05096ed6613a0014266427e39e8",
+    "pair_a_prep/tests/fixtures/zs21_lp_not_set_game001_ply61_raw.npz": "eea8a16185aef9fa6317b76f2c846d7906165654237cb7db014765505d2efcfc",
+    "pair_a_prep/tests/fixtures/zs21_lp_not_set_game006_ply68.npz": "5dc442fdc2c2fb169d86ee8a5ec590c250464d2bdd647031859093b4d321cb84",
+    "pair_a_prep/tests/fixtures/zs21_lp_not_set_game006_ply68_raw.npz": "21bfbf3cc61a4f0404c875623e753bff2ad1ee5d021eae0c1abc5ba45f69aaf6"
+  },
+  "evidence_sha256": {
+    "doctor.json": "42014f8a956c8fb08b4aaf512d6dd808b90447986738ab59ac036883345b7fa7",
+    "recovery.json": "ba660f5d51bf66b96127993d67f858c8431b2d09a36a15a8796c70b466b67389",
+    "regression.log": "c5fd2eaf6234da39ce058d5a15b9f6fc525ca7bb6c1cca28efe838498c29a4d4",
+    "regression.xml": "d789219c76164a250459ae0de14c1f10f4b12cd1ee090623be7438a8e5b1b958",
+    "smoke.json": "869cf07c2d9eff5b49ed839f0821af064516e17b29a44f8ba58ed7520f3ead29"
+  },
+  "assets_verified": 66,
+  "smoke_plies": 4,
+  "smoke_max_seconds": 1.5903075000387616,
+  "recovery_gaps": [
+    1.220811646218678e-16,
+    3.122502256758253e-17
+  ],
+  "previous_score_unchanged": "17 wins / 0 draws / 17 losses in the frozen 34-game version"
+}

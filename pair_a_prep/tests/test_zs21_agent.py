@@ -1,4 +1,5 @@
 from time import perf_counter
+from copy import deepcopy
 
 from pair_a_prep.zs21.agent import PaperAgent
 from pair_a_prep.zs21.engine import Estimate
@@ -19,7 +20,21 @@ def test_cold_start_and_repeated_private_history_are_deterministic():
         result = agent.act(perf_counter() + 30)
         assert agent.trace["max_fow_depth"] >= 2
         assert result.diagnostics["roots"] == 1
-        results.append((result.move, result.root_policy, agent.trace))
+        trace = deepcopy(agent.trace)
+        # Wall-clock telemetry varies; every algorithmic trace field must match.
+        attempts = [trace["initial_lp_precision_attempts"], trace["lp_precision_attempts"]]
+        attempts.extend(r["lp_precision_attempts"] for r in trace["rounds"])
+        checked = set()
+        for group in attempts:
+            for attempt in group:
+                for call in attempt["lp_results"]:
+                    if id(call) in checked:
+                        continue
+                    checked.add(id(call))
+                    assert call.pop("seconds") >= 0
+                    assert call["options"].pop("time_limit") > 0
+        results.append((result.move, result.root_policy, trace))
+        agent.close()
     assert results[0] == results[1]
 
 

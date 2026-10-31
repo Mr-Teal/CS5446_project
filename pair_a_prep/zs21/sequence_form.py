@@ -11,12 +11,24 @@ from scipy.optimize._highspy._core import _Highs
 from scipy.sparse import coo_matrix, csr_matrix, hstack
 
 
+_HIGHS_NOT_SET = "(HiGHS Status 0: Not Set)"
+
+
 class SolveError(RuntimeError):
     pass
 
 
 class CertificateError(SolveError):
     pass
+
+
+class LinearProgramError(SolveError):
+    def __init__(self, message, *, side, scipy_status):
+        super().__init__(message)
+        self.side = side
+        self.scipy_status = scipy_status
+        self.highs_model_status = 0 if _HIGHS_NOT_SET in message else None
+        self.retryable_not_set = scipy_status == 4 and self.highs_model_status == 0
 
 
 @dataclass
@@ -228,35 +240,58 @@ class SequenceForm:
                             A_eq=hstack([F, csr_matrix((F.shape[0], len(e)))], format="csr"), b_eq=f,
                             bounds=[(0, None)] * ny + [(None, None)] * len(e))
 
-        def run(*args, **kwargs):
+        def run(problem, side, attempt):
+            attempt["stage"] = side
+            call_options = dict(options)
+            started = perf_counter()
             if deadline is not None:
-                remaining = deadline - perf_counter()
+                remaining = deadline - started
                 if remaining <= 0:
                     raise SolveError("deadline before LP")
-                options["time_limit"] = remaining
+                call_options["time_limit"] = remaining
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message="Unrecognized options detected", category=OptimizeWarning)
-                answer = linprog(*args, method="highs-ds", options=options, **kwargs)
-            if not answer.success or not np.all(np.isfinite(answer.x)):
-                raise SolveError(answer.message)
+                answer = linprog(**problem, method="highs-ds", options=call_options)
+            finished = perf_counter()
+            finite = answer.x is not None and bool(np.all(np.isfinite(answer.x)))
+            message, scipy_status = str(answer.message), int(answer.status)
+            attempt["lp_results"].append(dict(side=side, scipy_status=scipy_status,
+                highs_model_status=0 if _HIGHS_NOT_SET in message else None, message=message,
+                success=bool(answer.success), finite_solution=finite,
+                seconds=finished-started, options=call_options))
+            if deadline is not None and finished >= deadline:
+                raise SolveError("deadline after LP")
+            if not answer.success:
+                raise LinearProgramError(message, side=side, scipy_status=scipy_status)
+            if not finite:
+                raise SolveError("LP returned a missing or non-finite solution")
             return answer
 
         self.solve_attempts = []
         for tolerance in ((1e-8, 1e-9, 1e-10) if refine else (1e-8,)):
             options["primal_feasibility_tolerance"] = tolerance
             options["dual_feasibility_tolerance"] = tolerance
-            attempt = dict(feasibility_tolerance=tolerance)
+            attempt = dict(feasibility_tolerance=tolerance, lp_results=[])
             self.solve_attempts.append(attempt)
             try:
-                primal, dual = run(**primal_problem), run(**dual_problem)
+                primal = run(primal_problem, "primal", attempt)
+                dual = run(dual_problem, "dual", attempt)
                 x, y = primal.x[:nx][mappings[0]], dual.x[:ny][mappings[1]]
+                attempt["stage"] = "certificate"
                 solution = self._certify(x, y, attempt)
+                if deadline is not None and perf_counter() >= deadline:
+                    raise SolveError("deadline after LP certificate")
             except CertificateError as exc:
-                attempt.update(accepted=False, error=str(exc))
+                attempt.update(accepted=False, error=str(exc), failure_kind="certificate")
                 if tolerance == (1e-10 if refine else 1e-8):
                     raise
+            except LinearProgramError as exc:
+                attempt.update(accepted=False, error=str(exc),
+                               failure_kind="highs_not_set" if exc.retryable_not_set else "lp_status")
+                if not exc.retryable_not_set or tolerance == (1e-10 if refine else 1e-8):
+                    raise
             except SolveError as exc:
-                attempt.update(accepted=False, error=str(exc))
+                attempt.update(accepted=False, error=str(exc), failure_kind="solve")
                 raise
             else:
                 attempt["accepted"] = True

@@ -183,6 +183,6 @@ pixi run --manifest-path zs21_runtime/pixi.toml --locked -e darkchess replay zs2
 - DLL 错误：确认 clone 完整、Python 为 64 位、从 Pixi 启动；规则版本旧时重建，不能直接换成不匹配的旧 DLL。
 - `empty full information set`：检查是否漏掉即时观测、传入了对手动作、跳过/重复 ply，或裁判 FoW 规则与本版本不同。不要用真实棋盘重置 I 来掩盖错误。
 - 引擎退出：确认使用随包 v6 引擎和原 NNUE，而非普通未适配的 Stockfish。其王安全假设和本项目 UCI batch 扩展不同。
-- LP/超时：后续求解失败会保留本次决策的有效策略；没有有效解时显式失败。历史上两次 `HiGHS Status 0: Not Set` 的根因仍未定位，不能声称全部潜在问题都已消除。
+- LP/超时：明确的 `HiGHS Status 0: Not Set` 失败现在与证书超差共用 `1e-8 → 1e-9 → 1e-10` 的有限重试，始终共享原期限并验证完整博弈；仍失败时保留本次决策的有效策略，没有有效解时显式失败。两次历史故障已重现并通过恢复回归，但不保证消除所有数值故障。见 [故障夹具及验证方法](../pair_a_prep/docs/zs21_highs_recovery.md)。
 
 其他 AI 接手时先运行 doctor/test，阅读本手册和实现说明，再修改算法；保持玩家信息隔离、两种 agent 的匹配配置，以及新旧实验版本分离。
