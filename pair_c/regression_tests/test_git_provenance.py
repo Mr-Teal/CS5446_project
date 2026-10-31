@@ -1,6 +1,8 @@
 """Review issue 6: Git provenance in an isolated temporary repository."""
 
 import hashlib
+import os
+from pathlib import Path
 import subprocess
 from types import SimpleNamespace
 
@@ -11,6 +13,37 @@ from pair_c import run_evaluation
 
 
 RULES = {"text_extensions": [".py"], "text_filenames": [], "binary_extensions": [".bin"]}
+
+
+@pytest.mark.parametrize("same_directory", [True, False])
+def test_git_root_uses_filesystem_identity(tmp_path, monkeypatch, same_directory):
+    root = tmp_path / "project"
+    root.mkdir()
+    (root / "source.py").write_text("example\n", encoding="utf-8")
+    git_root = tmp_path / "PROJECT"
+    comparisons = []
+
+    def samefile(path, other):
+        comparisons.append((path, other))
+        return same_directory
+
+    def git(command, **kwargs):
+        if command[1:3] == ["rev-parse", "--show-toplevel"]:
+            return subprocess.CompletedProcess(command, 0, os.fsencode(git_root) + b"\n", b"")
+        assert command[1] == "ls-files"
+        return subprocess.CompletedProcess(command, 0, b"source.py\0", b"")
+
+    monkeypatch.setattr(Path, "samefile", samefile)
+    monkeypatch.setattr(provenance.subprocess, "run", git)
+    mode, paths, reason = provenance.discover_sources(root)
+    assert comparisons == [(git_root, root)]
+    assert paths == ["source.py"]
+    if same_directory:
+        assert mode == "git"
+        assert reason is None
+    else:
+        assert mode == "filesystem"
+        assert reason == "Project root is not the Git repository root"
 
 
 def test_git_provenance_in_temporary_repository(tmp_path, monkeypatch):

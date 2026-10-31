@@ -103,11 +103,11 @@ directory = unused
     }).encode("utf-8")
     rules_path.write_bytes(rules_bytes)
     parser.set("output", "hash_rules", str(rules_path))
-    engine = tmp_path / "test-engine"
-    engine.write_bytes(b"engine\r\nfixture; never executed")
     for side, device in (("a", "cpu"), ("b", gpu_device)):
         checkpoint = tmp_path / f"{side}.pt"
-        checkpoint.write_bytes(b"checkpoint\r\nfixture; never loaded")
+        checkpoint.write_bytes(f"checkpoint {side}\r\nfixture; never loaded".encode())
+        engine = tmp_path / f"{side}-engine"
+        engine.write_bytes(f"engine {side}\r\nfixture; never executed".encode())
         section = f"player_{side}"
         parser.set(section, "factory", f"{__name__}:ProvenanceFactory")
         parser.set(section, "device", device)
@@ -163,6 +163,7 @@ directory = unused
     assert report["git_detection_notes"] == {"git_commit": None, "git_status": None}
     for side in ("a", "b"):
         checkpoint = tmp_path / f"{side}.pt"
+        engine = tmp_path / f"{side}-engine"
         assert report["checkpoint_paths"][side] == str(checkpoint.resolve())
         assert report["sha256"][f"player_{side}_checkpoint"] == hashlib.sha256(checkpoint.read_bytes()).hexdigest()
         assert report["stockfish"][side] == {
@@ -192,3 +193,48 @@ directory = unused
     assert provenance.sha256_tracked_file(text_file, rules) == hashlib.sha256(
         b"x" * (1024 * 1024 - 1) + b"\nend\r"
     ).hexdigest()
+
+
+def test_provenance_detects_swapped_resource_contents(tmp_path, monkeypatch):
+    monkeypatch.setattr(run_evaluation, "discover_sources", lambda root: ("git", [], None))
+    monkeypatch.setattr(run_evaluation, "git_provenance", lambda root: {
+        "git_commit": "test-commit", "git_status": [], "git_detection_notes": {},
+    })
+    monkeypatch.setattr(run_evaluation, "source_file_hashes", lambda root, rules, paths: {})
+    monkeypatch.setattr(run_evaluation, "cpu_model", lambda: "Test CPU")
+    source = tmp_path / "config.ini"
+    source.write_bytes(b"test configuration\n")
+    config = {"hash_rules_path": tmp_path / "rules.json", "hash_rules": {}}
+    files = {}
+    players = {}
+    for side in ("a", "b"):
+        checkpoint = tmp_path / f"{side}.pt"
+        engine = tmp_path / f"{side}-engine"
+        checkpoint.write_bytes(f"checkpoint {side}".encode())
+        engine.write_bytes(f"engine {side}".encode())
+        files[side] = (checkpoint, engine)
+        players[side] = ProvenanceFactory({
+            "name": side, "device": "cpu", "checkpoint_path": str(checkpoint),
+            "stockfish_path": str(engine),
+        }).load_model()
+
+    before = run_evaluation.collect_provenance(config, source, "before", players)
+    for side in ("a", "b"):
+        for resource, path in zip(("checkpoint", "stockfish"), files[side]):
+            assert before["sha256"][f"player_{side}_{resource}"] == hashlib.sha256(path.read_bytes()).hexdigest()
+    for index in (0, 1):
+        first, second = files["a"][index], files["b"][index]
+        first_bytes, second_bytes = first.read_bytes(), second.read_bytes()
+        first.write_bytes(second_bytes)
+        second.write_bytes(first_bytes)
+    after = run_evaluation.collect_provenance(config, source, "after", players)
+
+    assert after["checkpoint_paths"] == before["checkpoint_paths"]
+    assert after["stockfish"] == before["stockfish"]
+    for resource in ("checkpoint", "stockfish"):
+        a, b = f"player_a_{resource}", f"player_b_{resource}"
+        assert after["sha256"][a] == before["sha256"][b]
+        assert after["sha256"][b] == before["sha256"][a]
+    for side in ("a", "b"):
+        for resource, path in zip(("checkpoint", "stockfish"), files[side]):
+            assert after["sha256"][f"player_{side}_{resource}"] == hashlib.sha256(path.read_bytes()).hexdigest()

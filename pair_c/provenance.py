@@ -132,6 +132,13 @@ def stockfish_provenance(agent) -> tuple[dict | None, str | None]:
     return info, sha256_file(Path(executable))
 
 
+def _same_directory(first: Path, second: Path) -> bool:
+    try:
+        return first.samefile(second)
+    except OSError as error:
+        raise RuntimeError(f"Cannot compare Git repository root {first} with {second}: {error}") from error
+
+
 def discover_sources(root: Path) -> tuple[str, list[str], str | None]:
     """Select tracked files or all files when Git or the repository is absent."""
     env = {**os.environ, "LC_ALL": "C", "LANG": "C"}
@@ -152,7 +159,7 @@ def discover_sources(root: Path) -> tuple[str, list[str], str | None]:
             if "not a git repository" not in detail.lower():
                 raise RuntimeError(f"Cannot determine Git repository at {root}: {detail or result.returncode}")
             reason = detail
-        elif Path(os.fsdecode(result.stdout.rstrip(b"\r\n"))).resolve() != root.resolve():
+        elif not _same_directory(Path(os.fsdecode(result.stdout.rstrip(b"\r\n"))), root):
             reason = "Project root is not the Git repository root"
         else:
             try:

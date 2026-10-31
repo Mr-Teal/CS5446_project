@@ -133,6 +133,12 @@ changes, binary hashes, chunk-boundary normalization and saved rule bytes.
 The factory double explicitly declares checkpoint metadata to simulate a loader;
 actual GPU inference, checkpoint loading and engine execution are not exercised.
 
+The test uses different checkpoint and engine contents for each player and
+checks each reported hash against its file. A separate test swaps their contents
+while keeping the paths unchanged, then checks the hashes against the files and
+the previous report. Comparing reports reveals the content change; provenance
+collection itself does not issue an alert. Players may also share files.
+
 Run from the repository root:
 
 ```powershell
@@ -180,6 +186,23 @@ python -m pytest pair_c/regression_tests/test_provenance.py pair_c/regression_te
 
 Run all Pair C regression tests with `python -m pytest pair_c/regression_tests -q`.
 
+## Follow-up: isolate resource test from Git metadata
+
+**Original feedback**:
+
+> test_provenance_resources.py:30-31 stubs discover_sources but not git_provenance, so 2 tests fail in a ZIP copy.
+
+The parameterized resource test now stubs both source discovery and Git
+provenance, using a temporary source file and a simulated modified-file status.
+It checks the file's actual hash without depending on a real repository. The two
+parameter cases can run in a ZIP copy without Git metadata.
+
+Run from the repository root:
+
+```powershell
+python -m pytest pair_c/regression_tests/test_provenance_resources.py -v
+```
+
 ## Review issue 6: Record Git commit and working-tree status
 
 **Original feedback** (Colin's review of PR #51 at `250e781`):
@@ -193,6 +216,11 @@ Run all Pair C regression tests with `python -m pytest pair_c/regression_tests -
 3. `source_discovery` records `git` for tracked-file discovery, or `filesystem` when Git is missing or the project root is not a Git repository root. Filesystem discovery includes all files, including ignored files and caches; Git metadata is null with explanatory notes. Directory symlinks are not traversed and are recorded as errors. Other Git failures abort the run.
 4. Individual file read errors are recorded as `{"error": "..."}` in `sha256.source_files` while hashing continues; missing files are recorded as `null`. Directory enumeration errors abort. Text/binary hash rules apply in both modes.
 5. `test_git_provenance.py` uses temporary repositories and files to check Git state, missing Git, a non-repository directory, file read errors and Git failures. `test_provenance.py` checks the fields in the saved JSON.
+
+The Git root comparison uses filesystem identity rather than path spelling.
+`test_git_provenance.py` simulates differently cased paths and both possible
+identity results, so this behavior can be checked on case-sensitive and
+case-insensitive filesystems without relying on either filesystem's behavior.
 
 Run from the repository root with the project root and `pair_b/src` on `PYTHONPATH`:
 

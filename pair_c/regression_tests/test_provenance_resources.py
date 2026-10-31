@@ -26,10 +26,18 @@ def test_unused_custom_checkpoint_is_not_hashed(tmp_path, monkeypatch, existing)
     config["hash_rules_path"] = tmp_path / "rules.json"
     config["hash_rules"] = {"text_extensions": [".py"], "text_filenames": [], "binary_extensions": []}
     players = {side: SimpleNamespace(evaluator=MaterialEvaluator()) for side in ("a", "b")}
+    virtual_source = tmp_path / "example.py"
+    virtual_source.write_bytes(b"print('example')\n")
+    monkeypatch.setattr(run_evaluation, "ROOT", tmp_path)
     monkeypatch.setattr(run_evaluation, "cpu_model", lambda: "Test CPU")
-    monkeypatch.setattr(run_evaluation, "discover_sources", lambda root: ("git", [], None))
-    monkeypatch.setattr(run_evaluation, "source_file_hashes", lambda root, rules, paths: {})
+    monkeypatch.setattr(run_evaluation, "discover_sources", lambda root: ("git", ["example.py"], None))
+    monkeypatch.setattr(run_evaluation, "git_provenance", lambda root: {
+        "git_commit": "test-commit", "git_status": [" M example.py"], "git_detection_notes": {},
+    })
     report = run_evaluation.collect_provenance(config, source, "test-start", players)
+    assert report["sha256"]["source_files"] == {
+        "example.py": hashlib.sha256(virtual_source.read_bytes()).hexdigest(),
+    }
     assert report["checkpoint_paths"] == {"a": None, "b": None}
     assert report["sha256"]["player_a_checkpoint"] is None
     assert report["sha256"]["player_b_checkpoint"] is None
