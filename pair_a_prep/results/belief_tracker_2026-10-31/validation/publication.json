@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "verified_at": "2026-10-31T11:59:07.548463+00:00",
+  "base_commit": "1db35d68638d52353381d13de20addfea58a4d99",
+  "runtime_manifest": "zs21_runtime/pixi.toml",
+  "runtime_environment": "darkchess",
+  "portable_regression": {
+    "tests": 890,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "portable_smoke_replay": {
+    "game": 2,
+    "plies": 34,
+    "private_updates": 70,
+    "all_support_complete": true,
+    "included_in_original_statistics": false
+  },
+  "doctor": {
+    "status": "passed",
+    "rules_id": "paper2021_fow_no_moves_draw_v1",
+    "assets_verified": 66,
+    "python": "3.12.15",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "python_chess": "1.11.2",
+    "engine": {
+      "name": "Stockfish 13",
+      "author": "the Stockfish developers (see AUTHORS file)"
+    },
+    "workers": 4,
+    "threads_per_worker": 1,
+    "transport": "native_uci_batches",
+    "engine_sha256": "7e6357e5637cfaa4865b84135bc860f959be5983a84b57e871d0a0616082a475",
+    "initial_value": 0.04829573112443868
+  },
+  "unchanged_measured_source_sha256": {
+    "pair_a_prep/_belief_graph.py": "f5cce922d096e3b4dda5d8144d308164d22a8a448358e8807b334f61bc0c0753",
+    "pair_a_prep/_belief_native.py": "d4ce971b07c6f30ea0cda44f2a16291ea6b879b51a7987833828c5677a7e4a0e",
+    "pair_a_prep/belief_kernel.cpp": "13ac625f60a10ac651bdefebca24b20b2b82e60a9a43b4c1b265f9c81f77d2da",
+    "pair_a_prep/benchmark_belief_tracker.py": "630e446e8eebed44d02374367c44fe68c0a336cc96333887d11134b9d84cfaa9",
+    "pair_a_prep/build_belief_kernel.py": "d933708de6e4b04eea82db1059d5074869cd88687d4ab47aaa150b0b1c393851",
+    "pair_a_prep/tests/reference_belief_tracker.py": "e515fb6b33c706c2bde17832f2c33e04b928b8df25be5c4c0956bb3e060aecbf",
+    "pair_a_prep/tests/test_belief_graph.py": "7bd76835939fc7ef25348e57c2812d395c4d8268473176bbe14e3c2accb95bfa",
+    ".gitignore": "1a6969b9e817f4b2466a45849a64b0d34b0e5c5903be5894de902bad20aefa28",
+    "pair_a_prep/belief_tracker.py": "6028d66d14f61c8203d72108f239530bea281ea5af8886597f03dd60e1299566",
+    "pair_a_prep/tests/test_subgame_positions.py": "06287f0abd59801825f623856acbc335e32dc3db0cd49b7e1f29d042dc39c7a1"
+  },
+  "original_replay_inputs_verified": 10,
+  "original_measurement_traces_verified": 10,
+  "original_statistics_and_updates_byte_identical": true,
+  "original_measured_source_snapshot_byte_identical": true,
+  "publication_documentation_and_report_changes": [
+    "pair_a_prep/compare_belief_benchmarks.py",
+    "pair_a_prep/docs/belief_tracker.md",
+    "pair_a_prep/summarize_belief_benchmark.py"
+  ],
+  "relative_document_links_verified": 20
+}

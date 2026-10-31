@@ -9,6 +9,11 @@ The full Obscuro agent remains separate work.
 See [Pair A preparation](pair_a_prep/README.md) and [Pair B](pair_b/README.md)
 for setup and current scope.
 
+The shared [BeliefTracker guide](pair_a_prep/docs/belief_tracker.md) covers its
+lossless history DAG, native acceleration and optional resource budgets.
+[Full-game replay measurements and inputs](pair_a_prep/results/belief_tracker_2026-10-31/README.md)
+are included for validation and reproduction.
+
 ## Integration contract (schema v1)
 
 - `fow_shared/contracts.py`: `Observation` contains what the acting player can

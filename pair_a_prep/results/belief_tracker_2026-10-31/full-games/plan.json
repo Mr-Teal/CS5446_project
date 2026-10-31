@@ -1,0 +1,23 @@
+{
+  "games": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "input": "D:\\workspace\\nuswork\\cs5446-project\\results\\evaluation-34-16s-v2",
+  "sample_size": 16,
+  "implementation": "graph",
+  "backend": "native",
+  "time_budget_ms": null,
+  "memory_budget_mb": null,
+  "max_candidates": null,
+  "player": null,
+  "prefix_plies": null
+}

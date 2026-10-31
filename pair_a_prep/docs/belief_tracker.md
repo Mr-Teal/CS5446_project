@@ -1,147 +1,220 @@
-# Belief tracker
+# BeliefTracker
 
-`pair_a_prep.belief_tracker.BeliefTracker` implements both the shared
-`fow_shared.interfaces.BeliefTracker` protocol and `BeliefTrackerDraft`.
-The implementation uses `RulesAdapter` for every hypothetical transition and
-observation. It never receives a referee, true board, or hidden opponent move.
-The source baseline is `pair-a/rules-interface` at
-`c55de7a787caffe68fb4e2f5e0812fdfce00f652` (downloaded 2026-10-21).
+`pair_a_prep.belief_tracker.BeliefTracker` implements the existing shared
+`BeliefTracker` and `BeliefTrackerDraft` protocols. The input is one player's
+private observation after **every ply**, plus that player's action when they
+just moved. No referee board or hidden opponent action enters inference.
 
-## Usage
+The 2026-10-31 implementation is based on main
+`1db35d68638d52353381d13de20addfea58a4d99`. The previous exact implementation
+is retained in `tests/reference_belief_tracker.py` as an independent regression
+oracle. The ZS21 agent's separate position tracker and its DLL are unchanged.
 
-Run from the repository root, where `fow_shared` and `pair_a_prep` are importable:
+## Windows runtime setup
+
+The existing `zs21_runtime/pixi.toml` supplies the pinned Python packages and
+optional C++ compiler. From the repository root in PowerShell:
+
+```powershell
+$trackerRepo = (Get-Location).Path
+$env:PYTHONPATH = "$trackerRepo;$trackerRepo\pair_b\src"
+Set-Location zs21_runtime
+```
+
+The shell commands below assume this working directory. The Pair B source path
+is used by existing shared test fixtures; no neural training dependencies are
+required. Projects with an existing `darkchess` Pixi environment can also run
+the modules from a directory where the repository root is importable.
+
+## Exact usage and compatibility
 
 ```python
 from pair_a_prep.belief_tracker import BeliefTracker
 
 tracker = BeliefTracker(sample_size=256)
 tracker.reset(player="white", seed=17)
-initial_belief = tracker.update(initial_white_observation)
-after_our_move = tracker.update(next_white_observation, own_move="e2e4")
-after_their_move = tracker.update(following_white_observation)
+belief = tracker.update(initial_white_observation)
+belief = tracker.update(after_white_move, own_move="e2e4")
+belief = tracker.update(after_black_move)
 ```
 
-The observation arguments above come from the match runner. They are all
-White's views, including the snapshot while Black is to move. Each update
-returns the existing shared `Belief`, including off-turn and terminal views.
-`own_move` led to the new observation; `HistoryEvent.own_move` instead belongs
-to the snapshot before the move. The shared runner already handles that timing.
+`sample_size` limits **returned hypotheses only**. All consistent histories
+remain available internally. Default time and memory budgets and the legacy
+`max_candidates` are `None`; there is no implicit particle/state limit.
+`sample_size=None` returns every history, which can itself be impractical even
+when the internal compressed graph is small. Use a finite output sample in games.
 
-For a public custom start, configure both trackers and the referee identically:
+The existing `fow_shared.evaluation.play_game` runner continues to work in exact
+mode. It measures `agent.act`, not external tracker work; measure tracking
+separately or explicitly include it in a match's overall turn deadline.
 
-```python
-from pair_a_prep.rules_adapter import RulesReferee
+`initial_fen` must be a publicly agreed start, configured in both trackers and
+the referee. A constructor FEN survives resets; a reset-time override applies
+only to that game. Reset starts fresh repetition history, never hidden history
+before a supplied midgame FEN. Wrong players, skipped/duplicate plies, wrong
+own-action timing and updates after termination raise `ValueError`.
 
-fen = "4k3/4r3/8/8/8/8/8/4K3 b - - 0 1"
-referee = RulesReferee(initial_fen=fen)
-trackers = {p: BeliefTracker(initial_fen=fen) for p in ("white", "black")}
-```
+## What is compressed, and what is preserved
 
-These objects work with `fow_shared.evaluation.play_game`, which calls
-`reset(player, seed)` itself. `reset(..., initial_fen=fen)` also supports the
-draft interface for direct use; that override applies only to the current game.
-The next reset without an override uses the constructor's initial position.
-A custom FEN is public configuration, never an undisclosed referee midgame FEN.
-It starts at elapsed ply zero and cannot reconstruct earlier repetitions.
+The tracker stores current boards once per piece placement, side, clean castling
+rights, **raw** en-passant field, promoted-piece markers and move counters. Each
+board points to a directed acyclic graph of hypothetical histories. An incoming
+edge stores `(parent, move)` and represents every retained path of that parent.
+Arbitrary-size integer counts preserve path multiplicity without enumerating
+all paths. Different paths reaching the same board remain different hypotheses.
 
-## Inference and identity
+This is not ZS21's one-representative-per-position approximation. Full paths and
+their probabilities can be recovered from the graph. Sampling a uniform integer
+rank among all represented paths gives a uniform feasible-history sample without
+replacement. FENs, full UCI paths and the original chained SHA-256 `history_id`
+are materialized only for returned samples. The same seed/backend/private stream
+is reproducible; samples need not match the old implementation's enumeration order.
 
-1. Reset creates one candidate at the public start and resets the seeded RNG.
-2. The initial observation filters that candidate without advancing it.
-3. After our move, apply the supplied action to every candidate.
-4. After an opponent move, enumerate every fog-legal action for every candidate.
-5. Generate each successor's private observation and retain exact matches.
-6. Return all survivors, or a uniform sample without replacement, as hypotheses.
+Threefold repetition is checked **per path**, with the shared FoW-effective EP
+position identity and the exact reversible-move window. A graph filter retains
+the appropriate subset of paths when terminal or nonterminal feedback rules
+histories in or out. A deterministic 1024-bit membership prefilter avoids graph
+traversal when the target cannot occur. Hash collisions only cause extra exact
+work; they never remove a feasible path or create a false repetition.
 
-Matching checks viewer, side to move, ply, visible square set, every visible
-piece or empty square, legal action set, own capture notification, termination,
-and outcome. An explicitly supplied halfmove clock is checked against the
-candidate's clock; `None` supplies no clock evidence. The current rules adapter
-always hides that clock. Move/square ordering is irrelevant.
+The fifty-move clock, king capture, no-legal-moves draw, visibility, capture
+notifications, all legal moves and any explicitly revealed clock are checked.
+Rule precedence and visibility agree with `RulesAdapter` and `fow_shared.values`.
+Matching includes terminal observations, not just positions needing an action.
 
-Each candidate retains an independent `RuleState` with the complete move stack,
-its hypothetical UCI path, and a deterministic SHA-256 history ID derived from
-the public root FEN and successive moves. No FEN-based transposition merging
-is performed. Different paths reaching the same FEN remain different hypotheses,
-preserving repetition history and the information needed to replay hypothetical
-private views later. The tracker does not construct the opponent's search infosets.
-FEN output uses the adapter's standard six-field FEN, including en passant
-targets after double pawn pushes. The FEN alone still does not encode history.
+`Belief.population_size` counts histories, not distinct boards. `weighting="uniform"`
+means equal weight per feasible history (or per member of its uniform sample),
+not a Bayesian posterior under a uniform-move or learned opponent policy.
+`tracker.state_count` separately counts stored current board/counter states.
 
-## Population, weights, sampling and budgets
-
-- By default, `sample_size=None` returns every survivor. A positive `sample_size`
-  caps only the returned sample. Internal inference still uses every survivor,
-  including hypotheses absent from previous samples.
-- `population_size` counts consistent **histories**, not distinct FEN strings,
-  before output sampling. The tracker's property reports the retained count;
-  before reset it is zero, and before the first observation it is one public root.
-- `weighting="uniform"` assigns `1 / sample_count` to each returned history.
-  This is a uniform feasible-history convention. It is not a posterior under
-  a learned opponent policy, nor under an opponent choosing uniformly at every
-  node (which would require products of inverse branching factors).
-- Sampling is without replacement and reproducible for the same seed and input
-  stream. Output ordering follows deterministic candidate order. History IDs
-  depend on the public initial position and path, not the sample or seed.
-- Optional `max_candidates` limits retained exact histories. Exceeding it raises
-  `BeliefCapacityError`; it never silently truncates, resamples the population,
-  fabricates a population estimate, or adds the true state. It is not a time
-  budget: many rejected successors may still need to be examined.
-
-Tracking and returned serialization grow with the full surviving history set;
-move stacks and hypothetical paths also grow with game length. This is an exact
-reference implementation for bounded experiments, not a demonstrated solution
-for millions of states or unrestricted full-length games. In a sampled belief,
-the actual path need not appear in the sample; it remains in the internal set
-when all public-start and observation assumptions hold.
-
-## Failure behavior
-
-Call reset before update. Wrong players, invalid actions, an own action supplied
-on the opponent's turn, missing own actions, duplicate/skipped plies, wrong
-turn alternation and updates after termination raise `ValueError`.
-An inconsistent observation producing no survivors also raises `ValueError`.
-All of these and explicit capacity failures leave the last accepted population,
-observation and RNG unchanged. The caller can correct the input and retry.
-Stored observations detach their piece dictionaries from caller-owned snapshots.
-
-The rules profile remains `paper_fow_v1_proposed` with explicit no-move revision
-`terminal_draw_v1` from #28/#15: zero fog-legal moves is a terminal draw after
-king capture, fifty-move and repetition checks. The tracker inherits this
-adjudication and terminal feedback from the adapter; it does not add its own
-draw rules or forced-loss endings.
-
-## Local environment and verification
-
-The containing NUSWORK project requires its parent `pixi.toml` / `pixi.lock`.
-The `darkchess` environment was added using the official Pixi workflow:
-<https://pixi.prefix.dev/latest/tutorials/multi_environment/>.
-It excludes the default feature and contains Python 3.12, NumPy, SciPy, pytest,
-and PyPI `python-chess==1.999` (the imported `chess` package is 1.11.2).
-Pixi 0.77.0 emitted an environment entry missing `features`; adding the required
-`features=[]` fixed validation. `python-chess` was unavailable from the configured
-Conda channels, so it was installed through Pixi's PyPI dependency support.
-Other existing environment declarations were retained.
-
-From this downloaded repository root:
+## Optional native acceleration
 
 ```powershell
-pixi run -e darkchess python -m pytest -q tests pair_a_prep/tests pair_b_prep
-pixi run -e darkchess python -m pair_a_prep.fixtures --adapter pair_a_prep.rules_adapter:fixture_result
+pixi run --locked -e darkchess python -m pair_a_prep.build_belief_kernel
 ```
 
-The dedicated tests cover hand-derived hidden moves, a full-path enumeration
-oracle, same-FEN distinct histories, private-stream equivalence, sampling and
-reset determinism, recovery of a previously unsampled candidate, explicit
-capacity failure, input rejection and atomic retries, all 17 fixture starts for
-both players, special transitions, hidden promotions, history-dependent draws,
-seeded short games and real shared-runner games through terminal snapshots.
-The runner examples use scripted actions solely for integration testing; they
-do not implement ZS21/Obscuro or establish playing strength.
+The build uses the active C++ compiler and writes ignored files in
+`pair_a_prep/_belief_build/`. Its manifest records the compiler, source hashes
+and DLL hash. `backend="auto"` uses a matching build when available and otherwise
+uses Python. `backend="native"` requires that build; `backend="python"` selects
+the independent Python transition implementation. The default remains portable
+without a compiler. The optional native build has been exercised on Windows.
 
-Executed validation on 2026-10-21: 291 tests and 2 subtests passed in 16.00 seconds
-across the three test directories above (95 tests cover the new tracker), with
-all 17 rules-adapter fixtures passing separately. See
-[`belief_tracker_verification.json`](../results/belief_tracker_verification.json)
-for versions, commands, source hashes and the verified change scope. Pair B's
-neural training/Stockfish-dependent suite was not part of this run.
+`belief_kernel.cpp` reuses the existing ZS21 bitboard move/visibility primitives,
+**not** its candidate-merging or draw approximation. Raw EP is restored for exact
+FEN export. Terminal views and unsupported/promoted-board cases use the Python
+path. The history graph, repetition filtering and output contract are shared
+between the two backends. Native/Python/reference differential tests cover this
+boundary; rebuilding the ZS21 DLL is not required.
+
+## Time and memory budgets
+
+Budget use is opt-in:
+
+```python
+tracker = BeliefTracker(sample_size=128, time_budget_ms=500, memory_budget_mb=256)
+tracker.reset("white", 17)
+result = tracker.update_budgeted(view, own_move=own_move)
+if result.belief is not None:
+    use_current_belief(result.belief)
+else:
+    # The runner must choose whether to provide more resources or stop.
+    result = tracker.resume(time_budget_ms=1000, memory_budget_mb=512)
+```
+
+Per-call non-`None` budgets override constructor settings. Zero is a valid
+budget. `update()` still returns a shared `Belief`; its metadata is available in
+`last_update`. If no current hypothesis is available, `update()` raises
+`BeliefBudgetError` containing the same `TrackerUpdate` result. It never returns
+a stale-ply belief or fabricates a hidden board.
+
+| Result field | Meaning |
+| --- | --- |
+| `belief` | Valid current-ply hypotheses, or `None` |
+| `status` | `complete`, `partial`, or `no_candidate` |
+| `stopped_by` | `time`, `memory`, or `None` |
+| `support_complete` | All histories consistent with the full private stream remain represented |
+| `expansion_complete` | This update finished expanding its supplied parents |
+| `generated_valid_count`, `retained_count` | Number of represented valid paths, not an extrapolated population |
+| `state_count` | Stored current board/counter nodes |
+| `attempted_transitions` | Cumulative processed board transitions, including rejected ones |
+| `elapsed_ms` | This call's elapsed time, including output materialization |
+| `accounted_bytes` | Logical allocation accounting used for budgeting; not process RSS |
+
+`resume()` continues the same pending observation. It does not duplicate already
+processed branches. If every branch is eventually processed, completeness is
+restored provided the incoming support was exact. If a **new** observation is
+supplied after a nonempty partial result, unexpanded alternatives are discarded
+and `support_complete` stays false on future turns. Every remaining path is still
+consistent with every observation; local completion does not undo past loss.
+
+For incomplete support, `Belief.population_size=None` and
+`weighting="uniform_over_returned_histories"` avoid claiming a uniform posterior
+over the unknown complete information set. Time-limited expansion can favor
+earlier branches; its partial result is not an unbiased sample of unseen branches.
+
+If no branch has produced a current hypothesis, resume before advancing. An
+exhaustively inconsistent observation from exact support raises `ValueError`;
+an empty successor set after earlier pruning is not proof of global inconsistency.
+There is no automatic true-state injection or random-action fallback. Recovery
+can reset at the public start and replay the caller's complete private stream
+with larger budgets; it must not reset from a referee's current FEN.
+
+These are **cooperative** budgets. Checks occur between transitions, during exact
+repetition filtering and during output generation. One native parent expansion
+and short result finalization can overshoot a wall-clock budget. Memory accounting
+covers retained/pending graphs, temporary expansion and output reserves; Python
+allocator fragmentation, interpreter memory and RSS are separate. A smaller
+budget cannot retroactively free an already larger accepted state. Hard operating
+system deadlines/process-memory limits require an external worker supervisor and
+are not claimed here. `storage_stats()` measures reachable Python allocations
+for diagnostics; do not confuse that with total process memory.
+
+The legacy `max_candidates` still raises `BeliefCapacityError` atomically; it is
+not silently converted into truncation. Exact input/capacity failures preserve
+the prior accepted state and RNG.
+
+## Explicit approximation
+
+`tracker.prune(max_histories)` uniformly selects at most that many represented
+full histories, preserves their valid paths and draw semantics, and discards the
+others and any pending branches. It rebuilds shared prefixes from these selected
+hypothetical paths and marks support incomplete. It is never called implicitly.
+This bounds retained **histories**, not future expansion work. Its selection is
+uniform over represented support only; pruning can remove the actual history.
+No fixed sample size guarantees a small information loss in every position.
+If the represented count is already at or below the requested limit, the call
+leaves the tracker unchanged, including any pending update.
+
+## Verification and full-game measurements
+
+```powershell
+pixi run --locked -e darkchess python -m pytest -q ../pair_a_prep/tests/test_belief_tracker.py ../pair_a_prep/tests/test_belief_graph.py
+pixi run --locked -e darkchess python -m pair_a_prep.benchmark_belief_tracker --input PATH_TO_GAME_LOGS --output NEW_RESULT_DIRECTORY --games 0 1 2 3 4 5 6 7 8 9 --backend native --isolated
+```
+
+The benchmark replays complete existing games, regenerates both private streams
+with the shared referee, and feeds each tracker only its stream and own moves.
+The true path is used exclusively by an external oracle to verify it remains
+in the exact graph. No time/memory/internal-state cap or pruning is used. A finite
+output sample of 16 avoids enumerating all returned histories without dropping
+internal support. Each game runs in a fresh process, sequentially.
+
+Per-update JSONL records contain represented histories, stored states, graph
+nodes/edges, update time, reachable Python bytes and process memory. `updating`
+markers make interrupted runs visible. A run is complete only after both trackers
+have accepted the actual terminal observation. Historical pilots and incomplete
+runs must be kept separate from complete-game frequency tables. State-size
+frequencies are empirical frequencies in this selected game corpus, not a
+universal probability distribution for FoW chess.
+
+Executed verification on 2026-10-31: **890 tests passed**, and all 10 preselected
+complete games (633 plies, 1,286 private updates) finished with exact support and
+the true-history membership audit passing at every step. Overall update median
+was 5.78 ms, P95 1,658.30 ms, and maximum 117.59 s; 6 updates exceeded 16 s.
+Thus unbounded completion is not a real-time guarantee. Three repeated paired
+opening-prefix benchmarks gave a 28.08x aggregate update-time improvement over
+the frozen reference, with identical history counts throughout those prefixes.
+The [committed result bundle](../results/belief_tracker_2026-10-31/README.md)
+contains the tables, raw measurements, source/data hashes and all ten replay
+inputs, with commands to reproduce the complete run from this repository.

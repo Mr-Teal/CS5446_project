@@ -2,6 +2,13 @@
 
 Current [delivery candidate freeze and acceptance record](docs/delivery_candidate.md): runtime `f821781`, bounded integration verified; upstream review and long-game tracker gates remain.
 
+The shared [BeliefTracker](docs/belief_tracker.md) now preserves full histories in
+a compressed DAG, with optional native acceleration and resumable budgets.
+[Ten complete replay measurements](results/belief_tracker_2026-10-31/README.md)
+include both players' private streams, reproducible inputs and runtime/memory
+tables. Large exact updates can still exceed real-time budgets; the separate
+ZS21 tracker retains its existing behavior.
+
 For real engine evaluation, use the [pinned Stockfish / Pair C handoff](docs/stockfish_evaluation_handoff.md). Its short smoke validation does not establish long-game strength.
 
 The opt-in [integrated chess subgame prototype](docs/chess_subgame_integration.md)
@@ -60,7 +67,7 @@ the paper's one-sided leaf selection from our uniform complete-cut baseline.
 | Chessboard viewer | [launch instructions](docs/board_viewer.md), [server](board_viewer.py) | Click-to-move chessboard, both fog perspectives, sample games and step-by-step replay using the rules adapter |
 | Pair A interface draft | [interface_draft.py](interface_draft.py), [interface_draft.md](docs/interface_draft.md) | Proposed rules/tracker signatures, private observation fields and update sequence; pending review |
 | Rules adapter and referee | [rules_adapter.py](rules_adapter.py) | History-preserving states, private observations, actual terminal outcomes and shared-protocol referee; see [implementation notes](docs/rules_adapter.md) |
-| Belief tracker | [belief_tracker.py](belief_tracker.py), [implementation and usage](docs/belief_tracker.md) | Exact observation-only history tracking, optional output sampling, explicit capacity errors, and shared-runner integration |
+| Belief tracker | [belief_tracker.py](belief_tracker.py), [implementation and usage](docs/belief_tracker.md) | Lossless history DAG, optional native transitions, output sampling, resumable budgets, explicit pruning, and shared-runner integration |
 | Chess search prototype | [chess_search.py](chess_search.py), [search_agent.py](search_agent.py) | Candidate replay, private-history information sets, fixed-depth PCFR+ and per-root continuation values |
 | Chess gadget bridge | [chess_gadgets.py](chess_gadgets.py), [usage and semantics](docs/chess_gadgets.md) | Opponent root groups, explicit Resolve/Maxmargin inputs, shared policies and unshifted continuation labels |
 | Label pilot | [label_pilot.py](label_pilot.py), [usage and limits](docs/chess_search.md) | Shared-runner games, JSONL export, repeated-run checks, tracker diagnostics and Pair B label acceptance |

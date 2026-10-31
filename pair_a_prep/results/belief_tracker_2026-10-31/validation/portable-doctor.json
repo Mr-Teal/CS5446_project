@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "rules_id": "paper2021_fow_no_moves_draw_v1",
+  "assets_verified": 66,
+  "python": "3.12.15",
+  "numpy": "2.5.4",
+  "scipy": "1.18.1",
+  "python_chess": "1.11.2",
+  "engine": {
+    "name": "Stockfish 13",
+    "author": "the Stockfish developers (see AUTHORS file)"
+  },
+  "workers": 4,
+  "threads_per_worker": 1,
+  "transport": "native_uci_batches",
+  "engine_sha256": "7e6357e5637cfaa4865b84135bc860f959be5983a84b57e871d0a0616082a475",
+  "initial_value": 0.04829573112443868
+}
