@@ -136,11 +136,12 @@ def build_chess_tree(turn: AgentInput, evaluator: LeafEvaluator, *,
                         evaluator, depth, max_nodes, deadline)
 
 
-def _build_roots(roots, viewer, weights, evaluator, depth, max_nodes, deadline):
+def _build_roots(roots, viewer, weights, evaluator, depth, max_nodes, deadline,
+                 evaluation_cache=None):
     """Build independent continuations from retained history, without replay."""
     rules = RulesAdapter()
     stats = dict(nodes=0, frontier_leaves=0, terminal_leaves=0, evaluator_calls=0)
-    cache = {}
+    cache = {} if evaluation_cache is None else evaluation_cache
     frontiers = {}
 
     def reserve():
@@ -220,11 +221,13 @@ def _build_roots(roots, viewer, weights, evaluator, depth, max_nodes, deadline):
 
 def expand_chess_tree(tree: ChessTree, solver, evaluator: LeafEvaluator, *,
                       additional_depth: int = 1, max_nodes: int = 5000,
-                      max_evaluator_calls: Optional[int] = None, deadline=None) -> ChessTree:
+                      max_evaluator_calls: Optional[int] = None, deadline=None,
+                      selected_paths=None, initialize_best: bool = False) -> ChessTree:
     """Grow every current frontier together, preserving the solver's state.
 
-    Call between solver rounds. All hidden histories at this cut are expanded;
-    selecting individual branches is deliberately unsupported. Limits apply to
+    Call between solver rounds. By default all frontiers are expanded. Explicit
+    selected_paths permits partial history expansion with shared infoset policies.
+    Limits apply to
     the resulting tree and evaluator calls in this expansion attempt. Evaluator
     work cannot be rolled back, but failed attempts never change the solver.
     The deadline is cooperative and cannot interrupt an evaluator invocation.
@@ -241,6 +244,11 @@ def expand_chess_tree(tree: ChessTree, solver, evaluator: LeafEvaluator, *,
         raise ValueError("max_evaluator_calls must be a nonnegative integer or None")
     if not tree.frontiers:
         return tree
+    paths = tuple(tree.frontiers) if selected_paths is None else tuple(selected_paths)
+    if len(set(paths)) != len(paths) or any(path not in tree.frontiers for path in paths):
+        raise ValueError("selected_paths must contain distinct current frontiers")
+    if not paths:
+        return tree
     calls = 0
 
     class BudgetedEvaluator:
@@ -253,9 +261,11 @@ def expand_chess_tree(tree: ChessTree, solver, evaluator: LeafEvaluator, *,
             calls += 1
             return evaluator.evaluate_children(fen)
 
-    replacements, next_frontiers = {}, {}
+    replacements = {}
+    next_frontiers = {path: context for path, context in tree.frontiers.items() if path not in paths}
     nodes, terminals = tree.nodes, tree.terminal_leaves
-    for path, context in tree.frontiers.items():
+    for path in paths:
+        context = tree.frontiers[path]
         # The temporary builder adds a chance node that is not grafted.
         subtree = _build_roots((context,), tree.viewer, (1.0,), BudgetedEvaluator(),
                               additional_depth, max_nodes - nodes + 2, deadline)
@@ -266,7 +276,20 @@ def expand_chess_tree(tree: ChessTree, solver, evaluator: LeafEvaluator, *,
                                for suffix, state in subtree.frontiers.items()})
     if deadline is not None and perf_counter() >= deadline:
         raise SearchBudgetError("budget exhausted before committing expansion")
-    solver.expand(replacements)
+    initial_actions = {}
+    if initialize_best:
+        def choose(node):
+            if node.payoff is not None:
+                return node.payoff
+            values = {action: choose(child) for action, child in node.children.items()}
+            if node.player is None:
+                return sum(node.probabilities[a] * v for a, v in values.items())
+            best = (max if node.player == 0 else min)(values, key=values.get)
+            initial_actions.setdefault((node.player, node.infoset), best)
+            return values[best]
+        for subtree in replacements.values():
+            choose(subtree)
+    solver.expand(replacements, initial_actions=initial_actions)
     return ChessTree(solver.root, tuple(solver.root.children.values()), tree.root_infoset,
                      nodes, len(next_frontiers), terminals, tree.evaluator_calls + calls,
                      tree.history_roots, next_frontiers, tree.viewer)

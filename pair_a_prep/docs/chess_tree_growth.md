@@ -1,6 +1,11 @@
 # Incremental chess tree growth
 
 This optional API connects retained chess histories to `PCFRPlus.expand()`.
+
+Its uniform complete-cut policy is an engineering baseline, not a requirement
+to expand all indistinguishable histories. The paper selects history leaves
+while shared information-set strategies remain shared; see the
+[source audit](expansion_mechanism_audit.md).
 It does not change the default fixed-depth agent, label protocol or shared
 interfaces. It is an intermediate step towards Obscuro, not a complete agent.
 

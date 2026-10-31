@@ -71,7 +71,7 @@ class PCFRPlus:
     """
 
     def __init__(self, root: Node, predictive: bool = True, averaging_power: int = 2,
-                 schedule: str = "simultaneous"):
+                 schedule: str = "simultaneous", initial_actions=None):
         if schedule not in ("simultaneous", "alternating"):
             raise ValueError("schedule must be simultaneous or alternating")
         self.schedule = schedule
@@ -89,6 +89,14 @@ class PCFRPlus:
                                 for key, actions in sets.items()} for sets in self.sets)
         self._sums = tuple({key: np.zeros(len(actions)) for key, actions in sets.items()}
                            for sets in self.sets)
+        self._initial_actions = dict(initial_actions or {})
+        for (p, key), action in self._initial_actions.items():
+            if p not in (0, 1) or key not in self.sets[p] or action not in self.sets[p][key]:
+                raise ValueError("invalid initial action")
+            strategy = self._strategy[p][key]
+            strategy[:] = 0
+            strategy[self.sets[p][key].index(action)] = 1
+            self.minimizers[p][key].strategy = strategy.copy()
 
     def _index_tree(self, root):
         sets = information_sets(root)
@@ -98,7 +106,7 @@ class PCFRPlus:
                       for p, player_sets in enumerate(sets))
         return sets, order
 
-    def expand(self, replacements: Mapping[tuple[str, ...], Node]) -> None:
+    def expand(self, replacements: Mapping[tuple[str, ...], Node], *, initial_actions=None) -> None:
         """Atomically replace cutoff leaves by subtrees at root-relative paths.
 
         Call only between run()/step() calls, never mutate nodes directly.
@@ -142,14 +150,22 @@ class PCFRPlus:
         added = tuple({key: PredictiveRMPlus(len(actions), self.predictive)
                        for key, actions in sets[player].items()
                        if key not in self.sets[player]} for player in (0, 1))
+        for (player, key), action in (initial_actions or {}).items():
+            if player not in (0, 1) or key not in sets[player] or action not in sets[player][key]:
+                raise ValueError("initial action must belong to an introduced infoset")
+            if key in added[player]:
+                minimizer = added[player][key]
+                minimizer.strategy[:] = 0
+                minimizer.strategy[sets[player][key].index(action)] = 1
         strategies = ({}, {})
         sums = ({}, {})
         for player in (0, 1):
             for key, minimizer in added[player].items():
                 # Alternating mode holds a published strategy awaiting feedback.
-                strategies[player][key] = (
-                    minimizer.next_strategy()
-                    if self.schedule == "alternating" and self.rounds else minimizer.strategy.copy())
+                strategies[player][key] = minimizer.strategy.copy()
+                # Publish the heuristic policy with pending feedback, without
+                # advancing PRM+ (which would turn a zero-regret state uniform).
+                minimizer._pending = self.schedule == "alternating" and bool(self.rounds)
                 sums[player][key] = np.zeros_like(minimizer.regrets)
         previous_opponent = [
             None if previous is None else {
@@ -162,6 +178,9 @@ class PCFRPlus:
             self._strategy[player].update(strategies[player])
             self._sums[player].update(sums[player])
         self._previous_opponent = previous_opponent
+        if self.schedule == "simultaneous" or not self.rounds:
+            self._initial_actions.update({(p, key): action for (p, key), action in (initial_actions or {}).items()
+                                          if key in added[p]})
 
     def _check_recall(self, node, histories, seen):
         if node.payoff is not None:
@@ -230,6 +249,11 @@ class PCFRPlus:
             prediction = (np.zeros_like(minimizer.regrets) if previous is None
                           else self._utilities(player, previous)[key])
             self._strategy[player][key] = minimizer.next_strategy(prediction)
+            action = self._initial_actions.pop((player, key), None)
+            if action is not None:
+                self._strategy[player][key][:] = 0
+                self._strategy[player][key][self.sets[player][key].index(action)] = 1
+                minimizer.strategy = self._strategy[player][key].copy()
 
     def _observe(self, player) -> None:
         utilities = self._utilities(player)

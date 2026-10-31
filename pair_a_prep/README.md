@@ -1,5 +1,20 @@
 # Independent Pair A preparation
 
+Current [delivery candidate freeze and acceptance record](docs/delivery_candidate.md): runtime `f821781`, bounded integration verified; upstream review and long-game tracker gates remain.
+
+For real engine evaluation, use the [pinned Stockfish / Pair C handoff](docs/stockfish_evaluation_handoff.md). Its short smoke validation does not establish long-game strength.
+
+The opt-in [integrated chess subgame prototype](docs/chess_subgame_integration.md)
+now connects sampled-tree knowledge projection, gadget boundaries, growth,
+warm starts and purification. [Richer-position verification](docs/subgame_position_validation.md)
+records special-rule positions and short private-observation games; it is not
+playing-strength evidence or a claim of complete Obscuro reproduction.
+
+The optional [serial one-sided search mode](docs/one_sided_search.md) now
+selects individual history frontiers and retains within-turn PCFR+ state.
+Its engineering evidence and updated slide materials are reproducible; it is
+not yet a complete Obscuro agent or a strength-tested teacher.
+
 This directory contains preparation tools, a rules adapter prototype, and an
 exact history-preserving belief tracker with optional output sampling.
 The standalone preparation tools run independently of `fow_shared`; the new
@@ -34,6 +49,11 @@ and provides an observation-only action fallback if initial preparation exceeds
 a budget. See [the Obscuro status map](docs/obscuro_status.md) for remaining
 paper mechanisms and [budget probes](docs/budget_experiments.md) for measured
 costs and short-game integration limits.
+
+For draft slides 4-5, open [the local material viewer](presentation/index.html).
+The [material guide](presentation/README.md) includes SVG export and evidence
+regeneration; [the expansion audit](docs/expansion_mechanism_audit.md) separates
+the paper's one-sided leaf selection from our uniform complete-cut baseline.
 
 | Work | File | Contents |
 |---|---|---|
@@ -153,3 +173,11 @@ can be added as the adapter develops. Cases containing `initial_fen` and
 `moves_uci` must replay the history rather than load only the final FEN.
 Running without `--adapter` validates fixture structure and history only;
 it does not establish that a FoW rules implementation passes the cases.
+
+### Actual transition diagnostics
+
+[Cross-turn reach/state audit](docs/transition_audit.md) records real private projections, checks candidate-path identities and distinguishes current CF reach ratios from cumulative solver-state conversion. Run `python -m pair_a_prep.transition_probe --output pair_a_prep/local_runs/transition-audit.json`. This offline diagnostic does not change agent decisions or authorize exact warm-state transfer.
+
+### Frozen warm/cold comparison
+
+[Controlled frozen-target diagnostics](docs/frozen_warm_cold.md) compare existing heuristic warm state with seeded and round-aligned cold controls on identical sampled gadget trees. Finite-game gaps are not full-game exploitability or win rates; live defaults and projected labels are unchanged.

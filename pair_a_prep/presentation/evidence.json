@@ -1,0 +1,91 @@
+{
+  "start_fen": "7k/8/8/8/8/8/8/K7 w - - 0 1",
+  "viewer": "white",
+  "paths": [
+    [
+      "a1b1",
+      "h8g8"
+    ],
+    [
+      "a1b1",
+      "h8g7"
+    ]
+  ],
+  "hypotheses": [
+    {
+      "fen": "6k1/8/8/8/8/8/8/1K6 w - - 2 2",
+      "weight": 0.5,
+      "history_id": "slide-0",
+      "candidate_moves": [
+        "a1b1",
+        "h8g8"
+      ]
+    },
+    {
+      "fen": "8/6k1/8/8/8/8/8/1K6 w - - 2 2",
+      "weight": 0.5,
+      "history_id": "slide-1",
+      "candidate_moves": [
+        "a1b1",
+        "h8g7"
+      ]
+    }
+  ],
+  "observation": {
+    "player": "white",
+    "side_to_move": "white",
+    "ply": 2,
+    "visible_squares": [
+      "a1",
+      "a2",
+      "b1",
+      "b2",
+      "c1",
+      "c2"
+    ],
+    "visible_pieces": {
+      "a1": null,
+      "a2": null,
+      "b1": "K",
+      "b2": null,
+      "c1": null,
+      "c2": null
+    },
+    "legal_moves": [
+      "b1a1",
+      "b1a2",
+      "b1b2",
+      "b1c1",
+      "b1c2"
+    ],
+    "halfmove_clock": null,
+    "captured_own_piece_at": null,
+    "terminal": false,
+    "outcome": null,
+    "schema_version": 1
+  },
+  "same_private_history": true,
+  "own_memory_equal": true,
+  "opponent_memories_differ": true,
+  "weights_note": "Illustrative equal weights over these two selected histories, not a full posterior.",
+  "growth": {
+    "before_nodes": 5,
+    "after_nodes": 8,
+    "selected_path": [
+      "0",
+      "a1b1"
+    ],
+    "expansion_events": 1,
+    "before_frontiers": 3,
+    "after_frontiers": 5,
+    "solver_rounds": 3,
+    "old_minimizers_regrets_averages_preserved": true,
+    "actions": [
+      "a1a2",
+      "a1b1",
+      "a1b2"
+    ],
+    "new_infosets": 1,
+    "heuristic": "presentation-zero-heuristic"
+  }
+}

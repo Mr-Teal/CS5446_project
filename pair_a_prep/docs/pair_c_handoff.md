@@ -1,7 +1,10 @@
 # Bounded Pair A handoff to Pair C
 
-This supplies the factories/configuration needed to use the per-player hooks
-in PR26. It does not merge that PR or make a full-game strength claim.
+This supplies the factories/configuration for the integrated Pair C per-player hooks. It makes no full-game strength claim.
+
+## Current engine delivery
+
+The [Stockfish handoff](stockfish_evaluation_handoff.md) adds real-engine factories, pinned configurations and fresh bounded validation. PR26 and its outcome/depth corrections are now integrated. The independent PR26 review below is historical evidence, not an outstanding merge gate. Material remains available.
 
 ## Files
 
@@ -37,7 +40,7 @@ The exact internal tracker still has an explicit capacity limit. Sampling
 only bounds returned hypotheses, not internal enumeration. This example is
 deliberately short and small. Do not use it as the formal Pair B batch config.
 
-## Independent PR26 re-review
+## Historical independent PR26 re-review
 
 At original head **869870ded16a7cec9886d5eb803d2bcaae2c3778**:
 
@@ -74,11 +77,16 @@ The independent `pair-a/pr26-review-fixes` branch (8aad65c) addresses both:
   zero failures, zero scored games/draws, and unavailable outcome rates. Moves
   match the original runner's smoke exactly.
 
-These are proposed follow-up changes, not changes to the author's PR26 branch.
-Until they are integrated, use `games.jsonl.stopped_at_ply_limit` and exclude
+These follow-up corrections have since been integrated. For historical raw reports, use `games.jsonl.stopped_at_ply_limit` and exclude
 those records when interpreting smoke outcomes. Local raw reports remain
 under ignored `pair_a_prep/local_runs/`; the compact evidence is in
 `results/evaluation_handoff_reference.json`.
 
 No full Pair B suite, long-game tracker validation, actual Stockfish/network
 execution, formal batch or new model training is covered by this handoff.
+
+## Retained depth contract
+
+The optional retained factory requires `max_depth >= 3` (default 3). A saved tree must contain a nonterminal two plies below its old root for next-turn reuse. Merely switching the supplied shallow anytime smoke config to retained mode is rejected. Reused branches are restored to `initial_depth` before solving, including mixed fresh/deep roots; normal limits still apply, so recovery can fail explicitly. The baseline anytime smoke configuration is unchanged.
+
+Subgame mode now defaults to 1024 nodes and 48 evaluator calls, matching the richer-position validation budget. Smaller explicitly configured budgets remain possible and may fall back. `diagnostics["fallback"] == 1` identifies fallback; a reported zero search-node count alone is insufficient. Pair C should retain this flag in exported records. Projected subgame training labels remain disabled pending the complete solver-root/weight contract.

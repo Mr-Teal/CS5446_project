@@ -1,0 +1,509 @@
+{
+  "scope": "local-CF partition and audit-only lineage, not exact ancestor payment lifting",
+  "source_sha256": {
+    "gift_accounting.py": "0da1499e8c9693f29d38022b28b75fe31b0f11928e20176145606eacbc6a754c",
+    "gift_accounting_probe.py": "1aadc87648a9fe449adf49b697a9783abb375aa73d5eb6ab66b396638df1f63a",
+    "subgame_boundaries.py": "29c23b39e5ecb3385b6e4892fc4dead7e5b7bc517dbb899a4812eb3d7e8f9596",
+    "chess_projection.py": "ab94ade974137f2aa447fb7cb085af71be59358378701c45680ed79a1931752b",
+    "chess_subgame_agent.py": "3372be13b1d786b7bda2dfff5e255e43fccbc3b64ad8e22daecb0f59eff90ebb",
+    "chess_search.py": "871d58e9a11abbd94bdea05eaef50eeb82f068f803303e25f84bb9bf4b8bc422",
+    "clock_ablation.py": "7ad9918307b45c3c7f4263e9d96f959c3c84a31404fde3d3a4c596fd373de1ac"
+  },
+  "examples": [
+    {
+      "keep": 0.0,
+      "drop": 1.0,
+      "own_keep": 0.5,
+      "gifts": {
+        "cut-J": 0.25
+      },
+      "alternates": {
+        "cut-J": 0.25
+      },
+      "audit": {
+        "groups": {
+          "cut-J": {
+            "counterfactual_mass": 0.5,
+            "joint_mass": 0.25,
+            "conditional_value": 0.0,
+            "ancestor_gifts": [
+              {
+                "infoset": "J",
+                "action": "L",
+                "full_delta": 0.25,
+                "retained_delta": 0.0,
+                "discarded_delta": 0.25,
+                "gift": 0.25
+              }
+            ],
+            "zero_joint_fallback": false
+          }
+        },
+        "opponent_sequence_reach": {
+          "cut-J": 0.5
+        },
+        "gift_partition": "positive_part_after_retained_plus_discarded",
+        "source_unit_id": "3afc8d323983d6c258caeb33edc4e15d02ea2315794bfc03ac98a14889cdb726",
+        "all_zero_y_uniform": false
+      }
+    },
+    {
+      "keep": 1.0,
+      "drop": -1.0,
+      "own_keep": 0.25,
+      "gifts": {
+        "cut-J": 0.0
+      },
+      "alternates": {
+        "cut-J": 1.0
+      },
+      "audit": {
+        "groups": {
+          "cut-J": {
+            "counterfactual_mass": 0.25,
+            "joint_mass": 0.125,
+            "conditional_value": 1.0,
+            "ancestor_gifts": [
+              {
+                "infoset": "J",
+                "action": "L",
+                "full_delta": -0.25,
+                "retained_delta": 0.125,
+                "discarded_delta": -0.375,
+                "gift": 0.0
+              }
+            ],
+            "zero_joint_fallback": false
+          }
+        },
+        "opponent_sequence_reach": {
+          "cut-J": 0.5
+        },
+        "gift_partition": "positive_part_after_retained_plus_discarded",
+        "source_unit_id": "fbb96bac58f7f77086c1fa216ef42c343d125da39aabbdc976e5fadade924448",
+        "all_zero_y_uniform": false
+      }
+    }
+  ],
+  "clock_artifact": {
+    "path": "gift_accounting_clock_reference.json",
+    "sha256": "29d0d1476efdb3b3944ad9d95fe70b4a52674ca2cccf7fd04ca5643ebca451a0",
+    "live_summary": {
+      "games": 12,
+      "actions": 48,
+      "overruns": 1,
+      "fallbacks": 1.0,
+      "capped": 12,
+      "terminal": 0,
+      "tracker_capacity": 0
+    },
+    "turn_runs": 48,
+    "turn_overruns": 0,
+    "turn_fallbacks": 0.0
+  },
+  "game": {
+    "public_initial_fen": "7k/8/8/8/8/8/8/K7 w - - 0 1",
+    "seed": 17,
+    "config": {
+      "initial_depth": 3,
+      "max_depth": 3,
+      "rounds": 4,
+      "rounds_per_stage": 4,
+      "final_rounds": 1,
+      "max_nodes": 2000,
+      "max_evaluator_calls": 256,
+      "schedule": "alternating",
+      "stop_on_time": false,
+      "expansion_fraction": 0.7,
+      "growth": "one_sided"
+    },
+    "capped": true,
+    "outcome": null,
+    "actions": [
+      {
+        "ply": 0,
+        "player": "white",
+        "belief_sample": 1,
+        "population": 1,
+        "move": "a1b2",
+        "raw_policy": {
+          "a1a2": 0.3333333333333333,
+          "a1b1": 0.3333333333333333,
+          "a1b2": 0.3333333333333333
+        },
+        "diagnostics": {
+          "search_nodes": 68.0,
+          "evaluator_calls": 9.0,
+          "solver_rounds": 4.0,
+          "solver_rounds_this_turn": 4.0,
+          "expansions": 0.0,
+          "mode_switches": 0.0,
+          "mode_resolve": 0.0,
+          "elapsed_ms": 25.623800000175834,
+          "over_budget": 0.0,
+          "fallback": 0.0,
+          "solver_root_value": 0.0,
+          "purification": 1.0,
+          "stop:round_limit": 1.0,
+          "submission_reserve_ms": 0.0,
+          "projection:retained": 0.0,
+          "projection:fresh": 1.0,
+          "projection:knowledge_roots": 1.0,
+          "projection:outside_current": 0.0,
+          "projection:depth": 3.0,
+          "projection:incomplete_cut": 0.0,
+          "gift_ledger_events": 1.0,
+          "gift_ledger_ancestor_events": 0.0,
+          "gift_ledger_prior_positive_events": 0.0,
+          "gift_ledger_audit_only": 1.0,
+          "raw_policy:a1a2": 0.3333333333333333,
+          "raw_policy:a1b1": 0.3333333333333333,
+          "raw_policy:a1b2": 0.3333333333333333,
+          "played_policy:a1a2": 0.3333333333333333,
+          "played_policy:a1b1": 0.3333333333333333,
+          "played_policy:a1b2": 0.3333333333333333,
+          "growth_stop:round_limit": 1.0
+        },
+        "config_id": "sampled-I2-gadget-pcfr-prototype-v1:95feccafc2e9a684"
+      },
+      {
+        "ply": 1,
+        "player": "black",
+        "belief_sample": 3,
+        "population": 3,
+        "move": "h8g8",
+        "raw_policy": {
+          "h8g7": 0.3333333333333333,
+          "h8g8": 0.3333333333333333,
+          "h8h7": 0.3333333333333333
+        },
+        "diagnostics": {
+          "search_nodes": 391.0,
+          "evaluator_calls": 27.0,
+          "solver_rounds": 4.0,
+          "solver_rounds_this_turn": 4.0,
+          "expansions": 0.0,
+          "mode_switches": 0.0,
+          "mode_resolve": 0.0,
+          "elapsed_ms": 131.20600022375584,
+          "over_budget": 0.0,
+          "fallback": 0.0,
+          "solver_root_value": 0.0,
+          "purification": 1.0,
+          "stop:round_limit": 1.0,
+          "submission_reserve_ms": 0.0,
+          "projection:retained": 0.0,
+          "projection:fresh": 3.0,
+          "projection:knowledge_roots": 3.0,
+          "projection:outside_current": 0.0,
+          "projection:depth": 3.0,
+          "projection:incomplete_cut": 0.0,
+          "gift_ledger_events": 3.0,
+          "gift_ledger_ancestor_events": 0.0,
+          "gift_ledger_prior_positive_events": 0.0,
+          "gift_ledger_audit_only": 1.0,
+          "raw_policy:h8g7": 0.3333333333333333,
+          "raw_policy:h8g8": 0.3333333333333333,
+          "raw_policy:h8h7": 0.3333333333333333,
+          "played_policy:h8g7": 0.3333333333333333,
+          "played_policy:h8g8": 0.3333333333333333,
+          "played_policy:h8h7": 0.3333333333333333,
+          "growth_stop:round_limit": 1.0
+        },
+        "config_id": "sampled-I2-gadget-pcfr-prototype-v1:95feccafc2e9a684"
+      },
+      {
+        "ply": 2,
+        "player": "white",
+        "belief_sample": 3,
+        "population": 3,
+        "move": "b2a1",
+        "raw_policy": {
+          "b2a1": 0.125,
+          "b2a2": 0.125,
+          "b2a3": 0.125,
+          "b2b1": 0.125,
+          "b2b3": 0.125,
+          "b2c1": 0.125,
+          "b2c2": 0.125,
+          "b2c3": 0.125
+        },
+        "diagnostics": {
+          "search_nodes": 64.0,
+          "evaluator_calls": 0.0,
+          "solver_rounds": 8.0,
+          "solver_rounds_this_turn": 4.0,
+          "expansions": 0.0,
+          "mode_switches": 0.0,
+          "mode_resolve": 0.0,
+          "elapsed_ms": 13.850199989974499,
+          "over_budget": 0.0,
+          "fallback": 0.0,
+          "solver_root_value": 0.0,
+          "purification": 1.0,
+          "stop:round_limit": 1.0,
+          "submission_reserve_ms": 0.0,
+          "projection:retained": 9.0,
+          "projection:fresh": 0.0,
+          "projection:knowledge_roots": 9.0,
+          "projection:outside_current": 6.0,
+          "projection:depth": 1.0,
+          "projection:incomplete_cut": 0.0,
+          "projection:lazy_neighbours": 0.0,
+          "gift_ledger_events": 4.0,
+          "gift_ledger_ancestor_events": 1.0,
+          "gift_ledger_prior_positive_events": 0.0,
+          "gift_ledger_audit_only": 1.0,
+          "raw_policy:b2a1": 0.125,
+          "raw_policy:b2a2": 0.125,
+          "raw_policy:b2a3": 0.125,
+          "raw_policy:b2b1": 0.125,
+          "raw_policy:b2b3": 0.125,
+          "raw_policy:b2c1": 0.125,
+          "raw_policy:b2c2": 0.125,
+          "raw_policy:b2c3": 0.125,
+          "played_policy:b2a1": 0.75,
+          "played_policy:b2a2": 0.125,
+          "played_policy:b2a3": 0.125,
+          "played_policy:b2b1": 0.0,
+          "played_policy:b2b3": 0.0,
+          "played_policy:b2c1": 0.0,
+          "played_policy:b2c2": 0.0,
+          "played_policy:b2c3": 0.0,
+          "growth_stop:round_limit": 1.0
+        },
+        "config_id": "sampled-I2-gadget-pcfr-prototype-v1:95feccafc2e9a684"
+      },
+      {
+        "ply": 3,
+        "player": "black",
+        "belief_sample": 3,
+        "population": 18,
+        "move": "g8f7",
+        "raw_policy": {
+          "g8f7": 0.2,
+          "g8f8": 0.2,
+          "g8g7": 0.2,
+          "g8h7": 0.2,
+          "g8h8": 0.2
+        },
+        "diagnostics": {
+          "search_nodes": 379.0,
+          "evaluator_calls": 0.0,
+          "solver_rounds": 8.0,
+          "solver_rounds_this_turn": 4.0,
+          "expansions": 0.0,
+          "mode_switches": 0.0,
+          "mode_resolve": 0.0,
+          "elapsed_ms": 60.99010002799332,
+          "over_budget": 0.0,
+          "fallback": 0.0,
+          "solver_root_value": 0.0,
+          "purification": 1.0,
+          "stop:round_limit": 1.0,
+          "submission_reserve_ms": 0.0,
+          "projection:retained": 54.0,
+          "projection:fresh": 0.0,
+          "projection:knowledge_roots": 54.0,
+          "projection:outside_current": 36.0,
+          "projection:depth": 1.0,
+          "projection:incomplete_cut": 0.0,
+          "projection:lazy_neighbours": 0.0,
+          "gift_ledger_events": 21.0,
+          "gift_ledger_ancestor_events": 3.0,
+          "gift_ledger_prior_positive_events": 0.0,
+          "gift_ledger_audit_only": 1.0,
+          "raw_policy:g8f7": 0.2,
+          "raw_policy:g8f8": 0.2,
+          "raw_policy:g8g7": 0.2,
+          "raw_policy:g8h7": 0.2,
+          "raw_policy:g8h8": 0.2,
+          "played_policy:g8f7": 0.6000000000000001,
+          "played_policy:g8f8": 0.2,
+          "played_policy:g8g7": 0.2,
+          "played_policy:g8h7": 0.0,
+          "played_policy:g8h8": 0.0,
+          "growth_stop:round_limit": 1.0
+        },
+        "config_id": "sampled-I2-gadget-pcfr-prototype-v1:95feccafc2e9a684"
+      },
+      {
+        "ply": 4,
+        "player": "white",
+        "belief_sample": 3,
+        "population": 18,
+        "move": "a1b2",
+        "raw_policy": {
+          "a1a2": 0.3333333333333333,
+          "a1b1": 0.3333333333333333,
+          "a1b2": 0.3333333333333333
+        },
+        "diagnostics": {
+          "search_nodes": 391.0,
+          "evaluator_calls": 36.0,
+          "solver_rounds": 12.0,
+          "solver_rounds_this_turn": 4.0,
+          "expansions": 0.0,
+          "mode_switches": 0.0,
+          "mode_resolve": 0.0,
+          "elapsed_ms": 163.8696000445634,
+          "over_budget": 0.0,
+          "fallback": 0.0,
+          "solver_root_value": 0.0,
+          "purification": 1.0,
+          "stop:round_limit": 1.0,
+          "submission_reserve_ms": 0.0,
+          "projection:retained": 0.0,
+          "projection:fresh": 3.0,
+          "projection:knowledge_roots": 3.0,
+          "projection:outside_current": 0.0,
+          "projection:depth": 3.0,
+          "projection:incomplete_cut": 54.0,
+          "projection:lazy_neighbours": 0.0,
+          "gift_ledger_events": 3.0,
+          "gift_ledger_ancestor_events": 0.0,
+          "gift_ledger_prior_positive_events": 0.0,
+          "gift_ledger_audit_only": 1.0,
+          "raw_policy:a1a2": 0.3333333333333333,
+          "raw_policy:a1b1": 0.3333333333333333,
+          "raw_policy:a1b2": 0.3333333333333333,
+          "played_policy:a1a2": 0.3333333333333333,
+          "played_policy:a1b1": 0.3333333333333333,
+          "played_policy:a1b2": 0.3333333333333333,
+          "growth_stop:round_limit": 1.0
+        },
+        "config_id": "sampled-I2-gadget-pcfr-prototype-v1:95feccafc2e9a684"
+      },
+      {
+        "ply": 5,
+        "player": "black",
+        "belief_sample": 3,
+        "population": 105,
+        "move": "f7e8",
+        "raw_policy": {
+          "f7e6": 0.0,
+          "f7e7": 0.0,
+          "f7e8": 0.16666666666666666,
+          "f7f6": 0.16666666666666666,
+          "f7f8": 0.16666666666666666,
+          "f7g6": 0.16666666666666666,
+          "f7g7": 0.16666666666666666,
+          "f7g8": 0.16666666666666666
+        },
+        "diagnostics": {
+          "search_nodes": 1162.0,
+          "evaluator_calls": 112.0,
+          "solver_rounds": 12.0,
+          "solver_rounds_this_turn": 4.0,
+          "expansions": 0.0,
+          "mode_switches": 2.0,
+          "mode_resolve": 0.0,
+          "elapsed_ms": 565.5802001710981,
+          "over_budget": 0.0,
+          "fallback": 0.0,
+          "solver_root_value": 0.0,
+          "purification": 1.0,
+          "stop:round_limit": 1.0,
+          "submission_reserve_ms": 0.0,
+          "projection:retained": 0.0,
+          "projection:fresh": 3.0,
+          "projection:knowledge_roots": 3.0,
+          "projection:outside_current": 0.0,
+          "projection:depth": 3.0,
+          "projection:incomplete_cut": 324.0,
+          "projection:lazy_neighbours": 0.0,
+          "gift_ledger_events": 3.0,
+          "gift_ledger_ancestor_events": 0.0,
+          "gift_ledger_prior_positive_events": 0.0,
+          "gift_ledger_audit_only": 1.0,
+          "raw_policy:f7e6": 0.0,
+          "raw_policy:f7e7": 0.0,
+          "raw_policy:f7e8": 0.16666666666666666,
+          "raw_policy:f7f6": 0.16666666666666666,
+          "raw_policy:f7f8": 0.16666666666666666,
+          "raw_policy:f7g6": 0.16666666666666666,
+          "raw_policy:f7g7": 0.16666666666666666,
+          "raw_policy:f7g8": 0.16666666666666666,
+          "played_policy:f7e6": 0.0,
+          "played_policy:f7e7": 0.0,
+          "played_policy:f7e8": 0.6666666666666666,
+          "played_policy:f7f6": 0.16666666666666666,
+          "played_policy:f7f8": 0.16666666666666666,
+          "played_policy:f7g6": 0.0,
+          "played_policy:f7g7": 0.0,
+          "played_policy:f7g8": 0.0,
+          "growth_stop:round_limit": 1.0
+        },
+        "config_id": "sampled-I2-gadget-pcfr-prototype-v1:95feccafc2e9a684"
+      }
+    ],
+    "final_ledgers": {
+      "white": {
+        "events": [
+          {
+            "event_id": "32e7189ca402d635f81d6c130db01eb2ce4ee3e1ace666c7e09aea369e64dd1c",
+            "source_unit": "no-prior-cf:projected:3e71f7a32efd65d67931a784b75037c69ce1a7bc00ca2ed24e17bc590b7d3419",
+            "group": "fresh-perfect-info:projected:3e71f7a32efd65d67931a784b75037c69ce1a7bc00ca2ed24e17bc590b7d3419",
+            "local_gift": 0.0,
+            "terms": [],
+            "parents": []
+          },
+          {
+            "event_id": "ed2cc38d92345302b952d390f6fbae16df6a4b4a25cfbb91103d2e05930ea506",
+            "source_unit": "no-prior-cf:projected:6839527143b69e0d3a621ae46c423e1df8572df2cab1ba95b8836feda66de244",
+            "group": "fresh-perfect-info:projected:6839527143b69e0d3a621ae46c423e1df8572df2cab1ba95b8836feda66de244",
+            "local_gift": 0.0,
+            "terms": [],
+            "parents": []
+          },
+          {
+            "event_id": "fd1236586ef141adfa4f276fcd49dfc81db71428e68f0f17016142faef28c1ca",
+            "source_unit": "no-prior-cf:projected:e41344f3e0e4f1b157def25f12350f5add7a8800f9771f21e3c7dba1b1f7ca8e",
+            "group": "fresh-perfect-info:projected:e41344f3e0e4f1b157def25f12350f5add7a8800f9771f21e3c7dba1b1f7ca8e",
+            "local_gift": 0.0,
+            "terms": [],
+            "parents": []
+          }
+        ],
+        "roots": [
+          "fd1236586ef141adfa4f276fcd49dfc81db71428e68f0f17016142faef28c1ca",
+          "ed2cc38d92345302b952d390f6fbae16df6a4b4a25cfbb91103d2e05930ea506",
+          "32e7189ca402d635f81d6c130db01eb2ce4ee3e1ace666c7e09aea369e64dd1c"
+        ]
+      },
+      "black": {
+        "events": [
+          {
+            "event_id": "8f1fed4241e55cfc099529aafa4c45405d898bd7f7d5b370154946be4cb8219f",
+            "source_unit": "no-prior-cf:projected:ed388baeda9ba588fbd39a82aa6e27c1b5da028147846ca1969fdbdf081565f9",
+            "group": "fresh-perfect-info:projected:ed388baeda9ba588fbd39a82aa6e27c1b5da028147846ca1969fdbdf081565f9",
+            "local_gift": 0.0,
+            "terms": [],
+            "parents": []
+          },
+          {
+            "event_id": "be7c9562056234a689a96a3a2201e5c97e44c90c1a9eeedf5e3413efe2f1f623",
+            "source_unit": "no-prior-cf:projected:eeb25f7994363eaca8d55e1995137a74f3e72d7e6f3aa1bbc6919a82218cd23a",
+            "group": "fresh-perfect-info:projected:eeb25f7994363eaca8d55e1995137a74f3e72d7e6f3aa1bbc6919a82218cd23a",
+            "local_gift": 0.0,
+            "terms": [],
+            "parents": []
+          },
+          {
+            "event_id": "e59bea7080a561dd0caee579a5fca0537cb23e550c0bfb4d57d9e51197e68900",
+            "source_unit": "no-prior-cf:projected:26868b82f04cfe4c69a2744a1579aa7c3102431c67f1a0770e55a422397b7ae1",
+            "group": "fresh-perfect-info:projected:26868b82f04cfe4c69a2744a1579aa7c3102431c67f1a0770e55a422397b7ae1",
+            "local_gift": 0.0,
+            "terms": [],
+            "parents": []
+          }
+        ],
+        "roots": [
+          "8f1fed4241e55cfc099529aafa4c45405d898bd7f7d5b370154946be4cb8219f",
+          "be7c9562056234a689a96a3a2201e5c97e44c90c1a9eeedf5e3413efe2f1f623",
+          "e59bea7080a561dd0caee579a5fca0537cb23e550c0bfb4d57d9e51197e68900"
+        ]
+      }
+    }
+  }
+}
