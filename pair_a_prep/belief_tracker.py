@@ -119,7 +119,9 @@ class BeliefTracker:
 
     @property
     def support_complete(self):
-        return self._complete and self._pending is None
+        return self._complete and (
+            self._pending is None or
+            (self._pending.finished and self._previous is self._pending.observation))
 
     def reset(self, player, seed, initial_fen=None):
         if player not in ("white", "black"):
@@ -185,7 +187,8 @@ class BeliefTracker:
         if self._pending is not None and not self._pending.count:
             raise ValueError("pending update has no current candidate; call resume()")
         if self._pending is not None:
-            self._complete = False
+            # An output-only interruption did not discard any graph branches.
+            self._complete = self._pending.finished and self._pending.previous_complete
             self._pending = None
         expected = ObservationFilter(observation)
         initial = self._previous is None
@@ -333,7 +336,9 @@ class BeliefTracker:
             self._previous = pending.observation
             self._rng.setstate(rng.getstate())
             self._complete = complete
-        if finished and belief is not None:
+        # Keep completed graphs available when only output materialization ran
+        # out of budget. resume() resamples from the saved pre-update RNG state.
+        if finished and belief is not None and output_stopped is None:
             self._pending = None
         status = "complete" if complete and stopped is None else "partial" if belief else "no_candidate"
         return self._result(pending, belief, status, stopped, complete, finished, began)
