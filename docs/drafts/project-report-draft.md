@@ -204,194 +204,224 @@ search stack or its knowledge-limited gadgets [5,6].
 
 ---
 
-## 4. Learned Evaluation and Data
+## 4. Learned Leaf Evaluation
 
-### 4.1 Evaluators and Representation
+### 4.1 The Leaf Problem
 
-The interchangeable evaluators include material values (1/3/3/5/9), Stockfish
-depths 1 and 11, a linear correction, Network 1 and a belief-conditioned
-network. Engine centipawn values are mapped into [-1,1] using tanh(cp/600),
-with forced mates mapped to the endpoints and applicable fog-rule values
-handled first. All returned values use the documented player perspective [3,5].
+A chess search cannot look to the end of the game. It stops at some depth and
+needs a value for each position where it stops. We call such a position a leaf,
+and the function that values it a leaf evaluator. Obscuro uses Stockfish at
+depth 1, which we call "quick Stockfish" [2]. A more accurate leaf could let a
+search see further for the same cost. DeepStack [15] and ReBeL [16] use learned
+leaf values in this way.
 
-Network 1 corrects a shallow Stockfish estimate; it does not eliminate the
-depth-1 engine call. A linear correction supplies a lower-complexity comparator.
-The belief network uses a shared board encoder, combines each board embedding
-with a weighted summary of the belief, and produces board values conditioned
-on that context. The shared representation has 32 spatial planes, including
-board, observation and rule-related features, with player-relative orientation.
-These distinctions separate the costs of feature construction, engine work and
-learned inference [3,5].
+Our leaf evaluators all answer the same calls. They value the children of a
+position, one board, or a whole belief. A belief is the set of boards that a
+player thinks possible, each with a weight. Values are in [−1, 1], from the
+view of the player to move. Positions that the fog-of-war rules decide, such as
+a king that can be captured, get an exact value first. A search can therefore
+change its evaluator by changing one argument.
 
-The whole-belief interface can evaluate several hypotheses jointly. However,
-the existing one-ply match runner calls the belief network board by board through
-its child-evaluation interface. Offline whole-belief accuracy and online
-board-wise performance therefore test different uses of the same checkpoint.
-We do not describe those matches as whole-belief gameplay validation [5].
+This is the core of RQ1 in Section 1: does a more accurate leaf value give
+better moves?
 
-### 4.2 Data Generation and Evaluation Independence
+### 4.2 Data
 
-The initial labels use deeper Stockfish, not an established fog-of-war equilibrium
-teacher. Network 1's practice data come from ordinary-chess trajectories used
-as a stand-in. Data are partitioned by a hash of the game identifier, with
-buckets 0-7 for training, 8 for validation and 9 for the held-out test. Splitting
-by whole games prevents sibling positions from the same game crossing splits;
-it does not prevent every transposition across independently generated games [5].
+Pair A's solver could not yet label fog-of-war positions in large numbers. We
+therefore trained on practice data from ordinary chess. We generated 8,000
+games that mix quick Stockfish moves with random moves. Where the fog-of-war
+rules end a game differently, those rules give the result.
 
-The reported development check uses 959 games from the training bucket of a
-separate 1,200-game generation. It contains 3,818 parent decisions and 94,963
-non-rule-decided child rows. Candidate Network 1 runs were compared on this
-check set as well as validation, so these are development measurements, not
-untouched final-test estimates. The repository records 168 overlapping child
-positions (0.18%) with the earlier training/validation data. The sealed test
-bucket is not opened as part of this draft [5].
+From each game we take four positions. Stockfish 19 values every child of each
+position at depth 1 and at depth 11. As in Obscuro's leaf, one engine call at
+the parent scores all its children [2]. We call the depth-11 engine "careful
+Stockfish" and use its value as the target. A score of *c* centipawns
+(hundredths of a pawn) becomes the value tanh(*c*/600). A forced mate is +1 or
+−1.
 
-Belief training uses synthetic observation-consistent hypotheses and full-board
-Stockfish depth-11 labels. The generator can use the true board offline, but
-the playing agent cannot. Since these labels do not change with the surrounding
-belief, a context-sensitive model fitted to them is not thereby trained to value
-information gathering or the opponent's knowledge. Such a claim needs validated
-belief-state targets or a separate strategic experiment [5].
+A hash of the game ID puts 80% of the games in training, 10% in validation and
+10% in a sealed test set. One game is therefore never in two sets. Our results
+use a separate check set of 959 games, made with a different seed. It holds
+3,818 decisions, with 94,963 children that the rules do not decide. The check
+set also chose between three Network 1 runs, so its results are development
+results [5].
 
----
+### 4.3 Evaluators
 
-## 5. Evaluation Methodology
+Besides quick and careful Stockfish, we compare five evaluators. Here *v*₁ is
+quick Stockfish's value.
 
-Development evaluation measures absolute value error, agreement with the best
-depth-11-valued sibling move, and value lost by the selected move. Ties in the
-scorer are broken in UCI order. Uncertainty for the reported differences is
-estimated by resampling whole games, because positions within a game are
-correlated. These metrics measure agreement with an approximate full-board
-teacher, not exact fog-of-war optimality [5].
+- **Piece values:** a material count with weights 1, 3, 3, 5 and 9. This is the
+  floor.
+- **Linear correction:** *v*₁ plus a linear function of 1,217 board features,
+  fitted by ridge regression. Bryan built this simple baseline.
+- **Linear, inside tanh:** the same correction inside the tanh, *v* =
+  tanh(atanh(*v*₁) + **w**·**x** + *b*).
+- **Network 1:** *v* = tanh(atanh(*v*₁) + *f*(board)), where *f* is a
+  convolutional network with 521,000 weights. It learns careful Stockfish's
+  value by regression. This is distillation: a fast model learns to copy a
+  slow, stronger one.
+- **Belief network:** a network with 562,000 weights that values all boards of
+  a belief together. Each board's value can therefore use the other boards. Its
+  labels are careful Stockfish's values of each board alone.
 
-For formal play, seven candidates played Stockfish depth 1 using the same outer
-planner for evaluator-based agents, 256 particles and eight hypotheses. Random
-play is an additional baseline. Each pairing scheduled 200 games: 100 openings,
-each played with colors exchanged. Openings use two to eight nonterminal random
-legal plies with seed 0 under the recorded generation rule [6,7,13].
-
-Colin ran all rows on one M5 Pro Mac at a5c5fb6 (main 2af8f1f plus PR34),
-26–27 October. The summaries record code, engine, checkpoint and environment
-identities. The batch predates both PR28's no-move draw rule, merged through
-PR15, and PR37's fog-of-war en passant repetition key. Its stand-in summaries
-retain `no_move_rule=unresolved`; no game hit a no-move case. Keep the original
-provenance and never pool with later-rule runs.
-Bryan independently audited the records; he did not rerun the matches [7,13].
-
-Game scores are 1/0.5/0 for win/draw/loss. The primary estimate averages the
-two scores within each complete color pair, then averages complete pairs.
-Incomplete pairs, failed games and diagnostic errors are counted separately.
-The protocol uses a 2,000-resample paired bootstrap when at least 20 complete,
-nonconstant pair scores are available; otherwise it reports an approximate
-Wilson interval for fractional pair scores and explains why bootstrap is absent.
-Pair B counts a still-ongoing game at the 200-ply cap as a draw; Pair C
-separately reports capped/null outcomes. Keep these protocols distinct.
-
-Stockfish 19 uses one thread and 16 MB hash, reset before each game. A 60-second
-per-call watchdog is failure protection, not an enforced action-time limit.
-Report both players' mean/p95 decision latency, game wall time and tracker health.
-Each row must footnote unresolved no-move exclusions or recorded no-move draws
-under its pinned rule. PR28 is now on main and also changes evaluated stand-in
-children; PR37 also changes repetition adjudication. Zero no-move failures
-does not establish rule-version equivalence.
-Compare engine binary hashes alongside source/checkpoint identities.
-Outer planning, not compute/time, is controlled; timing excludes tracker updates.
-Per-row intervals are not multiple-comparison-adjusted evidence [6,7].
+The learned evaluators correct *v*₁. They still need the quick Stockfish call,
+so their cost adds to it.
 
 ---
 
-## 6. Available Results and Analysis
+## 5. Evaluation Method
 
-### 6.1 Development-Set Evaluator Results
+**Offline.** We compare each evaluator with careful Stockfish on the check set.
+**Value error** is the mean absolute difference from careful Stockfish's value.
+**Same top move** is how often the evaluator's best child is also careful
+Stockfish's best child. **Value lost** is how much lower careful Stockfish
+values the evaluator's choice than its own best child. Positions from one game
+are correlated. Each 95% interval therefore comes from 2,000 resamples of whole
+games. Evaluators are compared on the same positions.
 
-Table 1 summarizes repository-reported results on the 94,963 child rows described
-in Section 4, not a fresh experiment run for this report [5].
+**In play.** A simple one-ply bot keeps 256 sampled boards that fit what it has
+seen. At each move, it values every legal move on 8 of these boards. It then
+plays the move with the highest average value. Both sides use this bot, and
+only the leaf evaluator changes. The opponent is always quick Stockfish.
 
-| Evaluator | Value error | Best-move agreement | Mean value lost |
-| --- | --- | --- | --- |
-| Material | 0.336 | 27.7% | 0.2108 |
-| Stockfish D1 | 0.095 | 42.9% | 0.0355 |
-| Network 1 | 0.076 | 42.4% | 0.0352 |
-| Linear correction | 0.084 | 41.5% | 0.0346 |
+Each match plays 100 random openings of 2 to 8 plies (single moves), each twice
+with the colours swapped. A win scores 1, a draw 0.5 and a loss 0. The paired
+score is the mean over complete pairs of games, so 0.5 means equal strength. We
+give a bootstrap interval over pairs and Wilson's interval. A game that reaches
+200 plies counts as a draw [6,7].
 
-Network 1 reduces value error by about 20% relative to D1; the reported paired
-difference is -0.019 (95% interval -0.021 to -0.018). Its difference in mean
-value lost is -0.0003 (interval -0.0017 to +0.0011), which does not establish
-an improvement in move selection. Lower regression error can correct many
-values without changing the ranking of the few actions that matter [5].
-
-The offline belief check uses 3,818 beliefs from the same fresh-game check
-population. It is a separate task from the child-ranking table above [5].
-
-| Belief evaluator | Board error | Weighted-position error |
-| --- | --- | --- |
-| Stockfish D1 | 0.080 | 0.055 |
-| Planes-only belief network | 0.178 | 0.141 |
-| D1-assisted belief network | 0.074 | 0.047 |
-| D1-assisted network without context | 0.076 | 0.047 |
-
-Across five seeds, context reduces board error by about 0.0028 on average;
-the reported range is -0.0049 to -0.0011. Because the labels are independent
-of belief, this supports a denoising interpretation, not learned strategic
-information value. The planes-only model's weaker result also cautions against
-assuming that representation capacity can replace adequate data or engine
-features. These results do not show that the learned models are faster than D1.
-
-### 6.2 Historical Match Cross-Check
-
-Bryan's independently audited historical run used ten color-paired seeds from
-the standard public start: D1 won all 20 games against material, with no draws
-or losses and 734 plies, all ending in king capture [8]. The paired score is
-1.00 with approximate Wilson 95% interval 0.72-1.00. Bootstrap is withheld:
-there are only ten pairs and all pair scores are identical.
-
-Bryan's source was 3afc594, with per-call engine reset; Colin's was 00639cb,
-with per-game reset [6,8]. Bryan recorded 1,508 tracker updates, 42 rebuilds
-and 163 caps. The runs share game machinery but differ in build, platform,
-Python and seed mapping; both predate the watchdog. Matching aggregate scores
-are not runner equivalence or neural strength evidence; the runs are not pooled.
+This design holds the work per move equal, not the time. The bot treats each
+sampled board as if it were the true board, a known weakness called strategy
+fusion [17]. It is a baseline for comparing leaves, not the team's agent.
 
 ---
 
-### 6.3 Archived Match Batch
+## 6. Results
 
-Table 2 reports the seven comparisons against quick Stockfish. Score and
-intervals use complete color pairs (100 per row, 99 for random); W/D/L counts
-every finished game (199 for random). All figures were recomputed from the
-archived game records at PR38 head 5e9393a [13]. Scores and intervals follow
-the published table's half-up rounding; a few log cells round differently [7].
+Sections 6.1 and 6.2 answer RQ1. Section 6.3 answers RQ2, and Section 6.4
+answers RQ3.
 
-| Candidate | Score | Bootstrap 95% | W/D/L | ms/move median (p95) |
-| --- | --- | --- | --- | --- |
-| D1 self-play | 0.520 | 0.455–0.588 | 103/2/95 | 11.1 (23.9) |
-| Random | 0.000 | Withheld* | 0/0/199 | 0.0 (0.0) |
-| Material | 0.048 | 0.023–0.078 | 9/1/190 | 4.3 (7.3) |
-| Linear | 0.513 | 0.455–0.573 | 98/9/93 | 14.2 (30.0) |
-| Network 1 | 0.515 | 0.448–0.585 | 100/6/94 | 36.1 (52.7) |
-| Belief | 0.563 | 0.495–0.630 | 111/3/86 | 149.8 (257.4) |
-| D11 | 0.585 | 0.513–0.660 | 114/6/80 | 2452.2 (9054.7) |
+### 6.1 Better Values, Not Better Moves
 
-*Random pairs all score zero, so bootstrap is withheld; Wilson 95% is
-0.000–0.037. Other Wilson intervals and mean/p95 timings are in [7,13].
-One TrackerLost failure excludes random game 36 and its partner from the score,
-leaving 1,398 games in 699 complete pairs; 1,399 games finished overall.
-There are no diagnostic errors or recorded 60-second budget overruns.
+**Table 1.** Leaf evaluators on the check set (959 games), against careful
+Stockfish. Time is the median CPU cost to value the children of one position.
 
-Draws include six capped/adjudicated games: two of linear's nine draws and
-four of D11's six. Every other draw is repetition. Each row has zero no-move
-exclusions and zero terminal no-move draws under the pinned pre-rule source.
+| Evaluator | Value error | Same top move | Value lost | ms per position |
+|---|---|---|---|---|
+| Piece values | 0.336 | 27.7% | 0.2108 | 0.6 |
+| Quick Stockfish | 0.095 | 42.9% | 0.0355 | 1.4 |
+| Linear correction | 0.084 | 41.5% | 0.0346 | 1.7 |
+| Linear, inside tanh | 0.079 | 43.5% | 0.0348 | not timed |
+| **Network 1** | **0.076** | 42.4% | 0.0352 | 12.2 |
 
-D1 self-play spans 0.5. Linear and Network 1 do not establish improvement
-over D1, consistent with the development ranking result. Belief's interval
-also includes 0.5. D11's bootstrap narrowly excludes 0.5, but its Wilson
-interval (0.487–0.677) includes it; no adjusted superiority claim follows.
-These are separate pairings against D1, not a head-to-head ranking.
+Network 1's value error is 20% lower than quick Stockfish's. The difference is
+−0.019 (95% interval −0.021 to −0.018). But its moves are no better. Its value
+lost differs by −0.0003 (−0.0017 to +0.0011), which is a tie.
 
-Compute differs substantially: median Network 1, belief and D11 decisions
-are about 3, 13 and 220 times D1's. Belief scores single-board children in
-this runner, so its row is not evidence of strategic information value.
-The fixed outer planner controls neither total work nor elapsed time.
-The pre-rule batch is never pooled with later-rule or historical checks.
+Figure 1 shows why. On decided positions, Network 1 halves the error. On close
+positions, every learned evaluator is worse than quick Stockfish. In a decided
+position, most moves keep the same result, so errors there change few choices.
+In a close position, a small error can change the best move. The learned gain
+therefore falls where it matters least. This agrees with a known result: a
+greedy policy can be optimal long before its values are accurate [18].
+
+![Figure 1. Value error by how decided the position is, on the check set. The learned evaluators gain on positions that lean one way or are decided. They lose on close positions.](../../pair_b/experiments/tanh_linear/value-error-by-band.png)
+
+Most of the gain needs no network. The linear correction gets 56% of Network
+1's gain, and 83% inside the tanh. Network 1 also costs more: about 9 times
+quick Stockfish's time on a CPU, and 3 times on an Apple GPU. A leaf for search
+must rank the moves of close positions well. This points to labels from real
+fog-of-war positions, and to a training loss that ranks sibling moves.
+
+### 6.2 Copy a Stronger Engine, Not Game Results
+
+Can a leaf learn from game results instead? We fitted the "linear, inside tanh"
+model on 6,414 training games to four targets [18]. Two targets are careful
+Stockfish's value (distillation) and the final result (Monte Carlo, MC). The
+other two are temporal-difference targets: TD(0), and TD(λ) with λ = 0.8. TD
+uses fitted value iteration, with up to 15 rounds. MC and TD never see careful
+Stockfish.
+
+**Table 2.** The same model trained on four targets, scored on the check set.
+Outcome error is the mean squared difference from the final game result.
+
+| Target | Value error | Outcome error | Same top move | Value lost |
+|---|---|---|---|---|
+| **Careful Stockfish (distillation)** | **0.079** | 0.513 | **43.5%** | **0.0348** |
+| Game result (MC) | 0.217 | 0.481 | 38.6% | 0.0505 |
+| TD(0) | 0.185 | **0.476** | 42.1% | 0.0370 |
+| TD(λ), λ = 0.8 | 0.208 | 0.476 | 41.5% | 0.0415 |
+| Quick Stockfish, no learning | 0.095 | 0.497 | 42.9% | 0.0355 |
+
+Values learned from game results are worse than quick Stockfish alone. Their
+value error is 0.18 to 0.22, and they choose worse moves. MC gets worse with
+more data: its value error grows from 0.098 at 100 games to 0.217 at 6,414
+games.
+
+These models predict game results slightly better than distillation does. But
+the results come from weak practice play. The models therefore learn how weak
+play ends from a position, not how good play values it. TD predicts results
+better than MC, by 0.005 (0.001 to 0.010), as its lower-variance targets
+suggest [18]. Learning from results would need a strong player and far more
+games, as in AlphaZero [19].
+
+### 6.3 The Belief Network
+
+On practice beliefs, the belief network values boards better than quick
+Stockfish. Its board error is 0.074, against 0.080. Its error on the belief's
+weighted value is 0.047, against 0.055, a difference of −0.008 (−0.009 to
+−0.007). The other boards of the belief help a little. Over five seeds, board
+error is 0.0734 with them and 0.0762 without them, and every seed improves.
+
+But each label is the value of one board alone. The labels do not depend on the
+belief, or on what either player knows. The gain is therefore best read as
+noise reduction, not as a value for hidden information. That test needs labels
+that depend on the belief, such as values from Pair A's solver.
+
+### 6.4 Play Against Quick Stockfish
+
+**Table 3.** Each row is 200 games of one evaluator against quick Stockfish,
+both inside the one-ply bot. The first row, quick Stockfish against itself, is
+a control. Time is the median per move.
+
+| Evaluator | Score | Bootstrap 95% | Wilson 95% | W/D/L | ms per move |
+|---|---|---|---|---|---|
+| Quick Stockfish | 0.520 | 0.455–0.588 | 0.423–0.615 | 103/2/95 | 11.1 |
+| Random moves | 0.000 | none\* | 0.000–0.037 | 0/0/199 | 0.005 |
+| Piece values | 0.048 | 0.023–0.078 | 0.020–0.108 | 9/1/190 | 4.3 |
+| Linear correction | 0.513 | 0.455–0.573 | 0.416–0.608 | 98/9/93 | 14.2 |
+| Network 1 | 0.515 | 0.448–0.585 | 0.418–0.611 | 100/6/94 | 36.1 |
+| Belief network | 0.563 | 0.495–0.630 | 0.465–0.656 | 111/3/86 | 149.8 |
+| Careful Stockfish | 0.585 | 0.513–0.660 | 0.487–0.677 | 114/6/80 | 2,452 |
+
+\* All pairs score 0, so the bootstrap has no spread. One game failed when
+quick Stockfish's bot had no sampled board left that fitted its observations.
+That game and its pair are left out, so this row uses 99 pairs.
+
+The control rows behave as expected. Quick Stockfish against itself scores
+0.520. Random moves and piece values lose almost every game. Network 1 and the
+linear correction tie with quick Stockfish: all their intervals include 0.5.
+This agrees with Section 6.1.
+
+The belief network and careful Stockfish score above 0.5, but the evidence is
+weak. Only careful Stockfish's bootstrap interval excludes 0.5, and a
+correction for testing seven rows would remove that result. The rows are
+separate matches against one opponent, so they do not rank the evaluators.
+
+The costs differ greatly. Per move, Network 1 takes about 3 times as long as
+quick Stockfish, the belief network 13 times and careful Stockfish 220 times.
+The bot calls the belief network on one board at a time, so this row does not
+test whole-belief evaluation.
+
+All rows ran on one computer with one fixed code version, on 26 and 27 October
+2026. Bryan checked the game records independently. The batch ran before the
+team added a draw rule for positions with no legal move. No game reached such a
+position [13].
+
+### 6.5 Our Leaf Inside Pair A's Search
+
+> **To come.** Matches of the full agent, first with quick Stockfish as its leaf and then with our best leaf evaluator. These can run when the belief tracker completes full games. Use the format of Table 3.
 
 ---
 
@@ -530,6 +560,16 @@ comparisons do not establish full-agent strength or strategic belief value.
 13. emalcolin. Seven-row match batch [Internet]. 2026 Oct 27 [cited 2026 Oct 27]. PR38, reviewed revision 5e9393ab8537088e8ea6542ce21e11f42218ee15; execution source a5c5fb6. Available from: [pinned records, checksums and tables](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27).
 
 14. CS5446_project contributors, bryankuah. Integration status and scoped search reviews [Internet]. 2026 Oct 28 [cited 2026 Oct 28]. Main 987108329d19fd1b4113883131d551fc68d39dd3 includes PR37, PR38 and PR45. Reviewed unmerged heads: PR42 25688180178589d41daadfaa5a23117a115fe96d; PR52 5e74ede8ef874a3bdc31564830e889f113951f87; PR46 ee42c8f8e41858431e000825a437ee39b2e88b7b; PR48 879818c16518e1d706cf60fe5f666979d532aec9. Available from: [pinned main](https://github.com/Mr-Teal/CS5446_project/tree/987108329d19fd1b4113883131d551fc68d39dd3); [PR37 delivery](https://github.com/Mr-Teal/CS5446_project/pull/37); [PR42 review](https://github.com/Mr-Teal/CS5446_project/pull/42#pullrequestreview-5679229932); [PR52 review](https://github.com/Mr-Teal/CS5446_project/pull/52#pullrequestreview-5679231586); [PR46 review](https://github.com/Mr-Teal/CS5446_project/pull/46#pullrequestreview-5679261471); [PR48 review](https://github.com/Mr-Teal/CS5446_project/pull/48#pullrequestreview-5679267479).
+
+15. Moravčík M, Schmid M, Burch N, Lisý V, Morrill D, Bard N, et al. DeepStack: expert-level artificial intelligence in heads-up no-limit poker. Science. 2017;356(6337):508-13.
+
+16. Brown N, Bakhtin A, Lerer A, Gong Q. Combining deep reinforcement learning and search for imperfect-information games. In: Advances in Neural Information Processing Systems 33 (NeurIPS 2020); 2020.
+
+17. Frank I, Basin D. Search in games with incomplete information: a case study using Bridge card play. Artificial Intelligence. 1998;100(1-2):87-123.
+
+18. Sutton RS, Barto AG. Reinforcement learning: an introduction. 2nd ed. Cambridge (MA): MIT Press; 2018.
+
+19. Silver D, Hubert T, Schrittwieser J, Antonoglou I, Lai M, Guez A, et al. A general reinforcement learning algorithm that masters chess, shogi, and Go through self-play. Science. 2018;362(6419):1140-4.
 
 ---
 
