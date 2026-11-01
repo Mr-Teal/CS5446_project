@@ -20,13 +20,14 @@ class Child(C.Structure):
 def library():
     root = Path(__file__).parent
     directory = root / "_belief_build"
-    if sys.platform != "win32" or not (directory / "manifest.json").exists():
+    if not (directory / "manifest.json").exists():
         return None
     from .build_belief_kernel import source_hashes
     record = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
     if record["source_sha256"] != source_hashes():
         return None
-    path = directory / record.get("library", "belief_kernel.dll")
+    from .build_belief_kernel import library_suffix
+    path = directory / record.get("library", "belief_kernel" + library_suffix())
     if not path.exists() or sha256(path.read_bytes()).hexdigest() != record["dll_sha256"]:
         return None
     dll = C.CDLL(str(path))

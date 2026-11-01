@@ -1,0 +1,10 @@
+# Host-built artifacts must not leak in: the point is to compile from source.
+.venv/
+pair_a_prep/_belief_build/
+pair_a_prep/zs21/native/inference.so
+pair_a_prep/zs21/native/inference.dylib
+pair_c/runs/
+__pycache__/
+**/__pycache__/
+*.pyc
+.pytest_cache/
