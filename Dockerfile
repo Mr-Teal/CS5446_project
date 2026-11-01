@@ -17,9 +17,11 @@ RUN pip install --no-cache-dir \
 
 COPY . /repo
 
-# Both accelerators, compiled here. The second one only works because of the
-# POSIX port; on an unported tree it exits with "supports Windows".
-RUN python zs21_runtime/scripts/build.py --native \
+# Everything native, compiled here: the inference library, the batch engine from
+# the vendored Stockfish 13 source, and the belief accelerator. The audited
+# Windows .exe is excluded by .dockerignore, so nothing in this image is a
+# Windows binary and the engine tests run rather than skip.
+RUN python zs21_runtime/scripts/build.py --host-engine \
     && python -m pair_a_prep.build_belief_kernel
 
 CMD ["python", "-m", "pytest", "tests", "pair_a_prep/tests", \

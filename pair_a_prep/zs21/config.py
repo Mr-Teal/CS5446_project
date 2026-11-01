@@ -2,6 +2,7 @@
 
 import hashlib
 from pathlib import Path
+import sys
 import tomllib
 
 from .rule_profile import RULES_ID, NO_MOVE_RULE, TERMINAL_PRECEDENCE
@@ -12,6 +13,21 @@ def default_path():
     if packaged.is_file():
         return packaged
     return Path(__file__).resolve().parents[4] / "configs/runtime.toml"
+
+
+def _engine_for_host(configured):
+    """The configured artifact, or a host build of the same source beside it.
+
+    The audited Windows binary stays what runtime.toml names, so the config hash
+    and its provenance are unchanged. Where someone has built the vendored source
+    for this host with `build.py --host-engine`, that build is used; where nobody
+    has, the .exe is returned so audited_engine_available() still explains the skip.
+    """
+    if configured.suffix.lower() == ".exe" and sys.platform != "win32":
+        host = configured.with_suffix("")
+        if host.is_file():
+            return host
+    return configured
 
 
 def load(path=None, variant="main"):
@@ -38,7 +54,7 @@ def load(path=None, variant="main"):
     project = path.parent.parent
     return dict(path=str(path), sha256=hashlib.sha256(path.read_bytes()).hexdigest(), data=data,
                 specification_sha256=hashlib.sha256((path.parent/data["specification"]).read_bytes()).hexdigest(),
-                engine=str((project/data["engine"]["path"]).resolve()),
+                engine=str(_engine_for_host((project/data["engine"]["path"]).resolve())),
                 agent_kwargs=dict(scale=data["agent"][variant+"_scale"],
                                   particle_floor=data["agent"]["particle_floor"],
                                   support_tolerance=data["agent"]["support_tolerance"],

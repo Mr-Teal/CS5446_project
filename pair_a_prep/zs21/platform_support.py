@@ -65,4 +65,9 @@ def audited_engine_available() -> tuple[bool, str]:
         return False, f"audited engine is a Windows binary: {engine.name}"
     if not os.access(engine, os.X_OK):
         return False, f"audited engine is not executable here: {engine}"
+    if engine.suffix.lower() != ".exe":
+        # A host build from the pinned source, not the audited Windows binary.
+        # Equivalent by source and network, not by bytes; say so rather than let
+        # a report inherit the stronger word.
+        return True, f"host build of the pinned engine source present: {engine}"
     return True, f"audited engine present: {engine}"
