@@ -22,9 +22,12 @@ def main():
     parser.parse_args()
     if sys.platform != "win32":
         raise SystemExit("Optional native backend currently supports Windows; Python backend remains portable")
-    compiler = shutil.which("g++") or shutil.which("x86_64-w64-mingw32-g++")
+    compiler = shutil.which("x86_64-w64-mingw32-g++") or shutil.which("g++")
     if compiler is None:
         raise SystemExit("No C++ compiler in activated environment; use Pixi darkchess or Python backend")
+    target = subprocess.check_output([compiler, "-dumpmachine"], text=True).strip()
+    if sys.maxsize > 2**32 and not target.startswith("x86_64"):
+        raise SystemExit(f"A 64-bit Python requires an x86_64 compiler, got {target}: {compiler}")
     directory = ROOT / "_belief_build"
     directory.mkdir(exist_ok=True)
     digest = sha256(json.dumps(source_hashes(), sort_keys=True).encode()).hexdigest()[:16]
