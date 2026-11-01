@@ -20,6 +20,7 @@ from pairb.rules import GameReferee, pick_rules
 
 from pair_c.agent_api import load_player, project_path
 from pair_c.tracker_api import load_tracker_factory
+from pair_c.tracking import RecordingTracker
 
 
 def load_config(path: Path) -> dict:
@@ -101,6 +102,13 @@ def summarize(records: list[dict], config: dict) -> dict:
             "max_ms_per_move": max(values) if values else None,
         }
 
+    tracking = {"a": [], "b": []}
+    tracking_failures = 0
+    for record in records:
+        for update in record.get("tracker_updates", []):
+            tracking[record["player_by_color"][update["player"]]].append(update["elapsed_ms"])
+            tracking_failures += int(update["outcome"] == "failed")
+
     denominator = len(scored)
     score_rate = (wins + 0.5 * draws) / denominator if denominator else None
     return {
@@ -127,6 +135,16 @@ def summarize(records: list[dict], config: dict) -> dict:
         "timing": {
             "player_a": {**timing(scores_by_model["a"]), "over_budget_moves": over_budget_by_model["a"]},
             "player_b": {**timing(scores_by_model["b"]), "over_budget_moves": over_budget_by_model["b"]},
+        },
+        "tracking": {
+            "scope": "tracker.update including all resumes; includes initial, terminal and failed attempts",
+            "player_a": {"updates": len(tracking["a"]), "total_ms": sum(tracking["a"])},
+            "player_b": {"updates": len(tracking["b"]), "total_ms": sum(tracking["b"])},
+            "failed_updates": tracking_failures,
+            "all_recorded_agent_and_tracker_ms": sum(sum(values) for values in scores_by_model.values())
+                + sum(sum(values) for values in tracking.values()),
+            "agent_timing_scope": "successful attempts only; failed attempts can omit partial agent records",
+            "budget_scope": "agent over_budget flags exclude tracking; tracker budgets are independent and cooperative",
         },
         "runner_forcibly_interrupts_agents": False,
         "current_one_ply_agent_uses_time_budget": False,
@@ -167,7 +185,8 @@ def run(config: dict, source_config: Path) -> dict:
             source_config.read_text(encoding="utf-8"), encoding="utf-8",
         )
 
-        with (config["output_dir"] / "games.jsonl").open("w", encoding="utf-8") as log:
+        with (config["output_dir"] / "games.jsonl").open("w", encoding="utf-8") as log, \
+                (config["output_dir"] / "tracker_updates.jsonl").open("w", encoding="utf-8") as tracking_log:
             for index in range(config["games"]):
                 # Alternate the player identities' colors every game to balance White and Black.
                 a_color = "white" if not config["alternating_colors"] or index % 2 == 0 else "black"
@@ -191,7 +210,13 @@ def run(config: dict, source_config: Path) -> dict:
                     "player_a_color": a_color,
                     "player_by_color": player_by_color,
                     "status": "failed",
+                    "tracker_updates": [],
                 }
+
+                def record_tracking(row):
+                    base_record["tracker_updates"].append(row)
+                    tracking_log.write(json.dumps({"game": index + 1, **row}, ensure_ascii=False) + "\n")
+                    tracking_log.flush()
                 print(
                     f"Game {index + 1}/{config['games']} starting | "
                     f"A ({a_color}) vs B ({b_color}) | seed={game_seed}",
@@ -203,9 +228,9 @@ def run(config: dict, source_config: Path) -> dict:
                     # Every game receives fresh trackers with the referee's rules
                     # and public start; play_game calls their reset methods.
                     trackers = {
-                        color: tracker_factories[player_by_color[color]].create_tracker(
-                            rules, initial_fen=config["initial_fen"],
-                        )
+                        color: RecordingTracker(
+                            tracker_factories[player_by_color[color]].create_tracker(
+                                rules, initial_fen=config["initial_fen"]), color, record_tracking)
                         for color in ("white", "black")
                     }
                     # Each factory owns its scorer's per-game state lifecycle.

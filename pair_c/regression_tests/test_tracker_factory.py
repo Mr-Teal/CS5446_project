@@ -194,7 +194,9 @@ def test_independent_tracker_outputs(tmp_path, monkeypatch):
                        for tracker in factory.created)
         for index, record in enumerate(records):
             color = next(color for color, player in record["player_by_color"].items() if player == side)
-            assert games[index][color] is factory.created[index]
+            # The runner measures the exact factory-created tracker through a
+            # transparent recording wrapper, independently for each colour.
+            assert games[index][color].tracker is factory.created[index]
             assert len(record["plies"]) == 4
             assert record[f"player_{side}_tracker_factory"] == config["players"][side]["tracker_factory"]
         assert summary[f"player_{side}_tracker_factory"] == config["players"][side]["tracker_factory"]
