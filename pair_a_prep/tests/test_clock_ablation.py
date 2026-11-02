@@ -140,7 +140,9 @@ def test_subgame_defaults_match_validated_node_and_call_limits():
         agent.close()
 
 
-def test_clock_measure_does_not_advertise_projected_labels():
+def test_clock_measure_reports_projected_turns_as_labelled():
+    # Projected turns produce labels now that the per-hypothesis contract is met;
+    # the ablation row says so, and still records that the turn was projected.
     from pair_a_prep.clock_ablation import measure, prepare
     _, fen, turn, saved = prepare(17)[1]
     agent = ChessSubgameAgent(ConstantLeaf(), AnytimeConfig(growth="one_sided", stop_on_time=False,
@@ -149,7 +151,8 @@ def test_clock_measure_does_not_advertise_projected_labels():
     agent.saved = saved
     row = measure(agent, turn, "warm", 10000, 17, 0)
     assert row["diagnostics"]["fallback"] == 0
-    assert not row["label_available"]
+    assert row["diagnostics"]["projected_from_saved_tree"] == 1
+    assert row["label_available"]
 
 
 def test_slide_totals_are_computed_from_supplied_records():

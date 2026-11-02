@@ -96,7 +96,7 @@ def test_chess_lineage_is_audit_only_and_does_not_change_next_policy_or_labels()
         agent.reset("white", 29)
         agent.saved = snapshot
         record = agent.solve(turn)
-        assert record.decision.diagnostics["label_root_contract_pending"] == 1
+        assert record.decision.diagnostics["projected_from_saved_tree"] == 1
         outputs.append((record.decision.root_policy, record.hypothesis_values))
         if snapshot.gift_ledger is not None:
             assert record.decision.diagnostics["gift_ledger_ancestor_events"] > 0

@@ -141,19 +141,26 @@ def test_failed_projection_discards_saved_blueprint_and_next_turn_recovers():
     assert agent.last_projection.boundaries is None
 
 
-def test_projected_labels_are_explicitly_blocked_until_root_contract_agreement():
+def test_projected_labels_follow_the_label_definitions_contract():
+    # pair_b/docs/label_definitions.md: one value per hypothesis under the raw
+    # profile, root_value their belief-weighted mean, raw root policy, played
+    # policy recorded. The saved tree is projected (not discarded) and the
+    # record says so.
     config = AnytimeConfig(growth="one_sided", rounds=4, final_rounds=1,
                            stop_on_time=False, max_evaluator_calls=256, max_nodes=2000)
     agent = ChessSubgameAgent(ConstantLeaf(), config, KINGS)
     agent.reset("white", 17)
     agent.act(turn_after())
-    saved = agent.saved
-    with pytest.raises(ValueError, match="solver-root/weight contract"):
-        agent.label(turn_after(moves=("a1b1", "h8g8")), "projected")
-    assert agent.saved is saved
-    decision = agent.act(turn_after(moves=("a1b1", "h8g8")))
-    assert decision.diagnostics["label_root_contract_pending"] == 1
-    assert decision.diagnostics["fallback"] == 0
+    turn = turn_after(moves=("a1b1", "h8g8"))
+    record = agent.label(turn, "projected")
+    assert record.decision.diagnostics["projected_from_saved_tree"] == 1
+    assert record.game_id == "projected" and record.config_id == agent.config_id
+    assert len(record.hypothesis_values) == len(turn.belief.hypotheses)
+    assert record.root_value == pytest.approx(sum(h.weight*v for h, v in zip(turn.belief.hypotheses, record.hypothesis_values)))
+    assert set(record.decision.root_policy) == set(turn.observation.legal_moves)
+    assert sum(v > 0 for k, v in record.decision.diagnostics.items() if k.startswith("played_policy:")) >= 1
+    with pytest.raises(ValueError, match="game_id"):
+        agent.label(turn, " ")
 
 
 class PositionLeaf:
@@ -210,7 +217,7 @@ def test_varied_values_follow_input_root_order_and_exclude_gadget_payments(warm)
         assert result.root_value == pytest.approx(sum(h.weight*v for h, v in zip(hypotheses, expected)))
         if warm:
             assert agent.last_bridge is not None
-            assert result.decision.diagnostics["label_root_contract_pending"] == 1
+            assert result.decision.diagnostics["projected_from_saved_tree"] == 1
         outputs.append(dict(zip((h.fen for h in hypotheses), result.hypothesis_values)))
     assert outputs[0] == pytest.approx(outputs[1])
 
@@ -325,4 +332,4 @@ def test_solve_reports_a_finite_last_iterate_nash_gap_and_minimum_margin():
     warm = agent.act(turn_after(moves=("a1b1", "h8g8"))).diagnostics
     assert isfinite(warm["solver_nash_gap"]) and warm["solver_nash_gap"] >= 0
     assert isfinite(warm["minimum_margin"])
-    assert warm["label_root_contract_pending"] == 1
+    assert warm["projected_from_saved_tree"] == 1
