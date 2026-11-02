@@ -4,11 +4,15 @@ from __future__ import annotations
 
 import argparse
 import configparser
+import hashlib
 import json
+import platform
 import statistics
+import subprocess
 import sys
 from contextlib import ExitStack
 from dataclasses import asdict
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,13 +24,17 @@ from pairb.rules import GameReferee, pick_rules
 
 from pair_c.agent_api import load_player, project_path
 from pair_c.tracker_api import load_tracker_factory
+from pair_c.provenance import (
+    checkpoint_provenance, cpu_model, discover_sources, git_provenance, load_hash_rules, player_device,
+    sha256_text_bytes, source_file_hashes, stockfish_provenance,
+)
 
 
 def load_config(path: Path) -> dict:
     """Read and validate the INI file; return values in the types the game runner needs."""
     parser = configparser.ConfigParser()
-    if not parser.read(path, encoding="utf-8"):
-        raise FileNotFoundError(f"Configuration file not found: {path}")
+    source_bytes = path.read_bytes()
+    parser.read_string(source_bytes.decode("utf-8"), source=str(path))
 
     players = {}
     for side in ("a", "b"):
@@ -37,7 +45,13 @@ def load_config(path: Path) -> dict:
         settings["tracker_factory"] = parser.get(section, "tracker_factory").strip()
         players[side] = settings
 
+    rules_path = project_path(parser.get("output", "hash_rules", fallback="pair_c/hash_rules.json").strip())
+    hash_rules, hash_rules_bytes = load_hash_rules(rules_path)
     config = {
+        "source_config_bytes": source_bytes,
+        "hash_rules": hash_rules,
+        "hash_rules_bytes": hash_rules_bytes,
+        "hash_rules_path": rules_path,
         "players": players,
         "games": parser.getint("match", "games"),
         "alternating_colors": parser.getboolean("match", "alternating_colors"),
@@ -64,6 +78,73 @@ def load_config(path: Path) -> dict:
     # Preserve player options as strings for both factories. Each tracker factory
     # parses its own settings; other trackers need not define particle options.
     return config
+
+
+def collect_provenance(config: dict, source_config: Path, started_at: str, players: dict) -> dict:
+    """Describe this run; CUDA means the CUDA version used to build PyTorch."""
+    try:
+        import torch
+    except ImportError:
+        torch = None
+        torch_version = cuda_version = None
+    else:
+        torch_version = str(torch.__version__)
+        cuda_version = torch.version.cuda
+    source_bytes = config.get("source_config_bytes")
+    if source_bytes is None:
+        source_bytes = source_config.read_bytes()
+    checkpoint_paths = {}
+    checkpoint_hashes = {}
+    checkpoint_notes = {}
+    for side, agent in players.items():
+        checkpoint_paths[side], checkpoint_hashes[side], checkpoint_notes[side] = checkpoint_provenance(agent)
+    stockfish = {}
+    stockfish_hashes = {}
+    for side, agent in players.items():
+        stockfish[side], stockfish_hashes[side] = stockfish_provenance(agent)
+    source_discovery, source_paths, reason = discover_sources(ROOT)
+    if source_discovery == "filesystem":
+        git_info = {"git_commit": None, "git_status": None,
+                    "git_detection_notes": {"git_commit": reason, "git_status": reason}}
+    else:
+        git_info = git_provenance(ROOT)
+        if git_info["git_status"] is None:
+            raise RuntimeError(f"Cannot query Git status: {git_info['git_detection_notes']['git_status']}")
+        if git_info["git_commit"] is None:
+            try:
+                subprocess.run(["git", "rev-parse", "--verify", "--quiet", "HEAD"],
+                               cwd=ROOT, capture_output=True, check=True, timeout=30)
+            except subprocess.CalledProcessError as error:
+                if error.returncode != 1:
+                    raise RuntimeError(f"Cannot query Git HEAD: {git_info['git_detection_notes']['git_commit']}") from error
+            except (OSError, subprocess.SubprocessError) as error:
+                raise RuntimeError(f"Cannot query Git HEAD: {error}") from error
+            else:
+                raise RuntimeError(f"Cannot query Git HEAD: {git_info['git_detection_notes']['git_commit']}")
+    return {
+        "started_at": started_at,
+        **git_info,
+        "source_discovery": source_discovery,
+        "python_version": platform.python_version(),
+        "torch_version": torch_version,
+        "cuda_version": cuda_version,
+        "cpu_model": cpu_model(),
+        "player_devices": {side: player_device(agent, torch) for side, agent in players.items()},
+        "config_path": str(source_config.resolve()),
+        "hash_rules_path": str(config["hash_rules_path"].resolve()),
+        "checkpoint_paths": checkpoint_paths,
+        "checkpoint_detection_notes": checkpoint_notes,
+        "stockfish": stockfish,
+        "sha256": {
+            "config": sha256_text_bytes(source_bytes),
+            "config_raw": hashlib.sha256(source_bytes).hexdigest(),
+            "player_a_checkpoint": checkpoint_hashes["a"],
+            "player_b_checkpoint": checkpoint_hashes["b"],
+            "player_a_stockfish": stockfish_hashes["a"],
+            "player_b_stockfish": stockfish_hashes["b"],
+            "source_files": source_file_hashes(ROOT, config["hash_rules"], source_paths),
+        },
+    }
 
 
 def seed_for_game(config: dict, game_index: int) -> int:
@@ -139,6 +220,7 @@ def summarize(records: list[dict], config: dict) -> dict:
 
 def run(config: dict, source_config: Path) -> dict:
     """Run each game, save its record immediately, then save one aggregate summary."""
+    started_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     if config["output_dir"].exists():
         raise FileExistsError(f"Output directory already exists: {config['output_dir']}")
 
@@ -153,6 +235,9 @@ def run(config: dict, source_config: Path) -> dict:
         # Each side invokes its factory separately and owns its own Agent and model resources.
         player_a, reset_a = load_player(config["players"]["a"]["factory"], config["players"]["a"], stack)
         player_b, reset_b = load_player(config["players"]["b"]["factory"], config["players"]["b"], stack)
+        provenance = collect_provenance(
+            config, source_config, started_at, {"a": player_a, "b": player_b},
+        )
         tracker_factories = {
             side: load_tracker_factory(settings["tracker_factory"], settings)
             for side, settings in config["players"].items()
@@ -163,8 +248,13 @@ def run(config: dict, source_config: Path) -> dict:
             flush=True,
         )
         config["output_dir"].mkdir(parents=True)
-        (config["output_dir"] / "evaluate_config.ini").write_text(
-            source_config.read_text(encoding="utf-8"), encoding="utf-8",
+        source_bytes = config.get("source_config_bytes")
+        (config["output_dir"] / "evaluate_config.ini").write_bytes(
+            source_bytes if source_bytes is not None else source_config.read_bytes(),
+        )
+        (config["output_dir"] / "hash_rules.json").write_bytes(config["hash_rules_bytes"])
+        (config["output_dir"] / "provenance.json").write_text(
+            json.dumps(provenance, ensure_ascii=False, indent=2) + "\n", encoding="utf-8",
         )
 
         with (config["output_dir"] / "games.jsonl").open("w", encoding="utf-8") as log:
