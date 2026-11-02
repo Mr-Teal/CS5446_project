@@ -10,7 +10,7 @@ from time import perf_counter
 import sys
 
 from fow_shared.contracts import Belief, Hypothesis, Observation
-from ._belief_graph import (ObservationFilter, PathNode, StateNode, history_id,
+from ._belief_graph import (encode_state, ObservationFilter, PathNode, StateNode, history_id,
                             position_key, position_bit, repetition_paths, successors)
 from .rules_adapter import RulesAdapter
 
@@ -133,7 +133,7 @@ class BeliefTracker:
         board = state.board_copy()
         self._game_fen = state.fen
         key = position_key(board)
-        self._nodes = (StateNode(board, PathNode([], 1, key, position_bit(key))),)
+        self._nodes = (StateNode(encode_state(board), PathNode([], 1, key, position_bit(key))),)
         self._root_id = sha256(state.fen.encode("ascii")).hexdigest()
         self._player, self._previous = player, None
         self._rng = Random(seed)
@@ -198,7 +198,8 @@ class BeliefTracker:
         def transitions():
             for parent in parents:
                 if initial:
-                    if expected.cheap(parent.board, None) and expected.full(parent.board, 1):
+                    parent_board = parent.board
+                    if expected.cheap(parent_board, None) and expected.full(parent_board, 1):
                         yield parent, None
                 else:
                     children = None
@@ -298,12 +299,11 @@ class BeliefTracker:
                     raise BeliefCapacityError(
                         f"ply {pending.observation.ply}: more than {self._max_candidates} "
                         "consistent histories; exact update was not committed")
-                key = (position_key(board, effective_ep=False), board.promoted,
-                       board.halfmove_clock, board.fullmove_number)
+                key = encode_state(board)
                 node = pending.nodes.get(key)
                 if node is None:
                     effective = position_key(board)
-                    node = StateNode(board.copy(stack=False),
+                    node = StateNode(key,
                                      PathNode([], 0, effective, position_bit(effective)))
                     pending.nodes[key] = node
                     pending.accounted += allocation
@@ -399,7 +399,7 @@ class BeliefTracker:
                     child = PathNode([(path, move)], 1, key, recent)
                     prefixes[prefix] = child
                 path = child
-            node = StateNode(board.copy(stack=False), path)
+            node = StateNode(encode_state(board), path)
             key = node.key()
             existing = nodes.get(key)
             if existing is None:
@@ -489,7 +489,7 @@ class BeliefTracker:
                 stack.extend(obj.keys())
                 stack.extend(obj.values())
             elif isinstance(obj, StateNode):
-                stack.extend((obj.board, obj.paths))
+                stack.extend((obj.packed, obj.paths))
             elif hasattr(obj, "__dict__") and not isinstance(obj, (type,)):
                 stack.append(obj.__dict__)
         return {"owned_bytes": total, "path_nodes": path_nodes, "path_edges": edges,
