@@ -22,7 +22,7 @@ def observation(data):
 def run(args):
     rows = [json.loads(line) for line in Path(args.input).read_text().splitlines()]
     rows = [row for row in rows if row["player"] == "black" and row["observation"]["ply"] <= 9]
-    tracker = BeliefTracker(sample_size=3, backend=args.backend)
+    tracker = BeliefTracker(sample_size=3, backend="python")
     tracker.reset("black", rows[0]["tracker_seed"])
     for row in rows[:-1]: tracker.update(observation(row["observation"]), row["own_move"])
     assert tracker.population_size == 8841 and tracker.state_count == 2388
@@ -92,7 +92,7 @@ def run(args):
     signature = None
     if result is not None and result.belief is not None and result.status == "complete":
         signature = hashlib.sha256(json.dumps(asdict(result.belief), sort_keys=True).encode()).hexdigest()
-    summary = dict(backend=args.backend, instrumented=not args.no_instrument,
+    summary = dict(instrumented=not args.no_instrument,
         slice_ms=args.slice_ms, total_ms=args.total_ms if budgeted else None,
         memory_mb=args.memory_mb, max_calls=args.max_calls, status=status, wall_ms=wall,
         phases=phases, residual_ms=wall - sum(phases.values()), calls=calls,
@@ -103,7 +103,6 @@ def run(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--backend", choices=("python", "native", "auto"), default="python")
     parser.add_argument("--slice-ms", type=float)
     parser.add_argument("--total-ms", type=float, default=5000)
     parser.add_argument("--memory-mb", type=float)
