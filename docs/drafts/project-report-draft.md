@@ -316,8 +316,9 @@ Stockfish. Time is the median CPU cost to value the children of one position.
 | **Network 1** | **0.076** | 42.4% | 0.0352 | 12.2 |
 
 Network 1's value error is 20% lower than quick Stockfish's. The difference is
-−0.019 (95% interval −0.021 to −0.018). But its moves are no better. Its value
-lost differs by −0.0003 (−0.0017 to +0.0011), which is a tie.
+−0.019 (95% interval −0.021 to −0.018). Its value lost differs by −0.0003
+(−0.0017 to +0.0011). The interval includes zero, so these results do not
+establish an improvement in move selection; they do not establish equivalence.
 
 Figure 1 shows why. On decided positions, Network 1 halves the error. On close
 positions, every learned evaluator is worse than quick Stockfish. In a decided
@@ -337,14 +338,20 @@ fog-of-war positions, and to a training loss that ranks sibling moves.
 ### 6.2 Copy a Stronger Engine, Not Game Results
 
 Can a leaf learn from game results instead? We fitted the "linear, inside tanh"
-model on 6,414 training games to four targets [18]. Two targets are careful
+model to four targets [18,20]. Distillation uses 638,451 child rows from 6,414
+training games. MC/TD exclude 175 unfinished training games, using 722,500
+trajectory positions from 6,239 finished games. The methods therefore differ
+in training-row distributions as well as targets. Two targets are careful
 Stockfish's value (distillation) and the final result (Monte Carlo, MC). The
 other two are temporal-difference targets: TD(0), and TD(λ) with λ = 0.8. TD
 uses fitted value iteration, with up to 15 rounds. MC and TD never see careful
 Stockfish.
 
-**Table 2.** The same model trained on four targets, scored on the check set.
-Outcome error is the mean squared difference from the final game result.
+**Table 2.** The same model trained on four targets. Value error and move
+metrics use 94,963 child rows and 3,818 decisions from 959 check games. Outcome
+error is the mean squared difference from the final game result, using 106,971
+trajectory positions from 929 finished games; 32 unfinished games are excluded
+from 961 replay games [20].
 
 | Target | Value error | Outcome error | Same top move | Value lost |
 |---|---|---|---|---|
@@ -381,9 +388,11 @@ that depend on the belief, such as values from Pair A's solver.
 
 ### 6.4 Play Against Quick Stockfish
 
-**Table 3.** Each row is 200 games of one evaluator against quick Stockfish,
-both inside the one-ply bot. The first row, quick Stockfish against itself, is
-a control. Time is the median per move.
+**Table 3.** Each row schedules 200 games of one evaluator against quick
+Stockfish, both inside the one-ply bot. Score and intervals use complete colour
+pairs (100 per row, 99 for random); W/D/L counts every finished game (199 for
+random). The first row, quick Stockfish against itself, is a control. Time is
+the median per move.
 
 | Evaluator | Score | Bootstrap 95% | Wilson 95% | W/D/L | ms per move |
 |---|---|---|---|---|---|
@@ -395,14 +404,18 @@ a control. Time is the median per move.
 | Belief network | 0.563 | 0.495–0.630 | 0.465–0.656 | 111/3/86 | 149.8 |
 | Careful Stockfish | 0.585 | 0.513–0.660 | 0.487–0.677 | 114/6/80 | 2,452 |
 
-\* All pairs score 0, so the bootstrap has no spread. One game failed when
-quick Stockfish's bot had no sampled board left that fitted its observations.
-That game and its pair are left out, so this row uses 99 pairs.
+\* All complete random-row pairs score 0, so the bootstrap has no spread.
+One game failed when quick Stockfish's bot had no sampled board left that
+fitted its observations. The surviving partner remains in W/D/L; the
+incomplete pair is excluded only from paired estimates (99 pairs, 198 games).
+Six draws reached the 200-ply cap: two linear and four careful-Stockfish games.
 
 The control rows behave as expected. Quick Stockfish against itself scores
-0.520. Random moves and piece values lose almost every game. Network 1 and the
-linear correction tie with quick Stockfish: all their intervals include 0.5.
-This agrees with Section 6.1.
+0.520. Random moves and piece values lose almost every game. Neither Network 1
+nor the linear correction establishes a score improvement over quick Stockfish
+in this batch: all their intervals include 0.5. These intervals do not establish
+equivalence. As in Section 6.1, better values did not demonstrate better moves
+in these experiments.
 
 The belief network and careful Stockfish score above 0.5, but the evidence is
 weak. Only careful Stockfish's bootstrap interval excludes 0.5, and a
@@ -570,6 +583,8 @@ comparisons do not establish full-agent strength or strategic belief value.
 18. Sutton RS, Barto AG. Reinforcement learning: an introduction. 2nd ed. Cambridge (MA): MIT Press; 2018.
 
 19. Silver D, Hubert T, Schrittwieser J, Antonoglou I, Lai M, Guez A, et al. A general reinforcement learning algorithm that masters chess, shogi, and Go through self-play. Science. 2018;362(6419):1140-4.
+
+20. CS5446_project contributors. Monte Carlo and temporal-difference target comparison [Internet]. 2026 [cited 2026 Nov 2]. Revision 1db35d68638d52353381d13de20addfea58a4d99. Available from: [pinned experimental setup and exclusions](https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md); [results and sample counts](https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/results.json).
 
 ---
 
