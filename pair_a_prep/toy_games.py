@@ -184,6 +184,57 @@ def behavioral_nash_gap(root: Node, policies: Sequence[Mapping[str, Mapping[str,
     return responses[0] - responses[1]
 
 
+def nash_gap(root: Node, policies: Sequence[Mapping[str, Mapping[str, float]]]) -> float:
+    """behavioral_nash_gap without enumerating pure strategies.
+
+    Each best response is one pass: infosets are decided deepest own-history
+    first, so when an infoset is reached every player node below it already has
+    its reply fixed and subtree values can be memoized. Linear in the tree, where
+    the oracle above is exponential in the number of infosets; both agree.
+    """
+    behavioral_value(root, policies)  # Validate before calculating best responses.
+    return _best_response_value(root, policies, 0) - _best_response_value(root, policies, 1)
+
+
+def _best_response_value(root: Node, policies, player: int) -> float:
+    members, depth = {}, {}
+
+    def collect(node: Node, reach: float, own_length: int) -> None:
+        if node.payoff is not None:
+            return
+        if node.player == player:
+            members.setdefault(node.infoset, []).append((node, reach))
+            depth[node.infoset] = own_length
+            for child in node.children.values():
+                collect(child, reach, own_length + 1)
+        else:
+            probs = node.probabilities if node.player is None else policies[node.player][node.infoset]
+            for action, child in node.children.items():
+                collect(child, reach * probs[action], own_length)
+
+    collect(root, 1.0, 0)
+    chosen, memo = {}, {}
+
+    def value(node: Node) -> float:
+        if node.payoff is not None:
+            return node.payoff
+        if id(node) in memo:
+            return memo[id(node)]
+        if node.player == player:
+            result = value(node.children[chosen[node.infoset]])
+        else:
+            probs = node.probabilities if node.player is None else policies[node.player][node.infoset]
+            result = sum(probs[a] * value(child) for a, child in node.children.items())
+        memo[id(node)] = result
+        return result
+
+    for infoset in sorted(members, key=depth.get, reverse=True):
+        actions = list(members[infoset][0][0].children)
+        totals = {a: sum(reach * value(node.children[a]) for node, reach in members[infoset]) for a in actions}
+        chosen[infoset] = (max if player == 0 else min)(totals, key=totals.get)
+    return value(root)
+
+
 def matching_pennies(reveal_first_action: bool = False) -> Node:
     root = Node(player=0, infoset="p0")
     for first in ("H", "T"):
