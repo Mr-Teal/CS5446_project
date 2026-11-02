@@ -10,7 +10,7 @@ Semester 1, AY2026/27
 
 ## Project Report Draft
 
-28 October 2026 | For team review, not final submission
+2 November 2026 | For team review, not final submission
 
 **Team:** DING Chiyu; PEI Shengxin; QUEK Hongqiang Colin; WANG Zhijian;
 Kuah Jun Hong, Bryan; LIN Tzu-Chun.
@@ -56,8 +56,7 @@ evaluators, and a reproducible match protocol. Development-set measurements
 show that a learned correction reduces value error against Stockfish depth-11
 labels from 0.095 to 0.076, but does not establish better move choice. A
 belief-conditioned network also improves label error, although its labels are
-full-board values rather than strategic belief-state values. A historical
-20-game check favors Stockfish depth 1 over material. A separate seven-row
+full-board values rather than strategic belief-state values. A seven-row
 batch completed 1,399 of 1,400 scheduled games: Network 1 and linear correction
 do not establish improvement over depth 1; the belief row remains inconclusive.
 Scoped checks support tree growth and budget/fallback behavior. The contribution is a documented experimental
@@ -143,14 +142,13 @@ computed strategy. Retaining accumulated solver state during growth avoids
 restarting all previous learning when a deeper continuation is added.
 
 Our implementation follows selected mechanisms, not every mechanism of either
-paper. Main 9871083 includes the uniform-growth prototype, which rebuilds each
-turn, and the ZS21 delivery and shared en-passant repetition fix merged in PR37.
-The optional PR39–PR48 stack adds selective expansion, retained search,
-sampled gadget boundaries and purification. It remains unmerged; scoped
-approvals of PR42, PR46, PR48 and the test-only PR52 do not certify the whole
-stack. Projected training labels remain disabled pending agreement on root
-sets and weights. Gift lineage is audit-only; numerical ancestor-payment
-transfer and full Obscuro reproduction remain open [4,14].
+paper. The uniform-growth prototype rebuilds its search each turn. The later
+search stack adds selective expansion, retained search, sampled gadget
+boundaries and purification. That stack is now merged; the 2 November snapshot
+also includes the evaluation-methods and Pair C deliveries. Follow-up tracker
+and solver changes remain under review. Merge status does not establish full
+reproduction or validate the final integrated agent, and it does not change
+the source revision of the archived match batch [4,5].
 
 ---
 
@@ -200,7 +198,7 @@ candidate moves using weighted evaluations across sampled hypotheses. This
 controls the outer decision procedure when comparing leaf evaluators. It is
 not the same algorithm as the imperfect-information PCFR+ search, and match
 results from that runner cannot establish the effectiveness of the deeper
-search stack or its knowledge-limited gadgets [5,6].
+search stack or its knowledge-limited gadgets [6,7].
 
 ---
 
@@ -212,7 +210,7 @@ A chess search cannot look to the end of the game. It stops at some depth and
 needs a value for each position where it stops. We call such a position a leaf,
 and the function that values it a leaf evaluator. Obscuro uses Stockfish at
 depth 1, which we call "quick Stockfish" [2]. A more accurate leaf could let a
-search see further for the same cost. DeepStack [15] and ReBeL [16] use learned
+search see further for the same cost. DeepStack [8] and ReBeL [9] use learned
 leaf values in this way.
 
 Our leaf evaluators all answer the same calls. They value the children of a
@@ -244,7 +242,7 @@ A hash of the game ID puts 80% of the games in training, 10% in validation and
 use a separate check set of 959 games, made with a different seed. It holds
 3,818 decisions, with 94,963 children that the rules do not decide. The check
 set also chose between three Network 1 runs, so its results are development
-results [5].
+results [6].
 
 ### 4.3 Evaluators
 
@@ -289,11 +287,11 @@ Each match plays 100 random openings of 2 to 8 plies (single moves), each twice
 with the colours swapped. A win scores 1, a draw 0.5 and a loss 0. The paired
 score is the mean over complete pairs of games, so 0.5 means equal strength. We
 give a bootstrap interval over pairs and Wilson's interval. A game that reaches
-200 plies counts as a draw [6,7].
+200 plies counts as a draw [7,10].
 
 This design holds the work per move equal, not the time. The bot treats each
 sampled board as if it were the true board, a known weakness called strategy
-fusion [17]. It is a baseline for comparing leaves, not the team's agent.
+fusion [11]. It is a baseline for comparing leaves, not the team's agent.
 
 ---
 
@@ -325,7 +323,7 @@ positions, every learned evaluator is worse than quick Stockfish. In a decided
 position, most moves keep the same result, so errors there change few choices.
 In a close position, a small error can change the best move. The learned gain
 therefore falls where it matters least. This agrees with a known result: a
-greedy policy can be optimal long before its values are accurate [18].
+greedy policy can be optimal long before its values are accurate [12].
 
 ![Figure 1. Value error by how decided the position is, on the check set. The learned evaluators gain on positions that lean one way or are decided. They lose on close positions.](../../pair_b/experiments/tanh_linear/value-error-by-band.png)
 
@@ -338,7 +336,7 @@ fog-of-war positions, and to a training loss that ranks sibling moves.
 ### 6.2 Copy a Stronger Engine, Not Game Results
 
 Can a leaf learn from game results instead? We fitted the "linear, inside tanh"
-model to four targets [18,20]. Distillation uses 638,451 child rows from 6,414
+model to four targets [12,13]. Distillation uses 638,451 child rows from 6,414
 training games. MC/TD exclude 175 unfinished training games, using 722,500
 trajectory positions from 6,239 finished games. The methods therefore differ
 in training-row distributions as well as targets. Two targets are careful
@@ -351,7 +349,7 @@ Stockfish.
 metrics use 94,963 child rows and 3,818 decisions from 959 check games. Outcome
 error is the mean squared difference from the final game result, using 106,971
 trajectory positions from 929 finished games; 32 unfinished games are excluded
-from 961 replay games [20].
+from 961 replay games [13].
 
 | Target | Value error | Outcome error | Same top move | Value lost |
 |---|---|---|---|---|
@@ -370,8 +368,8 @@ These models predict game results slightly better than distillation does. But
 the results come from weak practice play. The models therefore learn how weak
 play ends from a position, not how good play values it. TD predicts results
 better than MC, by 0.005 (0.001 to 0.010), as its lower-variance targets
-suggest [18]. Learning from results would need a strong player and far more
-games, as in AlphaZero [19].
+suggest [12]. Learning from results would need a strong player and far more
+games, as in AlphaZero [14].
 
 ### 6.3 The Belief Network
 
@@ -430,7 +428,7 @@ test whole-belief evaluation.
 All rows ran on one computer with one fixed code version, on 26 and 27 October
 2026. Bryan checked the game records independently. The batch ran before the
 team added a draw rule for positions with no legal move. No game reached such a
-position [13].
+position [15].
 
 ### 6.5 Our Leaf Inside Pair A's Search
 
@@ -444,20 +442,24 @@ position [13].
 
 Exact toy examples illustrate the information distinction: revealing player
 0's action to the opponent changes matching-pennies value from 0 to -1;
-revealing a biased coin to its guesser changes expected payoff from 0.5 to 1 [9].
+revealing a biased coin to its guesser changes expected payoff from 0.5 to 1 [16].
 These examples explain information sets, not chess performance. Supplemental
 reviews test narrower implementation contracts, with rerunnable evidence linked
 below. Test counts overlap across revisions and must not be summed.
 
+A separate historical 20-game D1-versus-material check has archived records
+and an independent audit [17]. It is not the material row of the seven-row batch
+and is not pooled with that batch's estimates.
+
 | Claim tested | Evidence | Boundary |
 | --- | --- | --- |
-| Growth retains prior solver state and rejects incomplete grafts | PR27: 404 existing tests plus 7 additional probes passed [10] | Tested histories and failures, not universal correctness |
-| Budget accounting, fallback and diagnostics match execution | PR30: 425 existing tests plus 20 probes; 18 twice-run fixed-work cases agree excluding timing [11] | Calls are not total compute; a 10 ms probe took about 10.47 ms |
+| Growth retains prior solver state and rejects incomplete grafts | PR27: 404 existing tests plus 7 additional probes passed [18] | Tested histories and failures, not universal correctness |
+| Budget accounting, fallback and diagnostics match execution | PR30: 425 existing tests plus 20 probes; 18 twice-run fixed-work cases agree excluding timing [19] | Calls are not total compute; a 10 ms probe took about 10.47 ms |
 
 PR27's 110 focused tests are included in its 404. The reviewed revisions are
 7b14bbb and 5f334b1 respectively; full identifiers and artifacts are in the
 references. Their search snapshots exclude the separate no-move-rule update
-in PR28 [12]. These are not final integrated-release checks.
+in PR28 [20]. These are not final integrated-release checks.
 
 Scoped reviews on 28 October checked subgame diagnostics, label rejection,
 fallback recovery and weighted values. PR52's 185 selected tests passed;
@@ -465,7 +467,7 @@ six defect mutations were caught and four Black-perspective probes passed.
 PR46's 42 selected tests support functional correctness; its timing matrices
 remain historical. PR48's 33 selected tests passed, both 100-entry manifests
 and its portable clock link verified, and the gift probe reproduced non-timing
-fields. Exact reviewed heads and limits are linked in [14]. These overlapping
+fields. Exact reviewed heads and limits are linked in [5]. These overlapping
 selections are not summed or treated as release, timing or strength evidence.
 The reviews and this revision added no training, formal match batch or
 engine/network execution.
@@ -554,37 +556,37 @@ comparisons do not establish full-agent strength or strategic belief value.
 
 4. CS5446_project contributors. Pair A search implementation, specifications and reproduction differences [Internet]. 2026 [cited 2026 Oct 26]. Revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed. Available from: [pinned Pair A source](https://github.com/Mr-Teal/CS5446_project/tree/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep); [detailed mechanism checklist](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep/docs/obscuro_status.md).
 
-5. emalcolin, CS5446_project contributors. Pair B: leaf evaluators, Network 1 and its practice data [Internet]. 2026 [cited 2026 Oct 26]. Revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed; contains links to the underlying checkpoint results and manifests. Available from: [pinned evaluator documentation](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/README.md).
+5. CS5446_project contributors, bryankuah. Integration status and scoped search reviews [Internet]. 2026 Nov 2 [cited 2026 Nov 2]. Main 02bb0410ce3a17ce308d900a26b0ad453bfe20f5 includes the later search stack and PR50/51; PR59–62 remain open. Historical reviewed heads: PR42 25688180178589d41daadfaa5a23117a115fe96d; PR52 5e74ede8ef874a3bdc31564830e889f113951f87; PR46 ee42c8f8e41858431e000825a437ee39b2e88b7b; PR48 879818c16518e1d706cf60fe5f666979d532aec9. Those scoped reviews are not tests of this main snapshot. Available from: [pinned main](https://github.com/Mr-Teal/CS5446_project/tree/02bb0410ce3a17ce308d900a26b0ad453bfe20f5); [PR37 delivery](https://github.com/Mr-Teal/CS5446_project/pull/37); [PR42 review](https://github.com/Mr-Teal/CS5446_project/pull/42#pullrequestreview-5679229932); [PR52 review](https://github.com/Mr-Teal/CS5446_project/pull/52#pullrequestreview-5679231586); [PR46 review](https://github.com/Mr-Teal/CS5446_project/pull/46#pullrequestreview-5679261471); [PR48 review](https://github.com/Mr-Teal/CS5446_project/pull/48#pullrequestreview-5679267479).
 
-6. CS5446_project contributors. Match protocol [Internet]. 2026 [cited 2026 Oct 26]. Revision 2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d. Available from: [pinned protocol](https://github.com/Mr-Teal/CS5446_project/blob/2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d/pair_b/docs/match_protocol.md); [protocol discussion, issue 17](https://github.com/Mr-Teal/CS5446_project/issues/17).
+6. emalcolin, CS5446_project contributors. Pair B: leaf evaluators, Network 1 and its practice data [Internet]. 2026 [cited 2026 Oct 26]. Revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed; contains links to the underlying checkpoint results and manifests. Available from: [pinned evaluator documentation](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/README.md).
 
-7. bryankuah. Evaluation methods and batch validation [Internet]. 2026 Oct 28 [cited 2026 Oct 28]. Draft PR50, revision 182ec7a6abe3ef649270edbb1a0cbeb9ecb07fc1. Available from: [pinned updated methods](https://github.com/Mr-Teal/CS5446_project/blob/182ec7a6abe3ef649270edbb1a0cbeb9ecb07fc1/pair_b/docs/evaluation-methods-draft.md).
+7. CS5446_project contributors. Match protocol [Internet]. 2026 [cited 2026 Oct 26]. Revision 2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d. Available from: [pinned protocol](https://github.com/Mr-Teal/CS5446_project/blob/2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d/pair_b/docs/match_protocol.md); [protocol discussion, issue 17](https://github.com/Mr-Teal/CS5446_project/issues/17).
 
-8. bryankuah. Independent D1-versus-material historical cross-check [Internet]. 2026 [cited 2026 Oct 26]. Publication revision 8735be4cc7e06928db6d12ee2487a08bb86e5ba7; historical run source differs as stated in the text. Available from: [pinned raw artifacts and audit](https://github.com/Mr-Teal/CS5446_project/tree/8735be4cc7e06928db6d12ee2487a08bb86e5ba7/pair_b/experiments/matches/crosscheck-bryan-d1-vs-material-standard-start).
+8. Moravčík M, Schmid M, Burch N, Lisý V, Morrill D, Bard N, et al. DeepStack: expert-level artificial intelligence in heads-up no-limit poker. Science. 2017;356(6337):508-13.
 
-9. emalcolin. How information changes a decision [Internet]. 2026 [cited 2026 Oct 26]. Revision a5c105632e1d990450445b204612d41b5fbc8293. Available from: [pinned worked examples and reference-data links](https://github.com/Mr-Teal/CS5446_project/blob/a5c105632e1d990450445b204612d41b5fbc8293/pair_b/experiments/small_games/information_example.md).
+9. Brown N, Bakhtin A, Lerer A, Gong Q. Combining deep reinforcement learning and search for imperfect-information games. In: Advances in Neural Information Processing Systems 33 (NeurIPS 2020); 2020.
 
-10. bryankuah. PR27 supplemental expansion review [Internet]. 2026 Oct 26 [cited 2026 Oct 26]. Reviewed revision 7b14bbbebb80ba410f0e23127e37263b975c167a. Available from: [review](https://github.com/Mr-Teal/CS5446_project/pull/27#issuecomment-6406920434); [rerunnable evidence, v2](https://github.com/user-attachments/files/33944209/pr27-7b14bbb-review-evidence-v2.zip).
+10. bryankuah. Evaluation methods and batch validation [Internet]. 2026 Nov 2 [cited 2026 Nov 2]. Merged PR50, revision 7c292af5881b8c81e4ffccb7300de21650c9c0ad. Available from: [pinned updated methods](https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md).
 
-11. bryankuah. PR30 supplemental budget and fallback review [Internet]. 2026 Oct 26 [cited 2026 Oct 26]. Reviewed revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed. Available from: [review](https://github.com/Mr-Teal/CS5446_project/pull/30#issuecomment-6407182994); [rerunnable evidence and raw results](https://github.com/user-attachments/files/33944559/pr30-5f334b1-review-evidence.zip).
+11. Frank I, Basin D. Search in games with incomplete information: a case study using Bridge card play. Artificial Intelligence. 1998;100(1-2):87-123.
 
-12. Mr-Teal. Unify no-move terminal draws across rules and search [Internet]. PR28; 2026 [cited 2026 Oct 26]. Reviewed revision 21da153c8efdc1ae78dd1fac053c2402e1c7b3c7; not a statement that the formal batch uses this revision. Available from: [rule-update pull request](https://github.com/Mr-Teal/CS5446_project/pull/28).
+12. Sutton RS, Barto AG. Reinforcement learning: an introduction. 2nd ed. Cambridge (MA): MIT Press; 2018.
 
-13. emalcolin. Seven-row match batch [Internet]. 2026 Oct 27 [cited 2026 Oct 27]. PR38, reviewed revision 5e9393ab8537088e8ea6542ce21e11f42218ee15; execution source a5c5fb6. Available from: [pinned records, checksums and tables](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27).
+13. CS5446_project contributors. Monte Carlo and temporal-difference target comparison [Internet]. 2026 [cited 2026 Nov 2]. Revision 1db35d68638d52353381d13de20addfea58a4d99. Available from: [pinned experimental setup and exclusions](https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md); [results and sample counts](https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/results.json).
 
-14. CS5446_project contributors, bryankuah. Integration status and scoped search reviews [Internet]. 2026 Oct 28 [cited 2026 Oct 28]. Main 987108329d19fd1b4113883131d551fc68d39dd3 includes PR37, PR38 and PR45. Reviewed unmerged heads: PR42 25688180178589d41daadfaa5a23117a115fe96d; PR52 5e74ede8ef874a3bdc31564830e889f113951f87; PR46 ee42c8f8e41858431e000825a437ee39b2e88b7b; PR48 879818c16518e1d706cf60fe5f666979d532aec9. Available from: [pinned main](https://github.com/Mr-Teal/CS5446_project/tree/987108329d19fd1b4113883131d551fc68d39dd3); [PR37 delivery](https://github.com/Mr-Teal/CS5446_project/pull/37); [PR42 review](https://github.com/Mr-Teal/CS5446_project/pull/42#pullrequestreview-5679229932); [PR52 review](https://github.com/Mr-Teal/CS5446_project/pull/52#pullrequestreview-5679231586); [PR46 review](https://github.com/Mr-Teal/CS5446_project/pull/46#pullrequestreview-5679261471); [PR48 review](https://github.com/Mr-Teal/CS5446_project/pull/48#pullrequestreview-5679267479).
+14. Silver D, Hubert T, Schrittwieser J, Antonoglou I, Lai M, Guez A, et al. A general reinforcement learning algorithm that masters chess, shogi, and Go through self-play. Science. 2018;362(6419):1140-4.
 
-15. Moravčík M, Schmid M, Burch N, Lisý V, Morrill D, Bard N, et al. DeepStack: expert-level artificial intelligence in heads-up no-limit poker. Science. 2017;356(6337):508-13.
+15. emalcolin. Seven-row match batch [Internet]. 2026 Oct 27 [cited 2026 Oct 27]. PR38, reviewed revision 5e9393ab8537088e8ea6542ce21e11f42218ee15; execution source a5c5fb6. Available from: [pinned records, checksums and tables](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27).
 
-16. Brown N, Bakhtin A, Lerer A, Gong Q. Combining deep reinforcement learning and search for imperfect-information games. In: Advances in Neural Information Processing Systems 33 (NeurIPS 2020); 2020.
+16. emalcolin. How information changes a decision [Internet]. 2026 [cited 2026 Oct 26]. Revision a5c105632e1d990450445b204612d41b5fbc8293. Available from: [pinned worked examples and reference-data links](https://github.com/Mr-Teal/CS5446_project/blob/a5c105632e1d990450445b204612d41b5fbc8293/pair_b/experiments/small_games/information_example.md).
 
-17. Frank I, Basin D. Search in games with incomplete information: a case study using Bridge card play. Artificial Intelligence. 1998;100(1-2):87-123.
+17. bryankuah. Independent D1-versus-material historical cross-check [Internet]. 2026 [cited 2026 Oct 26]. Publication revision 8735be4cc7e06928db6d12ee2487a08bb86e5ba7; historical run source differs as stated in the text. Available from: [pinned raw artifacts and audit](https://github.com/Mr-Teal/CS5446_project/tree/8735be4cc7e06928db6d12ee2487a08bb86e5ba7/pair_b/experiments/matches/crosscheck-bryan-d1-vs-material-standard-start).
 
-18. Sutton RS, Barto AG. Reinforcement learning: an introduction. 2nd ed. Cambridge (MA): MIT Press; 2018.
+18. bryankuah. PR27 supplemental expansion review [Internet]. 2026 Oct 26 [cited 2026 Oct 26]. Reviewed revision 7b14bbbebb80ba410f0e23127e37263b975c167a. Available from: [review](https://github.com/Mr-Teal/CS5446_project/pull/27#issuecomment-6406920434); [rerunnable evidence, v2](https://github.com/user-attachments/files/33944209/pr27-7b14bbb-review-evidence-v2.zip).
 
-19. Silver D, Hubert T, Schrittwieser J, Antonoglou I, Lai M, Guez A, et al. A general reinforcement learning algorithm that masters chess, shogi, and Go through self-play. Science. 2018;362(6419):1140-4.
+19. bryankuah. PR30 supplemental budget and fallback review [Internet]. 2026 Oct 26 [cited 2026 Oct 26]. Reviewed revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed. Available from: [review](https://github.com/Mr-Teal/CS5446_project/pull/30#issuecomment-6407182994); [rerunnable evidence and raw results](https://github.com/user-attachments/files/33944559/pr30-5f334b1-review-evidence.zip).
 
-20. CS5446_project contributors. Monte Carlo and temporal-difference target comparison [Internet]. 2026 [cited 2026 Nov 2]. Revision 1db35d68638d52353381d13de20addfea58a4d99. Available from: [pinned experimental setup and exclusions](https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md); [results and sample counts](https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/results.json).
+20. Mr-Teal. Unify no-move terminal draws across rules and search [Internet]. PR28; 2026 [cited 2026 Oct 26]. Reviewed revision 21da153c8efdc1ae78dd1fac053c2402e1c7b3c7; not a statement that the formal batch uses this revision. Available from: [rule-update pull request](https://github.com/Mr-Teal/CS5446_project/pull/28).
 
 ---
 
