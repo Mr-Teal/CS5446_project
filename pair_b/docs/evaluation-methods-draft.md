@@ -119,7 +119,7 @@ The batch was executed before the objection cutoff. #34 was also merged ahead of
 
 - PR #31 and #32 merged on 26 October. Their historical checks remain historical; publication did not rerun them.
 - The seven-row batch is complete and independently audited as described above. #38 was approved at 5e9393a and merged at 0a7a148 on 28 October at 01:18 SGT, after the #17 window closed. #49's three documentation changes merged at 4fe521b on 27 October at 22:48 SGT.
-- #15, #26, #36, #34 and #45 are on main. ZS21/shared-EP integration #37 is also on main at 04f992d (28 October at 00:19 SGT). The later Pair A search stack remains separate review work; do not present its unmerged mechanisms as reviewed main functionality.
+- #15, #26, #36, #34 and #45 are on main. ZS21/shared-EP integration #37 is also on main at 04f992d (28 October at 00:19 SGT). The later Pair A search stack (#39, #40, #41, #42, #43, #44, #46, #48, #52, #53, #54, #55, #56, #57 and #58) is also on main as of 1db35d6. These merged mechanisms are separate from the historical batch evaluated here; their integration does not establish formal full-agent match readiness.
 - Issue #19's worked example and narrative are available. No additional toy experiment or post-rule batch is required by this revision.
 - No new training or matches were run for this document update. Future post-rule experiments require a separately pinned and validated run.
 
