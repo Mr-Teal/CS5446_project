@@ -73,6 +73,89 @@ I included the `rules` argument because Pair B's `GameReferee` and `ParticleTrac
 The output directory contains:
 
 - `evaluate_config.ini`: a copy of the exact configuration used.
+- `hash_rules.json`: an exact copy of the classification rules used for this run.
+- `provenance.json`: Python, PyTorch and CUDA versions, automatically detected hardware,
+  evaluation start time (UTC ISO 8601), and the original configuration's absolute
+  path and SHA-256. `sha256.config` hashes the INI after CRLF-to-LF normalization;
+  `sha256.config_raw` hashes the exact bytes saved in `evaluate_config.ini`.
+  CPU detection supports Windows, macOS and Linux. `player_devices`
+  records each player's effective device, backend and corresponding GPU model,
+  using loaded network tensors before the Agent/scorer's device field. CUDA
+  indices follow PyTorch's mapping, including `CUDA_VISIBLE_DEVICES`.
+  CPU players have a `null` GPU model. Unknown devices or failed GPU detection
+  have a `detection_note`; configuration values are not used to guess hardware.
+  On macOS, MPS is recorded as the backend. Its GPU model is obtained from
+  `system_profiler` only when a single adapter makes the identity unambiguous;
+  otherwise the model is `null` with an explanation. CUDA means
+  `torch.version.cuda` (PyTorch's build CUDA version, not the driver or local toolkit).
+  CUDA is `null` for CPU-only PyTorch; both software fields are `null` if PyTorch
+  cannot be imported because it is not installed. MPS runs do not require CUDA;
+  a standard macOS PyTorch build records `cuda_version: null`.
+  Start time is captured on entry to `run()`, before model loading.
+  `git_commit` records the full HEAD commit ID and `git_status` records
+  `git status --porcelain=v1 --untracked-files=all` lines, including staged,
+  unstaged and non-ignored untracked files. An empty list means clean; `null`
+  means the query failed. `git_detection_notes` records per-query errors,
+  including a repository with no commit. Git metadata and source hashes are
+  collected sequentially after loading players, before games and output creation;
+  keep the checkout unchanged during collection and evaluation. Status does not
+  capture ignored files or the contents of untracked files.
+  All hashes are grouped under `sha256`: `config`, `player_a_checkpoint`, and
+  `player_b_checkpoint`. Checkpoint hashes come from the loaded component's
+  explicit `provenance_checkpoint_path`, not the configured `checkpoint_path`.
+  The built-in factory records the resolved file passed to its network loader,
+  or `None` for a non-network scorer. `checkpoint_paths` records absolute paths.
+  Custom factories should set `provenance_checkpoint_path` on their returned
+  Agent, `agent.scorer`, or `agent.evaluator` to the actual loaded checkpoint
+  path (preferably absolute), or explicitly to `None` when none was loaded.
+  A missing declaration produces null path/hash and an explanation under
+  `checkpoint_detection_notes`; it is not evidence that no weights were used.
+  Stale unused INI paths are ignored. Files are hashed in chunks; an unreadable
+  declared loaded checkpoint fails the run rather than silently omitting its
+  hash. Keep checkpoints unchanged throughout loading
+  and evaluation so these hashes describe the loaded weights.
+  `stockfish.a` and `stockfish.b` record each player's actual engine executable
+  path and the running engine's UCI `name` and `author`. The built-in factory
+  resolves project-relative paths or PATH commands before starting the engine,
+  and uses that same absolute path for provenance. Executable file hashes are
+  stored in `sha256.player_a_stockfish` and `sha256.player_b_stockfish`.
+  Network scorers' nested Stockfish instances are included; players without an
+  engine (including pure belief networks) have `null` metadata and hashes.
+  Resource discovery checks `agent.scorer`, then `agent.evaluator`, then the
+  Agent itself, using the first non-null component. Its nested `stockfish`
+  instance is also supported. This includes Pair A's managed Stockfish leaves;
+  their CPU device is recognized through the evaluator's base classes.
+  Custom factories wrapping engines should expose `provenance_executable_path`
+  on their engine scorer; missing launch-path metadata is explicitly noted.
+  Executables must remain unchanged during loading and evaluation; unreadable
+  recorded executables fail provenance collection instead of omitting the hash.
+  `sha256.source_files` is a separate mapping from project-relative file
+  paths to individual hashes; no aggregate source hash is calculated.
+  `source_discovery` is `git` when the project root is a Git repository root:
+  `git ls-files --cached -z` discovers its tracked files. When Git is absent
+  or the project root is not a repository root, it is `filesystem` and all files
+  below the project root are discovered, including caches, ignored files and
+  `.git` contents. Directory symlinks are not traversed; they are recorded as
+  unreadable entries. Git metadata is `null` with notes in filesystem mode.
+  Other Git discovery or status errors abort the run with their cause.
+  The `[output] hash_rules` path selects the JSON rules (relative to the project
+  root or absolute); omitted settings default to `pair_c/hash_rules.json`.
+  The copied rules are read once when loading the INI. Their version,
+  `crlf-to-lf-v1`, defines SHA-256 over bytes with CRLF replaced by LF for
+  listed text extensions and filenames. Extension and filename matching is
+  case-insensitive; listed binary extensions take precedence, and unknown
+  extensions default to binary. Standalone CR bytes and all other bytes are
+  unchanged. Checkpoints and engines always use raw bytes, regardless of their
+  extension. `hash_rules_path` records the original rules path.
+  Source hashes describe current working-tree contents, including unstaged edits.
+  In Git mode untracked files are excluded, even when not ignored; a tracked
+  file deleted before hashing is recorded as `null`. A file that disappears
+  during filesystem scanning is also `null`. Other individual read failures
+  are recorded as `{"error": "..."}` at the file's path and do not stop the run.
+  Directory scanning failures abort because their contents cannot be listed.
+  Collection happens before creating the new output directory. File sets in
+  filesystem mode can differ across machines and from Git mode.
+  An optional isolated smoke check is available via `python pair_c/provenance.py`.
 - `games.jsonl`: one JSON record per attempted game, including player identities, Agent/tracker factory paths and colors, seed, winner, termination reason, every move, and per-move elapsed time. Failed games are recorded with an error.
 - `summary.json`: Agent/tracker factory paths, wins, draws, losses, win rate, score rate, completed/failed game counts, move timing, and over-budget counts.
 
