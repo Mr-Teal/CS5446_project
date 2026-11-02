@@ -2,7 +2,7 @@
 
 Presentation Plan and Slide Draft
 
-CS4246/CS5446 | AY2026/27 | 28 October 2026 | For team discussion
+CS4246/CS5446 | AY2026/27 | 2 November 2026 | Living draft for team discussion
 
 **Major revisions expected.** Major changes are likely as implementation,
 integration, experiments and team review progress. This is a provisional
@@ -10,6 +10,14 @@ starting point, not an agreed final narrative, slide deck or allocation of
 speaking roles. Slides, visuals, results, conclusions and timing may need
 substantial rewriting. Recheck every claim against the final artifacts before
 presenting; pending results must not be treated as established findings.
+
+**Living-draft workflow.** This plan and the editable PowerPoint are a current
+working version, not a finished presentation. After a relevant result, code
+integration or contributor update, revise the affected claim and source here,
+then regenerate/review the deck and PDF together. Preserve archived experiment
+identities; a new code merge does not retrospectively change an old result.
+Keep speakers unassigned until the team agrees, and record actual rehearsal
+times rather than calling the planned timings verified.
 
 **Purpose.** Help everyone start building the presentation. Each slide below has
 draft wording, a speaker outline and a visual brief. Suggested reviewers are
@@ -125,11 +133,12 @@ support selected contracts, not stronger play or full Obscuro reproduction."
 
 **Visual:** A before/after tree with unchanged old nodes and highlighted new
 frontiers. Limit verification to a 20-second callout; test counts go in backup.
-Show uniform complete-frontier growth at main 9871083 and cooperative
-deadlines. ZS21 and the shared EP repetition fix are now on main through PR37.
-The selective/retained/gadget/purification stack remains unmerged; scoped
-approvals of PR42/46/48/52 cover selected checks, not the complete system.
-Projected training labels remain disabled and gift lineage remains audit-only. Sources: S3, S7. Teal has volunteered
+Distinguish the historical uniform-growth prototype from the later selective,
+retained-search, gadget and purification stack, now merged in main 02bb041.
+Tracker/solver follow-ups in PR59/62 remain under review. Existing scoped
+checks do not validate the current system end to end; strict and relaxed
+full-game pilots still fail resource limits. Do not equate merge status with
+formal-match readiness. Sources: S3, S7, S10. Teal has volunteered
 content and a retained-state growth visual; speaking allocation remains open.
 Use S9 for review details in backup, outside the timed explanation.
 
@@ -176,6 +185,13 @@ spans zero. Regression can improve many values without changing the ranking
 of important actions. The linear correction is a useful simpler baseline.
 These results support better prediction, not demonstrated better selection."
 
+**Interpretation guard.** An interval containing zero does not establish a tie
+or equivalence. The report's band analysis shows gains concentrated in more
+decided positions, with all learned variants worse than D1 on close positions.
+Use the regenerated Figure 1 or a native chart from the same pinned JSON;
+do not invent new measurements. The MC/TD comparison belongs in backup, with
+its different training and outcome-evaluation populations stated explicitly.
+
 **Visual:** Separate panels: a zero-based bar chart of value error
 (material 0.336, D1 0.095, linear 0.084, Network 1 0.076), and the reported
 Network 1-minus-D1 value-lost difference with its interval and zero line. Lower
@@ -187,8 +203,8 @@ Value-error difference: -0.019, interval [-0.021, -0.018]. Source: S4.
 **On slide:** "Context reduces board error by about 0.0028 across five seeds."
 "The labels themselves do not depend on belief."
 
-**Speaker draft:** "The reported checkpoint gives board error 0.074 versus
-0.076 without context. Across five seeds the mean reduction is about 0.0028.
+**Speaker draft:** "Across five seeds, mean board error is 0.0734 with context
+and 0.0762 without it, a reduction of 0.0028; every seed improves.
 Since the labels stay fixed when the surrounding belief changes, this is
 consistent with denoising. A strategic claim needs belief-dependent targets."
 
@@ -245,7 +261,9 @@ strength." "Audited batch; integrated search evaluation next."
 **Speaker draft:** "Our current contribution is a documented framework and
 case-specific evidence. Better teacher agreement has not established better
 decisions under fog in the tested planner. Next are the reviewed integrated
-search revision, belief-dependent targets and appropriate search ablations. Transparent limits and information-safe interfaces
+search revision, successful full-game pilots, belief-dependent targets and
+appropriate search ablations. Until then, the full-agent comparison is pending,
+not a completed negative result. Transparent limits and information-safe interfaces
 support responsible experimentation; they are not performance evidence."
 
 **Visual:** Three takeaways and a short next-step sequence, with contribution
@@ -276,11 +294,20 @@ and his linear baseline (#8), historical cross-check and independent batch audit
 Credit Colin's evaluators/data/training, bot/tracker/runner, protocol/batch, Fog Lab,
 worked example and reviews; Colin's individual AI-use statement is still pending.
 
-**First deliverables.** Claim a block and reviewer in the pull-request discussion,
-create its visuals and transfer the wording to the agreed slide tool. For each
-block record owner, speaker, source/artifact, reviewer and ready/blocked status.
-Agree one deck location and integrator; avoid parallel downloaded copies.
-GitHub versions this Word plan but does not provide live Word coauthoring.
+**Working artifacts.** Keep this Markdown plan, its Word copy, the editable
+PowerPoint and its PDF preview together in `docs/drafts/`. The slide deck is a
+reviewable starting point, not an agreed speaking allocation or a rehearsed
+talk. For each block record owner, speaker, source/artifact, reviewer and the
+next update needed. GitHub versions these artifacts but does not provide live
+Office coauthoring; reconcile teammate edits before regenerating binaries.
+
+**Update queue.** Search contributors: verify the current mechanism status and
+replace conceptual diagrams with replay-validated examples when available.
+Pair B: refresh affected slides only when new evaluator evidence is committed.
+Evaluation contributors: add full-agent comparisons only after successful
+pilots and a separately recorded batch. All members: confirm their own
+contribution/AI wording and speaking role. These are review needs, not newly
+assigned deadlines or claims that anyone has completed them.
 
 **Before rehearsal.** Check rules/source identity, result eligibility, chart
 denominators/units/uncertainty, speaker transitions, legibility and attribution.
@@ -302,10 +329,11 @@ are full-board and the online path is board-wise. Explain the required follow-up
 **Why can lower error fail to improve moves?** Regression and action ranking
 are different objectives; show slide 8's value-lost interval.
 
-**Did we reproduce Obscuro?** No complete reproduction claim. Keep a mechanism
-status table separating main's uniform-growth baseline, unmerged sampled
-search mechanisms with scoped approvals, remaining label/payment contracts
-and the merged ZS21 delivery. Prototype verification does not establish strength.
+**Did we reproduce Obscuro?** No complete reproduction claim. Distinguish the
+historical uniform-growth baseline, the later merged search mechanisms and
+the still-open tracker/solver integration. Pin any mechanism-completeness
+claim to an inspected revision; prototype verification does not establish
+strength or formal-match readiness.
 
 **Is the comparison fair?** Outer planning is fixed, total compute is not.
 Explain paired openings, timing, failures and engine resets.
@@ -328,7 +356,7 @@ Use the [pinned mechanism checklist](https://github.com/Mr-Teal/CS5446_project/b
 
 S4. [Pinned evaluator documentation and linked artifacts](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/README.md). Plot the recorded values; distinguish development checks, offline beliefs, sealed tests and gameplay.
 
-S5. [Updated methods, PR50](https://github.com/Mr-Teal/CS5446_project/blob/182ec7a6abe3ef649270edbb1a0cbeb9ecb07fc1/pair_b/docs/evaluation-methods-draft.md) and [batch discussion, issue 17](https://github.com/Mr-Teal/CS5446_project/issues/17). The objection window closed on 27 October at 23:59 SGT; PR38 merged on 28 October at 01:18 SGT. Preserve its pre-rule source. PR50 remains a draft.
+S5. [Merged methods, PR50](https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md) and [batch discussion, issue 17](https://github.com/Mr-Teal/CS5446_project/issues/17). PR38 merged on 28 October; PR50 merged on 2 November. Preserve the batch's pre-rule execution source rather than treating either publication date as a new run.
 
 S6. [Historical artifacts, PR31](https://github.com/Mr-Teal/CS5446_project/tree/8735be4cc7e06928db6d12ee2487a08bb86e5ba7/pair_b/experiments/matches/crosscheck-bryan-d1-vs-material-standard-start). Historical source: 3afc5945dfa5a98e5a90275782b8658b69bb9bcf; do not pool with the archived seven-row batch.
 
@@ -346,6 +374,8 @@ own contribution and AI-use disclosures, and rehearse. This revision adds no
 new training or formal matches; S9 records the separately completed review probes. Major revisions to both this plan and the report
 are expected as more work and results become available.
 
-S8. [Reviewed batch, PR38 at 5e9393a](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27). Execution source a5c5fb6; paired scores and intervals, failures, timing and capped-draw notes. [Pending Pair A stack](https://github.com/Mr-Teal/CS5446_project/pull/42) is separate from the batch. [ZS21/shared EP delivery](https://github.com/Mr-Teal/CS5446_project/pull/37) merged at 04f992d. Current main is [9871083](https://github.com/Mr-Teal/CS5446_project/tree/987108329d19fd1b4113883131d551fc68d39dd3).
+S8. [Reviewed batch, PR38 at 5e9393a](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27). Execution source a5c5fb6; paired scores and intervals, failures, timing and capped-draw notes. The later search stack is separate from this archived batch. [ZS21/shared EP delivery](https://github.com/Mr-Teal/CS5446_project/pull/37) merged at 04f992d. Current main is [02bb041](https://github.com/Mr-Teal/CS5446_project/tree/02bb0410ce3a17ce308d900a26b0ad453bfe20f5).
+
+S10. Current integration limits: [PR59 scoped review](https://github.com/Mr-Teal/CS5446_project/pull/59#pullrequestreview-5731688707), [PR62 scoped review and pilot limits](https://github.com/Mr-Teal/CS5446_project/pull/62#pullrequestreview-5731608636), and [PR60 coverage handoff](https://github.com/Mr-Teal/CS5446_project/pull/62#issuecomment-6568790898). These are not successful full-agent matches. Recheck the live integration status before updating this slide.
 
 S9. Scoped reviews on 28 October: [PR42 at 2568818](https://github.com/Mr-Teal/CS5446_project/pull/42#pullrequestreview-5679229932), [PR52 at 5e74ede](https://github.com/Mr-Teal/CS5446_project/pull/52#pullrequestreview-5679231586), [PR46 at ee42c8f](https://github.com/Mr-Teal/CS5446_project/pull/46#pullrequestreview-5679261471), and [PR48 at 879818c](https://github.com/Mr-Teal/CS5446_project/pull/48#pullrequestreview-5679267479). For backup: PR52 had 185 selected tests, six detected defect mutations and four additional Black-perspective value probes; PR46 had 42 selected tests within its functional scope; PR48 had 33 selected tests, two verified 100-entry source manifests, a portable clock link and a gift-probe rerun matching non-timing fields. Counts overlap across heads and must not be summed. No new clock matrix or formal match batch was run. Projected labels remain disabled; the ledger does not transfer ancestor payments numerically. Scoped approval is not final integration approval, a timing guarantee or strength evidence.

@@ -10,32 +10,33 @@ Semester 1, AY2026/27
 
 ## Project Report Draft
 
-2 November 2026 | For team review, not final submission
+2 November 2026 | Living draft for team review, not final submission
 
 **Team:** DING Chiyu; PEI Shengxin; QUEK Hongqiang Colin; WANG Zhijian;
 Kuah Jun Hong, Bryan; LIN Tzu-Chun.
 
-**Draft status.** This is a full report draft assembled from the available
-implementation, development results, historical validation and the completed
-seven-row batch, independently audited at PR38 head 5e9393a. The objection
-window closed on 27 October at 23:59 SGT; PR38 merged on 28 October at
-01:18 SGT. The team must confirm the
-final integrated revision, contributions and conclusions before submission.
+**Living-draft status.** This report records the available implementation,
+development results, historical validation and archived seven-row batch,
+independently audited at PR38 head 5e9393a. Integrating a reviewed section is
+not a declaration that the report is finished. Continue revising it as the
+team's implementation, experiments and interpretation develop.
 
-**Major revisions expected.** Major changes are likely as implementation,
-integration, experiments and team review progress. This is a provisional
-starting point, not an agreed final structure or account of completed work.
-Sections, figures, results, conclusions and contributions may need substantial
-rewriting. Recheck every claim against the final artifacts before submission;
-pending results must not be treated as established findings.
+**Update routine.** When relevant code, evidence or contributor information
+changes, update the affected claim and its pinned source, then regenerate the
+Word/PDF and check the page limit, figures and denominators again. Preserve
+historical experiment identities rather than silently relabeling old results
+as measurements of newer code. Keep unperformed experiments and unconfirmed
+contributions explicit. Reconcile teammates' edits before regenerating files.
 
 **Sharing and submission.** Student numbers and email addresses are deliberately
 omitted from this GitHub-review copy; restore all required team details in the
 Canvas submission. The course requires a PDF, not a Word file. The main report
 has a strict 10-page limit, excluding title page and references, with single
 spacing, one column, at least 12-point text and one-inch margins. Manage the final
-numbered Vancouver bibliography in a reference manager. This draft's references
-are manually prepared and have not been imported into one.
+numbered Vancouver bibliography in a reference manager. The Word draft embeds
+20 source records; `report-sources.xml` is the shareable source library.
+Numbered citations remain manually maintained, not linked citation fields.
+Complete metadata/style review and field linking before submission.
 
 **Reading guide.** Development-label results, historical match checks and the
 archived pre-rule batch are separate evidence populations. An unmerged
@@ -432,7 +433,13 @@ position [15].
 
 ### 6.5 Our Leaf Inside Pair A's Search
 
-> **To come.** Matches of the full agent, first with quick Stockfish as its leaf and then with our best leaf evaluator. These can run when the belief tracker completes full games. Use the format of Table 3.
+**Pending experiment, not a result.** No full-agent comparison is reported in
+this draft. The intended comparison holds Pair A's search fixed and changes
+the leaf evaluator, starting with quick Stockfish. It depends on a tracker and
+integrated agent that complete full games within the agreed resource limits.
+The one-ply batch in Table 3 is not a substitute. When this experiment becomes
+available, add its own pinned configuration, paired outcomes, exclusions and
+costs; do not pool it with the archived batch.
 
 ---
 
@@ -456,21 +463,13 @@ and is not pooled with that batch's estimates.
 | Growth retains prior solver state and rejects incomplete grafts | PR27: 404 existing tests plus 7 additional probes passed [18] | Tested histories and failures, not universal correctness |
 | Budget accounting, fallback and diagnostics match execution | PR30: 425 existing tests plus 20 probes; 18 twice-run fixed-work cases agree excluding timing [19] | Calls are not total compute; a 10 ms probe took about 10.47 ms |
 
-PR27's 110 focused tests are included in its 404. The reviewed revisions are
-7b14bbb and 5f334b1 respectively; full identifiers and artifacts are in the
-references. Their search snapshots exclude the separate no-move-rule update
-in PR28 [20]. These are not final integrated-release checks.
-
-Scoped reviews on 28 October checked subgame diagnostics, label rejection,
-fallback recovery and weighted values. PR52's 185 selected tests passed;
-six defect mutations were caught and four Black-perspective probes passed.
-PR46's 42 selected tests support functional correctness; its timing matrices
-remain historical. PR48's 33 selected tests passed, both 100-entry manifests
-and its portable clock link verified, and the gift probe reproduced non-timing
-fields. Exact reviewed heads and limits are linked in [5]. These overlapping
-selections are not summed or treated as release, timing or strength evidence.
-The reviews and this revision added no training, formal match batch or
-engine/network execution.
+The focused tests are subsets, not additional independent samples. These
+historical search snapshots predate the no-move-rule update [20]. Later scoped
+checks cover diagnostics, label rejection, fallback recovery and weighted
+values; pinned revisions, test counts and evidence remain in the linked
+technical reviews [5]. They do not establish integrated-release correctness,
+timing guarantees or playing strength. This editorial revision runs no new
+training or matches.
 
 ### 7.2 What the Evidence Establishes
 
@@ -481,20 +480,15 @@ The second has bounded evidence from the archived fixed-planner matches;
 the third requires verification of all relevant search mechanisms and their
 integration. Success in one does not imply success in the others.
 
-This distinction also sharpens the value of the project beyond a single score.
-Information-safe interfaces, explicit rule checks, recorded configuration
-identities, game-grouped analyses and failure-visible runners make experiments
-inspectable. The learned-versus-linear comparison shows why a simpler baseline
-is useful: part of the regression gain does not require the richer model, and
-neither gain automatically translates into better move ranking.
+The simpler linear baseline explains much of the network's regression gain,
+without establishing better move ranking. Recorded configurations, rule checks
+and game-grouped analyses make that distinction inspectable.
 
-For belief context, varying a model's output with other hypotheses is a useful
-capacity check but is not evidence that those changes are strategically right.
-A stronger experiment would hold board state fixed while changing information
-structure, use validated belief-dependent targets, and compare actions under
-the same search. Similarly, an equal-time search comparison must budget the
-entire decision path, rather than equating a number of evaluator calls whose
-internal workloads differ.
+For belief context, the next discriminating experiment holds the board fixed
+while changing information structure, uses validated belief-dependent targets,
+and compares actions under the same search. An equal-time comparison must also
+budget the entire decision path, not equate evaluator calls with different
+internal workloads.
 
 ---
 
@@ -556,7 +550,7 @@ comparisons do not establish full-agent strength or strategic belief value.
 
 4. CS5446_project contributors. Pair A search implementation, specifications and reproduction differences [Internet]. 2026 [cited 2026 Oct 26]. Revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed. Available from: [pinned Pair A source](https://github.com/Mr-Teal/CS5446_project/tree/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep); [detailed mechanism checklist](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep/docs/obscuro_status.md).
 
-5. CS5446_project contributors, bryankuah. Integration status and scoped search reviews [Internet]. 2026 Nov 2 [cited 2026 Nov 2]. Main 02bb0410ce3a17ce308d900a26b0ad453bfe20f5 includes the later search stack and PR50/51; PR59–62 remain open. Historical reviewed heads: PR42 25688180178589d41daadfaa5a23117a115fe96d; PR52 5e74ede8ef874a3bdc31564830e889f113951f87; PR46 ee42c8f8e41858431e000825a437ee39b2e88b7b; PR48 879818c16518e1d706cf60fe5f666979d532aec9. Those scoped reviews are not tests of this main snapshot. Available from: [pinned main](https://github.com/Mr-Teal/CS5446_project/tree/02bb0410ce3a17ce308d900a26b0ad453bfe20f5); [PR37 delivery](https://github.com/Mr-Teal/CS5446_project/pull/37); [PR42 review](https://github.com/Mr-Teal/CS5446_project/pull/42#pullrequestreview-5679229932); [PR52 review](https://github.com/Mr-Teal/CS5446_project/pull/52#pullrequestreview-5679231586); [PR46 review](https://github.com/Mr-Teal/CS5446_project/pull/46#pullrequestreview-5679261471); [PR48 review](https://github.com/Mr-Teal/CS5446_project/pull/48#pullrequestreview-5679267479).
+5. CS5446_project contributors, bryankuah. Integration status and scoped search reviews [Internet]. 2026 Nov 2 [cited 2026 Nov 2]. Main 02bb0410ce3a17ce308d900a26b0ad453bfe20f5 includes the later search stack and PR50/51; PR59, PR60 and PR62 remain open. PR61 merged into the report draft branch, not main. Historical reviewed heads: PR42 25688180178589d41daadfaa5a23117a115fe96d; PR52 5e74ede8ef874a3bdc31564830e889f113951f87; PR46 ee42c8f8e41858431e000825a437ee39b2e88b7b; PR48 879818c16518e1d706cf60fe5f666979d532aec9. Those scoped reviews are not tests of this main snapshot. Available from: [pinned main](https://github.com/Mr-Teal/CS5446_project/tree/02bb0410ce3a17ce308d900a26b0ad453bfe20f5); [PR37 delivery](https://github.com/Mr-Teal/CS5446_project/pull/37); [PR42 review](https://github.com/Mr-Teal/CS5446_project/pull/42#pullrequestreview-5679229932); [PR52 review](https://github.com/Mr-Teal/CS5446_project/pull/52#pullrequestreview-5679231586); [PR46 review](https://github.com/Mr-Teal/CS5446_project/pull/46#pullrequestreview-5679261471); [PR48 review](https://github.com/Mr-Teal/CS5446_project/pull/48#pullrequestreview-5679267479).
 
 6. emalcolin, CS5446_project contributors. Pair B: leaf evaluators, Network 1 and its practice data [Internet]. 2026 [cited 2026 Oct 26]. Revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed; contains links to the underlying checkpoint results and manifests. Available from: [pinned evaluator documentation](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/README.md).
 
