@@ -2,6 +2,28 @@
 
 This runner plays a configurable number of complete Fog-of-War chess games between two independently constructed players. Each side has its own Agent factory, Agent, model resources, and tracker factory. Each game receives a new tracker per player. The default configuration is an ablation example: it uses the same Pair B `OnePlyBot` factory class twice, loading a different scorer for each player, and Pair B's `ParticleTracker` for both players.
 
+## Exact tracker budgets and timing
+
+Pair A's history tracker supports an opt-in `tracker_policy=budgeted-exact`.
+It resumes interrupted inference and output within an explicit per-update total
+time allowance, logical-memory limit and retry count. It returns a complete
+uniform sample or fails the attempt; it never silently prunes histories or
+submits partial support. See the [settings and semantics](../pair_a_prep/docs/belief_tracker.md#pair-c-evaluation-policy)
+and [readiness pilot INI](configs/budgeted_exact_pilot.ini). Existing configurations
+retain their original exact policy and 2,000-history capacity limit.
+
+Every tracker update is immediately saved to `tracker_updates.jsonl`, including
+updates that fail. The same rows appear under `tracker_updates` in `games.jsonl`.
+They record player colour, ply, actual update time including resumes, policy,
+retry count, support/work metadata when available, and explicit exhaustion/error
+information. Initial and terminal observations are included. Custom trackers
+without these metadata fields produce `null` values rather than invented zeros.
+`summary.json` reports tracking totals by player identity across colour swaps,
+including failed attempts. Existing `timing` and over-budget flags still measure
+only `agent.act`; separate tracker budgets are cooperative, not a hard combined
+turn deadline. Failed games can still omit partial agent records, so the recorded
+agent-plus-tracker aggregate is not full failed-game wall time.
+
 ## Run
 
 From the repository root, activate the Python environment that has the project dependencies installed, then run:

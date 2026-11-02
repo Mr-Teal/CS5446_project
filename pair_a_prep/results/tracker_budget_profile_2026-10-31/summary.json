@@ -1,0 +1,236 @@
+{
+  "runtime_commit": "fbe16a431af4aba79d7f07b490e73c221c58dec1",
+  "platform": "macOS-26.7.1-x86_64-i386-64bit",
+  "python": "3.12.15 (main, Oct 14 2026, 00:55:54) [Clang 23.1.3 ]",
+  "backend": "python",
+  "target": {
+    "seed": 18,
+    "tracker_seed": 19,
+    "player": "black",
+    "ply": 9,
+    "prefix_histories": 8841,
+    "prefix_states": 2388,
+    "complete_histories": 197428,
+    "complete_states": 33191
+  },
+  "trials": 27,
+  "cases": {
+    "unbounded": {
+      "statuses": [
+        "complete",
+        "complete",
+        "complete"
+      ],
+      "wall_ms_median": 7432.55314000271,
+      "wall_ms_range": [
+        7419.351437998557,
+        7501.651140999456
+      ],
+      "phase_ms_median": {
+        "memory_ms": 0.0,
+        "output_ms": 9.81095200040727,
+        "transitions_ms": 6887.4678799875255,
+        "repetition_ms": 0.0
+      },
+      "calls": [
+        1,
+        1,
+        1
+      ]
+    },
+    "original": {
+      "statuses": [
+        "call_limit",
+        "call_limit",
+        "call_limit"
+      ],
+      "wall_ms_median": 4272.255052001128,
+      "wall_ms_range": [
+        4271.552537000389,
+        4275.886848998198
+      ],
+      "phase_ms_median": {
+        "memory_ms": 2743.7501000058546,
+        "output_ms": 15.915297994069988,
+        "transitions_ms": 1388.091637101752,
+        "repetition_ms": 0.0
+      },
+      "calls": [
+        17,
+        17,
+        17
+      ]
+    },
+    "25ms": {
+      "statuses": [
+        "total_time",
+        "total_time",
+        "total_time"
+      ],
+      "wall_ms_median": 5010.533911998209,
+      "wall_ms_range": [
+        5001.7856740014395,
+        5058.874030000879
+      ],
+      "phase_ms_median": {
+        "memory_ms": 5003.583259000152,
+        "output_ms": 0.2952390059363097,
+        "transitions_ms": 0.0,
+        "repetition_ms": 0.0
+      },
+      "calls": [
+        71,
+        71,
+        67
+      ]
+    },
+    "100ms": {
+      "statuses": [
+        "total_time",
+        "total_time",
+        "total_time"
+      ],
+      "wall_ms_median": 5076.998536998872,
+      "wall_ms_range": [
+        5033.446482000727,
+        5084.983051001473
+      ],
+      "phase_ms_median": {
+        "memory_ms": 4709.617518015875,
+        "output_ms": 17.85450700117508,
+        "transitions_ms": 298.8103950228833,
+        "repetition_ms": 0.0
+      },
+      "calls": [
+        50,
+        50,
+        50
+      ]
+    },
+    "250ms": {
+      "statuses": [
+        "total_time",
+        "total_time",
+        "total_time"
+      ],
+      "wall_ms_median": 5001.798708999559,
+      "wall_ms_range": [
+        5001.69973499942,
+        5001.928399000462
+      ],
+      "phase_ms_median": {
+        "memory_ms": 3397.7244239904394,
+        "output_ms": 20.277181993151316,
+        "transitions_ms": 1447.7614961106156,
+        "repetition_ms": 0.0
+      },
+      "calls": [
+        20,
+        20,
+        20
+      ]
+    },
+    "1000ms": {
+      "statuses": [
+        "total_time",
+        "total_time",
+        "total_time"
+      ],
+      "wall_ms_median": 5003.576193001209,
+      "wall_ms_range": [
+        5003.5585400000855,
+        5003.848666001431
+      ],
+      "phase_ms_median": {
+        "memory_ms": 1222.6952189957956,
+        "output_ms": 11.19126100820722,
+        "transitions_ms": 3466.2158621031267,
+        "repetition_ms": 0.0
+      },
+      "calls": [
+        5,
+        5,
+        5
+      ]
+    },
+    "5000ms": {
+      "statuses": [
+        "memory",
+        "memory",
+        "memory"
+      ],
+      "wall_ms_median": 1386.0479290015064,
+      "wall_ms_range": [
+        1383.3284719985386,
+        1391.2413380021462
+      ],
+      "phase_ms_median": {
+        "memory_ms": 79.27731899690116,
+        "output_ms": 1.7353450020891614,
+        "transitions_ms": 1200.4291381672374,
+        "repetition_ms": 0.0
+      },
+      "calls": [
+        1,
+        1,
+        1
+      ]
+    },
+    "raw-unbounded": {
+      "statuses": [
+        "complete",
+        "complete",
+        "complete"
+      ],
+      "wall_ms_median": 7386.7859530000715,
+      "wall_ms_range": [
+        7234.885944999405,
+        7756.967941997573
+      ],
+      "phase_ms_median": {
+        "memory_ms": 0.0,
+        "output_ms": 0.0,
+        "transitions_ms": 0.0,
+        "repetition_ms": 0.0
+      },
+      "calls": [
+        1,
+        1,
+        1
+      ]
+    },
+    "raw-15s-512mb": {
+      "statuses": [
+        "complete",
+        "complete",
+        "complete"
+      ],
+      "wall_ms_median": 7460.421186999156,
+      "wall_ms_range": [
+        7405.4311369982315,
+        7524.861514000804
+      ],
+      "phase_ms_median": {
+        "memory_ms": 0.0,
+        "output_ms": 0.0,
+        "transitions_ms": 0.0,
+        "repetition_ms": 0.0
+      },
+      "calls": [
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  "completed_sample_signature": "a7dfd316733121618a7750b1dd317063d3dc734d6e5f73b6b696f1fb6637749b",
+  "source_sha256": {
+    "pair_a_prep/belief_tracker.py": "0d6a992a5e224a5e22e71ae5beed55feac4d64ea022dd333054a92e7a0ddab50",
+    "pair_a_prep/_belief_graph.py": "f5cce922d096e3b4dda5d8144d308164d22a8a448358e8807b334f61bc0c0753",
+    "pair_a_prep/evaluation_tracking.py": "7f216a1e78f6dbebddce1284db031cae376f40cbc6138b0f44d2efc705bb6153",
+    "pair_c/tracking.py": "3a3e6c26c90adab87807fba9276f3ea42d28097dcf52cd48d594a5ee8fa878b0",
+    "pair_c/run_evaluation.py": "8bc485162fdb8c2e47d0cf766ef1b900837b639bc78c749e030e05ca0f0fcaaa"
+  },
+  "input_sha256": "3e76acd1dcc7d795af83a1d9cabd0ab7216800009ee59fc4abc4d89e2a9bb583",
+  "scope": "one fixed private update; exact prefix preparation excluded; not a full-game configuration validation"
+}

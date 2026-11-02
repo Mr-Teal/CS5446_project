@@ -1,0 +1,66 @@
+The five-second exact-tracking allowance is insufficient for this Python-backend update.
+
+We reproduced the seed-18, Black-view failure at ply 9. All 19 successful
+per-view population counts preceding the old failure matched the earlier pilot.
+Only Black's private observations and own moves enter the profiled tracker.
+Prefix preparation is excluded from target-update timing. Each trial uses a
+fresh process; timing workers run sequentially, with three trials per case.
+
+Completed exact support contains 197,428 histories in 33,191 current states,
+up from 8,841 histories and 2,388 states at the previous ply. Output sample size
+is three. Lowering that output sample does not cap internal inference work.
+
+Median target update, seconds (three trials):
+case                 wall    memory scans   transitions   output     result
+unbounded             7.433        0.000         6.887    0.010   complete
+original              4.272        2.744         1.388    0.016   call_limit
+25ms                  5.011        5.004         0.000    0.000   total_time
+100ms                 5.077        4.710         0.299    0.018   total_time
+250ms                 5.002        3.398         1.448    0.020   total_time
+1000ms                5.004        1.223         3.466    0.011   total_time
+5000ms                1.386        0.079         1.200    0.002   memory
+
+The original 250 ms / 17-call policy spends about 2.74 of 4.27 seconds
+in repeated storage_stats graph scans. At 25 ms, even the preflight scan exceeds
+the slice: all three trials process zero new transitions. At 100 ms, scans
+dominate and only limited expansion occurs. Larger slices reduce this overhead.
+Output generation is small; exact repetition filtering was not invoked for
+this target. The remaining profiled time includes graph insertion and bookkeeping.
+
+Larger slices alone do not solve the resource limit. The single 5,000 ms call
+hits the conservative 64 MiB logical-allocation budget. Its partial reachable
+objects are about 14.5 MiB; estimated allocations and reachable-object counts
+are different measures. Resumes remeasure reachable objects, so conservative
+charging also makes the stop point depend on the slicing schedule. These are
+not process RSS measurements or hard OS memory limits.
+
+Uninstrumented controls confirm that profiling did not create the five-second
+blocker: exact expansion without budgets takes 7.387 seconds median. A single
+15,000 ms slice with a 512 MiB logical cap completes in 7.460 seconds median.
+All nine completed runs have identical population/state counts and identical
+returned-history/FEN/weight signatures. This compares output signatures and
+counts; it does not exhaustively enumerate the 197,428-history support.
+
+Decision: do not claim a viable five-second, 64 MiB exact evaluation config on
+this Python backend. Repeated full-graph inventory is a concrete optimization
+target, but even removing that cost leaves this update over five seconds.
+The 15 s / 512 MiB settings are a successful fixed-update diagnostic, not a
+validated full-game protocol. Benchmark the same fixture on the intended
+Windows native backend before choosing match resources. A smaller/pruned
+support would require an explicit approximation policy and different validation.
+No production runtime or pilot setting was changed by this experiment.
+
+Reproduce from the repository root with its Python dependencies installed:
+  export PYTHONPATH="$PWD:$PWD/pair_b/src"
+  python pair_a_prep/results/tracker_budget_profile_2026-10-31/run_profiles.py --output pair_a_prep/local_runs/tracker-profile
+  python pair_a_prep/results/tracker_budget_profile_2026-10-31/run_controls.py --output pair_a_prep/local_runs/tracker-profile
+
+The fixture is committed as private-stream.jsonl. Optional live recapture:
+  python pair_a_prep/results/tracker_budget_profile_2026-10-31/capture.py --stockfish-path /absolute/path/to/stockfish --output pair_a_prep/local_runs/tracker-capture
+Recapture replays the seed-18 colour assignment through the actual agents and
+records observations externally; no referee state enters tracker inference.
+
+Runtime source: PR60 fbe16a4, Python backend, macOS x86_64. Source/input hashes,
+host version, all 27 trial records (trials.jsonl.gz) and per-resume phase timings accompany this
+report. Native acceleration, other hosts, later observations, playing strength
+and whole-game reliability were not measured. Prepared with Codex assistance.

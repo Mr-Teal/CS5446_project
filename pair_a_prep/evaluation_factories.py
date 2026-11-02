@@ -204,6 +204,33 @@ class HistoryTrackerFactory:
         adapter = RulesAdapter()
         if adapter.initial_state(_initial_fen(self.settings)).fen != adapter.initial_state(initial_fen).fen:
             raise ValueError("public_initial_fen must match the runner's public initial_fen")
-        return BeliefTracker(initial_fen,
-            sample_size=_positive(self.settings, "sample_size", 4),
-            max_candidates=_positive(self.settings, "max_candidates", 2000))
+        from .evaluation_tracking import BudgetedExactTracker
+
+        policy = self.settings.get("tracker_policy", "exact").strip()
+        if policy not in ("exact", "budgeted-exact"):
+            raise ValueError("tracker_policy must be exact or budgeted-exact")
+        budget_keys = ("tracker_slice_ms", "tracker_total_ms", "tracker_memory_mb", "tracker_max_resumes")
+        if policy == "exact" and any(key in self.settings for key in budget_keys):
+            raise ValueError("tracker budget settings require tracker_policy=budgeted-exact")
+        cap = self.settings.get("max_candidates", "2000" if policy == "exact" else "none").strip().lower()
+        maximum = None if cap == "none" else _positive({"max_candidates": cap}, "max_candidates", 2000)
+        tracker = BeliefTracker(initial_fen,
+            sample_size=_positive(self.settings, "sample_size", 4), max_candidates=maximum,
+            backend=self.settings.get("tracker_backend", "auto").strip())
+        if policy == "exact":
+            tracker.evaluation_policy = "exact"
+            return tracker
+
+        def number(key, default, *, zero=False):
+            value = float(self.settings.get(key, str(default)))
+            if not isfinite(value) or value < 0 or (not zero and value == 0):
+                raise ValueError(key + " must be finite and " + ("nonnegative" if zero else "positive"))
+            return value
+
+        resumes = int(self.settings.get("tracker_max_resumes", "16"))
+        if resumes < 0:
+            raise ValueError("tracker_max_resumes must be nonnegative")
+        return BudgetedExactTracker(tracker,
+            slice_ms=number("tracker_slice_ms", 100, zero=True),
+            total_ms=number("tracker_total_ms", 2000),
+            memory_mb=number("tracker_memory_mb", 64, zero=True), max_resumes=resumes)

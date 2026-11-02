@@ -167,6 +167,13 @@ is unfinished, advancing discards unexpanded alternatives and `support_complete`
 stays false on future turns. Every remaining path is still consistent with every
 observation; finishing output never undoes earlier pruning or lost branches.
 
+Output materialization can also be interrupted after graph expansion finishes.
+In that case `support_complete` and `expansion_complete` can both be true while
+`status` is `partial`. `resume()` regenerates the output from the saved RNG state,
+so a completed sample and subsequent sampling agree with an uninterrupted update.
+Advancing directly from an output-only interruption does not discard graph
+support. Check `status == "complete"` before claiming a completed uniform sample.
+
 For incomplete support, `Belief.population_size=None` and
 `weighting="uniform_over_returned_histories"` avoid claiming a uniform posterior
 over the unknown complete information set. Time-limited expansion can favor
@@ -194,6 +201,55 @@ for diagnostics; do not confuse that with total process memory.
 The legacy `max_candidates` still raises `BeliefCapacityError` atomically; it is
 not silently converted into truncation. Exact input/capacity failures preserve
 the prior accepted state and RNG.
+
+## Pair C evaluation policy
+
+`HistoryTrackerFactory` preserves its historical `tracker_policy=exact` default
+and 2,000-history capacity error. This differs from the standalone constructor's
+uncapped default. `max_candidates=none` explicitly disables that count limit.
+
+For cooperative, exact-or-fail evaluation, set these options in **both** player
+sections, keeping their public initial FEN consistent with the referee:
+
+```ini
+tracker_factory = pair_a_prep.evaluation_factories:HistoryTrackerFactory
+tracker_policy = budgeted-exact
+sample_size = 3
+max_candidates = none
+tracker_backend = auto
+tracker_slice_ms = 250
+tracker_total_ms = 5000
+tracker_memory_mb = 64
+tracker_max_resumes = 16
+```
+
+Each private observation gets one total allowance, including expansion, output
+and all resumes. At most 16 resumes follow the initial call. Time interruptions,
+including output-only interruptions, may resume; memory exhaustion, incomplete
+support, the total-time limit or exhausted retries fail the attempt explicitly.
+No partial belief is submitted, no histories are pruned, and no hidden referee
+state is used for recovery. A new attempt gets fresh trackers. Limits remain
+cooperative, and logical memory is not process RSS. Zero slice/memory values are
+valid explicit exhaustion probes; the total-time allowance must be positive.
+
+The factory defaults for this opt-in policy are 100 ms slices, 2,000 ms total,
+64 MiB logical memory and 16 resumes. Budget fields under `tracker_policy=exact`
+raise an error instead of being silently ignored. `tracker_backend` selects
+`auto`, `python` or `native` through the normal tracker backend contract.
+
+The [Pair C pilot](../../pair_c/configs/budgeted_exact_pilot.ini) is a readiness
+probe, not an agreed formal match protocol. It can fail if complete support
+cannot be produced within these resources. Choose fresh outputs and configure
+the actual Stockfish executable before running it.
+
+Pair C records each update in `tracker_updates.jsonl` and embeds the same rows
+in its game record, including failed updates. These records distinguish returned
+sample size, known population, support completeness, tracker work, retry count,
+elapsed time and exhaustion reason. Tracker timing includes all resumes and is
+reported separately from `agent.act`; the runner's existing agent over-budget
+flag is not a combined turn deadline. Failed attempts can still omit partial
+agent records, so the aggregate recorded agent-plus-tracker total is not a
+complete wall-clock measurement for a failed game.
 
 ## Explicit approximation
 
