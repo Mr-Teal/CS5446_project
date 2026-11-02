@@ -16,28 +16,27 @@ HERE = Path(__file__).resolve().parent
 REPORT, FIGURE = HERE / "tanh-linear-d2-check-train.json", HERE / "value-error-by-band.svg"
 BANDS = (("close |y|<0.3", "Close, |v| &lt; 0.3"), ("middle 0.3-0.9", "Leaning, 0.3 to 0.9"),
          ("decided |y|>0.9", "Decided, |v| &gt; 0.9"))
-SCORERS = (("d1", "#9aa0a6", "Quick Stockfish (the paper's leaf)"), ("linear", "#a8c7f0", "Linear correction"),
+SCORERS = (("d1", "#9aa0a6", "Quick Stockfish (D1)"), ("linear", "#a8c7f0", "Linear correction"),
            ("tanh_linear", "#4a86d8", "Linear, inside tanh"), ("network", "#1f3f8f", "Network 1"))
-LEFT, RIGHT, BASE, TOP, TOP_VALUE = 70, 870, 380.0, 70.0, 0.12  # the plot area and its top value
-BAR, GAP = 44, 10
+LEFT, RIGHT, BASE, TOP, TOP_VALUE = 70, 870, 390.0, 105.0, 0.12  # the plot area and its top value
+BAR, GAP = 44, 18
 INK, MUTED, GRID = "#1a2118", "#5f6b5a", "#e3e6e0"
 SCALE = (BASE - TOP) / TOP_VALUE  # pixels per unit of value error
 
 
 def svg(report) -> str:
     bands, rows, games = report["bands"], report["eval"]["rows"], report["eval"]["games"]
-    out = ['<svg xmlns="http://www.w3.org/2000/svg" width="900" height="470" '
+    out = ['<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600" viewBox="0 0 900 600" '
            'font-family="Calibri, Carlito, Arial, sans-serif">',
-           '<rect width="900" height="470" fill="white"/>',
-           f'<text x="70" y="30" font-size="20" font-weight="bold" fill="{INK}">Value error against careful '
-           'Stockfish, by how decided the position is</text>',
-           f'<text x="70" y="52" font-size="15" fill="{MUTED}">Mean |v - v_d11| on {rows:,} positions from '
-           f'{games:,} fresh games; lower is better</text>']
+           '<rect width="900" height="600" fill="white"/>',
+           f'<text x="70" y="34" font-size="28" font-weight="bold" fill="{INK}">Value error by position band</text>',
+           f'<text x="70" y="68" font-size="24" fill="{MUTED}">{rows:,} positions / '
+           f'{games:,} games; mean |v - v_D11|, lower is better</text>']
     for i in range(7):
         tick = 0.02 * i
         y = BASE - tick * SCALE
         out.append(f'<line x1="{LEFT}" y1="{y:.1f}" x2="{RIGHT}" y2="{y:.1f}" stroke="{GRID}"/>')
-        out.append(f'<text x="{LEFT - 8}" y="{y + 5:.1f}" font-size="13" text-anchor="end" fill="{MUTED}">'
+        out.append(f'<text x="{LEFT - 8}" y="{y + 8:.1f}" font-size="24" text-anchor="end" fill="{MUTED}">'
                    f'{tick:.2f}</text>')
     width = (RIGHT - LEFT) / len(BANDS)
     for i, (key, label) in enumerate(BANDS):
@@ -47,18 +46,18 @@ def svg(report) -> str:
             value = bands[key][name]
             h = value * SCALE
             out.append(f'<rect x="{x:.1f}" y="{BASE - h:.1f}" width="{BAR}" height="{h:.1f}" fill="{colour}"/>')
-            out.append(f'<text x="{x + BAR / 2:.1f}" y="{BASE - h - 6:.1f}" font-size="13" text-anchor="middle" '
+            out.append(f'<text x="{x + BAR / 2:.1f}" y="{BASE - h - 6:.1f}" font-size="24" text-anchor="middle" '
                        f'fill="{INK}">{value:.3f}</text>')
             x += BAR + GAP
-        out.append(f'<text x="{centre:.1f}" y="404" font-size="16" font-weight="bold" text-anchor="middle" '
+        out.append(f'<text x="{centre:.1f}" y="430" font-size="24" font-weight="bold" text-anchor="middle" '
                    f'fill="{INK}">{label}</text>')
-        out.append(f'<text x="{centre:.1f}" y="424" font-size="14" text-anchor="middle" fill="{MUTED}">'
+        out.append(f'<text x="{centre:.1f}" y="460" font-size="24" text-anchor="middle" fill="{MUTED}">'
                    f'{bands[key]["share"]:.0%} of positions</text>')
-    x = LEFT
-    for _, colour, label in SCORERS:
-        out.append(f'<rect x="{x}" y="448" width="14" height="14" fill="{colour}"/>')
-        out.append(f'<text x="{x + 20}" y="460" font-size="14" fill="{INK}">{label}</text>')
-        x += 46 + 7.4 * len(label)  # the swatch, then the label at about 7.4 px a character
+    for index, (_, colour, label) in enumerate(SCORERS):
+        legend_x = LEFT + (index % 2) * 410
+        legend_y = 510 + (index // 2) * 45
+        out.append(f'<rect x="{legend_x}" y="{legend_y}" width="20" height="20" fill="{colour}"/>')
+        out.append(f'<text x="{legend_x + 30}" y="{legend_y + 19}" font-size="24" fill="{INK}">{label}</text>')
     out.append("</svg>")
     return "\n".join(out)
 
