@@ -24,6 +24,12 @@ draft wording, a speaker outline and a visual brief. Suggested reviewers are
 not assigned presenters or deadlines. The team chooses speakers, a slide tool
 and the final narrative. The project report is a separate companion draft.
 
+**Presentation-first pass, 3 November.** Slides 6-11 now have shorter slide
+wording, a spoken explanation, a transition and a Q&A prompt. Read the "Say"
+and "Transition" sections aloud; the supporting detail is not a script to
+recite. The numbers and experiment identities are unchanged. Speakers must
+adapt the wording to their own voice and verify explanations before rehearsal.
+
 **Course format.** The guidelines specify approximately 15 minutes plus 5 minutes
 Q&A, subject to change, in the week of 10 November 2026. A recording may be
 required. The audience knows AI but not necessarily this topic. Assessment
@@ -134,59 +140,111 @@ support selected contracts, not stronger play or full Obscuro reproduction."
 **Visual:** A before/after tree with unchanged old nodes and highlighted new
 frontiers. Limit verification to a 20-second callout; test counts go in backup.
 Distinguish the historical uniform-growth prototype from the later selective,
-retained-search, gadget and purification stack, now merged in main 02bb041.
-Keep the visible status line simple: "Native checks reported; full-game pilots
-and independent review remain." Put revision and test details in the notes:
-PR59 at 78f687b includes PR62/60 but is not merged into main. Teal reports
+retained-search, gadget and purification stack. Keep the visible status line
+simple: "Tracker fixes merged; full-game comparison still pending."
+Put revision and test details in the notes: Teal merged PR59 at 78f687b,
+including PR62/60, into main as 1492781 on 3 November. Teal reports
 962 locked shared/Pair A passes and 46 Pair C passes in a separate torch-enabled
 environment. Bryan's 48-test check and evidence attachment are complementary,
-not additive coverage. The full-game pilots still have unresolved strict
-ply-9 and relaxed ply-11 resource failures. Sources: S3, S7, S10. Teal has volunteered
+not additive coverage. The earlier strict ply-9 and relaxed ply-11 failures
+remain historical evidence under their original limits. In unmerged PR64,
+Teal reports that an optional 16-second tracker-update policy with no logical
+memory cap passes those points: seed17 ends by king capture at ply39, but
+seed18 fails at Black ply13 on time. There is still no complete pair or
+full-agent strength result. This is a different configuration, not a correction
+of the old measurements; its archive has not been independently audited for
+this presentation pass. Sources: S3, S7, S10. Teal has volunteered
 content and a retained-state growth visual; speaking allocation remains open.
 Use S9 for review details in backup, outside the timed explanation.
 
-### Slide 6. Swap the Evaluator, Keep the Interface (1:15)
+### Slide 6. Where Search Stops, an Evaluator Takes Over (1:15)
 
-**On slide:** "Material | Stockfish D1/D11 | linear correction | Network 1 |
-belief network." "Learned correction still uses D1."
+**Takeaway:** The evaluator estimates a position's value when search stops.
 
-**Speaker draft:** "Material is simple; deeper Stockfish is a more expensive
-full-board reference. Network 1 corrects a shallow estimate. The belief model
-can combine a board embedding with a weighted context summary. These choices
-do not consume equal compute; the existing match path is board-wise."
+**On slide:** A compact evaluator table: material; quick/careful Stockfish;
+linear correction; Network 1; belief network. "Same interface, different cost;
+learned corrections still use D1."
 
-**Visual:** Common input/output plus a model inset: board embeddings, weighted
-belief summary, board-conditioned values. Do not invent architecture layers.
-Label whole-belief evaluation offline, distinct from online child evaluation.
-Source: S4. Suggested reviewer: Pair B.
+**Say:** "Search cannot look all the way to the end of a game. When it stops,
+it needs an estimate of how good the position is. That is the leaf evaluator.
+We compare several choices through the same interface. Material just counts
+pieces. Quick Stockfish searches to depth one; careful Stockfish searches to
+depth eleven and supplies our training targets. The linear model and Network 1
+learn a correction to the quick estimate. The belief network can also use a
+weighted group of possible boards. But its teacher still labels each board
+separately. One cost matters throughout these comparisons: the learned
+corrections still need quick Stockfish, so the network adds work rather than
+replacing that engine call."
+
+**Transition:** "First, we checked whether learning a correction actually
+improved those estimates."
+
+**Point to:** Quick/careful Stockfish first, then the correction rows.
+Do not read every table cell aloud.
+
+**If asked - is this a replacement for Stockfish?** No. The correction uses
+D1 as an input. Whole-belief evaluation is an offline capability; the archived
+match runner calls the belief model board by board. Source: S4.
+Suggested technical check: Pair B, not an assigned speaking role.
 
 ---
 
 ## Slides 7-9: Measurements and Insights
 
-### Slide 7. Evaluate the Target We Actually Trained On (1:00)
+### Slide 7. Can We Learn to Copy Deeper Stockfish? (1:00)
 
-**On slide:** "Teacher: full-board Stockfish D11." "Split/resample by game."
-"Development check, not the sealed test set."
+**Takeaway:** We test agreement with a full-board teacher, not optimal play
+under hidden information.
 
-**Speaker draft:** "The Network 1 check has 959 games, 3,818 decisions and
-94,963 eligible child rows. Whole-game splitting reduces within-game leakage,
-not every repeated position. Models were compared on this check set, so it is
-development evidence. These labels are not fog-of-war equilibrium targets."
+**On slide:** "Split by game -> learn D11 values -> check values and moves."
+"959 check games; 3,818 decisions; 94,963 eligible children."
+"Development check, not the sealed test."
 
-**Visual:** Game-grouped split diagram beside value error, best-move agreement
-and value lost. Include development-set and approximate-teacher labels. Keep
-overlap counts and split hashes in backup. Source: S4. Reviewer: Pair B.
+**Say:** "The training target is careful Stockfish's value of a complete board.
+It is not the value of what a fog-of-war player knows. We split practice data
+by whole game, so positions from one game stay together. A separate check set
+contains 959 games and just over 3,800 decisions. We ask two questions:
+how close are the predicted values, and do they lead us to the teacher's
+preferred moves? We also used this check set to choose a Network 1 run.
+That makes these development results, not a final result on the sealed test set."
 
-### Slide 8. Better Predictions Did Not Establish Better Moves (1:30)
+**Transition:** "The two measurements gave us different answers."
+
+**Point to:** The training target, then the two checks. Exact child counts
+are available on the slide; they need not be recited.
+
+**If asked - does splitting by game remove all leakage?** It prevents one
+game crossing splits, not every repeated position. Intervals resample whole
+games because positions within a game are correlated. Practice-data splits
+are 80% train, 10% validation and 10% sealed test; the 959-game check is separate.
+Source: S4. Suggested technical check: Pair B.
+
+### Slide 8. Better Values Did Not Establish Better Moves (1:30)
+
+**Takeaway:** Lower prediction error did not establish better move selection.
 
 **On slide:** "Value error: D1 0.095 -> Network 1 0.076."
 "Value-lost difference: -0.0003; 95% interval [-0.0017, +0.0011]."
 
-**Speaker draft:** "Value error falls about 20%, but the move-quality difference
-spans zero. Regression can improve many values without changing the ranking
-of important actions. The linear correction is a useful simpler baseline.
-These results support better prediction, not demonstrated better selection."
+**Say:** "On the left, lower bars mean closer agreement with careful Stockfish.
+Network 1 reduces value error from 0.095 to 0.076, about twenty percent.
+The simple linear correction also helps. But a player needs to choose a move,
+not just predict a number. On the right, value lost measures how much the
+teacher prefers its own best move to the move our evaluator chooses. Network 1's
+change relative to quick Stockfish is tiny, and the interval crosses zero.
+So this check does not establish better move selection. It also does not prove
+the models are equal. Our further analysis found that the learned models gained
+on more decided positions, but were worse on close positions, where a small
+ranking error can change the chosen move."
+
+**Transition:** "We also tested whether giving a network more belief context
+would help."
+
+**Point to:** D1 and Network 1 bars, pause, then the interval on the right.
+
+**If asked - why can lower error fail to help?** Value regression and
+ranking sibling moves are different objectives. Improving many values does
+not guarantee the best move is ranked first.
 
 **Interpretation guard.** An interval containing zero does not establish a tie
 or equivalence. The report's band analysis shows gains concentrated in more
@@ -197,54 +255,109 @@ its different training and outcome-evaluation populations stated explicitly.
 
 **Visual:** Separate panels: a zero-based bar chart of value error
 (material 0.336, D1 0.095, linear 0.084, Network 1 0.076), and the reported
-Network 1-minus-D1 value-lost difference with its interval and zero line. Lower
-is better. Do not invent per-model uncertainty bars from a difference interval.
+Network 1-minus-D1 value-lost difference as a numeric interval. Explain that it
+includes zero. Lower is better. Do not invent per-model uncertainty bars from a difference interval.
 Value-error difference: -0.019, interval [-0.021, -0.018]. Source: S4.
 
-### Slide 9. Context Sensitivity Is Not Strategic Information Value (1:00)
+### Slide 9. Context Helps Prediction, Not a Strategy Claim (1:00)
+
+**Takeaway:** Context improves this prediction task, but does not establish
+the strategic value of information.
 
 **On slide:** "Context reduces board error by about 0.0028 across five seeds."
 "The labels themselves do not depend on belief."
 
-**Speaker draft:** "Across five seeds, mean board error is 0.0734 with context
-and 0.0762 without it, a reduction of 0.0028; every seed improves.
-Since the labels stay fixed when the surrounding belief changes, this is
-consistent with denoising. A strategic claim needs belief-dependent targets."
+**Say:** "Here the network can use other possible boards as context when it
+values one board. Across five seeds, mean error falls from 0.0762 without
+context to 0.0734 with it. Every seed improves. However, the target for that
+board is still the same Stockfish value, whatever the surrounding belief.
+The network may be using context to make a cleaner prediction; this does not
+show that it understands the strategic value of information. To test that,
+we would need targets that change with what a player knows. This is a
+different offline check from the move-ranking experiment on the previous slide."
 
-**Visual:** The same board beside two belief groups, labeled a conceptual diagram,
-not a measured experiment. Add the checkpoint comparison in a small table;
-do not pool this with slide 8's child-ranking task. Source: S4. Reviewer: Pair B.
+**Transition:** "Prediction tests are useful, but we also wanted to see what
+happened in actual games."
+
+**Point to:** The with/without-context rows, then the fixed-target limitation.
+The table shows the five-seed means; no uncertainty interval is invented.
+
+**If asked - does the match result test this context benefit?** No. The
+archived match runner uses the model one board at a time, so its belief-network
+row does not test whole-belief evaluation. Source: S4.
+Suggested technical check: Pair B.
 
 ---
 
 ## Slides 10-12: Evaluation and Takeaways
 
-### Slide 10. Test Playing Strength With Paired Openings (1:15)
+### Slide 10. Play Each Opening Twice, Swapping Colours (1:15)
 
-**On slide:** "Seven candidates vs D1; 200 games per pairing scheduled."
-"Same opening, colors exchanged." "Score, uncertainty, mean/p95 latency and failures."
+**Takeaway:** Paired openings make the comparison more controlled, but the
+evaluators still take different amounts of time.
 
-**Speaker draft:** "Evaluator-based agents share a one-ply planner, 256 particles
-and eight hypotheses; random play is an additional baseline. We average complete
-color-pair scores and report exclusions. Outer planning is controlled, not
-elapsed time. The 60-second watchdog protects a call, not an entire move."
+**On slide:** One opening, two colour-swapped games, one pair score.
+"1,400 attempted; 1,399 finished; 699 complete pairs."
+"Same one-ply planner, not equal thinking time. Each row plays against D1."
+
+**Say:** "For the game comparison, the evaluator-based agents use the same
+simple one-ply planner; we change the evaluator, not the outer search.
+Each plays against quick Stockfish inside that planner. Random play is an
+additional control. We play each opening twice with colours swapped and
+average the two scores. A win is one, a draw half and a loss zero.
+There are seven separate comparisons, not a tournament ranking. Of 1,400
+scheduled games, 1,399 finished, leaving 699 complete pairs. The failed game's
+partner is excluded from paired scores, but retained in the finished-game
+counts. Finally, identical outer planning does not mean equal thinking time:
+the evaluators have very different costs. This is our evaluator comparison,
+not a full-agent test of the deeper search."
+
+**Transition:** "Read the next plot against the 0.5 line, and keep those costs
+in mind."
+
+**Point to:** Follow the opening into both games before introducing the
+aggregate counts.
+
+**If asked - what was fixed?** The evaluator-based agents use 256 particles
+and evaluate moves on eight hypotheses. Random play is a separate baseline.
+The 60-second watchdog bounds an individual call, not a whole move.
 
 **Visual:** One opening, two color-swapped games, one pair score. State:
 1,400 attempted; 1,399 finished; 699 complete pairs across seven separate
 comparisons. Colin ran all rows on his M5 Pro at a5c5fb6, pre-rule, stand-in,
-26–27 October. Bryan audited the archives, not a rerun. Keep counts, engine
-policy and unequal compute visible. Source: S5, S8. Suggested reviewers:
+26–27 October. Bryan audited the archives, not a rerun. Keep counts
+and unequal compute visible; retain engine policy in the notes. Source: S5, S8. Suggested reviewers:
 evaluation contributors and Pair B.
 
-### Slide 11. Completed Batch Gives Bounded Evidence (1:15)
+### Slide 11. No Clear Playing Gain for Network 1 or Linear (1:15)
+
+**Takeaway:** The archived matches do not establish a gain for Network 1
+or linear correction over D1; compute costs differ.
 
 **On slide:** "Score vs D1: linear 0.513; Network 1 0.515; belief 0.563;
 D11 0.585." "Intervals and compute cost limit the conclusions."
 
-**Speaker draft:** "Linear and Network 1 do not establish improvement over D1.
-Belief's 95% interval also includes 0.5. D11's bootstrap just excludes 0.5,
-but Wilson includes it; there is no adjusted superiority claim. These are
-separate matches against D1, not a ranking or equal-time comparison."
+**Say:** "The vertical line is a score of 0.5: equal points against the
+quick-Stockfish opponent. Focus first on the linear and Network 1 rows.
+Their scores are close to that line, and both intervals cross it.
+This batch therefore does not establish a playing gain for either model.
+The belief network scores higher, but its interval still includes 0.5.
+Careful Stockfish looks promising, although the conclusion is sensitive to
+the interval method and multiple comparisons. Now look at cost:
+Network 1 takes about three times the baseline's median move time,
+and careful Stockfish about two hundred and twenty times. These are
+separate comparisons with D1, not a ranking of the models or an equal-time test."
+
+**Transition:** "The main lesson is that better value prediction has not yet
+translated into a demonstrated playing gain for Network 1 or linear correction."
+
+**Point to:** The 0.5 line, the two bold rows, then their move times.
+Do not read all seven rows aloud.
+
+**If asked - why not claim a D11 win?** Its bootstrap interval excludes 0.5,
+but its Wilson interval includes it, and a seven-row multiplicity correction
+would remove the apparent result. An interval crossing the reference does
+not establish equivalence.
 
 **Visual:** Plot all seven paired scores with the archived bootstrap intervals;
 random uses Wilson with a different marker. Include a 0.5 reference line.
@@ -263,8 +376,8 @@ strength." "Audited batch; integrated search evaluation next."
 
 **Speaker draft:** "Our current contribution is a documented framework and
 case-specific evidence. Better teacher agreement has not established better
-decisions under fog in the tested planner. Next are the reviewed integrated
-search revision, successful full-game pilots, belief-dependent targets and
+decisions under fog in the tested planner. The tracker/solver integration is
+now on main. Next are successful full-game pilots, belief-dependent targets and
 appropriate search ablations. Until then, the full-agent comparison is pending,
 not a completed negative result. Transparent limits and information-safe interfaces
 support responsible experimentation; they are not performance evidence."
@@ -321,6 +434,27 @@ slide, aligned with the report's final reference-manager bibliography.
 stop at 15:00. Each member answers one question outside their block. Record
 actual timings before cutting material; confirm the course's final format.
 
+**Focused rehearsal: slides 6-11.** This block has 7:15 of the existing
+14-minute core allocation. Include chart-pointing pauses and transitions;
+word counts are not a substitute for a timed rehearsal. First read only the
+"Say" and "Transition" passages, then repeat using just the takeaway and visual.
+If over time, cut secondary counts from speech, not the result's meaning or
+its key limitation.
+
+| Slide | Speaker | Actual time | Next adjustment |
+| --- | --- | --- | --- |
+| 6 | Unassigned | Not measured | Confirm evaluator explanation |
+| 7 | Unassigned | Not measured | Explain development-set selection |
+| 8 | Unassigned | Not measured | Pause between prediction and move-quality results |
+| 9 | Unassigned | Not measured | Explain why fixed labels limit the claim |
+| 10 | Unassigned | Not measured | Walk through one colour pair |
+| 11 | Unassigned | Not measured | Explain the reference line and costs |
+
+Suggested targeted check for Colin: confirm the evaluator descriptions and
+interpretation on slides 6-11, rather than rewriting the block from scratch.
+He still needs to confirm his own contribution/AI-use wording and speaking
+availability. These are requests for team agreement, not assigned roles.
+
 ## Q&A and Backups
 
 **Why not Stockfish on the true board?** That is privileged information, allowed
@@ -334,7 +468,7 @@ are different objectives; show slide 8's value-lost interval.
 
 **Did we reproduce Obscuro?** No complete reproduction claim. Distinguish the
 historical uniform-growth baseline, the later merged search mechanisms and
-PR59's combined tracker/solver branch, still unmerged into main. Pin any mechanism-completeness
+PR59's combined tracker/solver work, merged into main at 1492781. Pin any mechanism-completeness
 claim to an inspected revision; prototype verification does not establish
 strength or formal-match readiness.
 
@@ -370,15 +504,16 @@ issued 26 August 2026, pages 1, 3 and 5. The report-deadline year conflicts with
 the academic-year heading; confirm on Canvas rather than infer a correction.
 
 **AI assistance:** GitHub Copilot prepared the earlier outline, wording, visual
-briefs and checks under Bryan's direction. Codex assisted this revision and
+briefs and checks under Bryan's direction, and assisted this presentation-only
+clarity pass. Codex assisted earlier revisions and
 the independent batch archive audit and scoped search reviews. It is not yet
 team-approved. Members must verify claims, create/review visuals, add their
 own contribution and AI-use disclosures, and rehearse. This revision adds no
 new training or formal matches; S9 records the separately completed review probes. Major revisions to both this plan and the report
 are expected as more work and results become available.
 
-S8. [Reviewed batch, PR38 at 5e9393a](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27). Execution source a5c5fb6; paired scores and intervals, failures, timing and capped-draw notes. The later search stack is separate from this archived batch. [ZS21/shared EP delivery](https://github.com/Mr-Teal/CS5446_project/pull/37) merged at 04f992d. Current main is [02bb041](https://github.com/Mr-Teal/CS5446_project/tree/02bb0410ce3a17ce308d900a26b0ad453bfe20f5).
+S8. [Reviewed batch, PR38 at 5e9393a](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27). Execution source a5c5fb6; paired scores and intervals, failures, timing and capped-draw notes. The later search stack is separate from this archived batch. [ZS21/shared EP delivery](https://github.com/Mr-Teal/CS5446_project/pull/37) merged at 04f992d. Main at this presentation pass is [1492781](https://github.com/Mr-Teal/CS5446_project/tree/149278181ed6d2b52dce31991fb311a2a74339d0).
 
-S10. Native checks reported; full-game pilots and independent review remain. [Teal's validation report](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6593444508) and [Bryan's complementary evidence handoff](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6595644283), checked 3 November. PR59 head 78f687b860a3fb95160b80be472d7fc8621a144b includes PR62/60 and the resolved runner conflict, but remains unmerged into main 02bb041. Teal reports the native tracker built/loaded with locked Pixi and GCC 16.2.0: 962 shared/Pair A passes, zero skips; 46 Pair C passes separately in a torch-enabled environment. The locked ZS21 environment initially had 44 passes/2 torch-related failures, and combining the suites fails collection because both contain test_provenance.py. Pair A owns the [open documentation follow-up, PR63](https://github.com/Mr-Teal/CS5446_project/pull/63), at ba268d0fa05a6ed587bc183eaff14eb1aba849f1, covering separate invocations and the torch requirement; this adds no runtime results. His eight Stockfish 19 actions were capped/unscored, not a full-game validation. His detailed outputs remain local; these are attributed results, not independently rerun here. Bryan's separate check passed 48 selected ZS21 tests, zero skips, verified 66 runtime assets and returned unfinished_smoke after two Stockfish 13 actions. It used Python 3.12.10 rather than locked 3.12.15 and the shipped ZS21 library, not the separate shared-tracker accelerator. The [sanitized evidence ZIP](https://github.com/user-attachments/files/34303279/pr59-78f687b-native-lp-handoff.zip) records that scope. The [earlier 176-pass/16-skip check](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6571745962) remains historical; do not add overlapping counts. Bryan's checks are author-assisted validation, not independent review of his own resolution. Independent whole-change review, whole-turn budget agreement and the [strict ply-9/relaxed ply-11 pilot failures](https://github.com/Mr-Teal/CS5446_project/pull/62#pullrequestreview-5731608636) remain unresolved. No formal-match readiness or strength claim. Recheck live status before presenting.
+S10. Tracker fixes merged; full-game comparison still pending. [Teal merged PR59 into main at 1492781 on 3 November](https://github.com/Mr-Teal/CS5446_project/pull/59#event-34991912798). Its integrated head 78f687b860a3fb95160b80be472d7fc8621a144b includes PR62/60 and the resolved runner conflict. [Teal's validation report](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6593444508) and [Bryan's complementary evidence handoff](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6595644283) were checked 3 November. Teal reports the native tracker built/loaded with locked Pixi and GCC 16.2.0: 962 shared/Pair A passes, zero skips; 46 Pair C passes separately in a torch-enabled environment. The locked ZS21 environment initially had 44 passes/2 torch-related failures, and combining the suites fails collection because both contain test_provenance.py. Pair A owns the [open documentation follow-up, PR63](https://github.com/Mr-Teal/CS5446_project/pull/63), at ba268d0fa05a6ed587bc183eaff14eb1aba849f1, now targeting main, covering separate invocations and the torch requirement; this adds no runtime results. His eight Stockfish 19 actions were capped/unscored, not a full-game validation. His detailed outputs remain local; these are attributed results, not independently rerun here. Bryan's separate check passed 48 selected ZS21 tests, zero skips, verified 66 runtime assets and returned unfinished_smoke after two Stockfish 13 actions. It used Python 3.12.10 rather than locked 3.12.15 and the shipped ZS21 library, not the separate shared-tracker accelerator. The [sanitized evidence ZIP](https://github.com/user-attachments/files/34303279/pr59-78f687b-native-lp-handoff.zip) records that scope. The [earlier 176-pass/16-skip check](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6571745962) remains historical; do not add overlapping counts. Bryan's checks are author-assisted validation, not independent review of his own resolution. The merge itself is neither additional independent review nor new full-game evidence. The [strict ply-9/relaxed ply-11 pilot failures](https://github.com/Mr-Teal/CS5446_project/pull/62#pullrequestreview-5731608636) describe earlier configurations. New, unmerged [PR64](https://github.com/Mr-Teal/CS5446_project/pull/64) reports a different optional 16-second tracker-update policy without a logical memory cap: see its [pinned pilot record at 2870479](https://github.com/Mr-Teal/CS5446_project/blob/28704798af81e140aec43c9215ab5b1daae8ff12/pair_a_prep/results/unlimited_tracker_pilot_2026-11-03/README.md), measured runtime 0426f73d6c96a58617c320c3796e83f04e56796e. Teal reports that the old points pass; seed17 ends by king capture at ply39, but seed18 fails at Black ply13 after about 16.072 seconds. There is no complete pair. These are attributed pilot results, not an independent archive audit or rerun for this presentation pass. The cap is per update and cooperative, not a whole-action deadline; removing a logical cap does not bound process memory. Whole-turn budget agreement and successful full-game validation remain open. No formal-match readiness or strength claim. Recheck live status before presenting.
 
 S9. Scoped reviews on 28 October: [PR42 at 2568818](https://github.com/Mr-Teal/CS5446_project/pull/42#pullrequestreview-5679229932), [PR52 at 5e74ede](https://github.com/Mr-Teal/CS5446_project/pull/52#pullrequestreview-5679231586), [PR46 at ee42c8f](https://github.com/Mr-Teal/CS5446_project/pull/46#pullrequestreview-5679261471), and [PR48 at 879818c](https://github.com/Mr-Teal/CS5446_project/pull/48#pullrequestreview-5679267479). For backup: PR52 had 185 selected tests, six detected defect mutations and four additional Black-perspective value probes; PR46 had 42 selected tests within its functional scope; PR48 had 33 selected tests, two verified 100-entry source manifests, a portable clock link and a gift-probe rerun matching non-timing fields. Counts overlap across heads and must not be summed. No new clock matrix or formal match batch was run. Projected labels remain disabled; the ledger does not transfer ancestor payments numerically. Scoped approval is not final integration approval, a timing guarantee or strength evidence.
