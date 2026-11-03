@@ -85,3 +85,14 @@ def test_resume_limit_and_total_wall_time_include_all_calls(monkeypatch):
     source.update_budgeted = slow
     tracker = BudgetedExactTracker(source, slice_ms=100, total_ms=10, memory_mb=64, max_resumes=2)
     with pytest.raises(TrackingBudgetError, match="total_time"): tracker.update(None)
+
+
+def test_explicit_unlimited_memory_preserves_default_and_completes_exact_update():
+    assert create(tracker_policy="budgeted-exact").memory_mb == 64
+    tracker = create(tracker_policy="budgeted-exact", tracker_memory_mb="none",
+                     tracker_slice_ms="16000", tracker_total_ms="16000", tracker_max_resumes="0")
+    assert tracker.memory_mb is None
+    tracker.reset("white", 17)
+    belief = tracker.update(RULES.observe(RULES.initial_state(FEN), "white"))
+    assert tracker.support_complete and belief.weighting == "uniform"
+    assert tracker.last_update.status == "complete"

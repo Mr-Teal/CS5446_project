@@ -233,4 +233,5 @@ class HistoryTrackerFactory:
         return BudgetedExactTracker(tracker,
             slice_ms=number("tracker_slice_ms", 100, zero=True),
             total_ms=number("tracker_total_ms", 2000),
-            memory_mb=number("tracker_memory_mb", 64, zero=True), max_resumes=resumes)
+            memory_mb=(None if self.settings.get("tracker_memory_mb", "64").strip().lower() == "none"
+                       else number("tracker_memory_mb", 64, zero=True)), max_resumes=resumes)
