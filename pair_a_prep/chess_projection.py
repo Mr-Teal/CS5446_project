@@ -5,7 +5,7 @@ not the entire set of legal histories. No actual hidden board is accepted.
 """
 
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from hashlib import sha256
 from math import fsum
 from time import perf_counter
@@ -23,6 +23,15 @@ from .search_policies import heuristic_actions
 
 def root_identity(fen, moves):
     return "projected:" + sha256(repr((fen, tuple(moves))).encode()).hexdigest()
+
+
+def position_key(fen):
+    """Obscuro's position (footnote 7): placement, turn, castling and en passant.
+
+    The move counters are dropped: two histories that differ only in their
+    clocks are the same position when sampling the set P of possible positions.
+    """
+    return " ".join(fen.split()[:4])
 
 
 @dataclass
@@ -46,6 +55,8 @@ class ChessProjection:
     boundaries: object
     audit: dict
     parent_events: tuple = ()
+    # current_id -> root_id for hypotheses whose position already had a root.
+    aliases: dict = field(default_factory=dict)
 
     def bridge(self, mode, evaluator_name):
         roots = ChessRootGroups(self.turn, self.tree, self.root_ids, self.groups,
@@ -53,7 +64,7 @@ class ChessProjection:
                  prototype=True, knowledge="saved_sampled_tree_I2"))
         return roots.build(self.boundaries.alternate_player0,
             reach_mass={r.root_id: r.reach_mass for r in self.boundaries.roots}, mode=mode,
-            group_prior=self.boundaries.group_prior if mode == "resolve" else None)
+            group_prior=self.boundaries.group_prior if mode in ("resolve", "blended") else None)
 
 
 def project_chess(turn, evaluator, *, initial_fen, depth, max_nodes, saved=None, deadline=None):
@@ -195,9 +206,22 @@ def project_chess(turn, evaluator, *, initial_fen, depth, max_nodes, saved=None,
 
     for path, node, context, moves in selected:
         append(context, moves, node, path)
+    # Fresh roots follow Fig. 9 lines 9-13: states are drawn from P \ I, and P
+    # is a set of POSITIONS. The tracker samples histories, so two hypotheses can
+    # name one position; the second is aliased to the first root rather than
+    # duplicating its subtree with a second unit of root mass.
+    by_position = {position_key(c.state.fen): identity for c, identity in zip(contexts, ids)
+                   if c.memories[own_index] == own_memory}
+    aliases = {}
     for h, context, identity in zip(turn.belief.hypotheses, current, current_ids):
-        if identity not in ids:
-            append(context, h.candidate_moves)
+        if identity in ids:
+            continue
+        twin = by_position.get(position_key(context.state.fen))
+        if twin is not None:
+            aliases[identity] = twin
+            continue
+        by_position[position_key(context.state.fen)] = identity
+        append(context, h.candidate_moves)
     total = fsum(reaches.values())
     root = Node(children={str(i): n for i, n in enumerate(branches)},
                 probabilities={str(i): reaches[key]/total for i, key in enumerate(ids)})
@@ -227,5 +251,6 @@ def project_chess(turn, evaluator, *, initial_fen, depth, max_nodes, saved=None,
     return ChessProjection(turn, tree, tuple(paths), tuple(ids), tuple(groups), current_ids,
         boundaries, dict(retained=retained, fresh=fresh, knowledge_roots=len(branches),
             outside_current=sum(c.memories[own_index] != own_memory for c in contexts),
-            depth=depth_seen, incomplete_cut=incomplete, lazy_neighbours=lazy_neighbours),
-        tuple(parent_events))
+            depth=depth_seen, incomplete_cut=incomplete, lazy_neighbours=lazy_neighbours,
+            fresh_duplicates=len(aliases)),
+        tuple(parent_events), aliases)

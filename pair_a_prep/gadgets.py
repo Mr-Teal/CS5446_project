@@ -75,11 +75,16 @@ def build_gadget(roots: Sequence[SubgameRoot], alternate_player0: Mapping[str, f
     Resolve: chance picks a root, then opponent chooses enter/exit knowing J.
     Maxmargin: opponent selects J, chance selects a root conditional on J,
     and continuation terminal payoffs subtract alternate_player0[J].
+    Blended (Obscuro Fig. 9 l.16-23, Fig. 10 l.7-13): one shared continuation
+    tree under a chance root whose distribution over J is re-blended every
+    round by subgame_boundaries.BlendedGadgetControl; "exit:J" children carry
+    the Resolve mass that takes the alternate, so the opponent has no root move
+    and the gadget never has to be rebuilt to change mode.
     reach_mass supplies externally computed nonnegative conditional root mass;
     this module does not compute blueprint reaches, gifts or Obscuro's C.3 prior.
     """
-    if mode not in ("resolve", "maxmargin"):
-        raise ValueError("mode must be resolve or maxmargin")
+    if mode not in ("resolve", "maxmargin", "blended"):
+        raise ValueError("mode must be resolve, maxmargin or blended")
     roots = tuple(roots)
     if not roots or any(not isinstance(r.root_id, str) or not r.root_id or
                         not isinstance(r.opponent_infoset, str) or not r.opponent_infoset for r in roots):
@@ -125,6 +130,14 @@ def build_gadget(roots: Sequence[SubgameRoot], alternate_player0: Mapping[str, f
             player=1, infoset=_key("enter", r.opponent_infoset), children={
                 "enter": continuations[r.root_id],
                 "exit": terminal(alternate_player0[r.opponent_infoset])}) for r in roots})
+    elif mode == "blended":
+        # Starts as Resolve's distribution with no exit mass; the controller
+        # overwrites tree.probabilities in place before the first round.
+        root_prior = {r.root_id: prior[r.opponent_infoset] * conditional[r.root_id] for r in roots}
+        root_prior.update({"exit:" + j: 0.0 for j in groups})
+        children = {r.root_id: continuations[r.root_id] for r in roots}
+        children.update({"exit:" + j: terminal(alternate_player0[j]) for j in groups})
+        tree = Node(probabilities=root_prior, children=children)
     else:
         root_prior = None
         tree = Node(player=1, infoset=_key("select"), children={j: Node(

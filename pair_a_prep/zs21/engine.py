@@ -17,6 +17,9 @@ import chess.engine
 
 from .rule_profile import has_fow_moves
 
+# Windows-only flag that hides the engine console; 0 is the no-op default elsewhere.
+_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+
 
 class EvaluationError(RuntimeError):
     pass
@@ -36,7 +39,7 @@ class UCIWorker:
         self.last_queries, self.tail = deque(maxlen=8), deque(maxlen=12)
         self.process = subprocess.Popen([str(executable)], stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                        text=True, bufsize=1, creationflags=subprocess.CREATE_NO_WINDOW)
+                                        text=True, bufsize=1, creationflags=_NO_WINDOW)
         self.lines = queue.Queue()
         self.reader = threading.Thread(target=self._read, daemon=True)
         self.reader.start()

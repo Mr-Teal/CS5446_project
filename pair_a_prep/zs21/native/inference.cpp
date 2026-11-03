@@ -138,16 +138,22 @@ struct Tracker {
     Tracker(Board b,int p,U seed):viewer(p),rng(seed){canonical(b);candidates.push_back({b,NONE});indices.emplace(b,0);}
 };
 
+#if defined(_WIN32)
+#define ZS_EXPORT __declspec(dllexport)
+#else
+#define ZS_EXPORT __attribute__((visibility("default")))
+#endif
+
 extern "C" {
-__declspec(dllexport) const char* zs_rules_id(){return "paper2021_fow_no_moves_draw_v1";}
-__declspec(dllexport) void* zs_create(const Board* b,int viewer,U seed){try{return new Tracker(*b,viewer,seed);}catch(...){return nullptr;}}
-__declspec(dllexport) void zs_destroy(Tracker* t){delete t;}
-__declspec(dllexport) const char* zs_error(Tracker* t){return t->error.c_str();}
-__declspec(dllexport) U zs_count(Tracker*t){return t->candidates.size();}
-__declspec(dllexport) U zs_attempts(Tracker*t){return t->attempts;}
-__declspec(dllexport) U zs_accepted(Tracker*t){return t->accepted;}
+ZS_EXPORT const char* zs_rules_id(){return "paper2021_fow_no_moves_draw_v1";}
+ZS_EXPORT void* zs_create(const Board* b,int viewer,U seed){try{return new Tracker(*b,viewer,seed);}catch(...){return nullptr;}}
+ZS_EXPORT void zs_destroy(Tracker* t){delete t;}
+ZS_EXPORT const char* zs_error(Tracker* t){return t->error.c_str();}
+ZS_EXPORT U zs_count(Tracker*t){return t->candidates.size();}
+ZS_EXPORT U zs_attempts(Tracker*t){return t->attempts;}
+ZS_EXPORT U zs_accepted(Tracker*t){return t->accepted;}
 // Diagnostic ABI for builds with the identical Tracker layout and toolchain.
-__declspec(dllexport) int zs_same_state(Tracker*a,Tracker*b){
+ZS_EXPORT int zs_same_state(Tracker*a,Tracker*b){
     if(a->viewer!=b->viewer||a->ply!=b->ply||a->rng!=b->rng||a->attempts!=b->attempts||a->accepted!=b->accepted||
        a->candidates.size()!=b->candidates.size()||a->histories.size()!=b->histories.size()||a->indices.size()!=b->indices.size())return 0;
     for(size_t i=0;i<a->candidates.size();++i){const auto& x=a->candidates[i];const auto& y=b->candidates[i];
@@ -157,8 +163,8 @@ __declspec(dllexport) int zs_same_state(Tracker*a,Tracker*b){
     for(size_t i=0;i<a->histories.size();++i)if(a->histories[i].parent!=b->histories[i].parent||a->histories[i].move!=b->histories[i].move)return 0;
     return 1;
 }
-__declspec(dllexport) int zs_validate(Tracker*t,const View*v){return matches(t->candidates[0].board,MatchView(*v),t->viewer,-1);}
-__declspec(dllexport) int zs_update(Tracker*t,const View*v,int own_move,double seconds){
+ZS_EXPORT int zs_validate(Tracker*t,const View*v){return matches(t->candidates[0].board,MatchView(*v),t->viewer,-1);}
+ZS_EXPORT int zs_update(Tracker*t,const View*v,int own_move,double seconds){
     try{
         auto began=std::chrono::steady_clock::now();auto rng=t->rng;U attempted=0,accepted=0;MatchView expected(*v);
         std::unordered_map<Board,Entry,Hash,Equal> next;next.reserve(t->candidates.size()*2);
@@ -186,24 +192,24 @@ __declspec(dllexport) int zs_update(Tracker*t,const View*v,int own_move,double s
         t->histories.insert(t->histories.end(),additions.begin(),additions.end());t->candidates.swap(candidates);t->indices.swap(indices);t->rng=rng;++t->ply;t->attempts=attempted;t->accepted=accepted;return 1;
     }catch(const std::exception&e){t->error=e.what();return 0;}
 }
-__declspec(dllexport) U zs_index(Tracker*t,const Board*source){Board b=*source;canonical(b);auto it=t->indices.find(b);return it==t->indices.end()?NONE:it->second;}
-__declspec(dllexport) int zs_get(Tracker*t,U index,Board*b,int*path,int capacity){
+ZS_EXPORT U zs_index(Tracker*t,const Board*source){Board b=*source;canonical(b);auto it=t->indices.find(b);return it==t->indices.end()?NONE:it->second;}
+ZS_EXPORT int zs_get(Tracker*t,U index,Board*b,int*path,int capacity){
     if(index>=t->candidates.size())return -1;const Candidate&c=t->candidates[index];*b=c.board;std::vector<int> actions;
     for(U h=c.history;h!=NONE;h=t->histories[h].parent)actions.push_back(t->histories[h].move);
     if(capacity>=int(actions.size()))std::reverse_copy(actions.begin(),actions.end(),path);return int(actions.size());
 }
-__declspec(dllexport) int zs_moves(const Board*b,int*out){auto result=moves(*b,int(b->turn));std::copy(result.begin(),result.end(),out);return int(result.size());}
-__declspec(dllexport) int zs_has_moves(const Board*b){return !moves(*b,int(b->turn),false,true).empty();}
-__declspec(dllexport) U zs_visible(const Board*b,int player){return visible(*b,player);}
-__declspec(dllexport) void zs_observe(const Board*b,int player,int captured,View*out){
+ZS_EXPORT int zs_moves(const Board*b,int*out){auto result=moves(*b,int(b->turn));std::copy(result.begin(),result.end(),out);return int(result.size());}
+ZS_EXPORT int zs_has_moves(const Board*b){return !moves(*b,int(b->turn),false,true).empty();}
+ZS_EXPORT U zs_visible(const Board*b,int player){return visible(*b,player);}
+ZS_EXPORT void zs_observe(const Board*b,int player,int captured,View*out){
     auto actions=moves(*b,player);
     std::memset(out,0,sizeof(View));out->mask=visible_from_moves(*b,player,actions);out->captured=captured;
     out->contents.turn=b->turn;out->contents.white=b->white&out->mask;
     for(int i=0;i<6;++i)out->contents.pieces[i]=b->pieces[i]&out->mask;
     if(player==int(b->turn)){if(actions.size()>256){out->count=-1;return;}out->count=int(actions.size());std::copy(actions.begin(),actions.end(),out->moves);}
 }
-__declspec(dllexport) void zs_play(const Board*b,int move,Board*out,int*captured){*out=play(*b,move,*captured);}
-__declspec(dllexport) int zs_fen(const Board*b,int halfmove,int fullmove,char*out,int capacity){
+ZS_EXPORT void zs_play(const Board*b,int move,Board*out,int*captured){*out=play(*b,move,*captured);}
+ZS_EXPORT int zs_fen(const Board*b,int halfmove,int fullmove,char*out,int capacity){
     std::string text;
     for(int rank=7;rank>=0;--rank){
         int empty=0;

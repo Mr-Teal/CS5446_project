@@ -247,3 +247,82 @@ def test_deep_blueprint_forced_fallback_then_real_next_turn_starts_cold(monkeypa
     following = agent.act(single_path_turn(fen, tuple(moves), "white"))
     assert following.diagnostics["fallback"] == 0
     assert agent.last_projection.boundaries is None
+
+
+def test_budget_failure_after_solver_exists_plays_its_strategy_not_a_random_move(monkeypatch):
+    # Obscuro Fig. 8: the move comes from the strategy computed so far. The
+    # solver is published before the first round, so a failure inside the
+    # round loop leaves its (heuristically seeded) root policy to play.
+    config = AnytimeConfig(growth="one_sided", rounds=4, final_rounds=1, stop_on_time=False,
+                           max_nodes=2000, max_evaluator_calls=256)
+    agent = ChessSubgameAgent(ConstantLeaf(), config, KINGS)
+    agent.reset("white", 17)
+    turn = turn_after()
+    def fail_first_round(self):
+        raise SearchBudgetError("forced failure inside the solving loop")
+    monkeypatch.setattr(PCFRPlus, "step", fail_first_round)
+    decision = agent.act(turn)
+    assert decision.diagnostics["fallback"] == 1
+    assert decision.diagnostics["fallback_policy:partial_solver"] == 1
+    assert decision.diagnostics["solver_rounds"] == 0
+    assert max(decision.root_policy.values()) == 1 and decision.move in turn.observation.legal_moves
+    assert sum(v > 0 for k, v in decision.diagnostics.items() if k.startswith("played_policy:")) == 1
+    assert agent.saved is None and agent.last_projection is None
+
+
+def test_projection_failure_falls_back_to_the_heuristic_best_child_not_uniform():
+    config = AnytimeConfig(growth="one_sided", rounds=4, final_rounds=1, stop_on_time=False)
+    agent = ChessSubgameAgent(ConstantLeaf(), config, KINGS)
+    agent.reset("white", 17)
+    agent.act(turn_after())
+    agent.config = replace(config, max_evaluator_calls=1, initial_depth=2)
+    turn = turn_after(moves=("a1b1", "h8g8"))
+    decision = agent.act(turn)
+    assert decision.diagnostics["fallback"] == 1
+    assert decision.diagnostics["fallback_policy:heuristic_depth1"] == 1
+    assert "fallback_policy:uniform" not in decision.diagnostics
+    assert sorted(decision.root_policy.values(), reverse=True)[0] == 1
+    assert decision.move == max(decision.root_policy, key=decision.root_policy.get)
+    assert set(decision.root_policy) == set(turn.observation.legal_moves)
+
+
+def test_fresh_roots_are_distinct_positions_and_aliased_hypotheses_share_values():
+    # Fig. 9 line 11 draws states from P, a set of positions. Two opponent
+    # histories (via g8 or via h7, say) reach the same king square; the tracker
+    # returns both, the projection builds one root and aliases the other.
+    old_turn = turn_after()
+    tree = build_chess_tree(old_turn, ConstantLeaf(), initial_fen=KINGS, depth=1)
+    saved = SavedChessBlueprint(old_turn, tree, ((),), PCFRPlus(tree.root), .2)
+    turn = turn_after(moves=("a1b1", "h8g8", "b1a1", "g8h8"))
+    fens = [" ".join(h.fen.split()[:4]) for h in turn.belief.hypotheses]
+    assert len(fens) > len(set(fens)), "fixture must contain two histories of one position"
+    result = project_chess(turn, ConstantLeaf(), initial_fen=KINGS, depth=1, max_nodes=5000, saved=saved)
+    assert result.audit["retained"] == 0
+    assert result.audit["fresh_duplicates"] == len(fens) - len(set(fens)) == len(result.aliases)
+    assert result.audit["fresh"] == len(set(fens))
+    assert set(result.aliases.values()) <= set(result.root_ids)
+    assert not set(result.aliases) & set(result.root_ids)
+    agent = ChessSubgameAgent(ConstantLeaf(), AnytimeConfig(growth="one_sided", rounds=4,
+        final_rounds=1, stop_on_time=False, max_nodes=5000, max_evaluator_calls=256), KINGS)
+    agent.reset("white", 17)
+    agent.saved = saved
+    solved = agent.solve(turn)
+    assert len(solved.hypothesis_values) == len(turn.belief.hypotheses)
+    by_id = dict(zip(result.current_ids, solved.hypothesis_values))
+    for alias, root in result.aliases.items():
+        assert by_id[alias] == by_id[root]
+
+
+def test_solve_reports_a_finite_last_iterate_nash_gap_and_minimum_margin():
+    from math import isfinite
+    leaf = PositionLeaf()
+    agent = ChessSubgameAgent(leaf, AnytimeConfig(growth="one_sided", initial_depth=1, max_depth=2,
+        rounds=8, final_rounds=1, stop_on_time=False, max_nodes=5000, max_evaluator_calls=256), KINGS)
+    agent.reset("white", 17)
+    cold = agent.act(turn_after()).diagnostics
+    assert isfinite(cold["solver_nash_gap"]) and cold["solver_nash_gap"] >= 0
+    assert cold["minimum_margin"] == 0  # no gadget on the first turn
+    warm = agent.act(turn_after(moves=("a1b1", "h8g8"))).diagnostics
+    assert isfinite(warm["solver_nash_gap"]) and warm["solver_nash_gap"] >= 0
+    assert isfinite(warm["minimum_margin"])
+    assert warm["label_root_contract_pending"] == 1
