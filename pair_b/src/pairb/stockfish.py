@@ -104,8 +104,17 @@ class StockfishEvaluator:
         watchdog = threading.Timer(self.call_timeout_s, stop)
         watchdog.daemon = True
         watchdog.start()
+        position = board.copy(stack=False)
+        if position.ep_square is not None and not position.has_legal_en_passant():
+            # A fog-of-war hypothesis can carry an en-passant square while the mover is in check
+            # from a knight, which a double pawn push never produces in orthodox chess. Stockfish
+            # tests en-passant legality against slider pins only, so it answers with the capture;
+            # python-chess calls that move illegal and the protocol dies mid-call. Without a legal
+            # capture the square changes no legal move, so drop it. The capture stays a fog-legal
+            # child, which children_values scores on its own.
+            position.ep_square = None
         try:
-            return self.engine.analyse(board.copy(stack=False), chess.engine.Limit(depth=self.depth),
+            return self.engine.analyse(position, chess.engine.Limit(depth=self.depth),
                                        game=self._game_token(), **kwargs)
         except Exception as error:
             if timed_out.is_set():
