@@ -10,7 +10,7 @@ Semester 1, AY2026/27
 
 ## Project Report Draft
 
-2 November 2026 | Living draft for team review, not final submission
+3 November 2026 | Living draft for team review, not final submission
 
 **Team:** DING Chiyu; PEI Shengxin; QUEK Hongqiang Colin; WANG Zhijian;
 Kuah Jun Hong, Bryan; LIN Tzu-Chun.
@@ -145,9 +145,10 @@ restarting all previous learning when a deeper continuation is added.
 Our implementation follows selected mechanisms, not every mechanism of either
 paper. The uniform-growth prototype rebuilds its search each turn. The later
 search stack adds selective expansion, retained search, sampled gadget
-boundaries and purification. That stack is now merged; the 2 November snapshot
-also includes the evaluation-methods and Pair C deliveries. Follow-up tracker
-and solver changes remain under review. Merge status does not establish full
+boundaries and purification. Main 02bb041 includes that stack, the evaluation
+methods and Pair C deliveries. PR62/60 are incorporated into PR59; its runner
+conflict is resolved at 78f687b, but PR59 remains unmerged into main.
+Native/required-environment checks and exact-head review remain. Merge status does not establish full
 reproduction or validate the final integrated agent, and it does not change
 the source revision of the archived match batch [4,5].
 
@@ -466,10 +467,12 @@ and is not pooled with that batch's estimates.
 The focused tests are subsets, not additional independent samples. These
 historical search snapshots predate the no-move-rule update [20]. Later scoped
 checks cover diagnostics, label rejection, fallback recovery and weighted
-values; pinned revisions, test counts and evidence remain in the linked
-technical reviews [5]. They do not establish integrated-release correctness,
-timing guarantees or playing strength. This editorial revision runs no new
-training or matches.
+values. Combined PR59 head 78f687b recorded 176 passes and 16 native-backend
+skips, with four focused probes reusing existing scenarios [5]. This was
+author-assisted validation, not independent review of the resolution.
+Native/locked-runtime verification remains; strict ply-9 and relaxed ply-11
+memory failures persist. These checks do not establish release correctness
+or playing strength. This editorial revision runs no new experiments.
 
 ### 7.2 What the Evidence Establishes
 
@@ -550,7 +553,7 @@ comparisons do not establish full-agent strength or strategic belief value.
 
 4. CS5446_project contributors. Pair A search implementation, specifications and reproduction differences [Internet]. 2026 [cited 2026 Oct 26]. Revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed. Available from: [pinned Pair A source](https://github.com/Mr-Teal/CS5446_project/tree/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep); [detailed mechanism checklist](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep/docs/obscuro_status.md).
 
-5. CS5446_project contributors, bryankuah. Integration status and scoped search reviews [Internet]. 2026 Nov 2 [cited 2026 Nov 2]. Main 02bb0410ce3a17ce308d900a26b0ad453bfe20f5 includes the later search stack and PR50/51; PR59, PR60 and PR62 remain open. PR61 merged into the report draft branch, not main. Historical reviewed heads: PR42 25688180178589d41daadfaa5a23117a115fe96d; PR52 5e74ede8ef874a3bdc31564830e889f113951f87; PR46 ee42c8f8e41858431e000825a437ee39b2e88b7b; PR48 879818c16518e1d706cf60fe5f666979d532aec9. Those scoped reviews are not tests of this main snapshot. Available from: [pinned main](https://github.com/Mr-Teal/CS5446_project/tree/02bb0410ce3a17ce308d900a26b0ad453bfe20f5); [PR37 delivery](https://github.com/Mr-Teal/CS5446_project/pull/37); [PR42 review](https://github.com/Mr-Teal/CS5446_project/pull/42#pullrequestreview-5679229932); [PR52 review](https://github.com/Mr-Teal/CS5446_project/pull/52#pullrequestreview-5679231586); [PR46 review](https://github.com/Mr-Teal/CS5446_project/pull/46#pullrequestreview-5679261471); [PR48 review](https://github.com/Mr-Teal/CS5446_project/pull/48#pullrequestreview-5679267479).
+5. CS5446_project contributors, bryankuah. Integration status and scoped search reviews [Internet]. 2026 Nov 3 [cited 2026 Nov 3]. Main 02bb0410ce3a17ce308d900a26b0ad453bfe20f5 includes the later search stack and PR50/51. PR62 merged into PR59 at 44d806d; PR60 was automatically marked merged through ancestry. The runner conflict with main is resolved at PR59 head 78f687b860a3fb95160b80be472d7fc8621a144b, but PR59 remains open and unmerged into main. PR61 merged into the report draft branch, not main. Combined-head evidence: 176 passes, 16 native-backend skips and four focused probes reusing existing scenarios; counts are not additive independent coverage. No native execution, locked-runtime suite, new solver-recovery probe or matches were run; archived artifacts were preserved. Exact-head review and native/required-environment checks remain. Historical reviewed heads: PR42 25688180178589d41daadfaa5a23117a115fe96d; PR52 5e74ede8ef874a3bdc31564830e889f113951f87; PR46 ee42c8f8e41858431e000825a437ee39b2e88b7b; PR48 879818c16518e1d706cf60fe5f666979d532aec9. Those historical scoped reviews are not tests of this main snapshot. Available from: [pinned main](https://github.com/Mr-Teal/CS5446_project/tree/02bb0410ce3a17ce308d900a26b0ad453bfe20f5); [PR59 combined-head evidence](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6571745962); [PR62 integration](https://github.com/Mr-Teal/CS5446_project/commit/44d806d51e959a348d3a9ea31354654a6195ee2e); [PR37 delivery](https://github.com/Mr-Teal/CS5446_project/pull/37); [PR42 review](https://github.com/Mr-Teal/CS5446_project/pull/42#pullrequestreview-5679229932); [PR52 review](https://github.com/Mr-Teal/CS5446_project/pull/52#pullrequestreview-5679231586); [PR46 review](https://github.com/Mr-Teal/CS5446_project/pull/46#pullrequestreview-5679261471); [PR48 review](https://github.com/Mr-Teal/CS5446_project/pull/48#pullrequestreview-5679267479).
 
 6. emalcolin, CS5446_project contributors. Pair B: leaf evaluators, Network 1 and its practice data [Internet]. 2026 [cited 2026 Oct 26]. Revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed; contains links to the underlying checkpoint results and manifests. Available from: [pinned evaluator documentation](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/README.md).
 

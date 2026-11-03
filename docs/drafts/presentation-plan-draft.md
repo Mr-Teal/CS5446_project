@@ -2,7 +2,7 @@
 
 Presentation Plan and Slide Draft
 
-CS4246/CS5446 | AY2026/27 | 2 November 2026 | Living draft for team discussion
+CS4246/CS5446 | AY2026/27 | 3 November 2026 | Living draft for team discussion
 
 **Major revisions expected.** Major changes are likely as implementation,
 integration, experiments and team review progress. This is a provisional
@@ -135,9 +135,11 @@ support selected contracts, not stronger play or full Obscuro reproduction."
 frontiers. Limit verification to a 20-second callout; test counts go in backup.
 Distinguish the historical uniform-growth prototype from the later selective,
 retained-search, gadget and purification stack, now merged in main 02bb041.
-Tracker/solver follow-ups in PR59/62 remain under review. Existing scoped
-checks do not validate the current system end to end; strict and relaxed
-full-game pilots still fail resource limits. Do not equate merge status with
+PR62/60 are incorporated into PR59; its runner conflict is resolved at 78f687b,
+but PR59 is not merged into main. Native/required-environment checks and
+exact-head review remain. Existing scoped checks do not validate the system
+end to end; strict ply-9 and relaxed ply-11 memory failures persist.
+Do not equate merge status with
 formal-match readiness. Sources: S3, S7, S10. Teal has volunteered
 content and a retained-state growth visual; speaking allocation remains open.
 Use S9 for review details in backup, outside the timed explanation.
@@ -270,7 +272,7 @@ support responsible experimentation; they are not performance evidence."
 and AI-assistance credit. Do not claim exact reproduction, superhuman play,
 a fairness audit or a human study. Close with: "When does better prediction
 translate into better decisions?" All speakers should understand this boundary.
-Sources: S1, S4-S7.
+Sources: S1, S4-S7, S10.
 
 ---
 
@@ -331,7 +333,7 @@ are different objectives; show slide 8's value-lost interval.
 
 **Did we reproduce Obscuro?** No complete reproduction claim. Distinguish the
 historical uniform-growth baseline, the later merged search mechanisms and
-the still-open tracker/solver integration. Pin any mechanism-completeness
+PR59's combined tracker/solver branch, still unmerged into main. Pin any mechanism-completeness
 claim to an inspected revision; prototype verification does not establish
 strength or formal-match readiness.
 
@@ -376,6 +378,6 @@ are expected as more work and results become available.
 
 S8. [Reviewed batch, PR38 at 5e9393a](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27). Execution source a5c5fb6; paired scores and intervals, failures, timing and capped-draw notes. The later search stack is separate from this archived batch. [ZS21/shared EP delivery](https://github.com/Mr-Teal/CS5446_project/pull/37) merged at 04f992d. Current main is [02bb041](https://github.com/Mr-Teal/CS5446_project/tree/02bb0410ce3a17ce308d900a26b0ad453bfe20f5).
 
-S10. Current integration limits: [PR59 scoped review](https://github.com/Mr-Teal/CS5446_project/pull/59#pullrequestreview-5731688707), [PR62 scoped review and pilot limits](https://github.com/Mr-Teal/CS5446_project/pull/62#pullrequestreview-5731608636), and [PR60 coverage handoff](https://github.com/Mr-Teal/CS5446_project/pull/62#issuecomment-6568790898). These are not successful full-agent matches. Recheck the live integration status before updating this slide.
+S10. Integration status checked 3 November: [PR59 combined-head evidence](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6571745962). PR62 merged into PR59 at 44d806d; PR60 was automatically marked merged through ancestry. The runner conflict with main is resolved at 78f687b860a3fb95160b80be472d7fc8621a144b; PR59 remains unmerged into main 02bb041. Combined-head validation recorded 176 passes, 16 native-backend skips and four focused probes reusing existing scenarios, not additive independent coverage. This was author-assisted validation, not independent review of the resolution. Native execution, the locked-runtime suite, a new solver-recovery probe and matches were not run; exact-head review and native/required-environment checks remain. Strict ply-9 and relaxed ply-11 memory failures persist. Historical evidence: [PR59 scoped review](https://github.com/Mr-Teal/CS5446_project/pull/59#pullrequestreview-5731688707), [PR62 review and pilot limits](https://github.com/Mr-Teal/CS5446_project/pull/62#pullrequestreview-5731608636), and [PR60 coverage handoff](https://github.com/Mr-Teal/CS5446_project/pull/62#issuecomment-6568790898). No successful full-agent comparison is established. Recheck the live status before presenting.
 
 S9. Scoped reviews on 28 October: [PR42 at 2568818](https://github.com/Mr-Teal/CS5446_project/pull/42#pullrequestreview-5679229932), [PR52 at 5e74ede](https://github.com/Mr-Teal/CS5446_project/pull/52#pullrequestreview-5679231586), [PR46 at ee42c8f](https://github.com/Mr-Teal/CS5446_project/pull/46#pullrequestreview-5679261471), and [PR48 at 879818c](https://github.com/Mr-Teal/CS5446_project/pull/48#pullrequestreview-5679267479). For backup: PR52 had 185 selected tests, six detected defect mutations and four additional Black-perspective value probes; PR46 had 42 selected tests within its functional scope; PR48 had 33 selected tests, two verified 100-entry source manifests, a portable clock link and a gift-probe rerun matching non-timing fields. Counts overlap across heads and must not be summed. No new clock matrix or formal match batch was run. Projected labels remain disabled; the ledger does not transfer ancestor payments numerically. Scoped approval is not final integration approval, a timing guarantee or strength evidence.
