@@ -81,7 +81,8 @@ def test_peak_tracker_preserves_an_intermediate_peak_after_population_shrinks(mo
     from pair_a_prep.subgame_validation import PeakTracker
     from pair_a_prep.belief_tracker import BeliefTracker
     def update_population(tracker, count):
-        tracker._candidates = tuple(range(count))
+        from types import SimpleNamespace
+        tracker._nodes = (SimpleNamespace(paths=SimpleNamespace(count=count)),)
     monkeypatch.setattr(BeliefTracker, "update", update_population)
     tracker = PeakTracker()
     tracker.reset("white", 17)

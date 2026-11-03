@@ -1,0 +1,23 @@
+{
+  "scope": "Metadata correction only; no measurement or timing rerun",
+  "measured_runtime_commit": "f94714a",
+  "previous_published_commit": "c65db08534440d6c1eac8a0148ff1e55024c687d",
+  "historical_profiler": {
+    "path": "pair_a_prep/results/tracker_budget_profile_2026-10-31/profile_update.py",
+    "restored_from": "cae3fef0356dd19ae8be422c15ed65cf7bba78c8",
+    "sha256": "f9fb102de0f388da951949fdf1d8f89c77f5a26eb6c7bdaea1d952cd75a6b9b5"
+  },
+  "windows_profiler": {
+    "path": "pair_a_prep/results/windows_tracker_pilot_2026-11-01/profile_update_windows_v1.py",
+    "sha256": "c57b20d2a7d7a46e54233b1c9c9e9796f29b2b88fc953fa4cf8bcb5f2df924fe",
+    "copied_byte_for_byte_from_measured_revision": true
+  },
+  "execution_manifest_note": "summary.json source_sha256 is historical execution provenance: its old profiler path describes the measured Windows variant, now preserved at windows_profiler.path. It does not describe the restored current path.",
+  "measurements_preserved": {
+    "summary.json": "73523734e6e251b17791e7353f708a68ca80dff824b552d92027a94241e67b31",
+    "evidence.zip": "383dc1e21afebb6a6be45e03c79213658711617b4116e951f72932f167b5087f",
+    "strict.ini": "d99aeb1a34468732fead853fec7edcf6750809e20d47c49c3810fa4400dccdaf",
+    "relaxed.ini": "95039573e38125ddbd3965e2963b685a3d8f4b5641bedca60185413cfe786599"
+  },
+  "artifact_hash_convention": "raw committed file bytes; directory attributes disable EOL conversion"
+}

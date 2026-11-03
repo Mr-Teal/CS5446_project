@@ -5,3 +5,12 @@ pair_a_prep/tests/fixtures/zs21_*.npz -text
 zs21_runtime/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 # Keep the pinned upstream documentation exactly as archived.
 zs21_runtime/third_party/stockfish13/UPSTREAM_README.md -whitespace
+# Preserve the measured tracker and its reproducibility archive byte for byte.
+pair_a_prep/*belief*.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+pair_a_prep/belief_kernel.cpp -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+pair_a_prep/tests/*belief*.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+# The frozen reference retains its original final blank line.
+pair_a_prep/tests/reference_belief_tracker.py whitespace=blank-at-eol,space-before-tab,cr-at-eol,-blank-at-eof
+pair_a_prep/results/belief_tracker_2026-10-31/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+pair_a_prep/results/tracker_budget_profile_2026-10-31/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+pair_a_prep/results/windows_tracker_pilot_2026-11-01/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

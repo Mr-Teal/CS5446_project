@@ -1,0 +1,264 @@
+{
+  "python": "3.12.15",
+  "numpy": "2.5.4",
+  "scipy": "1.18.1",
+  "highs": "1.12.0",
+  "certificate_threshold": 1e-08,
+  "cases": [
+    {
+      "fixture": "pair_a_prep/tests/fixtures/zs21_lp_not_set_game001_ply61.npz",
+      "sha256": "ab0ab6f6980ef5ec19f99ab82c56836d49bab05096ed6613a0014266427e39e8",
+      "original_error": "(HiGHS Status 0: Not Set)",
+      "original_attempts": [
+        {
+          "feasibility_tolerance": 1e-08,
+          "lp_results": [
+            {
+              "side": "primal",
+              "scipy_status": 4,
+              "highs_model_status": 0,
+              "message": "(HiGHS Status 0: Not Set)",
+              "success": false,
+              "finite_solution": false,
+              "seconds": 0.07281340000918135,
+              "options": {
+                "primal_feasibility_tolerance": 1e-08,
+                "dual_feasibility_tolerance": 1e-08,
+                "presolve": true,
+                "simplex_dual_edge_weight_strategy": "steepest-devex",
+                "threads": 1
+              }
+            }
+          ],
+          "stage": "primal",
+          "accepted": false,
+          "error": "(HiGHS Status 0: Not Set)",
+          "failure_kind": "highs_not_set"
+        }
+      ],
+      "seconds": 0.27188309998018667,
+      "value": -0.0013766009475807452,
+      "gap": 1.220811646218678e-16,
+      "flow_error": 2.909998630951094e-16,
+      "inequality_error": 6.938893903907228e-18,
+      "attempts": [
+        {
+          "feasibility_tolerance": 1e-08,
+          "lp_results": [
+            {
+              "side": "primal",
+              "scipy_status": 4,
+              "highs_model_status": 0,
+              "message": "(HiGHS Status 0: Not Set)",
+              "success": false,
+              "finite_solution": false,
+              "seconds": 0.07114729995373636,
+              "options": {
+                "primal_feasibility_tolerance": 1e-08,
+                "dual_feasibility_tolerance": 1e-08,
+                "presolve": true,
+                "simplex_dual_edge_weight_strategy": "steepest-devex",
+                "threads": 1,
+                "time_limit": 29.987563400005456
+              }
+            }
+          ],
+          "stage": "primal",
+          "accepted": false,
+          "error": "(HiGHS Status 0: Not Set)",
+          "failure_kind": "highs_not_set"
+        },
+        {
+          "feasibility_tolerance": 1e-09,
+          "lp_results": [
+            {
+              "side": "primal",
+              "scipy_status": 0,
+              "highs_model_status": null,
+              "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+              "success": true,
+              "finite_solution": true,
+              "seconds": 0.08182869997108355,
+              "options": {
+                "primal_feasibility_tolerance": 1e-09,
+                "dual_feasibility_tolerance": 1e-09,
+                "presolve": true,
+                "simplex_dual_edge_weight_strategy": "steepest-devex",
+                "threads": 1,
+                "time_limit": 29.916390100028366
+              }
+            },
+            {
+              "side": "dual",
+              "scipy_status": 0,
+              "highs_model_status": null,
+              "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+              "success": true,
+              "finite_solution": true,
+              "seconds": 0.08543550001922995,
+              "options": {
+                "primal_feasibility_tolerance": 1e-09,
+                "dual_feasibility_tolerance": 1e-09,
+                "presolve": true,
+                "simplex_dual_edge_weight_strategy": "steepest-devex",
+                "threads": 1,
+                "time_limit": 29.834537300048396
+              }
+            }
+          ],
+          "stage": "certificate",
+          "flow_error": 2.909998630951094e-16,
+          "inequality_error": 6.938893903907228e-18,
+          "lower": -0.0013766009475807528,
+          "upper": -0.0013766009475806307,
+          "gap": 1.220811646218678e-16,
+          "value": -0.0013766009475807452,
+          "accepted": true
+        }
+      ]
+    },
+    {
+      "fixture": "pair_a_prep/tests/fixtures/zs21_lp_not_set_game006_ply68.npz",
+      "sha256": "5dc442fdc2c2fb169d86ee8a5ec590c250464d2bdd647031859093b4d321cb84",
+      "original_error": "(HiGHS Status 0: Not Set)",
+      "original_attempts": [
+        {
+          "feasibility_tolerance": 1e-08,
+          "lp_results": [
+            {
+              "side": "primal",
+              "scipy_status": 4,
+              "highs_model_status": 0,
+              "message": "(HiGHS Status 0: Not Set)",
+              "success": false,
+              "finite_solution": false,
+              "seconds": 0.06227320001926273,
+              "options": {
+                "primal_feasibility_tolerance": 1e-08,
+                "dual_feasibility_tolerance": 1e-08,
+                "presolve": true,
+                "simplex_dual_edge_weight_strategy": "steepest-devex",
+                "threads": 1
+              }
+            }
+          ],
+          "stage": "primal",
+          "accepted": false,
+          "error": "(HiGHS Status 0: Not Set)",
+          "failure_kind": "highs_not_set"
+        }
+      ],
+      "seconds": 0.26353529997868463,
+      "value": -0.017328082614987084,
+      "gap": 3.122502256758253e-17,
+      "flow_error": 8.44593492366208e-16,
+      "inequality_error": 5.551115123125783e-17,
+      "attempts": [
+        {
+          "feasibility_tolerance": 1e-08,
+          "lp_results": [
+            {
+              "side": "primal",
+              "scipy_status": 4,
+              "highs_model_status": 0,
+              "message": "(HiGHS Status 0: Not Set)",
+              "success": false,
+              "finite_solution": false,
+              "seconds": 0.0572874000063166,
+              "options": {
+                "primal_feasibility_tolerance": 1e-08,
+                "dual_feasibility_tolerance": 1e-08,
+                "presolve": true,
+                "simplex_dual_edge_weight_strategy": "steepest-devex",
+                "threads": 1,
+                "time_limit": 29.989861999987625
+              }
+            }
+          ],
+          "stage": "primal",
+          "accepted": false,
+          "error": "(HiGHS Status 0: Not Set)",
+          "failure_kind": "highs_not_set"
+        },
+        {
+          "feasibility_tolerance": 1e-09,
+          "lp_results": [
+            {
+              "side": "primal",
+              "scipy_status": 4,
+              "highs_model_status": 0,
+              "message": "(HiGHS Status 0: Not Set)",
+              "success": false,
+              "finite_solution": false,
+              "seconds": 0.0570890000090003,
+              "options": {
+                "primal_feasibility_tolerance": 1e-09,
+                "dual_feasibility_tolerance": 1e-09,
+                "presolve": true,
+                "simplex_dual_edge_weight_strategy": "steepest-devex",
+                "threads": 1,
+                "time_limit": 29.932514899992384
+              }
+            }
+          ],
+          "stage": "primal",
+          "accepted": false,
+          "error": "(HiGHS Status 0: Not Set)",
+          "failure_kind": "highs_not_set"
+        },
+        {
+          "feasibility_tolerance": 1e-10,
+          "lp_results": [
+            {
+              "side": "primal",
+              "scipy_status": 0,
+              "highs_model_status": null,
+              "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+              "success": true,
+              "finite_solution": true,
+              "seconds": 0.0590185999753885,
+              "options": {
+                "primal_feasibility_tolerance": 1e-10,
+                "dual_feasibility_tolerance": 1e-10,
+                "presolve": true,
+                "simplex_dual_edge_weight_strategy": "steepest-devex",
+                "threads": 1,
+                "time_limit": 29.87539529998321
+              }
+            },
+            {
+              "side": "dual",
+              "scipy_status": 0,
+              "highs_model_status": null,
+              "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+              "success": true,
+              "finite_solution": true,
+              "seconds": 0.0639998999540694,
+              "options": {
+                "primal_feasibility_tolerance": 1e-10,
+                "dual_feasibility_tolerance": 1e-10,
+                "presolve": true,
+                "simplex_dual_edge_weight_strategy": "steepest-devex",
+                "threads": 1,
+                "time_limit": 29.81635079998523
+              }
+            }
+          ],
+          "stage": "certificate",
+          "flow_error": 8.44593492366208e-16,
+          "inequality_error": 5.551115123125783e-17,
+          "lower": -0.017328082614987115,
+          "upper": -0.017328082614987084,
+          "gap": 3.122502256758253e-17,
+          "value": -0.017328082614987084,
+          "accepted": true
+        }
+      ]
+    }
+  ],
+  "source_sha256": {
+    "pair_a_prep/zs21/sequence_form.py": "aef850b0da1f1f9608e7d99ceba2c41b17ae0fe497dd57b9647fdc9280235fa0",
+    "pair_a_prep/tests/test_zs21_not_set.py": "816b5c1ef7f5dc8bbfec67370a35f98d85c92cad6b704257a35f53bf5773f89b",
+    "zs21_runtime/scripts/check_highs_recovery.py": "ebbbd002ea4ce76b0e08b52b9e174099bef8cb893d4619b8395413332797e100"
+  }
+}

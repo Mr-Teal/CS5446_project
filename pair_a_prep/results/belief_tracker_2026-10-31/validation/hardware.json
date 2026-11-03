@@ -1,0 +1,16 @@
+{
+  "collected_at": "2026-10-31T19:07:12.6706858+08:00",
+  "processors": [
+    {
+      "Name": "AMD Ryzen 7 5800H with Radeon Graphics         ",
+      "NumberOfCores": 8,
+      "NumberOfLogicalProcessors": 16
+    }
+  ],
+  "memory": {
+    "TotalVisibleMemorySize": 32865344,
+    "FreePhysicalMemory": 17126028,
+    "Caption": "Microsoft Windows 10 家庭中文版",
+    "Version": "10.0.19045"
+  }
+}

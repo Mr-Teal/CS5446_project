@@ -23,3 +23,7 @@ The default budget is 16 seconds from turn transfer. The formal runner shares
 four single-thread Stockfish 13 workers. Algorithm decisions and remaining
 uncertainties are documented in [implementation notes](../../zs21_runtime/docs/IMPLEMENTATION.md).
 No machine-specific parent workspace or local research archive is required.
+
+The [HiGHS recovery record](../docs/zs21_highs_recovery.md) documents bounded
+retries for the two historical Not Set failures, unchanged full-game acceptance,
+portable failure fixtures and the diagnostic replay command.

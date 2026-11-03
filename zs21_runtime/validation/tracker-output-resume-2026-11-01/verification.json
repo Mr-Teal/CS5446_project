@@ -1,0 +1,61 @@
+{
+  "completed_utc": "2026-10-31T16:28:56.916140+00:00",
+  "parent_commit": "21ab48284352cd1e027b98ea93f930622137be6c",
+  "kind": "budget_continuation_and_compatibility_not_strength",
+  "tests": {
+    "tests": 947,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 135.265
+  },
+  "new_output_regressions": 32,
+  "backend_cases": {
+    "python": 16,
+    "native": 16
+  },
+  "platform": "Windows-10-10.0.19045-SP0",
+  "python": "3.12.15",
+  "replays": {
+    "python": {
+      "plies": 34,
+      "private_updates": 70,
+      "exact_support": true,
+      "true_path_check": "benchmark aborts on any missing path",
+      "reason": "king_capture",
+      "peak_history_count": 3276,
+      "total_update_ms": 1008.1335997674614,
+      "evidence": "replay-python/game-002-graph-both.jsonl"
+    },
+    "native": {
+      "plies": 34,
+      "private_updates": 70,
+      "exact_support": true,
+      "true_path_check": "benchmark aborts on any missing path",
+      "reason": "king_capture",
+      "peak_history_count": 3276,
+      "total_update_ms": 387.53029971849173,
+      "evidence": "replay-native/game-002-graph-both.jsonl"
+    }
+  },
+  "replay_populations_equal": true,
+  "prior_highs_sources_and_fixtures_unchanged": true,
+  "source_sha256": {
+    "pair_a_prep/belief_tracker.py": "c6858b78f7e8a53b6086b459a269115ecd5f36e76cc986770e2fd4d22ee1c62d",
+    "pair_a_prep/tests/test_belief_output_resume.py": "0dd173540ddd06138ea8f7bd0a15205c983a0fd9d658f1b633b8f0ef2e217f0b",
+    "pair_a_prep/_belief_graph.py": "f5cce922d096e3b4dda5d8144d308164d22a8a448358e8807b334f61bc0c0753",
+    "pair_a_prep/_belief_native.py": "d4ce971b07c6f30ea0cda44f2a16291ea6b879b51a7987833828c5677a7e4a0e",
+    "pair_a_prep/belief_kernel.cpp": "13ac625f60a10ac651bdefebca24b20b2b82e60a9a43b4c1b265f9c81f77d2da",
+    "pair_a_prep/rules_adapter.py": "a42ac0ba2c9c9825d23e9978085655334308e8fe3b3e357611c0854ed03c66e2",
+    "pair_a_prep/benchmark_belief_tracker.py": "630e446e8eebed44d02374367c44fe68c0a336cc96333887d11134b9d84cfaa9",
+    "zs21_runtime/pixi.toml": "8d880ca93906357082e4ac2db8917e29da54d360a8b616eb2b7a7e7f6a6414e3",
+    "zs21_runtime/pixi.lock": "6546666bc832e2733a0871a9b63f4e021b6381c5d330fe3d6fe5a84acc8218b7"
+  },
+  "evidence_sha256": {
+    "before-fix.xml": "7fc6dcb842b742e048cfa8ece744d4abe2d39511baf449352f9acee6ee25bd1e",
+    "regression.log": "d5aff033b50c319dd679d87d038104dae718c1bc8e65c9a9ce24377812dc6ec7",
+    "regression.xml": "bef34bd38ac527a2fa36e38a86cf626eaf8f83c168c1eb3b1b724e31be6c07ed",
+    "replay-native/game-002-graph-both.jsonl": "2e542674832a7d90e88f43abcd32988a12c919b416b84c6b7732225f888b4443",
+    "replay-python/game-002-graph-both.jsonl": "4ab9f1a7918bb6c3704fcbf7cdc465c9a6302a4847744faa758cae94d3d6d63c"
+  }
+}

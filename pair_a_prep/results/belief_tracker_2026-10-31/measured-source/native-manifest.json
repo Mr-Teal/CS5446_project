@@ -1,0 +1,22 @@
+{
+  "command": [
+    "D:\\workspace\\nuswork\\.pixi\\envs\\darkchess\\Library/bin\\x86_64-w64-mingw32-g++.EXE",
+    "-std=c++17",
+    "-O3",
+    "-DNDEBUG",
+    "-shared",
+    "-static-libgcc",
+    "-static-libstdc++",
+    "D:\\workspace\\nuswork\\cs5446-project\\github-delivery\\pair_a_prep\\belief_kernel.cpp",
+    "-o",
+    "D:\\workspace\\nuswork\\cs5446-project\\github-delivery\\pair_a_prep\\_belief_build\\belief_kernel-c49a0ec51fa756bd.dll"
+  ],
+  "source_sha256": {
+    "belief_kernel.cpp": "13ac625f60a10ac651bdefebca24b20b2b82e60a9a43b4c1b265f9c81f77d2da",
+    "zs21/native/inference.cpp": "8d92ad3f5e325b4d3d8095dcd927ec5292dcc2302b28e08a9635610bea016bc6",
+    "_belief_native.py": "d4ce971b07c6f30ea0cda44f2a16291ea6b879b51a7987833828c5677a7e4a0e"
+  },
+  "library": "belief_kernel-c49a0ec51fa756bd.dll",
+  "dll_sha256": "8d8846e95b985b76828daf428412066a0a4d5489a6f223a7802f626840bfad9c",
+  "compiler": "x86_64-w64-mingw32-g++.EXE (conda-forge gcc 16.2.0-7) 16.2.0"
+}
