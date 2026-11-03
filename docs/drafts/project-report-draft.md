@@ -146,11 +146,11 @@ Our implementation follows selected mechanisms, not every mechanism of either
 paper. The uniform-growth prototype rebuilds its search each turn. The later
 search stack adds selective expansion, retained search, sampled gadget
 boundaries and purification. Main 02bb041 includes that stack, the evaluation
-methods and Pair C deliveries. PR62/60 are incorporated into PR59; its runner
-conflict is resolved at 78f687b, but PR59 remains unmerged into main.
-Native/required-environment checks and exact-head review remain. Merge status does not establish full
-reproduction or validate the final integrated agent, and it does not change
-the source revision of the archived match batch [4,5].
+methods and Pair C deliveries. Further tracker and solver fixes remain on an
+unmerged branch. Native-runtime checks have now been reported for that branch;
+independent review and successful full-game pilots remain outstanding
+(Section 7.1). These changes do not alter the code version used for the
+archived match batch [4,5].
 
 ---
 
@@ -448,31 +448,33 @@ costs; do not pool it with the archived batch.
 
 ### 7.1 Scoped Verification
 
-Exact toy examples illustrate the information distinction: revealing player
-0's action to the opponent changes matching-pennies value from 0 to -1;
-revealing a biased coin to its guesser changes expected payoff from 0.5 to 1 [16].
-These examples explain information sets, not chess performance. Supplemental
-reviews test narrower implementation contracts, with rerunnable evidence linked
-below. Test counts overlap across revisions and must not be summed.
-
-A separate historical 20-game D1-versus-material check has archived records
-and an independent audit [17]. It is not the material row of the seven-row batch
-and is not pooled with that batch's estimates.
+Toy examples show how information changes decisions: revealing an action
+changes matching-pennies value from 0 to -1; revealing a coin changes its
+guesser's expected payoff from 0.5 to 1 [16]. These are not chess results.
+A historical 20-game D1/material audit [17] is separate from the seven-row
+batch. Implementation checks below also overlap and must not be summed.
 
 | Claim tested | Evidence | Boundary |
 | --- | --- | --- |
 | Growth retains prior solver state and rejects incomplete grafts | PR27: 404 existing tests plus 7 additional probes passed [18] | Tested histories and failures, not universal correctness |
 | Budget accounting, fallback and diagnostics match execution | PR30: 425 existing tests plus 20 probes; 18 twice-run fixed-work cases agree excluding timing [19] | Calls are not total compute; a 10 ms probe took about 10.47 ms |
 
-The focused tests are subsets, not additional independent samples. These
-historical search snapshots predate the no-move-rule update [20]. Later scoped
-checks cover diagnostics, label rejection, fallback recovery and weighted
-values. Combined PR59 head 78f687b recorded 176 passes and 16 native-backend
-skips, with four focused probes reusing existing scenarios [5]. This was
-author-assisted validation, not independent review of the resolution.
-Native/locked-runtime verification remains; strict ply-9 and relaxed ply-11
-memory failures persist. These checks do not establish release correctness
-or playing strength. This editorial revision runs no new experiments.
+These historical search snapshots predate the no-move-rule update [20].
+For tracker/solver revision 78f687b, Teal reports 962 shared/Pair A passes
+(zero skips) after building the native tracker in locked Pixi, and 46 Pair C
+passes separately in a torch-enabled environment. These are not one combined
+suite; the combined command fails collection. His eight-action Stockfish 19
+smoke was capped and unscored. We cite his report, not an independent rerun [5].
+
+Bryan's complementary check passed 48 selected ZS21 tests (zero skips) and
+returned `unfinished_smoke` after two Stockfish 13 actions. It tested the
+shipped ZS21 library outside the locked environment, not the shared-tracker
+accelerator. The handoff includes sanitized evidence and environment details [5].
+This was author-assisted validation, not independent review of Bryan's change.
+
+Whole-change review and whole-turn budget agreement remain open.
+Pair A owns the documentation follow-up [5]. Strict ply-9/relaxed ply-11 failures remain unresolved; short smokes
+do not establish full-game readiness. This editorial update runs no new experiments.
 
 ### 7.2 What the Evidence Establishes
 
@@ -553,7 +555,7 @@ comparisons do not establish full-agent strength or strategic belief value.
 
 4. CS5446_project contributors. Pair A search implementation, specifications and reproduction differences [Internet]. 2026 [cited 2026 Oct 26]. Revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed. Available from: [pinned Pair A source](https://github.com/Mr-Teal/CS5446_project/tree/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep); [detailed mechanism checklist](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep/docs/obscuro_status.md).
 
-5. CS5446_project contributors, bryankuah. Integration status and scoped search reviews [Internet]. 2026 Nov 3 [cited 2026 Nov 3]. Main 02bb0410ce3a17ce308d900a26b0ad453bfe20f5 includes the later search stack and PR50/51. PR62 merged into PR59 at 44d806d; PR60 was automatically marked merged through ancestry. The runner conflict with main is resolved at PR59 head 78f687b860a3fb95160b80be472d7fc8621a144b, but PR59 remains open and unmerged into main. PR61 merged into the report draft branch, not main. Combined-head evidence: 176 passes, 16 native-backend skips and four focused probes reusing existing scenarios; counts are not additive independent coverage. No native execution, locked-runtime suite, new solver-recovery probe or matches were run; archived artifacts were preserved. Exact-head review and native/required-environment checks remain. Historical reviewed heads: PR42 25688180178589d41daadfaa5a23117a115fe96d; PR52 5e74ede8ef874a3bdc31564830e889f113951f87; PR46 ee42c8f8e41858431e000825a437ee39b2e88b7b; PR48 879818c16518e1d706cf60fe5f666979d532aec9. Those historical scoped reviews are not tests of this main snapshot. Available from: [pinned main](https://github.com/Mr-Teal/CS5446_project/tree/02bb0410ce3a17ce308d900a26b0ad453bfe20f5); [PR59 combined-head evidence](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6571745962); [PR62 integration](https://github.com/Mr-Teal/CS5446_project/commit/44d806d51e959a348d3a9ea31354654a6195ee2e); [PR37 delivery](https://github.com/Mr-Teal/CS5446_project/pull/37); [PR42 review](https://github.com/Mr-Teal/CS5446_project/pull/42#pullrequestreview-5679229932); [PR52 review](https://github.com/Mr-Teal/CS5446_project/pull/52#pullrequestreview-5679231586); [PR46 review](https://github.com/Mr-Teal/CS5446_project/pull/46#pullrequestreview-5679261471); [PR48 review](https://github.com/Mr-Teal/CS5446_project/pull/48#pullrequestreview-5679267479).
+5. CS5446_project contributors, Mr-Teal, bryankuah. Integration status and scoped search reviews [Internet]. 2026 Nov 3 [cited 2026 Nov 3]. PR59 revision 78f687b860a3fb95160b80be472d7fc8621a144b, unmerged into main 02bb0410ce3a17ce308d900a26b0ad453bfe20f5. Available from: [Teal's reported locked/native validation and separate Pair C run](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6593444508); [Bryan's complementary validation and evidence handoff](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6595644283); [sanitized 48-test, runtime-doctor and smoke artifacts](https://github.com/user-attachments/files/34303279/pr59-78f687b-native-lp-handoff.zip); [earlier 176-pass/16-skip check](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6571745962); [pilot limits](https://github.com/Mr-Teal/CS5446_project/pull/62#pullrequestreview-5731608636); [pinned main](https://github.com/Mr-Teal/CS5446_project/tree/02bb0410ce3a17ce308d900a26b0ad453bfe20f5). Pair A owns the [open documentation follow-up, PR63](https://github.com/Mr-Teal/CS5446_project/pull/63), revision ba268d0fa05a6ed587bc183eaff14eb1aba849f1; it adds no runtime results. Teal's detailed outputs remain local; his comment is the available source. Runs overlap and must not be added as independent coverage.
 
 6. emalcolin, CS5446_project contributors. Pair B: leaf evaluators, Network 1 and its practice data [Internet]. 2026 [cited 2026 Oct 26]. Revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed; contains links to the underlying checkpoint results and manifests. Available from: [pinned evaluator documentation](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/README.md).
 
