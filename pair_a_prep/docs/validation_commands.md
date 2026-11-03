@@ -59,6 +59,7 @@ locked Pair C's two missing-torch failures were retained in the review report.
 A separate actual SF19 pawn smoke completed two four-ply capped attempts,
 with provenance, action diagnostics and 20 tracker update records together.
 These are short integration checks, not a whole-game strength result.
+The source for these November 3 results is [the exact-head validation report](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6593444508); its detailed XML and machine-readable outputs remain local to the validation checkout. The November 1 archive linked below describes earlier pilot/provenance evidence, not these fresh 962/46 results.
 
 Nine published Windows artifacts and eight historical profile files can be
 checked against their manifests. The 134 historical execution sources must be
