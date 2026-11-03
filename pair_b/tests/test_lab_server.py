@@ -216,7 +216,7 @@ def test_binds_loopback_only(lab):
 def test_config_lists_rules_and_scorers(lab):
     status, config = lab.get("/api/config")
     assert status == 200
-    assert set(config) == {"rules", "scorers", "default_scorer", "torch", "machine"}
+    assert set(config) == {"rules", "scorers", "default_scorer", "bots", "default_bot", "torch", "machine"}
     assert config["rules"] == {"name": "pairb-standin", "label": StandinRules.label}
     assert config["rules"]["name"] in {"pairb-standin", "teal-rules-adapter"}
     assert [row["id"] for row in config["scorers"]] == list(SCORER_IDS) and len(config["scorers"]) == 5

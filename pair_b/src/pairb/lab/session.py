@@ -63,6 +63,7 @@ from fow_shared.values import standard_fen
 from ..bot import OnePlyBot
 from ..rules import GameReferee, Rules
 from ..tracker import ParticleTracker
+from .pair_a_bot import make_pair_a_agent, make_pair_a_tracker, unavailable_reason
 from .record import BotTurn, GameRecord, PlyRecord, observation_json, view_state
 from .scorers import SCORER_IDS
 
@@ -132,6 +133,7 @@ class BotSpec:
     label: str
     make_agent: Callable[[Any], Agent]  # takes the bot's scorer
     make_tracker: Callable[[Rules, GameOptions], BeliefTracker]
+    unavailable: Callable[[Rules], str | None] | None = None  # why it cannot play under these rules, or None
 
 
 def default_tracker(rules: Rules, options: GameOptions) -> ParticleTracker:
@@ -140,8 +142,12 @@ def default_tracker(rules: Rules, options: GameOptions) -> ParticleTracker:
                            initial_fen=options.start_fen)
 
 
-# Adding Pair A's agent is one more entry: a factory for their agent and one for their tracker.
-BOTS: dict[str, BotSpec] = {"pairb-one-ply": BotSpec("Pair B one-ply belief bot", OnePlyBot, default_tracker)}
+# Pair B's bot, the default (GameOptions.bot), comes first: the page lists them in this order.
+BOTS: dict[str, BotSpec] = {
+    "pairb-one-ply": BotSpec("Pair B one-ply belief bot", OnePlyBot, default_tracker),
+    "pair-a-subgame": BotSpec("Pair A subgame agent (5 s per move, 96k-state guard)", make_pair_a_agent,
+                              make_pair_a_tracker, unavailable_reason),
+}
 
 
 class Session:

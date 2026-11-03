@@ -267,6 +267,12 @@ set of possible true boards (at most 256) from its own observations and moves al
 the scorer you pick, one of the five evaluators above, for the value of every legal move on each of
 its guesses at your hidden pieces (8 by default), and plays the move with the best average.
 
+Pair A's agent as the bot. The Bot dropdown also offers Pair A's agent: the sampled subgame PCFR+
+agent from `pair_a_prep` with its exact history tracker, tail-guarded at 96,000 states. The scorer
+you pick becomes its leaf evaluator, Guesses is its hypothesis sample size, and it takes up to 5 s
+per move. It needs Teal's rules (`--rules teal`, or `auto` with `pair_a_prep` present); under
+other rules it is listed as unavailable, with the reason.
+
 ### Start it
 
 From the project root, on macOS and Linux:
