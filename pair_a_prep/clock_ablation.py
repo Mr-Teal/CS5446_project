@@ -57,7 +57,9 @@ def measure(agent, turn, case, budget, seed, repeat):
         raw_policy=raw, played_policy=played,
         raw_played_l1=sum(abs(raw[a]-played[a]) for a in raw), diagnostics=decision.diagnostics,
         stop_reason=agent.last_stop_reason,
-        label_available=agent.last_result is not None and not decision.diagnostics.get("label_root_contract_pending", 0))
+        # A finished solve is a label on every turn, projected or cold, since the
+        # per-hypothesis label contract (pair_b/docs/label_definitions.md) was met.
+        label_available=agent.last_result is not None)
 
 
 def prepare(seed):

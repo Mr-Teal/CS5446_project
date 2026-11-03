@@ -73,7 +73,8 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
             half_budget="wall_clock" if self.config.stop_on_time else "round_count",
             fresh_roots="distinct_positions_v1",
             fallback="partial_solver_or_heuristic_depth1_v1",
-            gadget="blended_resolve_maxmargin_pmax_v1")
+            gadget="blended_resolve_maxmargin_pmax_v1",
+            labels="per_hypothesis_raw_profile_belief_weighted_root_v1")
         return self.name+":"+sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()[:16]
 
     def solve(self, turn):
@@ -211,7 +212,7 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
             solver_nash_gap=nash_gap(solver.root, solver.policy()),
             p_max=control.p_max if control else 0.,
             minimum_margin=(min(control.margins.values()) if control and control.margins else 0.),
-            label_root_contract_pending=float(projection.boundaries is not None),
+            projected_from_saved_tree=float(projection.boundaries is not None),
             zero_reach_uniform_prior=float(bool(projection.boundaries and projection.boundaries.audit.get("all_zero_opponent_reach"))))
         self.last_stop_reason = self.last_stop_reason or "round_limit"
         diagnostics["stop:"+self.last_stop_reason] = 1.
@@ -235,65 +236,79 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
         try:
             return self.solve(turn).decision
         except (SearchBudgetError, TreeCapacityError) as exc:
-            projection, solver = self.last_projection, self.last_solver
-            self.saved = None
-            self.last_result = None
-            self.last_projection = self.last_solver = self.last_bridge = None
-            if not turn.observation.legal_moves or turn.observation.terminal:
-                raise
-            moves = turn.observation.legal_moves
-            # Anytime semantics (Obscuro Fig. 8): a move comes from the strategy
-            # computed so far, never from a uniform draw. The solver built for
-            # THIS turn is used if it exists; its root policy is the warm start or
-            # the heuristic initialization when no round completed.
-            raw, source = None, None
-            if projection is not None and solver is not None and projection.turn is turn:
-                candidate = solver.policy()[0].get(projection.tree.root_infoset)
-                if candidate is not None and set(candidate) == set(moves):
-                    raw, source = dict(candidate), "partial_solver"
-            if raw is None:
-                # Nothing solved this turn. The paper's first strategy at a new
-                # node is the evaluator's best child; one depth-1 pass gives it.
-                # heuristic_actions decides an infoset at its first DFS occurrence,
-                # so one hypothesis yields the same action as all of them at a
-                # fraction of the cost -- this runs after the budget is already gone.
-                try:
-                    first = turn.belief.hypotheses[0]
-                    reduced = replace(turn, belief=replace(turn.belief, hypotheses=(replace(first, weight=1.),)))
-                    tree = build_chess_tree(reduced, self.evaluator, initial_fen=self.initial_fen,
-                                            depth=1, max_nodes=self.config.max_nodes)
-                    best = heuristic_actions(tree.root).get((0, tree.root_infoset))
-                    if best in moves:
-                        raw, source = {m: float(m == best) for m in moves}, "heuristic_depth1"
-                except (SearchBudgetError, TreeCapacityError, ValueError):
-                    raw = None
-            if raw is None:
-                raw, source = dict.fromkeys(moves, 1/len(moves)), "uniform"
-            # An unfinished solve is not a safe strategy: play its top action.
-            played = purify_policy(raw, "resolve", None) if self.purify and source != "uniform" else dict(raw)
-            move = self._rng.choices(list(played), weights=list(played.values()), k=1)[0]
-            elapsed = (perf_counter()-started)*1000
-            diagnostics = dict(fallback=1., elapsed_ms=elapsed,
-                               over_budget=float(elapsed > turn.time_budget_ms),
-                               evaluator_calls=float(self.last_evaluator_calls),
-                               solver_rounds=float(solver.rounds) if solver is not None else 0.)
-            diagnostics["fallback_policy:"+source] = 1.
-            self.last_stop_reason = type(exc).__name__+": "+str(exc)
-            diagnostics["stop:"+type(exc).__name__] = 1.
-            diagnostics.update({"raw_policy:"+a: p for a, p in raw.items()})
-            diagnostics.update({"played_policy:"+a: p for a, p in played.items()})
-            decision = Decision(move, raw, diagnostics)
-            decision.validate_for(turn.observation)
-            return decision
+            return self.fallback_decision(turn, exc, started)
+
+    def fallback_decision(self, turn, exc, started):
+        """The anytime move after solve() ran out of budget (Obscuro Fig. 8).
+
+        A move comes from the strategy computed so far, never from a uniform
+        draw. Label runs call this too, after a failed label(): a fallback plays
+        a move but is never written as a label. The saved blueprint is discarded,
+        as the existing contract requires.
+        """
+        projection, solver = self.last_projection, self.last_solver
+        self.saved = None
+        self.last_result = None
+        self.last_projection = self.last_solver = self.last_bridge = None
+        if not turn.observation.legal_moves or turn.observation.terminal:
+            raise exc
+        moves = turn.observation.legal_moves
+        # The solver built for THIS turn is used if it exists; its root policy is
+        # the warm start or the heuristic initialization when no round completed.
+        raw, source = None, None
+        if projection is not None and solver is not None and projection.turn is turn:
+            candidate = solver.policy()[0].get(projection.tree.root_infoset)
+            if candidate is not None and set(candidate) == set(moves):
+                raw, source = dict(candidate), "partial_solver"
+        if raw is None:
+            # Nothing solved this turn. The paper's first strategy at a new
+            # node is the evaluator's best child; one depth-1 pass gives it.
+            # heuristic_actions decides an infoset at its first DFS occurrence,
+            # so one hypothesis yields the same action as all of them at a
+            # fraction of the cost -- this runs after the budget is already gone.
+            try:
+                first = turn.belief.hypotheses[0]
+                reduced = replace(turn, belief=replace(turn.belief, hypotheses=(replace(first, weight=1.),)))
+                tree = build_chess_tree(reduced, self.evaluator, initial_fen=self.initial_fen,
+                                        depth=1, max_nodes=self.config.max_nodes)
+                best = heuristic_actions(tree.root).get((0, tree.root_infoset))
+                if best in moves:
+                    raw, source = {m: float(m == best) for m in moves}, "heuristic_depth1"
+            except (SearchBudgetError, TreeCapacityError, ValueError):
+                raw = None
+        if raw is None:
+            raw, source = dict.fromkeys(moves, 1/len(moves)), "uniform"
+        # An unfinished solve is not a safe strategy: play its top action.
+        played = purify_policy(raw, "resolve", None) if self.purify and source != "uniform" else dict(raw)
+        move = self._rng.choices(list(played), weights=list(played.values()), k=1)[0]
+        elapsed = (perf_counter()-started)*1000
+        diagnostics = dict(fallback=1., elapsed_ms=elapsed,
+                           over_budget=float(elapsed > turn.time_budget_ms),
+                           evaluator_calls=float(self.last_evaluator_calls),
+                           solver_rounds=float(solver.rounds) if solver is not None else 0.)
+        diagnostics["fallback_policy:"+source] = 1.
+        self.last_stop_reason = type(exc).__name__+": "+str(exc)
+        diagnostics["stop:"+type(exc).__name__] = 1.
+        diagnostics.update({"raw_policy:"+a: p for a, p in raw.items()})
+        diagnostics.update({"played_policy:"+a: p for a, p in played.items()})
+        decision = Decision(move, raw, diagnostics)
+        decision.validate_for(turn.observation)
+        return decision
 
     def label(self, turn, game_id):
+        """One TrainingRecord per decision, as pair_b/docs/label_definitions.md defines it.
+
+        hypothesis_values[i] is hypothesis i's value under the raw solved profile
+        (a hypothesis aliased to another root takes that root's value), root_value
+        is their belief-weighted mean, root_policy is the raw last iterate, and the
+        move was sampled from the purified policy, recorded as played_policy. Roots
+        retained from the saved tree (the I^2 closure) shape these values but are
+        not hypotheses, so they are not listed. A budget failure raises and labels
+        nothing: fallback policies are never labels.
+        """
         if not game_id.strip():
             raise ValueError("label runs require a game_id")
-        if self.saved is not None:
-            raise ValueError("projected subgame labels disabled pending solver-root/weight contract agreement")
         result = self.solve(turn)
-        if result.decision.diagnostics["label_root_contract_pending"]:
-            raise ValueError("projected subgame labels disabled pending solver-root/weight contract agreement")
         return TrainingRecord(turn, result.decision, result.root_value,
                               result.hypothesis_values, self._seed, self.name,
                               self.config_id, game_id)

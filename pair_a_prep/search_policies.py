@@ -65,5 +65,8 @@ def purify_policy(raw, mode, stable):
                         key=lambda a: raw[a], reverse=True)
         eligible.update(others[:2])
     played = {a: (p if a in eligible else 0.) for a, p in raw.items()}
-    played[top] += sum(p for a, p in raw.items() if a not in eligible)
+    # The top takes exactly the mass the others leave. Accumulating the excluded
+    # mass instead can land it an ulp outside [0, 1], which the Pair B label
+    # validator rejects, and the raw policy itself only sums to one within rounding.
+    played[top] = min(1., max(0., 1. - sum(p for a, p in played.items() if a != top)))
     return played
