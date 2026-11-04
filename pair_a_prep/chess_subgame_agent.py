@@ -22,6 +22,19 @@ from .warm_start import rebase_solver
 from .gift_accounting import ledger_for_projection
 
 
+def _unit(value, tolerance=1e-4):
+    """Round a solver value onto [-1, 1]; anything beyond rounding is an error.
+
+    behavioral_value is a convex combination of leaf values in [-1, 1], but its
+    strategies only have to sum to one within numpy's isclose, so a decided
+    position (all continuations +1 or -1) can land a hair outside the interval
+    the TrainingRecord contract enforces strictly.
+    """
+    if not isfinite(value) or abs(value) > 1 + tolerance:
+        raise ValueError(f"solver value outside [-1, 1]: {value!r}")
+    return min(1., max(-1., value))
+
+
 def opponent_key_map(projection, to_raw=False):
     mapping = {}
     for group, root in zip(projection.groups, projection.tree.continuations):
@@ -309,6 +322,6 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
         if not game_id.strip():
             raise ValueError("label runs require a game_id")
         result = self.solve(turn)
-        return TrainingRecord(turn, result.decision, result.root_value,
-                              result.hypothesis_values, self._seed, self.name,
+        return TrainingRecord(turn, result.decision, _unit(result.root_value),
+                              tuple(_unit(v) for v in result.hypothesis_values), self._seed, self.name,
                               self.config_id, game_id)
