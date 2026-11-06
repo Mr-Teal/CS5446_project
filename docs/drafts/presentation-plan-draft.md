@@ -2,13 +2,13 @@
 
 Presentation plan for a 12-minute presentation followed by 3-minute Q&A
 
-6 November 2026. Twenty-five core slides, eight hidden backups. Speakers remain unassigned.
+6 November 2026. Twenty-seven core slides, eight hidden backups. Speakers remain unassigned.
 
 ## The argument
 
-This presentation asks how to choose actions from incomplete observations and which learned values improve those decisions. It connects the worked example to state, evidence, action, return and policy; explains MC, TD and distillation targets; and separates offline prediction from the game outcomes of an induced decision rule. The existing content is retained, with the later comparisons and ranking example split into shorter visual stages. The hypotheses slide redraws two exact saved hypotheses as native diagrams to replace its blurred crop. Detailed evidence stays in backup.
+This presentation asks how to choose actions from incomplete observations and which learned values improve those decisions. It connects the worked example to state, evidence, action, return and policy; explains MC, TD and distillation targets; and separates offline prediction from the game outcomes of an induced decision rule. A before/after capture example shows why historical observations constrain the hidden state, and a second slide filters candidate boards using that history. The existing content is retained, with the later comparisons and ranking example split into shorter visual stages. The hypotheses slide redraws two exact saved hypotheses as native diagrams to replace its blurred crop. Detailed evidence stays in backup.
 
-The planned core is 11 minutes 45 seconds. Only the worked example gained time (45 seconds); unrelated slide budgets are unchanged. This leaves 15 seconds within the 12 minute slot. These are planned timings, not measured rehearsal times. The confirmed total slot is 15 minutes: 12 minutes presentation followed by 3 minutes Q&A.
+The two history-example slides add 30 seconds each. Every existing slide keeps its prior speaking allocation. The planned core therefore totals 12 minutes 45 seconds, 45 seconds beyond the 12-minute speaking slot. Delivery and rehearsal must resolve that overrun; no unrelated speaking budget has been reduced. These are planned timings, not measured rehearsal times. The confirmed total slot remains 15 minutes: 12 minutes presentation followed by 3 minutes Q&A.
 
 ## Run of show
 
@@ -20,25 +20,27 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 | 4 | Possibility C: the king is already in check | 0:25 |
 | 5 | Fog of War Chess | 0:35 |
 | 6 | Every move can be dangerous in a hidden state | 0:40 |
-| 7 | Decision making from private observations | 0:45 |
-| 8 | The agent tracks, searches and evaluates | 0:35 |
-| 9 | The player acts on a partial board | 0:20 |
-| 10 | Fog Lab exposes the agent’s hypotheses | 0:20 |
-| 11 | Three ways to learn position values | 0:25 |
-| 12 | Monte Carlo learns from completed returns | 0:35 |
-| 13 | TD bootstraps from the next estimate | 0:35 |
-| 14 | Distillation best matched the engine teacher | 0:30 |
-| 15 | MC and TD better matched recorded outcomes | 0:30 |
-| 16 | Can a learned evaluator improve play? | 0:30 |
-| 17 | Evaluation: prediction, play and cost | 0:25 |
-| 18 | Prediction error decreased by about 20% | 0:30 |
-| 19 | The games did not establish a playing gain | 0:45 |
-| 20 | The learned correction took about 3× as long | 0:25 |
-| 21 | The reference slightly prefers Move A | 0:20 |
-| 22 | Large value errors can preserve the choice | 0:15 |
-| 23 | Closer values can still change the choice | 0:20 |
-| 24 | Conclusions | 0:40 |
-| 25 | Next evaluation | 0:15 |
+| 7 | A capture reveals a hidden queen | 0:30 |
+| 8 | History filters the possible boards | 0:30 |
+| 9 | Decision making from private observations | 0:45 |
+| 10 | The agent tracks, searches and evaluates | 0:35 |
+| 11 | The player acts on a partial board | 0:20 |
+| 12 | Fog Lab exposes the agent’s hypotheses | 0:20 |
+| 13 | Three ways to learn position values | 0:25 |
+| 14 | Monte Carlo learns from completed returns | 0:35 |
+| 15 | TD bootstraps from the next estimate | 0:35 |
+| 16 | Distillation best matched the engine teacher | 0:30 |
+| 17 | MC and TD better matched recorded outcomes | 0:30 |
+| 18 | Can a learned evaluator improve play? | 0:30 |
+| 19 | Evaluation: prediction, play and cost | 0:25 |
+| 20 | Prediction error decreased by about 20% | 0:30 |
+| 21 | The games did not establish a playing gain | 0:45 |
+| 22 | The learned correction took about 3× as long | 0:25 |
+| 23 | The reference slightly prefers Move A | 0:20 |
+| 24 | Large value errors can preserve the choice | 0:15 |
+| 25 | Closer values can still change the choice | 0:20 |
+| 26 | Conclusions | 0:40 |
+| 27 | Next evaluation | 0:15 |
 
 ## Slide notes
 
@@ -88,9 +90,25 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Say:** All eight king moves are considered. The three left-file moves permit capture in A, the three right-file moves permit capture in B, and the two moves remaining on the d-file permit capture in C. None avoids immediate capture in all three displayed states. We have not assigned probabilities or described the complete belief, so this does not establish an optimal choice or a certain game loss. It explains why we must reason about uncertainty and compare consequences instead of trusting one guessed board.
 
-**Transition:** We can now formulate the decision problem in the course’s terms.
+**Transition:** A capture example shows why private history matters as well as the current view.
 
-### Slide 7 Decision making from private observations
+### Slide 7 A capture reveals a hidden queen
+
+**Purpose:** Historical observations. Planned 30 seconds.
+
+**Say:** This separate example has known remaining material: our king and knight, and Black’s king and queen. Before Black moves, the knight on d4 attacks the visible king on f5. The queen is hidden. After one Black move, our knight has been captured on d4, but the queen is still outside our current vision. Which piece made that capture? The king on f5 is two files away, so it cannot reach d4 in a single move. With only a king and queen remaining, it must have been the queen. Check is not a movement restriction in this variant; distance rules the king out.
+
+**Transition:** The capture tells us which hidden boards remain possible.
+
+### Slide 8 History filters the possible boards
+
+**Purpose:** Belief tracking. Planned 30 seconds.
+
+**Say:** These are candidate full boards, not what White sees. All three give the same current view. Only the board with the queen on d4 can explain the knight’s capture after the earlier observation of the king on f5. The tracker advances candidate boards through possible opponent moves and retains those consistent with the full observation history. In this deliberately small example, 25 possible hidden queen moves collapse to the same successor board. In a larger game several boards can remain. We infer the queen is on d4 immediately after the capture; after later moves, the tracker must propagate that uncertainty again.
+
+**Transition:** This is why our decision rule uses the current observation together with private history.
+
+### Slide 9 Decision making from private observations
 
 **Purpose:** Sequential decision formulation. Planned 45 seconds.
 
@@ -98,7 +116,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** Our architecture separates reconstructing states, planning and value estimation.
 
-### Slide 8 The agent tracks, searches and evaluates
+### Slide 10 The agent tracks, searches and evaluates
 
 **Purpose:** Approach. Planned 35 seconds.
 
@@ -106,7 +124,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** The interface lets us inspect the private observations and hypotheses.
 
-### Slide 9 The player acts on a partial board
+### Slide 11 The player acts on a partial board
 
 **Purpose:** Demonstration. Planned 20 seconds.
 
@@ -114,7 +132,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** We can also inspect what the bot thinks might be hidden.
 
-### Slide 10 Fog Lab exposes the agent’s hypotheses
+### Slide 12 Fog Lab exposes the agent’s hypotheses
 
 **Purpose:** Demonstration. Planned 20 seconds.
 
@@ -122,7 +140,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** A value learner needs targets. We compared three ways to construct them.
 
-### Slide 11 Three ways to learn position values
+### Slide 13 Three ways to learn position values
 
 **Purpose:** Value learning and training targets. Planned 25 seconds.
 
@@ -130,7 +148,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** Monte Carlo waits for the completed return.
 
-### Slide 12 Monte Carlo learns from completed returns
+### Slide 14 Monte Carlo learns from completed returns
 
 **Purpose:** Monte Carlo prediction. Planned 35 seconds.
 
@@ -138,7 +156,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** TD can instead construct a target from its current estimate of what follows.
 
-### Slide 13 TD bootstraps from the next estimate
+### Slide 15 TD bootstraps from the next estimate
 
 **Purpose:** Temporal-difference prediction. Planned 35 seconds.
 
@@ -146,7 +164,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** How do these target sources compare on prediction?
 
-### Slide 14 Distillation best matched the engine teacher
+### Slide 16 Distillation best matched the engine teacher
 
 **Purpose:** Offline teacher-prediction result. Planned 30 seconds.
 
@@ -154,7 +172,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** Changing the evaluation target changes the ordering.
 
-### Slide 15 MC and TD better matched recorded outcomes
+### Slide 17 MC and TD better matched recorded outcomes
 
 **Purpose:** Offline outcome-prediction result. Planned 30 seconds.
 
@@ -162,7 +180,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** We next ask whether a separate neural correction improves the actual decision process.
 
-### Slide 16 Can a learned evaluator improve play?
+### Slide 18 Can a learned evaluator improve play?
 
 **Purpose:** Learning method. Planned 30 seconds.
 
@@ -170,7 +188,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** We therefore compare prediction quality, game outcome and computational cost.
 
-### Slide 17 Evaluation: prediction, play and cost
+### Slide 19 Evaluation: prediction, play and cost
 
 **Purpose:** Experimental comparison. Planned 25 seconds.
 
@@ -178,7 +196,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** First, did the learned correction improve the value estimate?
 
-### Slide 18 Prediction error decreased by about 20%
+### Slide 20 Prediction error decreased by about 20%
 
 **Purpose:** Prediction result. Planned 30 seconds.
 
@@ -186,7 +204,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** The paired games test the decision outcome directly.
 
-### Slide 19 The games did not establish a playing gain
+### Slide 21 The games did not establish a playing gain
 
 **Purpose:** Outcome result. Planned 45 seconds.
 
@@ -194,7 +212,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** The learned correction also has a computational cost.
 
-### Slide 20 The learned correction took about 3× as long
+### Slide 22 The learned correction took about 3× as long
 
 **Purpose:** Resource result. Planned 25 seconds.
 
@@ -202,7 +220,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** One reason prediction and play can differ is the ranking of close alternatives.
 
-### Slide 21 The reference slightly prefers Move A
+### Slide 23 The reference slightly prefers Move A
 
 **Purpose:** Illustrative ranking reference. Planned 20 seconds.
 
@@ -210,7 +228,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** An inaccurate baseline can still rank these moves correctly.
 
-### Slide 22 Large value errors can preserve the choice
+### Slide 24 Large value errors can preserve the choice
 
 **Purpose:** Illustrative baseline choice. Planned 15 seconds.
 
@@ -218,7 +236,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** Now consider estimates that are much closer in absolute value.
 
-### Slide 23 Closer values can still change the choice
+### Slide 25 Closer values can still change the choice
 
 **Purpose:** Illustrative learned choice. Planned 20 seconds.
 
@@ -226,7 +244,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** That distinction connects the two experimental findings.
 
-### Slide 24 Conclusions
+### Slide 26 Conclusions
 
 **Purpose:** Conclusion. Planned 40 seconds.
 
@@ -234,7 +252,7 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 **Transition:** The next evaluation should test that link inside the deeper-search system.
 
-### Slide 25 Next evaluation
+### Slide 27 Next evaluation
 
 **Purpose:** Next evaluation. Planned 15 seconds.
 
@@ -247,6 +265,8 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 **What makes this sequential decision making?** An action changes the position and what each side can observe next. The agent must account for hidden states and future replies.
 
 **Why consider several possible boards?** Three hidden rook locations give the same private evidence but different capture risks for all eight king moves. A exposes c3/c4/c5, B e3/e4/e5, and C d3/d5. No destination avoids immediate capture in all three selected examples; this is not a probability or optimality claim.
+
+**Why does the capture require history?** The current view alone allows multiple hidden queen locations. Earlier we saw the knight on d4 and Black’s king on f5; after exactly one Black move, the knight was captured on d4. The king cannot cross two files in one move, so the queen must occupy d4 immediately after that capture. The known remaining-material assumption is essential. Check itself does not exclude the king in this variant. The tracker must propagate candidate boards again on later moves.
 
 **Does the bot see the real board?** The referee owns the true state. The bot receives a private observation and reconstructs possibilities. Fog Lab reveals its hypotheses for inspection in this demonstration.
 
@@ -272,13 +292,13 @@ The planned core is 11 minutes 45 seconds. Only the worked example gained time (
 
 ## Delivery and rehearsal
 
-Assign speakers by narrative blocks only after team agreement. Each speaker must understand both findings. Record a complete rehearsal with handovers and chart pauses. Slides 1–10 total 4:45; slides 11–25 retain 7:00. The first six worked-example and game-introduction slides take 2:45; do not repeat the rules or chess tactics. Use the retained demo slides as brief visual steps. The revised core totals 11:45; manage delivery within 12 minutes without reducing the unrelated speaking allocations. Cut secondary spoken detail before cutting the interpretation of the result. No rehearsal has been performed for this revision.
+Assign speakers by narrative blocks only after team agreement. Each speaker must understand both findings. Record a complete rehearsal with handovers and chart pauses. Slides 1–12 total 5:45; slides 13–27 retain 7:00. The first six worked-example and game-introduction slides take 2:45; do not repeat the rules or chess tactics. Use the retained demo slides as brief visual steps. The revised core totals 12:45. The speaker will manage delivery within the confirmed 12-minute presentation slot; existing speaking allocations have not been reduced. Cut secondary spoken detail before cutting the interpretation of the result. No rehearsal has been performed for this revision.
 
 Use the final slide as an academic conclusion and next evaluation, then invite questions. Reserve the full three minutes for Q&A. Answer the direct question first, state evidence and limitations, and open a backup only when it supports that answer. Check that a listener can explain the central findings after one viewing. On the uncertainty plot, point to equal points and the interval before giving the conclusion. Explain the demonstration through the partial board and possible boards, without reading the move table.
 
 ## Hidden backup navigation
 
-26: all seven archived match rows. 27: full value and move metrics. 28: offline belief context. 29: full MC/TD comparison. 30: retained-search prototype. 31: evaluator inventory. 32: contribution confirmations. 33: sources and scope. Hidden slides are skipped during the core slide show. The PDF includes all pages for review.
+28: all seven archived match rows. 29: full value and move metrics. 30: offline belief context. 31: full MC/TD comparison. 32: retained-search prototype. 33: evaluator inventory. 34: contribution confirmations. 35: sources and scope. Hidden slides are skipped during the core slide show. The PDF includes all pages for review.
 
 ## Sources and evidence boundaries
 
@@ -304,6 +324,8 @@ Use the final slide as an academic conclusion and next evaluation, then invite q
 
 **Demonstration:** The screenshot and two-ply game record are in presentation-assets/. It uses a material bot on a historical checkout. The displayed single-action timing is not an archived experiment measurement.
 
-**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 25-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
+**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 27-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
 
 **Contributions and AI assistance:** The existing individual contribution statements remain in backup and require each member's confirmation. Do not infer the human identity of xiaomiao-fong from the account name. Copilot assisted earlier drafts. Codex assisted the restructuring, rules-example checks and browser demonstration under Bryan's direction. No new training or formal match batch was run.
+
+**Capture history:** Constructed example in presentation-assets/capture-history-example.json and verify_capture_history_example.py. White Ka1/Nd4, Black Kf5 and an unseen queen; the illustrated hidden move is Qh4xd4. Neither White view contains the queen. All 25 hidden transitions consistent with both views and capture feedback lead to the same successor board with Qd4. The three candidate diagrams show full-state hypotheses, not direct observations. In larger positions multiple hypotheses generally remain. The queen’s inferred location is specific to this instant.
