@@ -2,7 +2,7 @@
 
 Presentation Plan and Slide Draft
 
-CS4246/CS5446 | AY2026/27 | 3 November 2026 | Living draft for team discussion
+CS4246/CS5446 | AY2026/27 | 6 November 2026 | Living draft for team discussion
 
 **Major revisions expected.** Major changes are likely as implementation,
 integration, experiments and team review progress. This is a provisional
@@ -24,11 +24,14 @@ draft wording, a speaker outline and a visual brief. Suggested reviewers are
 not assigned presenters or deadlines. The team chooses speakers, a slide tool
 and the final narrative. The project report is a separate companion draft.
 
-**Presentation-first pass, 3 November.** Slides 6-11 now have shorter slide
-wording, a spoken explanation, a transition and a Q&A prompt. Read the "Say"
-and "Transition" sections aloud; the supporting detail is not a script to
-recite. The numbers and experiment identities are unchanged. Speakers must
-adapt the wording to their own voice and verify explanations before rehearsal.
+**Presentation-first pass, 6 November.** This revision clarifies the opening,
+search explanation and closing argument, and refreshes the integration evidence.
+The 12-slide core and four backups retain their existing result populations.
+The archived one-ply batch remains the presentation's playing evidence. New
+full-agent arms are author-reported and await accessible raw artifacts and
+corrections to the measured implementation before adoption. Speaking allocation,
+rehearsal and additional Q&A preparation remain deferred until the team fixes
+the weekend version. No new training or matches are required for this pass.
 
 **Course format.** The guidelines specify approximately 15 minutes plus 5 minutes
 Q&A, subject to change, in the week of 10 November 2026. A recording may be
@@ -61,51 +64,62 @@ and the optional coin example, not the final limitations.
 
 ## Slides 1-3: Problem and Scope
 
-### Slide 1. Deciding Without Seeing the Board (0:45)
+### Slide 1. Decisions with Hidden Pieces (0:45)
 
-**On slide:** "Fog-of-War Chess: search and learned evaluation under hidden
-information." "What should an agent do when it cannot see the board?"
+**On slide:** "What should an agent do when it cannot see the board?"
+"Search prototypes and learned leaf evaluation."
 
-**Speaker draft:** "Ordinary chess asks us to calculate from a known position.
-Here we also reason about hidden pieces and what the opponent knows. We separate
-search from frontier evaluation so we can inspect implementation behavior and
-decision quality independently."
+**Say:** "In ordinary chess, the position is known. In fog-of-war chess,
+we act from a private observation and must consider several possible positions.
+Our project separates that decision into tracking possible histories, searching
+for an action, and estimating the value when search stops. We built search
+prototypes and compared leaf evaluators. The main experimental question is
+whether a more accurate value estimate leads to better decisions."
 
-**Visual:** The player's visible board beside two consistent hypotheses. Pair A
-should select a fixture that really admits both hypotheses and the same legal
-feedback. Label the player perspective; do not invent a board or present a
-referee view as agent-visible. Use a static image, not a live-engine dependency.
-Sources: S1, S3.
+**Transition:** "First, a small example shows why the player's information
+changes the decision problem."
+
+**Visual:** Keep the existing editable observation, hypothesis and action
+pipeline. Any later chess-board example must use replay-validated histories
+with the same private evidence. Sources: S1, S3.
 
 ### Slide 2. One Information Set, One Decision Rule (1:15)
 
-**On slide:** "Hidden: one response rule, value 0." "Revealed to the opponent:
-conditional responses, value -1." Values are for player 0.
+**On slide:** Matching-pennies payoffs to player 0. "Hidden choice: value 0."
+"Revealed to player 1: value -1."
 
-**Speaker draft:** "Player 0 chooses H or T; a match pays it +1, otherwise -1.
-If player 1 cannot see the choice, both mix equally. Once player 1 sees it,
-player 1 can always mismatch. It matters who receives the information."
+**Say:** "Player 0 chooses H or T. Player 1 then chooses H or T.
+Player 0 receives plus one if they match and minus one otherwise.
+When player 1 cannot observe the first choice, it must use the same response
+rule after either history. Both players mixing equally gives value zero.
+If player 1 sees the choice, it can always choose the opposite action,
+and player 0's value falls to minus one. The payoffs stay the same.
+The information available to player 1 changes which response rules it can use.
+In chess, we must likewise distinguish a board position from what a player knows."
 
-**Visual:** Reveal the two histories, connect the hidden decisions with one
-information-set outline, then separate the revealed decisions. Optional backup:
-the coin guesser improves from expected payoff 0.5 to 1 when it sees the coin;
-heads probability is 0.75 and payoffs are +1/-1. Do not call 0.5 a success
-probability or interpret these values as chess strength. Source: S2.
+**Transition:** "That gives us the distinction behind our three research questions."
 
-### Slide 3. Three Questions, Different Evidence (1:00)
+**Visual:** Keep the payoff matrix and the two information conditions. Values
+are for player 0, not success probabilities or chess-strength estimates.
+Source: S2.
 
-**On slide:** "RQ1: better prediction and ranking?" "RQ2: useful belief
-context?" "RQ3: stronger play under a fixed planner?"
+### Slide 3. Research Questions and Evidence (1:00)
 
-**Speaker draft:** "Published methods motivate the design, but their performance
-is not our result. We have development measurements, a limited context study
-and checked search components. The completed fixed-planner batch gives bounded
-playing evidence; it does not establish Network 1 or linear gains over D1. Delivered scope is narrower than the complete-reproduction proposal."
+**On slide:** RQ1: better prediction and move ranking? RQ2: what does belief
+context contribute? RQ3: stronger play under a fixed planner?
 
-**Visual:** Three questions with status labels: development evidence, offline
-context study, archived fixed-planner matches. Show a compact paper/project distinction,
-not a list of pull requests. Sources: S1, S3-S5. Suggested reviewers: Pair A
-and Pair B; the team should agree opening speakers.
+**Say:** "Our first question compares value prediction and move ranking
+against a deeper Stockfish teacher. The second asks whether belief context
+helps an offline prediction task. The third uses games to compare evaluators
+inside the same one-ply planner. Those are different tests. A lower value
+error alone cannot answer the playing-strength question. The deeper search
+work is a separate implementation contribution. Its newer full-agent runs
+remain under review, so they do not replace the archived match results in this talk."
+
+**Transition:** "Here is the common interface that keeps the player's information separate."
+
+**Visual:** Preserve the three questions and their evidence labels.
+Sources: S1, S3-S5, S8, S10.
 
 ---
 
@@ -113,49 +127,46 @@ and Pair B; the team should agree opening speakers.
 
 ### Slide 4. Hidden State Stays Behind the Referee (1:15)
 
-**On slide:** "Referee -> observation -> belief tracker -> decision."
-"The agent never receives the referee's true board."
+**On slide:** Referee, observation, belief tracker, decision.
+"True-board labels are offline only. FEN alone is not an information state."
 
-**Speaker draft:** "The referee owns the actual position. Each player gets its
-own observations and legal moves. Tracking produces weighted hypotheses for
-the decision procedure. Identical boards can have different knowledge or
-repetition histories, so FEN is not a complete information state."
+**Say:** "The referee holds the actual board. The agent receives its own
+observation and legal-move feedback, then tracks histories consistent with that
+evidence. Search and evaluation operate on those hypotheses. The true board
+can supply offline labels or post-game diagnostics, but it cannot enter the
+agent's decision. Pair A tracks complete histories. The archived one-ply
+matches instead use Pair B's bounded particle tracker. These are different
+representations. Two histories may also reach the same board while implying
+different repetition outcomes or private memories, so the board's FEN alone
+cannot identify the full decision state."
 
-**Visual:** A pipeline with a private-state boundary and evaluator branch.
-Show offline labels and post-game diagnostics as separate paths. Distinguish
-Pair A's history tracker from the 256-particle match configuration; the latter
-is not the full exact belief. Source: S3. Teal has volunteered review, content
-and a replay-validated pair of hypotheses with the same private evidence.
+**Transition:** "The search prototype then expands a limited decision tree over those possibilities."
 
-### Slide 5. Grow Search Without Restarting Its Learning (1:15)
+**Visual:** Preserve the private-state boundary and existing pipeline. Teal's
+volunteered content/review ownership does not assign a speaking role. Source: S3.
 
-**On slide:** "Preserve solver state while adding depth." "Account for work
-and retain a usable result when growth cannot finish."
+### Slide 5. Retaining Solver State as Search Grows (1:15)
 
-**Speaker draft:** "The PCFR+ prototype works on information-set trees. New
-continuations are prepared before commitment, retaining existing regrets and
-strategy accumulators. Checks exercise growth, failure and fallback. They
-support selected contracts, not stronger play or full Obscuro reproduction."
+**On slide:** "Existing solver state" and "Retained state with new continuations."
+"Existing nodes retain regrets and strategy sums."
+"Learned-leaf comparison in deeper search remains pending."
 
-**Visual:** A before/after tree with unchanged old nodes and highlighted new
-frontiers. Limit verification to a 20-second callout; test counts go in backup.
-Distinguish the historical uniform-growth prototype from the later selective,
-retained-search, gadget and purification stack. Keep the visible status line
-simple: "Tracker fixes merged; full-game comparison still pending."
-Put revision and test details in the notes: Teal merged PR59 at 78f687b,
-including PR62/60, into main as 1492781 on 3 November. Teal reports
-962 locked shared/Pair A passes and 46 Pair C passes in a separate torch-enabled
-environment. Bryan's 48-test check and evidence attachment are complementary,
-not additive coverage. The earlier strict ply-9 and relaxed ply-11 failures
-remain historical evidence under their original limits. In unmerged PR64,
-Teal reports that an optional 16-second tracker-update policy with no logical
-memory cap passes those points: seed17 ends by king capture at ply39, but
-seed18 fails at Black ply13 on time. There is still no complete pair or
-full-agent strength result. This is a different configuration, not a correction
-of the old measurements; its archive has not been independently audited for
-this presentation pass. Sources: S3, S7, S10. Teal has volunteered
-content and a retained-state growth visual; speaking allocation remains open.
-Use S9 for review details in backup, outside the timed explanation.
+**Say:** "Search cannot expand every continuation at once. The PCFR+ prototype
+adds continuations while retaining the existing regrets and accumulated
+strategies. In the diagram, the old nodes survive and the new frontier extends
+the tree. That is the mechanism this slide illustrates. Tests check selected
+growth, failure and fallback contracts. Tracker and solver integration has
+landed, while later portability, packing and search changes remain under
+review. New full-agent games have been reported, but their raw evidence and
+implementation corrections are still outstanding. We therefore keep them
+separate from the accepted evaluator comparison in this presentation."
+
+**Transition:** "Regardless of search depth, every frontier still needs a value estimate."
+
+**Visual:** Preserve the conceptual before/after diagram. It illustrates
+retention, not a measured speedup or strength gain. Distinguish the historical
+uniform-growth prototype from later selective/gadget work. Put review details
+in source S10, outside the timed explanation. Sources: S3, S7, S10.
 
 ### Slide 6. Where Search Stops, an Evaluator Takes Over (1:15)
 
@@ -273,7 +284,7 @@ context to 0.0734 with it. Every seed improves. However, the target for that
 board is still the same Stockfish value, whatever the surrounding belief.
 The network may be using context to make a cleaner prediction; this does not
 show that it understands the strategic value of information. To test that,
-we would need targets that change with what a player knows. This is a
+the targets would have to depend on what a player knows. That is a limitation of this study, not another required training pipeline. This is a
 different offline check from the move-ranking experiment on the previous slide."
 
 **Transition:** "Prediction tests are useful, but we also wanted to see what
@@ -369,24 +380,28 @@ but the source predates both the no-move and EP repetition updates and is
 never pooled with later runs. The table uses half-up rounding (S5). Keep historical
 20-game D1/material checks separate in backup. Sources: S5, S6, S8.
 
-### Slide 12. What We Can Conclude (1:15)
+### Slide 12. Findings and Remaining Comparison (1:15)
 
-**On slide:** "Information structure matters." "Prediction is not playing
-strength." "Audited batch; integrated search evaluation next."
+**On slide:** "Information determines the available strategy."
+"Lower value error did not establish stronger play."
+"Learned leaves in deeper search remain pending."
+"Next evidence: a reviewed configuration and an auditable match batch."
 
-**Speaker draft:** "Our current contribution is a documented framework and
-case-specific evidence. Better teacher agreement has not established better
-decisions under fog in the tested planner. The tracker/solver integration is
-now on main. Next are successful full-game pilots, belief-dependent targets and
-appropriate search ablations. Until then, the full-agent comparison is pending,
-not a completed negative result. Transparent limits and information-safe interfaces
-support responsible experimentation; they are not performance evidence."
+**Say:** "The small game shows why information changes the strategies a player
+can use. In our experiments, Network 1 predicts deeper Stockfish values more
+accurately, but that does not establish better move choices or a playing gain
+inside the tested one-ply planner. Belief context helps its offline prediction
+task, while belief-independent teacher labels limit the strategic conclusion.
+Our deeper search prototype is a separate contribution. The remaining comparison
+is to connect learned leaves through a reviewed full-search configuration and
+collect an auditable batch. Author-reported full-agent runs already exist,
+but they do not yet answer that learned-evaluator question. The open question
+is when better prediction translates into better decisions under hidden information."
 
-**Visual:** Three takeaways and a short next-step sequence, with contribution
-and AI-assistance credit. Do not claim exact reproduction, superhuman play,
-a fairness audit or a human study. Close with: "When does better prediction
-translate into better decisions?" All speakers should understand this boundary.
-Sources: S1, S4-S7, S10.
+**Visual:** Keep the conclusion layout. Do not infer that no full games have
+been attempted or completed. New training, solver-label training and ReBeL are
+outside the required scope unless the team explicitly reopens them.
+Sources: S1, S4, S8, S10.
 
 ---
 
@@ -420,21 +435,21 @@ Office coauthoring; reconcile teammate edits before regenerating binaries.
 **Update queue.** Search contributors: verify the current mechanism status and
 replace conceptual diagrams with replay-validated examples when available.
 Pair B: refresh affected slides only when new evaluator evidence is committed.
-Evaluation contributors: add full-agent comparisons only after successful
-pilots and a separately recorded batch. All members: confirm their own
+Evaluation contributors: freeze the actual learned-leaf search configuration
+and deliver raw/config/analysis artifacts before adding a full-agent comparison. All members: confirm their own
 contribution/AI wording and speaking role. These are review needs, not newly
 assigned deadlines or claims that anyone has completed them.
 
-**Before rehearsal.** Check rules/source identity, result eligibility, chart
+**After the weekend version is fixed.** Check rules/source identity, result eligibility, chart
 denominators/units/uncertainty, speaker transitions, legibility and attribution.
 Use static backups for demos. Cite sources in slide footers and a reference
 slide, aligned with the report's final reference-manager bibliography.
 
-**Timing gate.** Rehearse the full talk including handovers; target 14:00 and
+**Later timing gate.** Rehearse the full talk including handovers; target 14:00 and
 stop at 15:00. Each member answers one question outside their block. Record
 actual timings before cutting material; confirm the course's final format.
 
-**Focused rehearsal: slides 6-11.** This block has 7:15 of the existing
+**Deferred rehearsal worksheet: slides 6-11.** This block has 7:15 of the existing
 14-minute core allocation. Include chart-pointing pauses and transitions;
 word counts are not a substitute for a timed rehearsal. First read only the
 "Say" and "Transition" passages, then repeat using just the takeaway and visual.
@@ -487,7 +502,7 @@ S1. Zhang and Sandholm: [Subgame solving without common knowledge (2021)](https:
 
 S2. Colin's [pinned information examples](https://github.com/Mr-Teal/CS5446_project/blob/a5c105632e1d990450445b204612d41b5fbc8293/pair_b/experiments/small_games/information_example.md); [issue 19 guidance](https://github.com/Mr-Teal/CS5446_project/issues/19#issuecomment-6406533365). Reuse these rather than creating a new experiment.
 
-S3. [Shared contract, main 2af8f1f](https://github.com/Mr-Teal/CS5446_project/blob/2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d/README.md) and [Pair A specifications/source, 5f334b1](https://github.com/Mr-Teal/CS5446_project/tree/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep). Different snapshots, not one validated final release.
+S3. [Historical shared contract, 2af8f1f](https://github.com/Mr-Teal/CS5446_project/blob/2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d/README.md) and [Pair A specifications/source, 5f334b1](https://github.com/Mr-Teal/CS5446_project/tree/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep). These historical snapshots explain the interfaces and prototype. S10 records the later integration and review status.
 
 Use the [pinned mechanism checklist](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep/docs/obscuro_status.md) for detailed implemented/missing distinctions; only the main boundaries belong in the talk. Teal's [content/contribution confirmation](https://github.com/Mr-Teal/CS5446_project/pull/33#issuecomment-6408509322) is not final-source validation or a speaking allocation.
 
@@ -504,16 +519,19 @@ issued 26 August 2026, pages 1, 3 and 5. The report-deadline year conflicts with
 the academic-year heading; confirm on Canvas rather than infer a correction.
 
 **AI assistance:** GitHub Copilot prepared the earlier outline, wording, visual
-briefs and checks under Bryan's direction, and assisted this presentation-only
-clarity pass. Codex assisted earlier revisions and
+briefs and checks under Bryan's direction, and assisted the 3 November presentation clarity pass. Codex assisted the 6 November presentation revision under Bryan's direction. Codex assisted earlier revisions and
 the independent batch archive audit and scoped search reviews. It is not yet
 team-approved. Members must verify claims, create/review visuals, add their
 own contribution and AI-use disclosures, and rehearse. This revision adds no
 new training or formal matches; S9 records the separately completed review probes. Major revisions to both this plan and the report
 are expected as more work and results become available.
 
-S8. [Reviewed batch, PR38 at 5e9393a](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27). Execution source a5c5fb6; paired scores and intervals, failures, timing and capped-draw notes. The later search stack is separate from this archived batch. [ZS21/shared EP delivery](https://github.com/Mr-Teal/CS5446_project/pull/37) merged at 04f992d. Main at this presentation pass is [1492781](https://github.com/Mr-Teal/CS5446_project/tree/149278181ed6d2b52dce31991fb311a2a74339d0).
+S8. [Reviewed batch, PR38 at 5e9393a](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27). Execution source a5c5fb6; paired scores and intervals, failures, timing and capped-draw notes. The later search stack is separate from this archived batch. [ZS21/shared EP delivery](https://github.com/Mr-Teal/CS5446_project/pull/37) merged at 04f992d. Tracker/solver integration landed at [1492781](https://github.com/Mr-Teal/CS5446_project/tree/149278181ed6d2b52dce31991fb311a2a74339d0).
 
-S10. Tracker fixes merged; full-game comparison still pending. [Teal merged PR59 into main at 1492781 on 3 November](https://github.com/Mr-Teal/CS5446_project/pull/59#event-34991912798). Its integrated head 78f687b860a3fb95160b80be472d7fc8621a144b includes PR62/60 and the resolved runner conflict. [Teal's validation report](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6593444508) and [Bryan's complementary evidence handoff](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6595644283) were checked 3 November. Teal reports the native tracker built/loaded with locked Pixi and GCC 16.2.0: 962 shared/Pair A passes, zero skips; 46 Pair C passes separately in a torch-enabled environment. The locked ZS21 environment initially had 44 passes/2 torch-related failures, and combining the suites fails collection because both contain test_provenance.py. Pair A owns the [open documentation follow-up, PR63](https://github.com/Mr-Teal/CS5446_project/pull/63), at ba268d0fa05a6ed587bc183eaff14eb1aba849f1, now targeting main, covering separate invocations and the torch requirement; this adds no runtime results. His eight Stockfish 19 actions were capped/unscored, not a full-game validation. His detailed outputs remain local; these are attributed results, not independently rerun here. Bryan's separate check passed 48 selected ZS21 tests, zero skips, verified 66 runtime assets and returned unfinished_smoke after two Stockfish 13 actions. It used Python 3.12.10 rather than locked 3.12.15 and the shipped ZS21 library, not the separate shared-tracker accelerator. The [sanitized evidence ZIP](https://github.com/user-attachments/files/34303279/pr59-78f687b-native-lp-handoff.zip) records that scope. The [earlier 176-pass/16-skip check](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6571745962) remains historical; do not add overlapping counts. Bryan's checks are author-assisted validation, not independent review of his own resolution. The merge itself is neither additional independent review nor new full-game evidence. The [strict ply-9/relaxed ply-11 pilot failures](https://github.com/Mr-Teal/CS5446_project/pull/62#pullrequestreview-5731608636) describe earlier configurations. New, unmerged [PR64](https://github.com/Mr-Teal/CS5446_project/pull/64) reports a different optional 16-second tracker-update policy without a logical memory cap: see its [pinned pilot record at 2870479](https://github.com/Mr-Teal/CS5446_project/blob/28704798af81e140aec43c9215ab5b1daae8ff12/pair_a_prep/results/unlimited_tracker_pilot_2026-11-03/README.md), measured runtime 0426f73d6c96a58617c320c3796e83f04e56796e. Teal reports that the old points pass; seed17 ends by king capture at ply39, but seed18 fails at Black ply13 after about 16.072 seconds. There is no complete pair. These are attributed pilot results, not an independent archive audit or rerun for this presentation pass. The cap is per update and cooperative, not a whole-action deadline; removing a logical cap does not bound process memory. Whole-turn budget agreement and successful full-game validation remain open. No formal-match readiness or strength claim. Recheck live status before presenting.
+S10. Integration and evidence status, checked 6 November 2026. [PR59](https://github.com/Mr-Teal/CS5446_project/pull/59) merged at 1492781 with measured head 78f687b. [PR63](https://github.com/Mr-Teal/CS5446_project/pull/63), [PR64](https://github.com/Mr-Teal/CS5446_project/pull/64) and [PR68](https://github.com/Mr-Teal/CS5446_project/pull/68) have also merged. Code integration adds no new experimental result. The [PR64 archive](https://github.com/Mr-Teal/CS5446_project/blob/28704798af81e140aec43c9215ab5b1daae8ff12/pair_a_prep/results/unlimited_tracker_pilot_2026-11-03/README.md) records runtime 0426f73: an optional 16-second tracker-update policy without a logical memory cap, one terminal seed17 game and a seed18 Black-ply13 time failure. It provides no complete colour pair. Preserve the earlier strict-ply9/relaxed-ply11 failures under their own configurations. Cooperative update limits do not guarantee a whole-turn deadline.
+
+The open [PR65](https://github.com/Mr-Teal/CS5446_project/pull/65), [PR66](https://github.com/Mr-Teal/CS5446_project/pull/66) and [PR67](https://github.com/Mr-Teal/CS5446_project/pull/67) stack adds portability, packed storage and search mechanisms. Change requests cover the Windows manifest/doctor, counter range, repetition-sensitive root aliasing and uncounted fallback evaluation. See [Bryan's corroborating PR67 review](https://github.com/Mr-Teal/CS5446_project/pull/67#pullrequestreview-5764090799). The PR66/67 full-agent numbers are author-reported. Accessible raw per-attempt records/configs/analysis and attempted, terminal, capped, failed, killed and unplayed counts remain required before adopting them. Comparisons on jointly surviving seeds remain conditional on that selection. A corrected run needs its own source identity.
+
+The [latest PR33 technical audit](https://github.com/Mr-Teal/CS5446_project/pull/33#issuecomment-6630857564) also identifies the integration gap: Pair A SearchFactory accepts material/stockfish, while Pair C's network factory builds a one-ply bot. Fog Lab's generic scorer route does not by itself establish a reviewed neural-leaf SearchFactory batch configuration. A fixed-search learned-evaluator comparison remains pending. New solver-label training and ReBeL stay outside required scope. [PR69 browser review](https://github.com/Mr-Teal/CS5446_project/pull/69#pullrequestreview-5763486605) checks opening flows on its stacked branch, not complete-game readiness. Confirm attribution of xiaomiao-fong's contributions with the team rather than inferring identity from the account.
 
 S9. Scoped reviews on 28 October: [PR42 at 2568818](https://github.com/Mr-Teal/CS5446_project/pull/42#pullrequestreview-5679229932), [PR52 at 5e74ede](https://github.com/Mr-Teal/CS5446_project/pull/52#pullrequestreview-5679231586), [PR46 at ee42c8f](https://github.com/Mr-Teal/CS5446_project/pull/46#pullrequestreview-5679261471), and [PR48 at 879818c](https://github.com/Mr-Teal/CS5446_project/pull/48#pullrequestreview-5679267479). For backup: PR52 had 185 selected tests, six detected defect mutations and four additional Black-perspective value probes; PR46 had 42 selected tests within its functional scope; PR48 had 33 selected tests, two verified 100-entry source manifests, a portable clock link and a gift-probe rerun matching non-timing fields. Counts overlap across heads and must not be summed. No new clock matrix or formal match batch was run. Projected labels remain disabled; the ledger does not transfer ancestor payments numerically. Scoped approval is not final integration approval, a timing guarantee or strength evidence.
