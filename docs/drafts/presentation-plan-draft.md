@@ -2,42 +2,43 @@
 
 Presentation plan for a 12-minute presentation followed by 3-minute Q&A
 
-6 November 2026. Twenty-four core slides, eight hidden backups. Speakers remain unassigned.
+6 November 2026. Twenty-five core slides, eight hidden backups. Speakers remain unassigned.
 
 ## The argument
 
-This presentation asks how to choose actions from incomplete observations and which learned values improve those decisions. It connects the worked example to state, evidence, action, return and policy; explains MC, TD and distillation targets; and separates offline prediction from the game outcomes of an induced decision rule. The existing content is retained, with the later comparisons and ranking example split into shorter visual stages. Slide 9 redraws two exact saved hypotheses as native diagrams to replace its blurred crop. Detailed evidence stays in backup.
+This presentation asks how to choose actions from incomplete observations and which learned values improve those decisions. It connects the worked example to state, evidence, action, return and policy; explains MC, TD and distillation targets; and separates offline prediction from the game outcomes of an induced decision rule. The existing content is retained, with the later comparisons and ranking example split into shorter visual stages. The hypotheses slide redraws two exact saved hypotheses as native diagrams to replace its blurred crop. Detailed evidence stays in backup.
 
-The planned core is 11 minutes including handovers, with one minute of contingency for a 12 minute slot. These are planned timings, not measured rehearsal times. The confirmed total slot is 15 minutes: 12 minutes presentation followed by 3 minutes Q&A.
+The planned core is 11 minutes 45 seconds. Only the worked example gained time (45 seconds); unrelated slide budgets are unchanged. This leaves 15 seconds within the 12 minute slot. These are planned timings, not measured rehearsal times. The confirmed total slot is 15 minutes: 12 minutes presentation followed by 3 minutes Q&A.
 
 ## Run of show
 
 | Slide | Slide purpose or finding | Planned time |
 | --- | --- | --- |
 | 1 | Where would you move? | 0:25 |
-| 2 | The rook could be on the left | 0:15 |
-| 3 | The same view can hide a different danger | 0:15 |
-| 4 | Fog of War Chess | 0:35 |
-| 5 | Compare a move across possible states | 0:30 |
-| 6 | Decision making from private observations | 0:45 |
-| 7 | The agent tracks, searches and evaluates | 0:35 |
-| 8 | The player acts on a partial board | 0:20 |
-| 9 | Fog Lab exposes the agent’s hypotheses | 0:20 |
-| 10 | Three ways to learn position values | 0:25 |
-| 11 | Monte Carlo learns from completed returns | 0:35 |
-| 12 | TD bootstraps from the next estimate | 0:35 |
-| 13 | Distillation best matched the engine teacher | 0:30 |
-| 14 | MC and TD better matched recorded outcomes | 0:30 |
-| 15 | Can a learned evaluator improve play? | 0:30 |
-| 16 | Evaluation: prediction, play and cost | 0:25 |
-| 17 | Prediction error decreased by about 20% | 0:30 |
-| 18 | The games did not establish a playing gain | 0:45 |
-| 19 | The learned correction took about 3× as long | 0:25 |
-| 20 | The reference slightly prefers Move A | 0:20 |
-| 21 | Large value errors can preserve the choice | 0:15 |
-| 22 | Closer values can still change the choice | 0:20 |
-| 23 | Conclusions | 0:40 |
-| 24 | Next evaluation | 0:15 |
+| 2 | Possibility A: every left-file move is exposed | 0:20 |
+| 3 | Possibility B: every right-file move is exposed | 0:20 |
+| 4 | Possibility C: the king is already in check | 0:25 |
+| 5 | Fog of War Chess | 0:35 |
+| 6 | Every move can be dangerous in a hidden state | 0:40 |
+| 7 | Decision making from private observations | 0:45 |
+| 8 | The agent tracks, searches and evaluates | 0:35 |
+| 9 | The player acts on a partial board | 0:20 |
+| 10 | Fog Lab exposes the agent’s hypotheses | 0:20 |
+| 11 | Three ways to learn position values | 0:25 |
+| 12 | Monte Carlo learns from completed returns | 0:35 |
+| 13 | TD bootstraps from the next estimate | 0:35 |
+| 14 | Distillation best matched the engine teacher | 0:30 |
+| 15 | MC and TD better matched recorded outcomes | 0:30 |
+| 16 | Can a learned evaluator improve play? | 0:30 |
+| 17 | Evaluation: prediction, play and cost | 0:25 |
+| 18 | Prediction error decreased by about 20% | 0:30 |
+| 19 | The games did not establish a playing gain | 0:45 |
+| 20 | The learned correction took about 3× as long | 0:25 |
+| 21 | The reference slightly prefers Move A | 0:20 |
+| 22 | Large value errors can preserve the choice | 0:15 |
+| 23 | Closer values can still change the choice | 0:20 |
+| 24 | Conclusions | 0:40 |
+| 25 | Next evaluation | 0:15 |
 
 ## Slide notes
 
@@ -45,43 +46,51 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Purpose:** Hidden information. Planned 25 seconds.
 
-**Say:** You are White. Your king can move one square; hatched squares are hidden. Which highlighted move would you choose? Pause briefly. We will reveal two positions consistent with the same private evidence.
+**Say:** You are White. The selected king has eight legal moves, shown by destination dots. Hatched squares are hidden. Which move would you choose? Pause briefly. We will reveal three hidden positions consistent with exactly the same private evidence.
 
-**Transition:** The unseen pieces can change which move is dangerous.
+**Transition:** The unseen rook can threaten an entire destination file.
 
-### Slide 2 The rook could be on the left
+### Slide 2 Possibility A: every left-file move is exposed
 
-**Purpose:** Hidden information. Planned 15 seconds.
+**Purpose:** Hidden information. Planned 20 seconds.
 
-**Say:** If the hidden rook is on the left, the left diagonal lets it capture the king next turn. The complete board is revealed here for the explanation.
+**Say:** The hidden rook is on c6. All three moves to the left—c3, c4 and c5—put the king on the rook’s file, allowing immediate capture. All eight legal destinations remain shown; red dots identify the three exposed moves in this possibility.
 
-**Transition:** But the same evidence also permits another position.
+**Transition:** The same evidence also permits a rook on the right.
 
-### Slide 3 The same view can hide a different danger
+### Slide 3 Possibility B: every right-file move is exposed
 
-**Purpose:** Hidden information. Planned 15 seconds.
+**Purpose:** Hidden information. Planned 20 seconds.
 
-**Say:** The rook could instead be on the right, while White has exactly the same evidence. Now the right diagonal is dangerous. One observation does not identify a unique state.
+**Say:** The rook could instead be on e6. All three moves to the right—e3, e4 and e5—allow immediate capture. White’s observation, legal moves and private history are unchanged. The diagram still shows all eight destinations.
 
-**Transition:** This is the decision problem posed by Fog of War Chess.
+**Transition:** The rook could also be on the king’s current file.
 
-### Slide 4 Fog of War Chess
+### Slide 4 Possibility C: the king is already in check
+
+**Purpose:** Hidden information. Planned 25 seconds.
+
+**Say:** The hidden rook is on d6, directly along the king’s current d-file. The king is already attacked, although White cannot see the rook. Moving up to d5 or down to d3 stays on that file and permits immediate capture. In this Fog of War variant check does not restrict legal moves: all eight destinations remain available. Here “in check” describes being attacked, not an extra legal-move constraint.
+
+**Transition:** These are three different hidden states behind the same visible board.
+
+### Slide 5 Fog of War Chess
 
 **Purpose:** Game and problem formulation. Planned 35 seconds.
 
 **Say:** Fog of War Chess reveals own pieces and reachable squares, and hides the rest. The complete state belongs to the referee. Players aim to capture the king, with no check restriction. Actions change both the position and future observations. The game supplies our test environment for decision making from incomplete information.
 
-**Transition:** How should the agent act when both hidden positions are possible?
+**Transition:** How should the agent compare all eight moves across these hidden possibilities?
 
-### Slide 5 Compare a move across possible states
+### Slide 6 Every move can be dangerous in a hidden state
 
-**Purpose:** Hidden information. Planned 30 seconds.
+**Purpose:** Hidden information. Planned 40 seconds.
 
-**Say:** Forward avoids immediate capture in both displayed possibilities; the diagonals each fail in one. That is not an optimality claim. The point is to compare action consequences across states consistent with the evidence.
+**Say:** All eight king moves are considered. The three left-file moves permit capture in A, the three right-file moves permit capture in B, and the two moves remaining on the d-file permit capture in C. None avoids immediate capture in all three displayed states. We have not assigned probabilities or described the complete belief, so this does not establish an optimal choice or a certain game loss. It explains why we must reason about uncertainty and compare consequences instead of trusting one guessed board.
 
 **Transition:** We can now formulate the decision problem in the course’s terms.
 
-### Slide 6 Decision making from private observations
+### Slide 7 Decision making from private observations
 
 **Purpose:** Sequential decision formulation. Planned 45 seconds.
 
@@ -89,7 +98,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** Our architecture separates reconstructing states, planning and value estimation.
 
-### Slide 7 The agent tracks, searches and evaluates
+### Slide 8 The agent tracks, searches and evaluates
 
 **Purpose:** Approach. Planned 35 seconds.
 
@@ -97,7 +106,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** The interface lets us inspect the private observations and hypotheses.
 
-### Slide 8 The player acts on a partial board
+### Slide 9 The player acts on a partial board
 
 **Purpose:** Demonstration. Planned 20 seconds.
 
@@ -105,7 +114,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** We can also inspect what the bot thinks might be hidden.
 
-### Slide 9 Fog Lab exposes the agent’s hypotheses
+### Slide 10 Fog Lab exposes the agent’s hypotheses
 
 **Purpose:** Demonstration. Planned 20 seconds.
 
@@ -113,7 +122,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** A value learner needs targets. We compared three ways to construct them.
 
-### Slide 10 Three ways to learn position values
+### Slide 11 Three ways to learn position values
 
 **Purpose:** Value learning and training targets. Planned 25 seconds.
 
@@ -121,7 +130,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** Monte Carlo waits for the completed return.
 
-### Slide 11 Monte Carlo learns from completed returns
+### Slide 12 Monte Carlo learns from completed returns
 
 **Purpose:** Monte Carlo prediction. Planned 35 seconds.
 
@@ -129,7 +138,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** TD can instead construct a target from its current estimate of what follows.
 
-### Slide 12 TD bootstraps from the next estimate
+### Slide 13 TD bootstraps from the next estimate
 
 **Purpose:** Temporal-difference prediction. Planned 35 seconds.
 
@@ -137,7 +146,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** How do these target sources compare on prediction?
 
-### Slide 13 Distillation best matched the engine teacher
+### Slide 14 Distillation best matched the engine teacher
 
 **Purpose:** Offline teacher-prediction result. Planned 30 seconds.
 
@@ -145,7 +154,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** Changing the evaluation target changes the ordering.
 
-### Slide 14 MC and TD better matched recorded outcomes
+### Slide 15 MC and TD better matched recorded outcomes
 
 **Purpose:** Offline outcome-prediction result. Planned 30 seconds.
 
@@ -153,7 +162,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** We next ask whether a separate neural correction improves the actual decision process.
 
-### Slide 15 Can a learned evaluator improve play?
+### Slide 16 Can a learned evaluator improve play?
 
 **Purpose:** Learning method. Planned 30 seconds.
 
@@ -161,7 +170,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** We therefore compare prediction quality, game outcome and computational cost.
 
-### Slide 16 Evaluation: prediction, play and cost
+### Slide 17 Evaluation: prediction, play and cost
 
 **Purpose:** Experimental comparison. Planned 25 seconds.
 
@@ -169,7 +178,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** First, did the learned correction improve the value estimate?
 
-### Slide 17 Prediction error decreased by about 20%
+### Slide 18 Prediction error decreased by about 20%
 
 **Purpose:** Prediction result. Planned 30 seconds.
 
@@ -177,7 +186,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** The paired games test the decision outcome directly.
 
-### Slide 18 The games did not establish a playing gain
+### Slide 19 The games did not establish a playing gain
 
 **Purpose:** Outcome result. Planned 45 seconds.
 
@@ -185,7 +194,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** The learned correction also has a computational cost.
 
-### Slide 19 The learned correction took about 3× as long
+### Slide 20 The learned correction took about 3× as long
 
 **Purpose:** Resource result. Planned 25 seconds.
 
@@ -193,7 +202,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** One reason prediction and play can differ is the ranking of close alternatives.
 
-### Slide 20 The reference slightly prefers Move A
+### Slide 21 The reference slightly prefers Move A
 
 **Purpose:** Illustrative ranking reference. Planned 20 seconds.
 
@@ -201,7 +210,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** An inaccurate baseline can still rank these moves correctly.
 
-### Slide 21 Large value errors can preserve the choice
+### Slide 22 Large value errors can preserve the choice
 
 **Purpose:** Illustrative baseline choice. Planned 15 seconds.
 
@@ -209,7 +218,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** Now consider estimates that are much closer in absolute value.
 
-### Slide 22 Closer values can still change the choice
+### Slide 23 Closer values can still change the choice
 
 **Purpose:** Illustrative learned choice. Planned 20 seconds.
 
@@ -217,7 +226,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** That distinction connects the two experimental findings.
 
-### Slide 23 Conclusions
+### Slide 24 Conclusions
 
 **Purpose:** Conclusion. Planned 40 seconds.
 
@@ -225,7 +234,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Transition:** The next evaluation should test that link inside the deeper-search system.
 
-### Slide 24 Next evaluation
+### Slide 25 Next evaluation
 
 **Purpose:** Next evaluation. Planned 15 seconds.
 
@@ -237,7 +246,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **What makes this sequential decision making?** An action changes the position and what each side can observe next. The agent must account for hidden states and future replies.
 
-**Why consider several possible boards?** Two histories can give the same private evidence but different consequences. The rook example demonstrates this without assigning probabilities to a complete belief.
+**Why consider several possible boards?** Three hidden rook locations give the same private evidence but different capture risks for all eight king moves. A exposes c3/c4/c5, B e3/e4/e5, and C d3/d5. No destination avoids immediate capture in all three selected examples; this is not a probability or optimality claim.
 
 **Does the bot see the real board?** The referee owns the true state. The bot receives a private observation and reconstructs possibilities. Fog Lab reveals its hypotheses for inspection in this demonstration.
 
@@ -259,25 +268,27 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Is the transition model learned?** No. The game rules supply the dynamics for planning. The learned component studied here is a value estimate, so avoid calling it learned-dynamics model-based RL.
 
+**Why is the king already in check in C?** The hidden rook on d6 attacks the king on d4 along the d-file. Check is not a legal-move restriction under these project rules, so all eight king moves remain legal, including d3 and d5; those two moves permit immediate capture.
+
 ## Delivery and rehearsal
 
-Assign speakers by narrative blocks only after team agreement. Each speaker must understand both findings. Record a complete rehearsal with handovers and chart pauses. Slides 1–9 total 4:00; slides 10–24 total 7:00. The first five slides take two minutes in the plan; do not repeat the rules or chess tactics. Use the retained demo slides as brief visual steps. Target 11 minutes of core content and preserve a one minute buffer. Cut secondary spoken detail before cutting the interpretation of the result. No rehearsal has been performed for this revision.
+Assign speakers by narrative blocks only after team agreement. Each speaker must understand both findings. Record a complete rehearsal with handovers and chart pauses. Slides 1–10 total 4:45; slides 11–25 retain 7:00. The first six worked-example and game-introduction slides take 2:45; do not repeat the rules or chess tactics. Use the retained demo slides as brief visual steps. The revised core totals 11:45; manage delivery within 12 minutes without reducing the unrelated speaking allocations. Cut secondary spoken detail before cutting the interpretation of the result. No rehearsal has been performed for this revision.
 
 Use the final slide as an academic conclusion and next evaluation, then invite questions. Reserve the full three minutes for Q&A. Answer the direct question first, state evidence and limitations, and open a backup only when it supports that answer. Check that a listener can explain the central findings after one viewing. On the uncertainty plot, point to equal points and the interval before giving the conclusion. Explain the demonstration through the partial board and possible boards, without reading the move table.
 
 ## Hidden backup navigation
 
-25: all seven archived match rows. 26: full value and move metrics. 27: offline belief context. 28: full MC/TD comparison. 29: retained-search prototype. 30: evaluator inventory. 31: contribution confirmations. 32: sources and scope. Hidden slides are skipped during the core slide show. The PDF includes all pages for review.
+26: all seven archived match rows. 27: full value and move metrics. 28: offline belief context. 29: full MC/TD comparison. 30: retained-search prototype. 31: evaluator inventory. 32: contribution confirmations. 33: sources and scope. Hidden slides are skipped during the core slide show. The PDF includes all pages for review.
 
 ## Sources and evidence boundaries
 
-**Rules:** Rules and worked example: docs/drafts/presentation-assets/hidden-rook-example.json. Public custom start k7/8/7r/8/3K4/8/8/8 b - - 0 1. Alternative Black moves h6c6 / h6e6 produce identical White observations, legal feedback and private history. Only immediate king-capture consequences are shown. These are two selected possibilities, without assigned probabilities or a complete-posterior claim. Rule reference: https://github.com/Mr-Teal/CS5446_project/blob/149278181ed6d2b52dce31991fb311a2a74339d0/pair_a_prep/rules_adapter.py Game introduction follows RulesAdapter.visible_squares and terminal: own occupied squares and reachable destinations are visible, with pawn and en-passant special cases. There is no check restriction; the king can be captured. The simple displayed king example has exactly nine visible squares. Full ordinary pawn and draw rules are outside the timed explanation.
+**Rules:** Rules and worked example: docs/drafts/presentation-assets/hidden-rook-example.json and verify_hidden_rook_example.py. Public custom start k7/8/7r/8/3K4/8/8/8 b - - 0 1. Alternative hidden Black moves h6c6, h6e6 and h6d6 produce identical White observations, legal feedback and private history. White king d4 has all eight legal moves: c3/c4/c5, d3/d5, e3/e4/e5. A: rook c6 can capture after all three left-file moves. B: rook e6 can capture after all three right-file moves. C: rook d6 already attacks d4 and can capture after d3 or d5. All 24 move/state consequences are checked against RulesAdapter. No move avoids immediate capture across all three selected states. No assigned probabilities, optimality, inevitable-loss or complete-posterior claim. Check does not restrict legal moves under the project rules. Visibility is own occupied squares plus reachable destinations, with pawn and en-passant special cases. Rule reference: https://github.com/Mr-Teal/CS5446_project/blob/149278181ed6d2b52dce31991fb311a2a74339d0/pair_a_prep/rules_adapter.py . Destination dots follow the selected-piece convention requested by the user; reference https://support.chess.com/en/articles/8708625-how-do-i-turn-on-off-the-legal-moves-dots-on-the-board . Grey dots are legal destinations, not a safety guarantee; red dots annotate immediate capture in a revealed possibility.
 
 **Values:** Evaluator evidence: https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/README.md . Separate development check: 959 games, 3818 decisions, 94963 eligible children. Network 1 selection also used this check set. Full-board D11 teacher. D1 MAE 0.095, Network 1 0.076. Mean errors and rankings address different objectives. Not a sealed-test result.
 
 **Batch:** Archived evaluator batch: https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27 . Execution a5c5fb6, stand-in rules, predates later no-move/EP updates. Network 1: paired score 0.515, bootstrap 95% interval [0.448,0.585], 100 complete colour pairs. Baseline D1 median 11.1 ms/move, Network 1 36.1. Same one-ply outer planner, 256 particles, eight hypotheses, unequal compute. This is one row of seven separate comparisons against D1. Total 1400 attempts, 1399 finished, 699 complete pairs, six capped draws. Whole-belief context was not used online. Full tables remain in backup. Null-containing intervals do not establish equivalence. Methods: https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md
 
-**Demo:** Actual local Fog Lab browser opening demonstration, 6 November 2026. Local historical checkout, Teal rules, material scorer, seed 0. Human e2e4, bot b8a6. Saved screenshot and two-ply record: docs/drafts/presentation-assets/. The diagnostic panel shows the bot's own hypotheses for inspection. This is not Fair mode, a full game, or a playing-strength result. It does not demonstrate the unmerged Pair A Fog Lab bot or the learned evaluator. The displayed 22 ms is this local action, not the archived batch timing. Slide 9 redraws the exact first two saved bot_turns[0].belief FENs as native editable diagrams, using Fog Lab chess symbols and square colours. These replace the magnified screenshot crop without generating new hypotheses.
+**Demo:** Actual local Fog Lab browser opening demonstration, 6 November 2026. Local historical checkout, Teal rules, material scorer, seed 0. Human e2e4, bot b8a6. Saved screenshot and two-ply record: docs/drafts/presentation-assets/. The diagnostic panel shows the bot's own hypotheses for inspection. This is not Fair mode, a full game, or a playing-strength result. It does not demonstrate the unmerged Pair A Fog Lab bot or the learned evaluator. The displayed 22 ms is this local action, not the archived batch timing. The hypotheses slide redraws the exact first two saved bot_turns[0].belief FENs as native editable diagrams, using Fog Lab chess symbols and square colours. These replace the magnified screenshot crop without generating new hypotheses.
 
 **Search:** Search and current-scope review: https://github.com/Mr-Teal/CS5446_project/pull/33#issuecomment-6630857564 . The project includes search prototypes and a separate exact-history tracker. The archived batch isolates evaluators in a one-ply planner. A reviewed learned-leaf deeper-search comparison remains pending. PR65/66/67 mechanisms and author-reported full-agent arms remain separately reviewed, with raw evidence and implementation corrections outstanding. No complete Obscuro reproduction or new training requirement. Background: Zhang and Sandholm, https://arxiv.org/abs/2106.06068v2 and https://arxiv.org/abs/2506.01242v2 .
 
@@ -289,10 +300,10 @@ Use the final slide as an academic conclusion and next evaluation, then invite q
 
 **Targets:** The MC and TD target diagrams are pedagogical examples, not additional observations or experiment results. MC uses a completed return from the same player’s perspective. The non-terminal TD illustration uses zero immediate reward, gamma=1 and the alternating-player sign convention: a +0.4 next-player value becomes a -0.4 current-player target. Terminal positions use their recorded outcome. The real offline fitted targets are documented in the pinned MC/TD source.
 
-**Worked example:** The public custom starting position and three candidate-move checks are in presentation-assets/hidden-rook-example.json. The example concerns immediate capture after these candidate moves, without an optimality or full-posterior claim.
+**Worked example:** The public custom starting position and all eight candidate-move checks are in presentation-assets/hidden-rook-example.json. The example concerns immediate capture after these candidate moves, without an optimality or full-posterior claim.
 
 **Demonstration:** The screenshot and two-ply game record are in presentation-assets/. It uses a material bot on a historical checkout. The displayed single-action timing is not an archived experiment measurement.
 
-**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 24-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
+**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 25-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
 
 **Contributions and AI assistance:** The existing individual contribution statements remain in backup and require each member's confirmation. Do not infer the human identity of xiaomiao-fong from the account name. Copilot assisted earlier drafts. Codex assisted the restructuring, rules-example checks and browser demonstration under Bryan's direction. No new training or formal match batch was run.
