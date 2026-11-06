@@ -14,3 +14,5 @@ pair_a_prep/tests/reference_belief_tracker.py whitespace=blank-at-eol,space-befo
 pair_a_prep/results/belief_tracker_2026-10-31/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 pair_a_prep/results/tracker_budget_profile_2026-10-31/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 pair_a_prep/results/windows_tracker_pilot_2026-11-01/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+pair_a_prep/results/unlimited_tracker_pilot_2026-11-03/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

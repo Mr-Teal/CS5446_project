@@ -295,3 +295,7 @@ the frozen reference, with identical history counts throughout those prefixes.
 The [committed result bundle](../results/belief_tracker_2026-10-31/README.md)
 contains the tables, raw measurements, source/data hashes and all ten replay
 inputs, with commands to reproduce the complete run from this repository.
+
+## Explicit unlimited logical-memory pilot
+
+The evaluation factory accepts `tracker_memory_mb=none` only with `tracker_policy=budgeted-exact`. This passes `None` to the tracker, preserving the previous default of 64 MiB and numeric zero as a zero-memory budget. It disables logical accounting limits, not the per-update cooperative time budget. No partial belief or pruning is enabled. See [the 16-second pilot and its remaining failure](../results/unlimited_tracker_pilot_2026-11-03/README.md).
