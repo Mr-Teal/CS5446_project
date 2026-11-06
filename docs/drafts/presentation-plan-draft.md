@@ -33,7 +33,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Purpose:** Hidden information. Planned 45 seconds.
 
-**Say:** You are White. The K is your king, and you can move it one square. Grey squares are hidden. Before showing the possibilities, ask the audience to choose a move and pause. In this variant the goal is to capture the opponent's king, and moving into an attacked square is allowed. Our question is how to choose with only this partial view.
+**Say:** You are White. Your king can move one square. Hatched squares are hidden. Before showing the possibilities, ask the audience to choose a move and pause. In this variant the goal is to capture the opponent's king, and moving into an attacked square is allowed. Our question is how to choose with only this partial view.
 
 **Transition:** A hidden piece can make a move that looks safe dangerous.
 
@@ -41,7 +41,7 @@ The planned core is 11 minutes including handovers, with one minute of contingen
 
 **Purpose:** Hidden information. Planned 45 seconds.
 
-**Say:** Reveal one position that fits exactly the view we just saw. The black R is a rook, which moves along rows and columns. If White moves diagonally left, the rook can capture the king on the next turn. The extra pieces here are explanatory reveals for us. White did not get to see them when choosing.
+**Say:** Reveal one position that fits exactly the view we just saw. The black rook moves along rows and columns. If White moves diagonally left, the rook can capture the king on the next turn. The extra pieces here are explanatory reveals for us. White did not get to see them when choosing.
 
 **Transition:** But this is only one possible hidden position.
 
