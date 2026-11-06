@@ -2,11 +2,11 @@
 
 Presentation plan for a 12-minute presentation followed by 3-minute Q&A
 
-6 November 2026. Twenty-seven core slides, eight hidden backups. Speakers remain unassigned.
+6 November 2026. Twenty-seven core slides, eight hidden backups. Presenter names remain unassigned. Suggested split: Presenter 1 covers slides 1–12 (5:45), and Presenter 2 covers slides 13–27 (7:00), with one handoff after slide 12. This is a proposed allocation for team agreement.
 
 ## The argument
 
-This presentation asks how to choose actions from incomplete observations and which learned values improve those decisions. It connects the worked example to state, evidence, action, return and policy; explains MC, TD and distillation targets; and separates offline prediction from the game outcomes of an induced decision rule. A before/after capture example shows why historical observations constrain the hidden state, and a second slide filters candidate boards using that history. The existing content is retained, with the later comparisons and ranking example split into shorter visual stages. The hypotheses slide redraws two exact saved hypotheses as native diagrams to replace its blurred crop. Detailed evidence stays in backup.
+This presentation asks how to choose actions from incomplete observations and which learned values improve those decisions. It connects the worked example to state, evidence, action, return and policy; explains MC, TD and distillation targets; and separates offline prediction from the game outcomes of an induced decision rule. A before/after capture example shows why historical observations constrain the hidden state, and a second slide filters candidate boards using that history. Slide 10 connects belief tracking to search and the learned position values, replacing its repeated rook diagrams. The existing content is retained, with the later comparisons and ranking example split into shorter visual stages. The hypotheses slide redraws two exact saved hypotheses as native diagrams to replace its blurred crop. Detailed evidence stays in backup.
 
 The two history-example slides add 30 seconds each. Every existing slide keeps its prior speaking allocation. The planned core therefore totals 12 minutes 45 seconds, 45 seconds beyond the 12-minute speaking slot. Delivery and rehearsal must resolve that overrun; no unrelated speaking budget has been reduced. These are planned timings, not measured rehearsal times. The confirmed total slot remains 15 minutes: 12 minutes presentation followed by 3 minutes Q&A.
 
@@ -23,7 +23,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 | 7 | A capture reveals a hidden queen | 0:30 |
 | 8 | History filters the possible boards | 0:30 |
 | 9 | Decision making from private observations | 0:45 |
-| 10 | The agent tracks, searches and evaluates | 0:35 |
+| 10 | Choosing a move under uncertainty | 0:35 |
 | 11 | The player acts on a partial board | 0:20 |
 | 12 | Fog Lab exposes the agent’s hypotheses | 0:20 |
 | 13 | Three ways to learn position values | 0:25 |
@@ -116,13 +116,13 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** Our architecture separates reconstructing states, planning and value estimation.
 
-### Slide 10 The agent tracks, searches and evaluates
+### Slide 10 Choosing a move under uncertainty
 
 **Purpose:** Approach. Planned 35 seconds.
 
-**Say:** The tracker maintains possible hidden states from private evidence. The planner compares actions and replies. A value function estimates outcomes where search stops, helping the planner choose a move. This is the course’s connection between value estimation and decision-time planning. The rules model is given, rather than learned; the learned component here estimates values. Our archived game comparison fixes the outer planner at one move.
+**Say:** The tracker turns private history into possible hidden boards. The planner then compares legal actions and replies across these boards. When search stops, a value function estimates how promising each resulting position is. Those values guide the move choice. Our learning experiments focus on that value estimate: does predicting positions more accurately improve the decisions made by the planner? The game rules supply the transitions.
 
-**Transition:** The interface lets us inspect the private observations and hypotheses.
+**Transition:** The interface lets us inspect the observations and possible boards used by the agent.
 
 ### Slide 11 The player acts on a partial board
 
@@ -139,6 +139,8 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 **Say:** These are two of the bot’s eight sampled possible boards. They represent uncertainty from its own evidence; the referee does not supply the true board. Now we turn to the value functions used to judge possible outcomes.
 
 **Transition:** A value learner needs targets. We compared three ways to construct them.
+
+**Delivery cue:** Handoff to Presenter 2 after this slide.
 
 ### Slide 13 Three ways to learn position values
 
@@ -292,7 +294,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 ## Delivery and rehearsal
 
-Assign speakers by narrative blocks only after team agreement. Each speaker must understand both findings. Record a complete rehearsal with handovers and chart pauses. Slides 1–12 total 5:45; slides 13–27 retain 7:00. The first six worked-example and game-introduction slides take 2:45; do not repeat the rules or chess tactics. Use the retained demo slides as brief visual steps. The revised core totals 12:45. The speaker will manage delivery within the confirmed 12-minute presentation slot; existing speaking allocations have not been reduced. Cut secondary spoken detail before cutting the interpretation of the result. No rehearsal has been performed for this revision.
+The proposed two-presenter allocation keeps each person on one continuous section: Presenter 1 introduces the problem, historical evidence, belief tracking and demonstration (slides 1–12); Presenter 2 explains learning methods, evaluation, findings and conclusions (slides 13–27). Handoff once after slide 12. Confirm names and responsibilities with the team. Both presenters prepare for Q&A. All planned slide times are retained. Each speaker must understand both findings. Record a complete rehearsal with handovers and chart pauses. Slides 1–12 total 5:45; slides 13–27 retain 7:00. The first six worked-example and game-introduction slides take 2:45; do not repeat the rules or chess tactics. Use the retained demo slides as brief visual steps. The revised core totals 12:45. The speaker will manage delivery within the confirmed 12-minute presentation slot; existing speaking allocations have not been reduced. Cut secondary spoken detail before cutting the interpretation of the result. No rehearsal has been performed for this revision.
 
 Use the final slide as an academic conclusion and next evaluation, then invite questions. Reserve the full three minutes for Q&A. Answer the direct question first, state evidence and limitations, and open a backup only when it supports that answer. Check that a listener can explain the central findings after one viewing. On the uncertainty plot, point to equal points and the interval before giving the conclusion. Explain the demonstration through the partial board and possible boards, without reading the move table.
 
