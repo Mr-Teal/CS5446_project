@@ -60,6 +60,22 @@ def test_children_scores_has_one_entry_per_legal_move():
                                      "b1a3", "b1c3", "g1f3", "g1h3"])
 
 
+# Catches: Stockfish answering an en-passant capture that python-chess calls illegal. A fog-of-war
+# hypothesis can carry an ep square while the mover is in check from a knight, which orthodox chess
+# never produces; Stockfish tests en-passant legality against slider pins only, so it plays the
+# capture, python-chess raises IllegalMoveError on the bestmove and the protocol dies. Seen in the
+# sf14-fe-s16 arm (chunks 4, 30, 44): the call hung until the watchdog closed the engine.
+def test_children_scores_survives_an_en_passant_square_under_knight_check():
+    board = chess.Board("r2qr1k1/1p3p2/p1n4p/6pP/2p1P1n1/P1P3P1/3PPK2/1RBQ1BN1 w - g6 0 18")
+    assert board.is_check() and board.ep_square == chess.G6 and not board.has_legal_en_passant()
+    with StockfishEvaluator(depth=1, call_timeout_s=5) as ev:
+        scores = ev.children_scores(board)
+        assert sorted(scores) == ["f2e1", "f2f3", "f2g2"]
+        # The capture is still a fog-legal child, scored on its own, and the engine is still alive.
+        assert "h5g6" in ev.evaluate_children(board.fen(en_passant="fen"))
+        assert ev.children_scores(chess.Board())
+
+
 # Catches: child values reported from White's side instead of the moving player's.
 def test_evaluate_children_reports_values_from_the_moving_players_view():
     # Black to move; Qb1xa1 wins White's undefended queen, so it is good for Black.
