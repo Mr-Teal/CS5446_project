@@ -143,6 +143,10 @@ class SearchFactory:
         self.settings = settings
         self._agent = None
 
+    def load_leaf(self):
+        """Override only the evaluator while preserving search validation/lifecycle."""
+        return _load_leaf(self.settings)
+
     def load_model(self):
         if self._agent is not None:
             raise RuntimeError("a factory loads exactly one owned agent")
@@ -177,7 +181,7 @@ class SearchFactory:
                 raise ValueError("purify must be true or false")
             extra = dict(purify=purify == "true", submission_reserve_fraction=float(
                 self.settings.get("submission_reserve_fraction", "0.1")))
-        leaf = _load_leaf(self.settings)
+        leaf = self.load_leaf()
         try:
             self._agent = agent_type(leaf, config, _initial_fen(self.settings), **extra)
         except Exception:
