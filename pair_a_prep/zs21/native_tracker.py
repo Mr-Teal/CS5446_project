@@ -1,6 +1,7 @@
 """C ABI bridge: full-I inference with position-only merging, never particles."""
 
 import ctypes as C
+import sys
 from functools import lru_cache
 from pathlib import Path
 from time import perf_counter
@@ -71,13 +72,25 @@ def view_argument(view):
     return result
 
 
+def library_name():
+    """The shipped Windows DLL, or the locally built shared library on other platforms.
+
+    The DLL is the audited delivery artifact and stays the Windows default; POSIX
+    hosts build their own with `zs21_runtime/scripts/build.py --native`.
+    """
+    if sys.platform == "win32":
+        return "inference.dll"
+    return "inference.dylib" if sys.platform == "darwin" else "inference.so"
+
+
 def library():
-    dll = C.CDLL(str(Path(__file__).with_name("native") / "inference.dll"))
+    dll = C.CDLL(str(Path(__file__).with_name("native") / library_name()))
     try:
         dll.zs_rules_id.argtypes, dll.zs_rules_id.restype = [], C.c_char_p
         rules_id = dll.zs_rules_id().decode("ascii")
     except AttributeError as exc:
-        raise RuntimeError("outdated native inference DLL; rebuild with scripts/build_inference.py") from exc
+        raise RuntimeError("outdated native inference library; rebuild with "
+                           "zs21_runtime/scripts/build.py") from exc
     if rules_id != RULES_ID:
         raise RuntimeError("native inference rule version does not match Python")
     pointer, U, I = C.c_void_p, C.c_uint64, C.c_int

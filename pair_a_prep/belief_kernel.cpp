@@ -3,7 +3,7 @@
 
 struct BeliefChild { Board board; int action, valid, zeroing; };
 
-extern "C" __declspec(dllexport) int belief_children(
+extern "C" ZS_EXPORT int belief_children(
     const Board* parent, const View* view, int viewer, int own_move,
     BeliefChild* output, int capacity) {
     try {

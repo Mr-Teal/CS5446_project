@@ -234,7 +234,7 @@ def test_stale_native_library_requires_rebuild(monkeypatch, missing_id):
         def zs_rules_id():
             return LEGACY_RULES_ID.encode("ascii")
     monkeypatch.setattr(native_tracker.C, "CDLL", lambda _: object() if missing_id else OldLibrary())
-    with pytest.raises(RuntimeError, match="outdated native inference DLL|rule version does not match"):
+    with pytest.raises(RuntimeError, match="outdated native inference library|rule version does not match"):
         library()
 
 

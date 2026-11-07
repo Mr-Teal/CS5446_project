@@ -5,3 +5,10 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 pair_a_prep/_belief_build/
+
+# Locally built ZS21 inference library; the audited Windows DLL is committed.
+pair_a_prep/zs21/native/inference.so
+pair_a_prep/zs21/native/inference.dylib
+
+# Host build of the batch engine; the audited Windows binary is committed.
+zs21_runtime/engines/stockfish13-batch-v6/stockfish13
