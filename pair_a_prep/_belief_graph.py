@@ -104,7 +104,7 @@ def position_bit(key: bytes) -> int:
 
 
 def repetition_paths(node: PathNode, key: bytes, horizon: int, draw: bool,
-                     check=lambda: None) -> PathNode | None:
+                     check=lambda: None, created=lambda node: None) -> PathNode | None:
     """Retain paths with (draw) / without two prior occurrences of child key.
 
     The DAG preserves past positions, so different repetition contexts need not
@@ -139,10 +139,17 @@ def repetition_paths(node: PathNode, key: bytes, horizon: int, draw: bool,
             result = (current if unchanged else
                       PathNode(incoming, sum(p.count for p, _ in incoming),
                                current.position, current.recent) if incoming else None)
+            if result is not None and result is not current:
+                created(result)
         memo[identity] = result
         return result
 
-    return visit(node, horizon, 2)
+    try:
+        return visit(node, horizon, 2)
+    finally:
+        # Break the recursive closure cycle on both completion and interruption.
+        memo.clear()
+        visit = None
 
 
 def history_id(root: str, moves: tuple[str, ...]) -> str:
