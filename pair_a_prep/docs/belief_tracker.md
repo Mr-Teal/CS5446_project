@@ -8,7 +8,9 @@ just moved. No referee board or hidden opponent action enters inference.
 The 2026-10-31 implementation is based on main
 `1db35d68638d52353381d13de20addfea58a4d99`. The previous exact implementation
 is retained in `tests/reference_belief_tracker.py` as an independent regression
-oracle. The ZS21 agent's separate position tracker and its DLL are unchanged.
+oracle. This generic tracker remains separate from the ZS21 position tracker.
+The November 7 integration combines PR66 packed states with the memory ledger;
+the separate ZS21 DLL is rebuilt only to reconcile PR65's Windows release identity.
 
 ## Windows runtime setup
 
@@ -62,6 +64,13 @@ board points to a directed acyclic graph of hypothetical histories. An incoming
 edge stores `(parent, move)` and represents every retained path of that parent.
 Arbitrary-size integer counts preserve path multiplicity without enumerating
 all paths. Different paths reaching the same board remain different hypotheses.
+
+Current positions use PR66's 78-byte packed payload, also reused as the dictionary
+key. `StateNode.board` decodes a fresh temporary Board; callers must bind it once
+when reusing it. The payload size excludes Python objects, dictionaries, history
+nodes and edges. Packing preserves the existing history graph and does not cap
+its support. This integration retains PR66's unsigned 16-bit move counters;
+it does not extend the packed custom-FEN counter range.
 
 This is not ZS21's one-representative-per-position approximation. Full paths and
 their probabilities can be recovered from the graph. Sampling a uniform integer
@@ -202,7 +211,7 @@ are not claimed here. `storage_stats()` measures reachable Python allocations
 for diagnostics; do not confuse that with total process memory.
 
 The first finite memory budget on an observation inventories its retained and
-pending DAG once, counting boards and path nodes by identity and their fields
+pending DAG once, counting state nodes, packed payloads and path nodes by identity and their fields
 structurally, without revisiting every shared scalar. `storage_stats()` remains
 a separate, slower object-by-object diagnostic for checking the estimates.
 Later `resume()` calls reuse the ledger, including when
@@ -211,7 +220,11 @@ branches do not accumulate indefinitely. Reset and pruning discard the pending
 ledger. Unbounded updates avoid the structural-accounting work; enabling a
 finite limit on a later resume inventories everything built so far.
 
-New boards, path nodes and incoming edges are charged from their Python object
+Inventory never decodes `StateNode.board`, and a packed payload used as both
+state storage and a dictionary key is charged once. Decoded Boards are transition
+scratch, not retained position storage.
+
+New packed states, path nodes and incoming edges are charged from their Python object
 structure, with allowances for dictionary/list growth and large counters. The
 stack-free DAG does not allocate a separate ply-sized draw map per board.
 Repetition-filter memo/recursion storage is temporary; newly retained filtered

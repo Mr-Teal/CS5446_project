@@ -139,14 +139,14 @@ def test_filtered_path_allocation_callback_only_reports_new_nodes():
 
 def test_large_shared_graph_inventory_visits_nodes_once_not_full_paths(monkeypatch):
     from pair_a_prep import _belief_memory as memory
-    from pair_a_prep._belief_graph import StateNode
+    from pair_a_prep._belief_graph import StateNode, encode_state
     tracker = BeliefTracker(KINGS, sample_size=3, backend="python")
     tracker.reset("white", 17)
     board = tracker._nodes[0].board
     path = tracker._nodes[0].paths
     for _ in range(2000):
         path = PathNode([(path,"a1b1"),(path,"a1a2")],path.count*2,path.position,path.recent)
-    tracker._nodes = tuple(StateNode(board.copy(stack=False),path) for _ in range(100))
+    tracker._nodes = tuple(StateNode(encode_state(board),path) for _ in range(100))
     calls=[]
     real=memory.path_bytes
 
@@ -158,6 +158,51 @@ def test_large_shared_graph_inventory_visits_nodes_once_not_full_paths(monkeypat
     estimated=memory.budget_inventory(tracker)
     assert len(calls)==len(set(calls))==2001
     assert estimated>=tracker.storage_stats()['owned_bytes']
+
+
+def test_packed_inventory_never_decodes_boards(monkeypatch):
+    from pair_a_prep import _belief_graph as graph, _belief_memory as memory
+    tracker = BeliefTracker(KINGS, sample_size=3, backend="python")
+    tracker.reset("white", 17)
+
+    def forbidden(_):
+        raise AssertionError("inventory must inspect retained bytes, not allocate a Board")
+
+    monkeypatch.setattr(graph, "decode_state", forbidden)
+    assert memory.budget_inventory(tracker) >= tracker.storage_stats()["owned_bytes"]
+
+
+def test_packed_allocation_never_decodes_boards(monkeypatch):
+    from pair_a_prep import _belief_graph as graph, _belief_memory as memory
+    tracker = BeliefTracker(KINGS, sample_size=3, backend="python")
+    tracker.reset("white", 17)
+
+    def forbidden(_):
+        raise AssertionError("allocation charges must not decode retained packed data")
+
+    monkeypatch.setattr(graph, "decode_state", forbidden)
+    charge = memory.state_bytes(tracker._nodes[0])
+    assert 0 < charge < 1024  # Includes object/DAG/container costs, not just 78 bytes.
+
+
+def test_inventory_counts_shared_packed_payload_once(monkeypatch):
+    from pair_a_prep import _belief_memory as memory
+    from pair_a_prep._belief_graph import StateNode
+    tracker = BeliefTracker(KINGS, sample_size=3, backend="python")
+    tracker.reset("white", 17)
+    original = tracker._nodes[0]
+    tracker._nodes = (original, StateNode(original.packed, original.paths))
+    calls = []
+    real = memory.getsizeof
+
+    def size(value):
+        if value is original.packed:
+            calls.append(value)
+        return real(value)
+
+    monkeypatch.setattr(memory, "getsizeof", size)
+    assert memory.budget_inventory(tracker) >= tracker.storage_stats()["owned_bytes"]
+    assert len(calls) == 1
 
 
 @pytest.mark.parametrize("interrupt", (False, True))

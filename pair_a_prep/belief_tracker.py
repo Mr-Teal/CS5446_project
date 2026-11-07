@@ -343,8 +343,8 @@ class BeliefTracker:
                     allocation = filtered_bytes + edge_bytes(move, old_count, new_count, old_recent, new_recent)
                     if new_node:
                         if not pending.state_charge:
-                            pending.state_charge = state_bytes(node.board, key) - sys.getsizeof(node.board.__dict__)
-                        allocation += pending.state_charge + sys.getsizeof(node.board.__dict__)
+                            pending.state_charge = state_bytes(node)
+                        allocation += pending.state_charge
                 if cap is not None and pending.accounted + reserve + allocation > cap:
                     stopped = "memory"
                     break

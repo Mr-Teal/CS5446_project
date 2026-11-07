@@ -16,32 +16,15 @@ def path_bytes(node):
             + sum(getsizeof(edge) + getsizeof(edge[1]) for edge in node.incoming))
 
 
-def board_payload_bytes(board):
-    """Upper-size fields of the tracker's stack-free chess.Board instances."""
-    size = 0
-    scalar = getsizeof((1 << 64) - 1)
-    for name, value in board.__dict__.items():
-        if name in ("move_stack", "_stack"):
-            size += getsizeof([])
-        elif isinstance(value, list):
-            size += getsizeof(value) + sum(max(scalar, getsizeof(v)) for v in value)
-        else:
-            size += max(scalar, getsizeof(value))
-    return size
+def state_bytes(node):
+    """Charge retained packed bytes, a path root and container growth.
 
-
-def state_bytes(board, key):
-    """Charge a stack-free board, path root, key and container growth.
-
-    Counting scalar objects separately can overcount shared Python integers.
-    No old move stack or imaginary ply-sized draw map is allocated by this DAG.
+    The dictionary key is the same bytes object as node.packed. A decoded Board
+    belongs to transition scratch, not retained state storage. Reserve a full
+    1024-bit membership mask; path multiplicity growth is charged by edge_bytes.
     """
-    size = getsizeof(board) + getsizeof(board.__dict__) + board_payload_bytes(board)
-    scalar = getsizeof((1 << 64) - 1)
-    # Reserve a maximum-size 1024-bit membership mask and dictionary/tuple slots.
-    path = PathNode([], 0, key[0], (1 << 1024) - 1)
-    return (size + getsizeof(StateNode(board, path)) + path_bytes(path)
-            + getsizeof(key) + sum(max(scalar, getsizeof(v)) for v in key) + 128)
+    path = PathNode([], 0, node.paths.position, (1 << 1024) - 1)
+    return getsizeof(node) + getsizeof(node.packed) + path_bytes(path) + 128
 
 
 def edge_bytes(move, old_count, new_count, old_recent, new_recent):
@@ -54,7 +37,7 @@ def edge_bytes(move, old_count, new_count, old_recent, new_recent):
 def budget_inventory(tracker):
     """Inventory the owned DAG without visiting every shared Python scalar.
 
-    State boards and path nodes are counted once by identity. Known scalar
+    State nodes, packed payloads and path nodes are counted once by identity. Known scalar
     fields are charged structurally; the slower storage_stats remains an
     independent diagnostic. Scratch sets are local, not retained by the tracker.
     """
@@ -63,21 +46,26 @@ def budget_inventory(tracker):
         tracker._nodes, pending.parents, pending.nodes.values())
     total = 65536  # Observation/RNG/pending metadata, not transition scratch.
     states, paths, stack = set(), set(), []
-    payload = None
+    payloads, containers = set(), set()
     for frontier in frontiers:
-        total += getsizeof(frontier)
+        if id(frontier) not in containers:
+            containers.add(id(frontier))
+            total += getsizeof(frontier)
         for node in frontier:
             if node in states:
                 continue
             states.add(node)
-            if payload is None:
-                payload = board_payload_bytes(node.board)
-            total += (getsizeof(node) + getsizeof(node.board)
-                      + getsizeof(node.board.__dict__) + payload)
+            total += getsizeof(node)
+            if id(node.packed) not in payloads:
+                payloads.add(id(node.packed))
+                total += getsizeof(node.packed)
             stack.append(node.paths)
     if pending is not None:
         total += getsizeof(pending.nodes)
-        total += sum(getsizeof(key) + sum(map(getsizeof, key)) for key in pending.nodes)
+        for key in pending.nodes:
+            if id(key) not in payloads:
+                payloads.add(id(key))
+                total += getsizeof(key)
     while stack:
         node = stack.pop()
         if node in paths:
