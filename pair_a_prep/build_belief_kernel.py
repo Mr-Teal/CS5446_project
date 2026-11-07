@@ -4,6 +4,7 @@ import argparse
 from hashlib import sha256
 import json
 from pathlib import Path
+import platform
 import shutil
 import subprocess
 import sys
@@ -24,6 +25,36 @@ def source_hashes():
     return {p: sha256((ROOT / p).read_bytes()).hexdigest() for p in SOURCES}
 
 
+def validate_compiler_target(target, *, machine=None, pointer_bits=None):
+    """Match compiler architecture to this Python process, not just its bitness.
+
+    Architecture matching is not an ARM/macOS build certification. Unknown
+    families fail explicitly rather than loading a foreign-architecture binary.
+    """
+    machine = (platform.machine() if machine is None else machine).lower()
+    pointer_bits = (64 if sys.maxsize > 2**32 else 32) if pointer_bits is None else pointer_bits
+
+    def family(name):
+        name = name.lower().split("-", 1)[0]
+        if name in ("amd64", "x86_64"):
+            return "x86", 64
+        if name in ("i386", "i486", "i586", "i686", "x86"):
+            return "x86", 32
+        if name in ("arm64", "aarch64"):
+            return "arm", 64
+        if name.startswith("arm"):
+            return "arm", 32
+        return None
+
+    host, compiler = family(machine), family(target)
+    expected = None if host is None else (host[0], pointer_bits)
+    if expected is None or compiler != expected:
+        raise SystemExit(
+            f"Compiler architecture mismatch: {pointer_bits}-bit Python on {machine} "
+            f"requires a matching compiler, got {target}"
+        )
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.parse_args()
@@ -32,8 +63,7 @@ def main():
     if compiler is None:
         raise SystemExit("No C++ compiler on PATH; the Python backend remains portable")
     target = subprocess.check_output([compiler, "-dumpmachine"], text=True).strip()
-    if sys.maxsize > 2**32 and not target.startswith("x86_64"):
-        raise SystemExit(f"A 64-bit Python requires an x86_64 compiler, got {target}: {compiler}")
+    validate_compiler_target(target)
     directory = ROOT / "_belief_build"
     directory.mkdir(exist_ok=True)
     digest = sha256(json.dumps(source_hashes(), sort_keys=True).encode()).hexdigest()[:16]
