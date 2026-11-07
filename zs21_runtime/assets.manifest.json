@@ -3,8 +3,8 @@
   "stockfish_source_url": "https://github.com/official-stockfish/Stockfish/tree/3597f1942ec6f2cfbd50b905683739b0900ff5dd",
   "target": "win-64; Stockfish prebuilt requires AVX2 and BMI2",
   "files": {
-    "pair_a_prep/zs21/native/inference.cpp": "8d92ad3f5e325b4d3d8095dcd927ec5292dcc2302b28e08a9635610bea016bc6",
-    "pair_a_prep/zs21/native/inference.dll": "efa67a4977ab74282b16a0fd8b777dfa21273dde12da50f2ad582b47d585f3cc",
+    "pair_a_prep/zs21/native/inference.cpp": "7b95d76abdf2954940cbd47d9f9eeb907fc6c4a2f1027e3d08e54d3929ccb296",
+    "pair_a_prep/zs21/native/inference.dll": "9d9e13686381baaba08d090e85647f9bba557e01896facc71d9db96aba8e581a",
     "zs21_runtime/engines/stockfish13-batch-v6/Copying.txt": "0b383d5a63da644f628d99c33976ea6487ed89aaa59f0b3257992deac1171e6b",
     "zs21_runtime/engines/stockfish13-batch-v6/nn-62ef826d1a6d.nnue": "62ef826d1a6d11b9e814188025aa02a60815c037292e0ef9bbb9bf4f724e5e63",
     "zs21_runtime/engines/stockfish13-batch-v6/stockfish13.exe": "7e6357e5637cfaa4865b84135bc860f959be5983a84b57e871d0a0616082a475",
@@ -69,5 +69,6 @@
     "zs21_runtime/third_party/stockfish13/src/uci.h": "75bbaacbb3f41df08ef2b86fbc66e3721619f06c36d184e82897d9c47c266962",
     "zs21_runtime/third_party/stockfish13/src/ucioption.cpp": "1a7cec955d58b610b304e6f87cb4b6ebed1a14c8bd965da6af53fe7e34fc8089",
     "zs21_runtime/third_party/stockfish13/UPSTREAM_README.md": "02b9586a401e14888eaaf9c17ef8d87edf23d29a897403241832d066150a41e9"
-  }
+  },
+  "native_build_record": "zs21_runtime/builds/windows-native-2026-11-07.json"
 }
