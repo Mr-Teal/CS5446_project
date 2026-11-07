@@ -267,6 +267,17 @@ set of possible true boards (at most 256) from its own observations and moves al
 the scorer you pick, one of the five evaluators above, for the value of every legal move on each of
 its guesses at your hidden pieces (8 by default), and plays the move with the best average.
 
+Pair A's search is also available in the Bot dropdown under Teal rules. The
+selected scorer becomes its leaf evaluator, and Guesses sets its sampled
+history count. It uses the search and tracker already on main, with no pending
+Pair A stack or solver-label pipeline dependency. Custom starts are refused.
+Its 5-second allowance covers agent search, not tracking or inspection.
+The browser tracker prunes before an update when it holds more than 96,000
+states; support is approximate from the first prune onward. This is not a hard
+memory/time bound or a guarantee of completing a game: discarded histories can
+cause a later explicit tracking failure. The default remains Pair B's one-ply
+bot. No new strength result is claimed for this browser adapter.
+
 ### Start it
 
 From the project root, on macOS and Linux:
@@ -440,6 +451,14 @@ second machine or at 100 games. Quick Stockfish against itself
 should score about 0.5 and `random` close to 0: those two check the runner. The network sides need
 torch. `experiments/matches/` holds the pilot, the superseded shared-engine-state pilot and the
 standard-start cross-check, each described in its README.
+
+## Use Network 1 in Pair A search
+
+`pairb.search_factory:Factory` supplies Network 1 to Pair A's existing search
+through the Pair C interface, with checkpoint/engine provenance and owned
+resource cleanup. See [the handoff and runnable integration smoke](docs/learned_search_handoff.md).
+This is boardwise learned leaf evaluation; it does not validate whole-belief
+gameplay or add a new strength result.
 
 ## Files
 
