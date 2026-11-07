@@ -154,6 +154,71 @@ def current_minimum_margin(gadget, profile):
                - gadget.alternate_player0[key] for key, rows in groups.items())
 
 
+class BlendedGadgetControl:
+    """Smooth Resolve/Maxmargin transition on one shared tree.
+
+    Obscuro Fig. 9 l.22 and Fig. 10 l.5-13. R_J is a two-action PRM+ (enter,
+    exit) per opponent infoset, fed the opponent's utility of entering against
+    taking the alternate; the selector is a PRM+ over infosets fed the negated
+    margins, which is Maxmargin. The root chance mass entering J is
+    p_max*alpha(J)*pi_resolve(J) + (1-p_max)*pi_maxmargin(J) with
+    p_max = max_J pi_resolve(J); Resolve mass that exits lands on "exit:J", so
+    the distribution always sums to one. Mode is Maxmargin when p_max is zero,
+    i.e. every R_J always exits and the strategy is safe (C.1, C.8); the Fig. 8
+    l.13 comment states the condition the other way round and is not followed.
+    """
+
+    def __init__(self, gadget, alpha, predictive=True, tolerance=1e-10):
+        from .pcfr import PredictiveRMPlus
+        if gadget.mode != "blended":
+            raise ValueError("control requires a blended gadget")
+        self.groups = {}
+        for r in gadget.roots:
+            self.groups.setdefault(r.opponent_infoset, []).append(r)
+        self.alpha = dict(alpha)
+        if set(self.alpha) != set(self.groups) or abs(fsum(self.alpha.values()) - 1) > 1e-9:
+            raise ValueError("alpha must be a distribution over the opponent infosets")
+        self.order = tuple(self.groups)
+        self.tolerance = tolerance
+        self.entry = {j: PredictiveRMPlus(2, predictive) for j in self.order}
+        self.selector = PredictiveRMPlus(len(self.order), predictive)
+        self.pi_resolve = {j: float(self.entry[j].next_strategy()[0]) for j in self.order}
+        self.pi_maxmargin = dict(zip(self.order, map(float, self.selector.next_strategy())))
+        self.p_max = max(self.pi_resolve.values())
+        self.margins = None
+        self.apply(gadget)
+
+    @property
+    def mode(self):
+        return "maxmargin" if self.p_max <= self.tolerance else "resolve"
+
+    def update(self, gadget, profile):
+        """Observe this round's values, advance R_J and the selector, re-blend the root."""
+        values = gadget.continuation_values(profile)
+        alternate = gadget.alternate_player0
+        entering = {j: fsum(r.reach_mass * values[r.root_id] for r in rows) / fsum(r.reach_mass for r in rows)
+                    for j, rows in self.groups.items()}
+        self.margins = {j: entering[j] - alternate[j] for j in self.order}
+        for j in self.order:
+            # The opponent minimizes player 0's payoff: its utilities are negated.
+            self.entry[j].observe([-entering[j], -alternate[j]])
+            self.pi_resolve[j] = float(self.entry[j].next_strategy()[0])
+        self.selector.observe([-self.margins[j] for j in self.order])
+        self.pi_maxmargin = dict(zip(self.order, map(float, self.selector.next_strategy())))
+        self.p_max = max(self.pi_resolve.values())
+        self.apply(gadget)
+        return self.margins
+
+    def apply(self, gadget):
+        probabilities = gadget.tree.probabilities
+        for j, rows in self.groups.items():
+            mass = fsum(r.reach_mass for r in rows)
+            entering = self.p_max * self.alpha[j] * self.pi_resolve[j] + (1 - self.p_max) * self.pi_maxmargin[j]
+            for r in rows:
+                probabilities[r.root_id] = entering * r.reach_mass / mass
+            probabilities["exit:" + j] = self.p_max * self.alpha[j] * (1 - self.pi_resolve[j])
+
+
 class BoundarySession:
     """Serial mode switching with copied compatible minimizers between gadgets."""
 

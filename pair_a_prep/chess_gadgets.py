@@ -59,8 +59,8 @@ class ChessRootGroups:
         """
         if set(reach_mass) != set(self.root_ids):
             raise ValueError("reach_mass must cover exactly the sampled root IDs")
-        if mode == "resolve" and group_prior is None:
-            raise ValueError("Resolve requires an explicit group_prior")
+        if mode in ("resolve", "blended") and group_prior is None:
+            raise ValueError("Resolve and blended gadgets require an explicit group_prior")
         roots = tuple(SubgameRoot(root_id, key, continuation, reach_mass[root_id])
                       for root_id, key, continuation in zip(
                           self.root_ids, self.opponent_infosets, self.chess_tree.continuations))
@@ -159,6 +159,8 @@ class ChessGadget:
             root_id = self.roots.root_ids[index]
             if self.gadget.mode == "resolve":
                 gadget_path = (root_id, "enter") + path[1:]
+            elif self.gadget.mode == "blended":
+                gadget_path = (root_id,) + path[1:]
             else:
                 gadget_path = (self.roots.opponent_infosets[index], root_id) + path[1:]
             node = candidate.gadget.tree

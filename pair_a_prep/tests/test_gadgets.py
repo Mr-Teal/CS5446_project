@@ -92,6 +92,56 @@ def test_opponent_can_remember_selected_infoset_in_continuation(mode):
     assert gadget.continuation_values(solver.policy()) == {"a": -1, "b": -1}
 
 
+def test_linear_nash_gap_matches_the_pure_strategy_oracle():
+    from pair_a_prep.toy_games import behavioral_nash_gap, hidden_coin, kuhn_poker, matching_pennies, nash_gap
+    games = [matching_pennies(), hidden_coin(), kuhn_poker(),
+             build_gadget(shared_action_roots(), {"A": 0, "B": 0.4}).tree,
+             build_gadget(shared_action_roots(), {"A": 0, "B": 0.4}, mode="maxmargin").tree]
+    for root in games:
+        solver = PCFRPlus(root, schedule="alternating")
+        for rounds in (0, 3, 40):
+            solver.run(rounds)
+            for average in (False, True):
+                policy = solver.policy(average)
+                assert nash_gap(root, policy) == pytest.approx(behavioral_nash_gap(root, policy), abs=1e-12)
+        assert nash_gap(root, solver.policy(True)) >= -1e-12
+
+
+def test_blended_gadget_conserves_mass_and_its_mode_follows_p_max():
+    from pair_a_prep.subgame_boundaries import BlendedGadgetControl
+    roots, alpha = shared_action_roots(), {"A": .5, "B": .5}
+    # Alternates far below every continuation: Resolve's opponent always exits,
+    # p_max reaches exactly zero and the root follows the Maxmargin selector.
+    safe = build_gadget(roots, {"A": -5., "B": -5.}, mode="blended", group_prior=alpha)
+    control = BlendedGadgetControl(safe, alpha)
+    solver = PCFRPlus(safe.tree, schedule="alternating")
+    for _ in range(40):
+        solver.step()
+        margins = control.update(safe, solver.policy())
+        assert sum(safe.tree.probabilities.values()) == pytest.approx(1)
+        assert 0 <= control.p_max <= 1
+    assert control.mode == "maxmargin" and control.p_max == 0
+    assert safe.tree.probabilities["exit:A"] == 0 == safe.tree.probabilities["exit:B"]
+    assert min(margins.values()) > 0
+    # An infeasible alternate at A: Resolve enters there with certainty, so
+    # p_max is one; B still exits, and its Resolve mass alpha_B lands on exit:B.
+    unsafe = build_gadget(roots, {"A": 2.5, "B": -5.}, mode="blended", group_prior=alpha)
+    control = BlendedGadgetControl(unsafe, alpha)
+    solver = PCFRPlus(unsafe.tree, schedule="alternating")
+    for _ in range(40):
+        solver.step()
+        control.update(unsafe, solver.policy())
+    assert control.mode == "resolve" and control.p_max == pytest.approx(1)
+    assert unsafe.tree.probabilities["exit:A"] == pytest.approx(0)
+    assert unsafe.tree.probabilities["exit:B"] == pytest.approx(.5)
+    assert sum(unsafe.tree.probabilities.values()) == pytest.approx(1)
+    # The continuation layer is the shared tree: same player infosets as Maxmargin.
+    reference = build_gadget(roots, {"A": 2.5, "B": -5.}, mode="maxmargin")
+    assert information_sets(unsafe.tree)[0] == information_sets(reference.tree)[0]
+    with pytest.raises(ValueError):
+        BlendedGadgetControl(reference, alpha)
+
+
 def test_invalid_gadget_configuration():
     r = SubgameRoot("r", "J", terminal(0), 1)
     for roots, alt, kwargs in [([], {}, {}), ([r, r], {"J": 0}, {}),

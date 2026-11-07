@@ -7,9 +7,11 @@ local retained/discarded CF contributions and preserves cross-turn audit
 lineage. It does not numerically transfer ancestor gadget payments.
 
 Latest optional integration: [sampled-tree chess subgame agent](chess_subgame_integration.md)
-connects saved-tree I^2 projection, finite-cut boundaries, fresh-root caps,
-serial gadget switching, selective growth, initial best policies and C.8-style
-purification. Earlier tables below are the historical uniform baseline. The
+connects saved-tree I^2 projection, finite-cut boundaries, position-keyed
+fresh roots, a blended Resolve/Maxmargin gadget, labelled fallback policies,
+selective growth, initial best policies and C.8-style purification (serial
+gadget switching and uniform-random fallback were replaced at cca2fe2, PR #67).
+Earlier tables below are the historical uniform baseline. The
 new integration has explicit sampling, gift-scope and heuristic approximations;
 it is not complete full-history KLUSS or a full reproduction.
 
@@ -35,9 +37,9 @@ are explicitly separated from the source-mapped mechanisms.
 | Rules and observations | Shared FoW rules, adapter and effective en-passant checks are integrated | Freeze actual rule revision with each batch |
 | Histories | Exact observation-consistent tracker and sampled returned paths | Output sampling does not bound internal population; long-game capacity remains a blocker |
 | PCFR+ and growth | Fixed-tree solver, selected-history one-sided growth, best-child initialization | Sampled finite trees; no whole-game exploitability guarantee |
-| Knowledge and gadgets | Sampled synchronous I^2 projection, finite-cut boundaries, serial mode switching | No full asynchronous knowledge closure; ancestor gifts are audit-only |
-| Retention and output policy | Heuristic cross-turn reuse, raw/played policy separation and purification | These are explicitly bounded approximations |
-| Leaf evaluator | Material default; pinned real Stockfish factory and Pair C smoke | Actual SF19 differs from paper SF14; bounded smoke is not strength evaluation |
+| Knowledge and gadgets | Sampled synchronous I^2 projection, finite-cut boundaries, blended Resolve/Maxmargin gadget with per-round `p_max` (C.1, C.8) and last-iterate `solver_nash_gap` (C.7), fresh roots keyed by position with duplicate hypotheses aliased (fn. 7) | No full asynchronous knowledge closure; ancestor gifts (C.2) are audit-only and not paid across turns |
+| Retention and output policy | Heuristic cross-turn reuse, raw/played policy separation and purification; budget failures play the published partial solver, else the heuristic depth-1 best child, with a labelled uniform draw as last resort (Fig. 8) | These are explicitly bounded approximations; fallback moves carry no continuation values and produce no labels |
+| Leaf evaluator | Material default; pinned real Stockfish factory and Pair C smoke; 100-game Stockfish 14.1 depth-1 arm against Pair C's material one-ply bot (PR #67) | Actual SF19 differs from paper SF14; bounded smoke is not strength evaluation; the one-ply bot is saturated at 1.000 by the Stockfish leaf |
 | Labels | Cold labels supported; projected labels gated | Complete solver-root and weight agreement still required |
 
 ## Ownership and immediate sequence
