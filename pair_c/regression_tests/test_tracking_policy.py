@@ -35,6 +35,8 @@ def test_real_runner_budget_policy_records_every_update(tmp_path, fails):
     assert all(row["policy"] == "budgeted-exact" for row in updates)
     assert len(updates) == sum(len(game["tracker_updates"]) for game in games)
     assert all(row["elapsed_ms"] >= 0 for row in updates)
+    assert all(row["memory_inventory_count"] == 1 for row in updates)
+    assert all(row["memory_inventory_ms"] >= 0 and row["temporary_peak_bytes"] >= 0 for row in updates)
     if fails:
         assert summary["games_failed"] == summary["tracking"]["failed_updates"] == 2
         assert summary["games_scored"] == 0 and summary["player_a_score_rate"] is None

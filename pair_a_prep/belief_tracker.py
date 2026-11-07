@@ -13,6 +13,7 @@ from fow_shared.contracts import Belief, Hypothesis, Observation
 from ._belief_graph import (encode_state, ObservationFilter, PathNode, StateNode, history_id,
                             position_key, position_bit, repetition_paths, successors)
 from .rules_adapter import RulesAdapter
+from ._belief_memory import budget_inventory, edge_bytes, path_bytes, state_bytes
 
 
 class BeliefCapacityError(RuntimeError):
@@ -43,6 +44,9 @@ class TrackerUpdate:
     attempted_transitions: int
     elapsed_ms: float
     accounted_bytes: int
+    memory_inventory_count: int = 0
+    memory_inventory_ms: float = 0.0
+    temporary_peak_bytes: int = 0
 
 
 @dataclass
@@ -61,6 +65,12 @@ class _Pending:
     attempts: int = 0
     # Conservative logical allocation accounting; not process RSS.
     accounted: int = 0
+    inventory_ready: bool = False
+    inventory_count: int = 0
+    inventory_ms: float = 0.0
+    output_bytes: int = 0
+    temporary_peak: int = 0
+    state_charge: int = 0
 
 
 def _positive(name, value, *, integer=False, zero=False):
@@ -232,10 +242,16 @@ class BeliefTracker:
         deadline = None if time_ms is None else began + time_ms / 1000
         cap = None if memory_mb is None else int(memory_mb * 1024 * 1024)
         pending = self._pending
-        # Count retained + pending graphs once. During expansion, charge before
-        # allocation, including a reserve for scratch space and returned paths.
-        if cap is not None:
-            pending.accounted = self.storage_stats()["owned_bytes"]
+        # Inventory once per observation, including when a finite memory limit
+        # is first enabled on resume. Retain the ledger across time slices.
+        if cap is not None and not pending.inventory_ready:
+            inventory_started = perf_counter()
+            pending.accounted = budget_inventory(self)
+            pending.inventory_ready = True
+            pending.inventory_count += 1
+            pending.inventory_ms += (perf_counter() - inventory_started) * 1000
+            pending.output_bytes = 0  # Any prior output is in this inventory.
+        measure_memory = pending.inventory_ready
         stopped = None
         finished = pending.finished
         try:
@@ -244,11 +260,9 @@ class BeliefTracker:
                     stopped = "time"
                     break
                 output_count = min(pending.count + 1, self._sample_size or pending.count + 1)
-                reserve = 65536 + output_count * (512 + 80 * (pending.observation.ply + 1))
-                # A transition can extend one draw map by one entry; this is a
-                # conservative allocation estimate, not an OS memory guarantee.
-                allocation = 4096 + 512 * (pending.observation.ply + 1)
-                if cap is not None and pending.accounted + reserve + allocation > cap:
+                reserve = (65536 + pending.output_bytes
+                           + output_count * (512 + 80 * (pending.observation.ply + 1)))
+                if cap is not None and pending.accounted + reserve > cap:
                     stopped = "memory"
                     break
                 if pending.waiting is None:
@@ -270,24 +284,38 @@ class BeliefTracker:
                     continue
                 board, move, needs_repetition = child
                 paths = parent.paths
+                filtered_bytes = 0
                 if needs_repetition is True and board.halfmove_clock < 4:
                     pending.waiting = None
                     continue
                 if needs_repetition is not None and board.halfmove_clock >= 4:
                     # Small draw tests are normally rejected by the Bloom
                     # prefilter; collisions only trigger exact graph traversal.
+                    temporary_bytes = 0
+
                     def check():
+                        nonlocal temporary_bytes
                         if deadline is not None and perf_counter() >= deadline:
                             raise _BudgetStop("time")
+                        # Scratch/memo entries live within this one filter call.
+                        # Repeated work does not retain all previous temporaries.
+                        if measure_memory:
+                            temporary_bytes += 1024
+                            pending.temporary_peak = max(pending.temporary_peak, temporary_bytes)
                         if cap is not None:
-                            # Charge recursion/memo/filter temporaries as well
-                            # as published nodes. Conservative overcount is safe.
-                            if pending.accounted + reserve + 1024 > cap:
+                            if pending.accounted + reserve + temporary_bytes + filtered_bytes > cap:
                                 raise _BudgetStop("memory")
-                            pending.accounted += 1024
+
+                    def created(node):
+                        nonlocal filtered_bytes
+                        if measure_memory:
+                            filtered_bytes += path_bytes(node)
+                        if cap is not None and pending.accounted + reserve + temporary_bytes + filtered_bytes > cap:
+                            raise _BudgetStop("memory")
+
                     try:
                         paths = repetition_paths(paths, position_key(board),
-                                                 board.halfmove_clock, needs_repetition, check)
+                                                  board.halfmove_clock, needs_repetition, check, created)
                     except _BudgetStop as exc:
                         stopped = str(exc)
                         break
@@ -301,16 +329,30 @@ class BeliefTracker:
                         "consistent histories; exact update was not committed")
                 key = encode_state(board)
                 node = pending.nodes.get(key)
-                if node is None:
+                old_count = 0 if node is None else node.paths.count
+                old_recent = 0 if node is None else node.paths.recent
+                new_count = old_count + paths.count
+                new_recent = old_recent | paths.recent if board.halfmove_clock else old_recent
+                new_node = node is None
+                if new_node:
                     effective = position_key(board)
                     node = StateNode(key,
                                      PathNode([], 0, effective, position_bit(effective)))
+                allocation = 0
+                if measure_memory:
+                    allocation = filtered_bytes + edge_bytes(move, old_count, new_count, old_recent, new_recent)
+                    if new_node:
+                        if not pending.state_charge:
+                            pending.state_charge = state_bytes(node)
+                        allocation += pending.state_charge
+                if cap is not None and pending.accounted + reserve + allocation > cap:
+                    stopped = "memory"
+                    break
+                if new_node:
                     pending.nodes[key] = node
-                    pending.accounted += allocation
-                else:
-                    pending.accounted += 128
+                pending.accounted += allocation
                 node.paths.incoming.append((paths, move))
-                node.paths.count += paths.count
+                node.paths.count = new_count
                 if board.halfmove_clock:
                     node.paths.recent |= paths.recent
                 pending.count = count
@@ -334,7 +376,8 @@ class BeliefTracker:
         rng = Random()
         rng.setstate(pending.rng_state)
         belief, output_stopped = self._make_belief(nodes, pending.observation.ply,
-                                                  complete, rng, deadline, cap, pending.accounted)
+                                                  complete, rng, deadline, cap,
+                                                  pending.accounted + pending.output_bytes)
         stopped = stopped or output_stopped
         if nodes and belief is not None:
             self._nodes = nodes
@@ -347,10 +390,13 @@ class BeliefTracker:
         return self._result(pending, belief, status, stopped, complete, finished, began)
 
     def _result(self, pending, belief, status, stopped, complete, finished, began):
+        pending.output_bytes = (0 if belief is None else
+            len(belief.hypotheses) * (512 + 80 * (pending.observation.ply + 1)))
         result = TrackerUpdate(belief, status, stopped, complete, finished,
                                pending.count, pending.count, len(pending.nodes),
                                pending.attempts, (perf_counter() - began) * 1000,
-                               pending.accounted)
+                               pending.accounted + pending.output_bytes,
+                               pending.inventory_count, pending.inventory_ms, pending.temporary_peak)
         self.last_update = result
         return result
 

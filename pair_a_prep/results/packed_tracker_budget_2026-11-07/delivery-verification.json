@@ -1,0 +1,31 @@
+{
+  "tested_delivery_implementation": "6b2471dc3c2c62ff614a48f902228f5cf9ff2c98",
+  "original_study_commit": "7c6c8626b65634bd0ede68ae36376ea3e6af28b3",
+  "current_main_at_validation": "aac39b4b9226a46c63479b236a805f980412b61c",
+  "delivery_plus_main_tree": "79e53dcff0bc71ad2286fd701f0dce9b7eef92ed",
+  "difference_from_studied_tree": [
+    "zs21_runtime/validation/windows-release-repair-2026-11-07/README.md",
+    "zs21_runtime/validation/windows-release-repair-2026-11-07/artifact-sha256.json",
+    "zs21_runtime/validation/windows-release-repair-2026-11-07/pr65-exact.log",
+    "zs21_runtime/validation/windows-release-repair-2026-11-07/pr65-exact.xml"
+  ],
+  "tests_on_delivery_implementation": {
+    "pr66-exact-shared": {
+      "tests": 1000,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "pr66-exact-pair-c": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "archive_sha256": "ee67e161a55da08846d17f31e772012dced2ee03e386b7757a7538f7b8b0a7f0",
+  "archive_member_hashes_verified": 139,
+  "archive_original_bytes_unchanged": true,
+  "pr33_changed": false,
+  "competition_budget_accepted": false
+}

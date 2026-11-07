@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-07",
+  "purpose": "current Windows native release identity after PR65 portability source change",
+  "native_source_revision": "e6a5701f481dc4ab4710f49b7727056ec58f9b50",
+  "integration_parent": "1047bb042d6cb7df054089d1c5f96c5c4dc8b372",
+  "compiler": "x86_64-w64-mingw32-g++.exe (conda-forge gcc 16.2.0-7) 16.2.0\nCopyright (C) 2026 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+  "build_command": "pixi run --manifest-path zs21_runtime/pixi.toml --locked -e darkchess python -X utf8 zs21_runtime/scripts/build.py --native-only --output <fresh-build-directory>",
+  "sources": {
+    "pair_a_prep/zs21/native/inference.cpp": "7b95d76abdf2954940cbd47d9f9eeb907fc6c4a2f1027e3d08e54d3929ccb296"
+  },
+  "artifacts": {
+    "pair_a_prep/zs21/native/inference.dll": "9d9e13686381baaba08d090e85647f9bba557e01896facc71d9db96aba8e581a"
+  },
+  "environment": {
+    "zs21_runtime/pixi.toml": "8d880ca93906357082e4ac2db8917e29da54d360a8b616eb2b7a7e7f6a6414e3",
+    "zs21_runtime/pixi.lock": "6546666bc832e2733a0871a9b63f4e021b6381c5d330fe3d6fe5a84acc8218b7"
+  },
+  "stockfish_binary_rebuilt": false,
+  "historical_results_relabelled": false
+}

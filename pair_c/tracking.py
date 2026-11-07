@@ -39,6 +39,7 @@ class RecordingTracker:
                 "weighting": belief.weighting if belief is not None else None,
             }
             for field in ("status", "stopped_by", "support_complete", "expansion_complete",
-                          "retained_count", "state_count", "attempted_transitions", "accounted_bytes"):
+                          "retained_count", "state_count", "attempted_transitions", "accounted_bytes",
+                          "memory_inventory_count", "memory_inventory_ms", "temporary_peak_bytes"):
                 row[field] = getattr(result, field, None)
             self.record(row)
