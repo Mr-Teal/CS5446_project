@@ -1,0 +1,5 @@
+tools/
+one_game_result.json
+__pycache__/
+runs/
+/TODO

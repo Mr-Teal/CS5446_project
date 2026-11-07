@@ -108,6 +108,9 @@ h4 { margin: 0 0 6px; font-size: 0.9rem; }
 .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; }
 .fields { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 0.82rem; }
 .fields label { display: inline-flex; align-items: center; gap: 6px; }
+#new-game { min-width: 0; max-width: 100%; }
+#new-game .fields label { min-width: 0; max-width: 100%; }
+#new-game select { min-width: 0; max-width: 100%; }
 
 /* ---- banners ---- */
 .banners { display: flex; flex-direction: column; gap: 6px; margin: 12px 0 0; }

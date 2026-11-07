@@ -188,3 +188,5 @@ it does not establish that a FoW rules implementation passes the cases.
 ### Frozen warm/cold comparison
 
 [Controlled frozen-target diagnostics](docs/frozen_warm_cold.md) compare existing heuristic warm state with seeded and round-aligned cold controls on identical sampled gadget trees. Finite-game gaps are not full-game exploitability or win rates; live defaults and projected labels are unchanged.
+
+Validation handoff: use the [separate locked Pair A and torch-enabled Pair C commands](docs/validation_commands.md). Combined collection has a duplicate test-module name; the ZS21 lock does not include torch.

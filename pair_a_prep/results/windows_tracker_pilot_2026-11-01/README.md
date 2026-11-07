@@ -115,3 +115,28 @@ under either tested budget. A reviewed approximation or a declared restricted
 position/length protocol is a team decision. Do not silently prune, substitute
 the referee state, discard failures or repeatedly raise budgets until one run
 succeeds. Obscuro search itself needs no new mechanism for these checks.
+
+## PR62 reproducibility correction
+
+The original artifact manifest accidentally hashed CRLF working copies for
+several files while Git contained LF blobs. The replacement manifest hashes
+the actual published bytes, with `-text` attributes preserving them. This is
+a metadata correction, not a rerun. `summary.json`, `evidence.zip` and the two
+pilot configurations remain byte-identical to the previous published blobs.
+
+The original PR60 `profile_update.py` is restored byte for byte so its
+unchanged historical manifest verifies. The measured Windows variant is
+preserved separately as `profile_update_windows_v1.py`, byte-identical to
+the script in the measured revision. The controls now invoke that version
+with an explicit original input path. `provenance-correction.json` records
+both script hashes and the historical execution-manifest interpretation.
+The 134-entry manifest in `summary.json` remains execution provenance; its
+old profiler entry maps to the preserved Windows variant, not the restored
+current file. No old source identity has been relabelled.
+
+Verify the published artifact hashes, preserved evidence and historical
+profiler manifest with:
+
+```powershell
+python pair_a_prep/results/windows_tracker_pilot_2026-11-01/verify_evidence.py
+```
