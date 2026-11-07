@@ -146,8 +146,8 @@ def test_small_memory_on_output_resume_keeps_graph_and_can_retry(monkeypatch, ba
     actual, reference, stream = prepare(backend, 2)
     expected = reference.update(*stream[2])
     partial = interrupt_output(monkeypatch,
-        lambda **budget: actual.update_budgeted(*stream[2], **budget), "time")
-    cap = 0 if affordable == 0 else actual.storage_stats()["owned_bytes"] + 512 + 80 * 3
+        lambda **budget: actual.update_budgeted(*stream[2], memory_budget_mb=64, **budget), "time")
+    cap = 0 if affordable == 0 else partial.accounted_bytes + 512 + 80 * 3
     limited = actual.resume(memory_budget_mb=cap / 1024**2)
     assert limited.stopped_by == "memory"
     if affordable == 0:

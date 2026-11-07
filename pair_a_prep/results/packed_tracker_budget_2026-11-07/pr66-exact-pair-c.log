@@ -1,0 +1,8 @@
+................                                                         [100%]
+============================== warnings summary ===============================
+..\..\.pixi\envs\pair-a-validation\Lib\site-packages\chess\engine.py:54
+  D:\workspace\nuswork\.pixi\envs\pair-a-validation\Lib\site-packages\chess\engine.py:54: DeprecationWarning: 'asyncio.DefaultEventLoopPolicy' is deprecated and slated for removal in Python 3.16
+    EventLoopPolicy = asyncio.DefaultEventLoopPolicy
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+16 passed, 1 warning in 4.23s
