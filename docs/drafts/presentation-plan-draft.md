@@ -2,7 +2,7 @@
 
 Presentation plan for a 12-minute presentation followed by 3-minute Q&A
 
-7 November 2026. Twenty-six core slides, eight hidden backups. Proposed Presenter 1: slides 1–11 (5:25). Proposed Presenter 2: slides 12–26 (7:00). One handoff after slide 11; names and team agreement pending.
+8 November 2026. Twenty-six core slides, eight hidden backups. Bryan: slides 1–11 (5:25). Colin: slides 12–26 (7:00). One handoff from Bryan to Colin after slide 11.
 
 ## The argument
 
@@ -45,6 +45,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 ### Slide 1 Fog of War Chess
 
+**Presenter:** Bryan
+
 **Purpose:** Project and team introduction. Planned 20 seconds.
 
 **Say:** Hello everyone. Today we’ll be presenting our Fog of War Chess project. Our agent has to choose moves without seeing the full board. We explored how it can keep track of what might be hidden, and whether learning more accurate position values helps it make better decisions.
@@ -52,6 +54,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 **Transition:** Let’s start with a situation the agent could face.
 
 ### Slide 2 Where would you move?
+
+**Presenter:** Bryan
 
 **Purpose:** Hidden information. Planned 25 seconds.
 
@@ -63,6 +67,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 ### Slide 3 Possibility A
 
+**Presenter:** Bryan
+
 **Purpose:** Hidden information. Planned 20 seconds.
 
 **Say:** Suppose Black’s rook is here. Any of the three moves to the left would put our king in its path, so Black could capture it on the next turn.
@@ -73,6 +79,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 ### Slide 4 Possibility B
 
+**Presenter:** Bryan
+
 **Purpose:** Hidden information. Planned 20 seconds.
 
 **Say:** If the rook were on the other side, the three moves to the right would allow it to capture our king instead. Our view of the board would still be exactly the same.
@@ -80,6 +88,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 **Transition:** There’s another possibility.
 
 ### Slide 5 Possibility C
+
+**Presenter:** Bryan
 
 **Purpose:** Hidden information. Planned 25 seconds.
 
@@ -89,6 +99,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 ### Slide 6 Fog of War Chess
 
+**Presenter:** Bryan
+
 **Purpose:** Game and problem formulation. Planned 35 seconds.
 
 **Say:** In Fog of War Chess, we win by capturing the opponent’s king. We can only see part of the board, and the game doesn’t stop us from moving into danger. Each move changes the position and what we can see. For our agent, this means choosing actions with only partial information.
@@ -96,6 +108,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 **Transition:** But the current view isn’t all the information we have.
 
 ### Slide 7 A capture reveals a hidden rook
+
+**Presenter:** Bryan
 
 **Purpose:** Historical observations. Planned 30 seconds.
 
@@ -105,6 +119,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 ### Slide 8 History filters the possible boards
 
+**Presenter:** Bryan
+
 **Purpose:** Belief tracking. Planned 35 seconds.
 
 **Say:** If we forget the capture and look only at what we can see now, all three positions fit. Remembering the capture rules out A and B, leaving C. That’s why our agent needs a belief tracker: it keeps track of which hidden boards still fit what has happened so far.
@@ -112,6 +128,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 **Transition:** This changes the information our agent uses to make a decision.
 
 ### Slide 9 Information available for a decision
+
+**Presenter:** Bryan
 
 **Purpose:** Sequential decision formulation. Planned 45 seconds.
 
@@ -121,6 +139,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 ### Slide 10 Choosing a move under uncertainty
 
+**Presenter:** Bryan
+
 **Purpose:** Approach. Planned 35 seconds.
 
 **Say:** We consider possible boards from the tracker and use search to compare moves and the opponent’s replies. When search stops, a value function estimates how good the resulting positions are. We already have the rules to simulate moves. What we want to learn is a better value estimate, and then test whether it helps us choose better moves.
@@ -129,23 +149,29 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 ### Slide 11 One observation, several possible hidden states
 
+**Presenter:** Bryan
+
 **Purpose:** Demonstration. Planned 35 seconds.
 
 **Say:** This time, we’re looking from the Black bot’s perspective. It can’t see White’s knight, so it considers different places the knight could be. These two boards both fit what it can observe. The agent has to evaluate moves across such possibilities. This particular recording used a simple material score.
 
-**Transition:** I’ll hand over to my teammate to explain how we learned and tested position values.
+**Transition:** I’ll hand over to Colin to explain how we learned and tested position values.
 
-**Delivery cues (not spoken):** Handoff to Presenter 2 after this slide.
+**Delivery cues (not spoken):** Handoff from Bryan to Colin after this slide.
 
 ### Slide 12 Three ways to learn position values
 
+**Presenter:** Colin
+
 **Purpose:** Value learning and training targets. Planned 25 seconds.
 
-**Say:** Thanks. We compared three ways to learn position values. Distillation learns to match a stronger engine. Monte Carlo learns from completed-game outcomes. TD learns from the estimate at the next position. We first compared them using the same linear model, then tested a separate neural model in games.
+**Say:** Thanks, Bryan. We compared three ways to learn position values. Distillation learns to match a stronger engine. Monte Carlo learns from completed-game outcomes. TD learns from the estimate at the next position. We first compared them using the same linear model, then tested a separate neural model in games.
 
 **Transition:** For Monte Carlo, the target comes from how the game ends.
 
 ### Slide 13 Monte Carlo learns from completed returns
+
+**Presenter:** Colin
 
 **Purpose:** Monte Carlo prediction. Planned 35 seconds.
 
@@ -155,6 +181,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 ### Slide 14 TD bootstraps from the next estimate
 
+**Presenter:** Colin
+
 **Purpose:** Temporal-difference prediction. Planned 35 seconds.
 
 **Say:** TD uses the value estimate at the next position. That next position belongs to the opponent, so we reverse the sign to put it back in our player’s perspective. At the end of the game, we use the actual outcome. We fitted these targets from recorded games, rather than learning during live play.
@@ -162,6 +190,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 **Transition:** We then tested what each method learned to predict.
 
 ### Slide 15 Distillation best matched the engine teacher
+
+**Presenter:** Colin
 
 **Purpose:** Offline teacher-prediction result. Planned 30 seconds.
 
@@ -171,6 +201,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 ### Slide 16 MC and TD better matched recorded outcomes
 
+**Presenter:** Colin
+
 **Purpose:** Offline outcome-prediction result. Planned 30 seconds.
 
 **Say:** MC and TD did slightly better at predicting the recorded outcomes. That means predicting returns under the policy that played those games, rather than optimal play. This chart uses a different metric and evaluation set from the previous one, so we compare methods within each chart. So far, we’ve only tested predictions.
@@ -178,6 +210,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 **Transition:** To test actual play, we ran a separate experiment with a neural value model.
 
 ### Slide 17 Can a learned evaluator improve play?
+
+**Presenter:** Colin
 
 **Purpose:** Learning method. Planned 30 seconds.
 
@@ -187,6 +221,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 ### Slide 18 Evaluation: prediction, play and cost
 
+**Presenter:** Colin
+
 **Purpose:** Experimental comparison. Planned 25 seconds.
 
 **Say:** We played each opening twice, swapping the agents’ colours. Both agents looked one move ahead in the outer planner. We compared game scores and time per move, alongside a separate prediction check. Their computational costs differed, so the games weren’t an equal-time comparison.
@@ -195,6 +231,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 ### Slide 19 Prediction error decreased by about 20%
 
+**Presenter:** Colin
+
 **Purpose:** Prediction result. Planned 30 seconds.
 
 **Say:** Yes. Prediction error fell by about twenty percent. But we also used this development data to help choose the model, so it isn’t an independent test. The model agreed more closely with the stronger engine. The next question is whether that helped it win more points.
@@ -202,6 +240,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 **Transition:** The game results were less conclusive.
 
 ### Slide 20 The games did not establish a playing gain
+
+**Presenter:** Colin
 
 **Purpose:** Outcome result. Planned 45 seconds.
 
@@ -213,6 +253,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 ### Slide 21 The learned correction took about 3× as long
 
+**Presenter:** Colin
+
 **Purpose:** Resource result. Planned 25 seconds.
 
 **Say:** The learned correction took about three times as long per move. We therefore got more accurate predictions at a higher cost, without a demonstrated gain in game score. That matters because extra computation could also be spent searching further ahead.
@@ -220,6 +262,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 **Transition:** Why might smaller prediction errors still fail to improve the chosen move?
 
 ### Slide 22 The reference slightly prefers Move A
+
+**Presenter:** Colin
 
 **Purpose:** Illustrative ranking reference. Planned 20 seconds.
 
@@ -229,6 +273,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 ### Slide 23 Large value errors can preserve the choice
 
+**Presenter:** Colin
+
 **Purpose:** Illustrative baseline choice. Planned 15 seconds.
 
 **Say:** These estimates are far from the reference values, but A still ranks above B. Despite the large errors, the agent chooses the preferred action.
@@ -236,6 +282,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 **Transition:** Now let’s make the predictions more accurate overall.
 
 ### Slide 24 Closer values can still change the choice
+
+**Presenter:** Colin
 
 **Purpose:** Illustrative learned choice. Planned 20 seconds.
 
@@ -245,6 +293,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 ### Slide 25 Conclusions
 
+**Presenter:** Colin
+
 **Purpose:** Conclusion. Planned 40 seconds.
 
 **Say:** Observation history helps our agent narrow down what might be hidden. But once we have those possible states, a more accurate value function doesn’t automatically mean better decisions. Our learned correction improved prediction, cost more time, and did not establish a gain in game score. We need to judge it as part of the agent that uses it.
@@ -252,6 +302,8 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 **Transition:** The next test should make that trade-off explicit.
 
 ### Slide 26 Next evaluation
+
+**Presenter:** Colin
 
 **Purpose:** Next evaluation. Planned 15 seconds.
 
@@ -293,7 +345,7 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 ## Delivery and rehearsal
 
-Presenter 1 covers the introduction, hidden-state examples, information formulation and the aligned recorded demo (slides 1–11, retained allocation 5:25). Presenter 2 covers learning targets, experiments, interpretation and conclusions (slides 12–26, 7:00). Handoff once after slide 11. Confirm names and responsibilities with the team. Both presenters prepare for Q&A.
+Bryan covers the introduction, hidden-state examples, information formulation and the aligned recorded demo (slides 1–11, retained allocation 5:25). Colin covers learning targets, experiments, interpretation and conclusions (slides 12–26, 7:00). Handoff once after slide 11. Bryan and Colin both prepare for Q&A.
 
 The retained allocations total 12:25; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
 
