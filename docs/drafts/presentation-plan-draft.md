@@ -2,49 +2,58 @@
 
 Presentation plan for a 12-minute presentation followed by 3-minute Q&A
 
-6 November 2026. Twenty-seven core slides, eight hidden backups. Presenter names remain unassigned. Suggested split: Presenter 1 covers slides 1–12 (5:45), and Presenter 2 covers slides 13–27 (7:00), with one handoff after slide 12. This is a proposed allocation for team agreement.
+7 November 2026. Twenty-eight core slides, eight hidden backups. Presenter names remain unassigned. Suggested split: Presenter 1 covers slides 1–13 (6:05), and Presenter 2 covers slides 14–28 (7:00), with one handoff after slide 13. This is a proposed allocation for team agreement.
 
 ## The argument
 
-This presentation asks how to choose actions from incomplete observations and which learned values improve those decisions. It connects the worked example to state, evidence, action, return and policy; explains MC, TD and distillation targets; and separates offline prediction from the game outcomes of an induced decision rule. A before/after capture example shows why historical observations constrain the hidden state, and a second slide filters candidate boards using that history. Slide 10 connects belief tracking to search and the learned position values, replacing its repeated rook diagrams. The existing content is retained, with the later comparisons and ranking example split into shorter visual stages. The hypotheses slide redraws two exact saved hypotheses as native diagrams to replace its blurred crop. Detailed evidence stays in backup.
+This presentation asks how to choose actions from incomplete observations and which learned values improve those decisions. It connects the worked example to state, evidence, action, return and policy; explains MC, TD and distillation targets; and separates offline prediction from the game outcomes of an induced decision rule. A before/after capture example shows why historical observations constrain the hidden state, and a second slide filters candidate boards using that history. Slide 11 connects belief tracking to search and the learned position values, replacing its repeated rook diagrams. The existing content is retained, with the later comparisons and ranking example split into shorter visual stages. The hypotheses slide redraws two exact saved hypotheses as native diagrams to replace its blurred crop. Detailed evidence stays in backup.
 
-The two history-example slides add 30 seconds each. Every existing slide keeps its prior speaking allocation. The planned core therefore totals 12 minutes 45 seconds, 45 seconds beyond the 12-minute speaking slot. Delivery and rehearsal must resolve that overrun; no unrelated speaking budget has been reduced. These are planned timings, not measured rehearsal times. The confirmed total slot remains 15 minutes: 12 minutes presentation followed by 3 minutes Q&A.
+The team introduction adds 20 seconds. The two history-example slides retain 30 seconds each, and every other existing slide keeps its prior speaking allocation. The planned core therefore totals 13 minutes 5 seconds, 65 seconds beyond the 12-minute speaking slot. Delivery and rehearsal must resolve that overrun; no unrelated speaking budget has been reduced. These are planned timings, not measured rehearsal times. The confirmed total slot remains 15 minutes: 12 minutes presentation followed by 3 minutes Q&A.
 
 ## Run of show
 
 | Slide | Slide purpose or finding | Planned time |
 | --- | --- | --- |
-| 1 | Where would you move? | 0:25 |
-| 2 | Possibility A: every left-file move is exposed | 0:20 |
-| 3 | Possibility B: every right-file move is exposed | 0:20 |
-| 4 | Possibility C: the king is already in check | 0:25 |
-| 5 | Fog of War Chess | 0:35 |
-| 6 | Every move can be dangerous in a hidden state | 0:40 |
-| 7 | A capture reveals a hidden queen | 0:30 |
-| 8 | History filters the possible boards | 0:30 |
-| 9 | Decision making from private observations | 0:45 |
-| 10 | Choosing a move under uncertainty | 0:35 |
-| 11 | The player acts on a partial board | 0:20 |
-| 12 | Fog Lab exposes the agent’s hypotheses | 0:20 |
-| 13 | Three ways to learn position values | 0:25 |
-| 14 | Monte Carlo learns from completed returns | 0:35 |
-| 15 | TD bootstraps from the next estimate | 0:35 |
-| 16 | Distillation best matched the engine teacher | 0:30 |
-| 17 | MC and TD better matched recorded outcomes | 0:30 |
-| 18 | Can a learned evaluator improve play? | 0:30 |
-| 19 | Evaluation: prediction, play and cost | 0:25 |
-| 20 | Prediction error decreased by about 20% | 0:30 |
-| 21 | The games did not establish a playing gain | 0:45 |
-| 22 | The learned correction took about 3× as long | 0:25 |
-| 23 | The reference slightly prefers Move A | 0:20 |
-| 24 | Large value errors can preserve the choice | 0:15 |
-| 25 | Closer values can still change the choice | 0:20 |
-| 26 | Conclusions | 0:40 |
-| 27 | Next evaluation | 0:15 |
+| 1 | Fog of War Chess: project and team | 0:20 |
+| 2 | Where would you move? | 0:25 |
+| 3 | Possibility A: every left-file move is exposed | 0:20 |
+| 4 | Possibility B: every right-file move is exposed | 0:20 |
+| 5 | Possibility C: the king is already in check | 0:25 |
+| 6 | Fog of War Chess | 0:35 |
+| 7 | Every move can be dangerous in a hidden state | 0:40 |
+| 8 | A capture reveals a hidden queen | 0:30 |
+| 9 | History filters the possible boards | 0:30 |
+| 10 | Decision making from private observations | 0:45 |
+| 11 | Choosing a move under uncertainty | 0:35 |
+| 12 | The player acts on a partial board | 0:20 |
+| 13 | Fog Lab exposes the agent’s hypotheses | 0:20 |
+| 14 | Three ways to learn position values | 0:25 |
+| 15 | Monte Carlo learns from completed returns | 0:35 |
+| 16 | TD bootstraps from the next estimate | 0:35 |
+| 17 | Distillation best matched the engine teacher | 0:30 |
+| 18 | MC and TD better matched recorded outcomes | 0:30 |
+| 19 | Can a learned evaluator improve play? | 0:30 |
+| 20 | Evaluation: prediction, play and cost | 0:25 |
+| 21 | Prediction error decreased by about 20% | 0:30 |
+| 22 | The games did not establish a playing gain | 0:45 |
+| 23 | The learned correction took about 3× as long | 0:25 |
+| 24 | The reference slightly prefers Move A | 0:20 |
+| 25 | Large value errors can preserve the choice | 0:15 |
+| 26 | Closer values can still change the choice | 0:20 |
+| 27 | Conclusions | 0:40 |
+| 28 | Next evaluation | 0:15 |
 
 ## Slide notes
 
-### Slide 1 Where would you move?
+### Slide 1 Fog of War Chess
+
+**Purpose:** Project and team introduction. Planned 20 seconds.
+
+**Say:** Hello, we are Ding Chiyu, Pei Shengxin, Quek Hongqiang Colin, Kuah Jun Hong Bryan, Wang Zhijian and Lin Tzu-Chun. Our project studies decision making under partial observability through Fog of War Chess, with a focus on how learned position values support action choices.
+
+**Transition:** Let’s begin with a decision where the opponent’s pieces are hidden.
+
+### Slide 2 Where would you move?
 
 **Purpose:** Hidden information. Planned 25 seconds.
 
@@ -52,7 +61,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** The unseen rook can threaten an entire destination file.
 
-### Slide 2 Possibility A: every left-file move is exposed
+### Slide 3 Possibility A: every left-file move is exposed
 
 **Purpose:** Hidden information. Planned 20 seconds.
 
@@ -60,7 +69,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** The same evidence also permits a rook on the right.
 
-### Slide 3 Possibility B: every right-file move is exposed
+### Slide 4 Possibility B: every right-file move is exposed
 
 **Purpose:** Hidden information. Planned 20 seconds.
 
@@ -68,7 +77,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** The rook could also be on the king’s current file.
 
-### Slide 4 Possibility C: the king is already in check
+### Slide 5 Possibility C: the king is already in check
 
 **Purpose:** Hidden information. Planned 25 seconds.
 
@@ -76,7 +85,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** These are three different hidden states behind the same visible board.
 
-### Slide 5 Fog of War Chess
+### Slide 6 Fog of War Chess
 
 **Purpose:** Game and problem formulation. Planned 35 seconds.
 
@@ -84,7 +93,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** How should the agent compare all eight moves across these hidden possibilities?
 
-### Slide 6 Every move can be dangerous in a hidden state
+### Slide 7 Every move can be dangerous in a hidden state
 
 **Purpose:** Hidden information. Planned 40 seconds.
 
@@ -92,7 +101,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** A capture example shows why private history matters as well as the current view.
 
-### Slide 7 A capture reveals a hidden queen
+### Slide 8 A capture reveals a hidden queen
 
 **Purpose:** Historical observations. Planned 30 seconds.
 
@@ -100,7 +109,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** The capture tells us which hidden boards remain possible.
 
-### Slide 8 History filters the possible boards
+### Slide 9 History filters the possible boards
 
 **Purpose:** Belief tracking. Planned 30 seconds.
 
@@ -108,7 +117,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** This is why our decision rule uses the current observation together with private history.
 
-### Slide 9 Decision making from private observations
+### Slide 10 Decision making from private observations
 
 **Purpose:** Sequential decision formulation. Planned 45 seconds.
 
@@ -116,7 +125,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** Our architecture separates reconstructing states, planning and value estimation.
 
-### Slide 10 Choosing a move under uncertainty
+### Slide 11 Choosing a move under uncertainty
 
 **Purpose:** Approach. Planned 35 seconds.
 
@@ -124,7 +133,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** The interface lets us inspect the observations and possible boards used by the agent.
 
-### Slide 11 The player acts on a partial board
+### Slide 12 The player acts on a partial board
 
 **Purpose:** Demonstration. Planned 20 seconds.
 
@@ -132,7 +141,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** We can also inspect what the bot thinks might be hidden.
 
-### Slide 12 Fog Lab exposes the agent’s hypotheses
+### Slide 13 Fog Lab exposes the agent’s hypotheses
 
 **Purpose:** Demonstration. Planned 20 seconds.
 
@@ -142,7 +151,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Delivery cue:** Handoff to Presenter 2 after this slide.
 
-### Slide 13 Three ways to learn position values
+### Slide 14 Three ways to learn position values
 
 **Purpose:** Value learning and training targets. Planned 25 seconds.
 
@@ -150,7 +159,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** Monte Carlo waits for the completed return.
 
-### Slide 14 Monte Carlo learns from completed returns
+### Slide 15 Monte Carlo learns from completed returns
 
 **Purpose:** Monte Carlo prediction. Planned 35 seconds.
 
@@ -158,7 +167,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** TD can instead construct a target from its current estimate of what follows.
 
-### Slide 15 TD bootstraps from the next estimate
+### Slide 16 TD bootstraps from the next estimate
 
 **Purpose:** Temporal-difference prediction. Planned 35 seconds.
 
@@ -166,7 +175,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** How do these target sources compare on prediction?
 
-### Slide 16 Distillation best matched the engine teacher
+### Slide 17 Distillation best matched the engine teacher
 
 **Purpose:** Offline teacher-prediction result. Planned 30 seconds.
 
@@ -174,7 +183,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** Changing the evaluation target changes the ordering.
 
-### Slide 17 MC and TD better matched recorded outcomes
+### Slide 18 MC and TD better matched recorded outcomes
 
 **Purpose:** Offline outcome-prediction result. Planned 30 seconds.
 
@@ -182,7 +191,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** We next ask whether a separate neural correction improves the actual decision process.
 
-### Slide 18 Can a learned evaluator improve play?
+### Slide 19 Can a learned evaluator improve play?
 
 **Purpose:** Learning method. Planned 30 seconds.
 
@@ -190,7 +199,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** We therefore compare prediction quality, game outcome and computational cost.
 
-### Slide 19 Evaluation: prediction, play and cost
+### Slide 20 Evaluation: prediction, play and cost
 
 **Purpose:** Experimental comparison. Planned 25 seconds.
 
@@ -198,7 +207,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** First, did the learned correction improve the value estimate?
 
-### Slide 20 Prediction error decreased by about 20%
+### Slide 21 Prediction error decreased by about 20%
 
 **Purpose:** Prediction result. Planned 30 seconds.
 
@@ -206,7 +215,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** The paired games test the decision outcome directly.
 
-### Slide 21 The games did not establish a playing gain
+### Slide 22 The games did not establish a playing gain
 
 **Purpose:** Outcome result. Planned 45 seconds.
 
@@ -214,7 +223,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** The learned correction also has a computational cost.
 
-### Slide 22 The learned correction took about 3× as long
+### Slide 23 The learned correction took about 3× as long
 
 **Purpose:** Resource result. Planned 25 seconds.
 
@@ -222,7 +231,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** One reason prediction and play can differ is the ranking of close alternatives.
 
-### Slide 23 The reference slightly prefers Move A
+### Slide 24 The reference slightly prefers Move A
 
 **Purpose:** Illustrative ranking reference. Planned 20 seconds.
 
@@ -230,7 +239,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** An inaccurate baseline can still rank these moves correctly.
 
-### Slide 24 Large value errors can preserve the choice
+### Slide 25 Large value errors can preserve the choice
 
 **Purpose:** Illustrative baseline choice. Planned 15 seconds.
 
@@ -238,7 +247,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** Now consider estimates that are much closer in absolute value.
 
-### Slide 25 Closer values can still change the choice
+### Slide 26 Closer values can still change the choice
 
 **Purpose:** Illustrative learned choice. Planned 20 seconds.
 
@@ -246,7 +255,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** That distinction connects the two experimental findings.
 
-### Slide 26 Conclusions
+### Slide 27 Conclusions
 
 **Purpose:** Conclusion. Planned 40 seconds.
 
@@ -254,7 +263,7 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 **Transition:** The next evaluation should test that link inside the deeper-search system.
 
-### Slide 27 Next evaluation
+### Slide 28 Next evaluation
 
 **Purpose:** Next evaluation. Planned 15 seconds.
 
@@ -294,13 +303,13 @@ The two history-example slides add 30 seconds each. Every existing slide keeps i
 
 ## Delivery and rehearsal
 
-The proposed two-presenter allocation keeps each person on one continuous section: Presenter 1 introduces the problem, historical evidence, belief tracking and demonstration (slides 1–12); Presenter 2 explains learning methods, evaluation, findings and conclusions (slides 13–27). Handoff once after slide 12. Confirm names and responsibilities with the team. Both presenters prepare for Q&A. All planned slide times are retained. Each speaker must understand both findings. Record a complete rehearsal with handovers and chart pauses. Slides 1–12 total 5:45; slides 13–27 retain 7:00. The first six worked-example and game-introduction slides take 2:45; do not repeat the rules or chess tactics. Use the retained demo slides as brief visual steps. The revised core totals 12:45. The speaker will manage delivery within the confirmed 12-minute presentation slot; existing speaking allocations have not been reduced. Cut secondary spoken detail before cutting the interpretation of the result. No rehearsal has been performed for this revision.
+The proposed two-presenter allocation keeps each person on one continuous section: Presenter 1 introduces the team and problem, historical evidence, belief tracking and demonstration (slides 1–13); Presenter 2 explains learning methods, evaluation, findings and conclusions (slides 14–28). Handoff once after slide 13. Confirm names and responsibilities with the team. Both presenters prepare for Q&A. All planned slide times are retained. Each speaker must understand both findings. Record a complete rehearsal with handovers and chart pauses. Slides 1–13 total 6:05; slides 14–28 retain 7:00. The six worked-example and game-introduction slides (2–7) take 2:45; do not repeat the rules or chess tactics. Use the retained demo slides as brief visual steps. The revised core totals 13:05. The speaker will manage delivery within the confirmed 12-minute presentation slot; existing speaking allocations have not been reduced. Cut secondary spoken detail before cutting the interpretation of the result. No rehearsal has been performed for this revision.
 
 Use the final slide as an academic conclusion and next evaluation, then invite questions. Reserve the full three minutes for Q&A. Answer the direct question first, state evidence and limitations, and open a backup only when it supports that answer. Check that a listener can explain the central findings after one viewing. On the uncertainty plot, point to equal points and the interval before giving the conclusion. Explain the demonstration through the partial board and possible boards, without reading the move table.
 
 ## Hidden backup navigation
 
-28: all seven archived match rows. 29: full value and move metrics. 30: offline belief context. 31: full MC/TD comparison. 32: retained-search prototype. 33: evaluator inventory. 34: contribution confirmations. 35: sources and scope. Hidden slides are skipped during the core slide show. The PDF includes all pages for review.
+29: all seven archived match rows. 30: full value and move metrics. 31: offline belief context. 32: full MC/TD comparison. 33: retained-search prototype. 34: evaluator inventory. 35: contribution confirmations. 36: sources and scope. Hidden slides are skipped during the core slide show. The PDF includes all pages for review.
 
 ## Sources and evidence boundaries
 
@@ -326,7 +335,7 @@ Use the final slide as an academic conclusion and next evaluation, then invite q
 
 **Demonstration:** The screenshot and two-ply game record are in presentation-assets/. It uses a material bot on a historical checkout. The displayed single-action timing is not an archived experiment measurement.
 
-**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 27-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
+**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 28-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
 
 **Contributions and AI assistance:** The existing individual contribution statements remain in backup and require each member's confirmation. Do not infer the human identity of xiaomiao-fong from the account name. Copilot assisted earlier drafts. Codex assisted the restructuring, rules-example checks and browser demonstration under Bryan's direction. No new training or formal match batch was run.
 
