@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from hashlib import sha256
-from struct import pack
+from struct import pack, unpack
 from zlib import crc32
 
 import chess
@@ -20,6 +20,42 @@ def position_key(board: chess.Board, *, effective_ep: bool = True) -> bytes:
     return pack("<10Q", board.pawns, board.knights, board.bishops, board.rooks,
                 board.queens, board.kings, board.occupied_co[chess.WHITE],
                 board.clean_castling_rights(), int(board.turn), 64 if ep is None else ep)
+
+
+# Six piece bitboards, white occupancy, cleaned castling rights and the promoted
+# mask as unsigned 64-bit words; then turn and the en passant square (64 for none)
+# as bytes; then the halfmove clock and fullmove number. 78 bytes in total, against
+# the 1,804 a chess.Board deep-measures.
+_STATE = "<9Q2B2H"
+
+
+def encode_state(board: chess.Board) -> bytes:
+    """The retained form of a state, and its dictionary key."""
+    return pack(_STATE, board.pawns, board.knights, board.bishops, board.rooks,
+                board.queens, board.kings, board.occupied_co[chess.WHITE],
+                board.clean_castling_rights(), board.promoted, int(board.turn),
+                64 if board.ep_square is None else board.ep_square,
+                board.halfmove_clock, board.fullmove_number)
+
+
+def decode_state(blob: bytes) -> chess.Board:
+    """Rebuild a board by assigning bitboards; never square by square."""
+    (pawns, knights, bishops, rooks, queens, kings, white, rights, promoted,
+     turn, ep, half, full) = unpack(_STATE, blob)
+    board = chess.Board(None)
+    board.pawns, board.knights, board.bishops = pawns, knights, bishops
+    board.rooks, board.queens, board.kings = rooks, queens, kings
+    occupied = pawns | knights | bishops | rooks | queens | kings
+    board.occupied = occupied
+    board.occupied_co[chess.WHITE] = white
+    board.occupied_co[chess.BLACK] = occupied ^ white
+    board.castling_rights = rights
+    board.promoted = promoted
+    board.turn = bool(turn)
+    board.ep_square = None if ep == 64 else ep
+    board.halfmove_clock = half
+    board.fullmove_number = full
+    return board
 
 
 @dataclass(slots=True, eq=False)
@@ -49,13 +85,17 @@ class PathNode:
 
 @dataclass(slots=True, eq=False)
 class StateNode:
-    board: chess.Board
+    packed: bytes
     paths: PathNode
 
-    def key(self) -> tuple:
-        b = self.board
-        return (position_key(b, effective_ep=False), b.promoted, b.halfmove_clock,
-                b.fullmove_number)
+    @property
+    def board(self) -> chess.Board:
+        """A fresh board for this state. Callers that need it twice should bind it."""
+        return decode_state(self.packed)
+
+    def key(self) -> bytes:
+        # The blob holds exactly the fields the old key tuple held, so it is the key.
+        return self.packed
 
 
 def position_bit(key: bytes) -> int:
@@ -192,7 +232,7 @@ class ObservationFilter:
 
 def successors(parent: StateNode, own_move: str | None, expected: ObservationFilter):
     """Yield valid transitions; reuse one temporary board with push/pop."""
-    board = parent.board.copy(stack=False)
+    board = parent.board
     actions = ([chess.Move.from_uci(own_move)] if own_move is not None
                else sorted(_available_fog_moves(board), key=lambda m: m.uci()))
     for action in actions:

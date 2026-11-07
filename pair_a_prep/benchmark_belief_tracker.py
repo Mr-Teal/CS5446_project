@@ -26,9 +26,26 @@ from .belief_tracker import BeliefTracker
 from .rules_adapter import RulesAdapter
 
 
+def _posix_memory_usage():
+    """VmRSS and VmHWM from /proc, the same pair the Windows branch reports."""
+    try:
+        with open("/proc/self/status", encoding="ascii") as status:
+            fields = {}
+            for line in status:
+                if line.startswith(("VmRSS:", "VmHWM:")):
+                    name, value = line.split()[:2]
+                    fields[name.rstrip(":")] = int(value) * 1024
+    except (OSError, ValueError):
+        return {}
+    if "VmRSS" not in fields:
+        return {}
+    return {"process_rss_bytes": fields["VmRSS"],
+            "process_peak_rss_bytes": fields.get("VmHWM", fields["VmRSS"])}
+
+
 def memory_usage():
     if sys.platform != "win32":
-        return {}
+        return _posix_memory_usage()
     class Counters(ctypes.Structure):
         _fields_ = [("cb", wintypes.DWORD), ("faults", wintypes.DWORD)] + [
             (n, ctypes.c_size_t) for n in ("peak_rss", "rss", "qpp", "qp",

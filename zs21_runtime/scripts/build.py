@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 
 RUNTIME = Path(__file__).resolve().parents[1]
 ROOT = RUNTIME.parent
@@ -16,14 +17,32 @@ def main():
     parser.add_argument("--native-only", action="store_true")
     parser.add_argument("--generic", action="store_true", help="SSE2 engine instead of AVX2/BMI2; timing requires separate validation")
     parser.add_argument("--output", type=Path, help="optional separate build directory for verification")
+    parser.add_argument("--native", action="store_true",
+                        help="build the inference library for this host instead of the mingw DLL; "
+                             "implies --native-only and does not reproduce the audited Windows artifact")
+    parser.add_argument("--host-engine", action="store_true",
+                        help="build the inference library AND the batch engine for this host "
+                             "from the vendored source; does not reproduce the audited Windows artifact")
     args = parser.parse_args()
-    compiler = shutil.which(os.environ.get("CXX", "x86_64-w64-mingw32-g++"))
+    # Either flag targets this host; only --native restricts the build to the library.
+    host = args.native or args.host_engine
+    default_cxx = "c++" if host else "x86_64-w64-mingw32-g++"
+    compiler = shutil.which(os.environ.get("CXX", default_cxx))
     if compiler is None:
-        raise RuntimeError("run with the Pixi darkchess environment")
+        raise RuntimeError("no C++ compiler found; run with the Pixi darkchess environment"
+                           if not host else "no host C++ compiler found; set CXX")
     native_source = ROOT / "pair_a_prep/zs21/native/inference.cpp"
-    native_target = (args.output / "inference.dll") if args.output else native_source.with_suffix(".dll")
+    suffix = ".dll"
+    if host:
+        suffix = ".dylib" if sys.platform == "darwin" else ".so"
+    native_target = (args.output / f"inference{suffix}") if args.output else native_source.with_suffix(suffix)
     native_target.parent.mkdir(parents=True, exist_ok=True)
-    common = ["-O3", "-std=c++17", "-static-libgcc", "-static-libstdc++", "-static"]
+    if host:
+        if args.native:
+            args.native_only = True
+        common = ["-O3", "-std=c++17", "-fPIC", "-fvisibility=hidden"]
+    else:
+        common = ["-O3", "-std=c++17", "-static-libgcc", "-static-libstdc++", "-static"]
     subprocess.run([compiler, "-shared", *common, str(native_source), "-o", str(native_target)], check=True)
     targets = [native_target]
     sources = [native_source]
@@ -33,7 +52,7 @@ def main():
                                            src / "nnue/features/half_kp.cpp"]
         engine_dir = args.output or RUNTIME / "engines/stockfish13-batch-v6"
         engine_dir.mkdir(parents=True, exist_ok=True)
-        target = engine_dir / "stockfish13.exe"
+        target = engine_dir / ("stockfish13" if host else "stockfish13.exe")
         flags = ["-DNDEBUG", "-DIS_64BIT", "-DUSE_SSE2", "-msse2", "-DNNUE_EMBEDDING_OFF", "-pthread"]
         if not args.generic:
             flags += ["-DUSE_AVX2", "-DUSE_SSSE3", "-DUSE_SSE41", "-DUSE_POPCNT", "-DUSE_PEXT",

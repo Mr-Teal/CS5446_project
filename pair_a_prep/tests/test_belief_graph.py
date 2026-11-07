@@ -6,7 +6,7 @@ from random import Random
 import pytest
 
 from pair_a_prep.belief_tracker import BeliefTracker, BeliefBudgetError
-from pair_a_prep._belief_graph import PathNode
+from pair_a_prep._belief_graph import encode_state, PathNode
 from pair_a_prep.rules_adapter import RulesAdapter
 from pair_a_prep.tests.reference_belief_tracker import BeliefTracker as Reference
 
@@ -222,7 +222,7 @@ def test_native_transition_filter_matches_python_on_random_play(seed):
         move = rng.choice(RULES.legal_moves(state))
         child = RULES.apply_move(state, move)
         key = position_key(state._board)
-        parent = StateNode(state.board_copy(), PathNode([], 1, key, position_bit(key)))
+        parent = StateNode(encode_state(state.board_copy()), PathNode([], 1, key, position_bit(key)))
         for viewer in ("white", "black"):
             expected = ObservationFilter(RULES.observe(child, viewer))
             own = move if mover == viewer else None
