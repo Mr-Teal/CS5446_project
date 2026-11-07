@@ -3,6 +3,8 @@ pair_a_prep/zs21/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,
 pair_a_prep/tests/test_zs21_*.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 pair_a_prep/tests/fixtures/zs21_*.npz -text
 zs21_runtime/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+# Keep published packed-tracker measurements and exact-target test evidence unchanged.
+pair_a_prep/results/packed_tracker_budget_2026-11-07/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 # Keep the pinned upstream documentation exactly as archived.
 zs21_runtime/third_party/stockfish13/UPSTREAM_README.md -whitespace
 # Preserve the measured tracker and its reproducibility archive byte for byte.
@@ -14,6 +16,3 @@ pair_a_prep/tests/reference_belief_tracker.py whitespace=blank-at-eol,space-befo
 pair_a_prep/results/belief_tracker_2026-10-31/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 pair_a_prep/results/tracker_budget_profile_2026-10-31/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 pair_a_prep/results/windows_tracker_pilot_2026-11-01/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
-
-# Keep published packed-tracker measurements and exact-target test evidence unchanged.
-pair_a_prep/results/packed_tracker_budget_2026-11-07/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
