@@ -38,6 +38,7 @@ const ui = {
   mode: null,         // "game" (the live game) or "replay" (a loaded record); null until there is one
   gameId: null,       // the live game: the server keeps only the newest
   scorerLabel: null,  // the live game's scorer, as the New game panel named it
+  botLabel: null,     // the live game's bot, as the New game panel named it
   replay: null,       // {id, plies, name} of the loaded replay
   full: null,         // the state at the end: the live game's latest, or the replay's last step
   state: null,        // the state on the screen, which the step controls move back and forth
@@ -84,20 +85,25 @@ async function loadConfig() {
     ui.notice = `Could not read Fog Lab's settings: ${error.message}`;
     return;
   }
-  const select = $("new-game").elements.scorer;
+  fillSelect($("new-game").elements.bot, ui.config.bots, ui.config.default_bot);
+  fillSelect($("new-game").elements.scorer, ui.config.scorers, ui.config.default_scorer);
+  const missing = ui.config.scorers.filter(info => !info.available);
+  $("unavailable").hidden = missing.length === 0;
+  $("unavailable").textContent = missing.length
+    ? `Not available here: ${missing.map(info => `${info.label} (${info.reason})`).join("; ")}.` : "";
+}
+
+/** Fill a New game select with `infos` ({id, label, available, reason}): an unavailable one is disabled, with its
+ * reason as the title. The chosen value is kept while it is still available, else `fallback` is chosen. */
+function fillSelect(select, infos, fallback) {
   const chosen = select.value;
-  select.replaceChildren(...ui.config.scorers.map(info => {
+  select.replaceChildren(...infos.map(info => {
     const option = new Option(info.available ? info.label : `${info.label} (unavailable)`, info.id);
     option.disabled = !info.available;
     if (!info.available) option.title = info.reason ?? "unavailable";
     return option;
   }));
-  const usable = id => ui.config.scorers.some(info => info.id === id && info.available);
-  select.value = usable(chosen) ? chosen : ui.config.default_scorer;
-  const missing = ui.config.scorers.filter(info => !info.available);
-  $("unavailable").hidden = missing.length === 0;
-  $("unavailable").textContent = missing.length
-    ? `Not available here: ${missing.map(info => `${info.label} (${info.reason})`).join("; ")}.` : "";
+  select.value = infos.some(info => info.id === chosen && info.available) ? chosen : fallback;
 }
 
 async function loadSaved() {
@@ -114,15 +120,16 @@ async function newGame(event) {
   event.preventDefault();
   if (ui.busy) return;
   const fields = $("new-game").elements;
-  const options = {human: fields.human.value, scorer: fields.scorer.value, guesses: Number(fields.guesses.value),
-                   seed: Number(fields.seed.value), fair: fields.fair.checked};
+  const options = {human: fields.human.value, bot: fields.bot.value, scorer: fields.scorer.value,
+                   guesses: Number(fields.guesses.value), seed: Number(fields.seed.value), fair: fields.fair.checked};
   const label = ui.config?.scorers.find(info => info.id === options.scorer)?.label ?? options.scorer;
+  const botLabel = ui.config?.bots.find(info => info.id === options.bot)?.label ?? options.bot;
   ui.notice = ui.info = null;
   await work(options.human === "white" ? "Starting the game\u2026" : "Starting the game; the bot may move first\u2026",
     async () => {
       const {state} = await api("/api/games", {method: "POST", body: JSON.stringify(options)});
       Object.assign(ui, {testing: fields.testing.checked && !options.fair, mainView: "you", scorerLabel: label,
-                         replay: null});
+                         botLabel, replay: null});
       showLive(state);
     }, async error => {
       ui.notice = `The game did not start: ${error.message}`;
@@ -348,6 +355,7 @@ function renderStatus(state) {
     parts.push(`Rules: ${config.rules.label}`);
     if (ui.mode === "game" && state) {
       const scorer = ui.scorerLabel ?? state.scorer ?? "?";
+      if (ui.botLabel) parts.push(`Bot: ${ui.botLabel}`);
       parts.push(`Scorer: ${scorer}${state.device ? ` on ${state.device}` : ""}`);
     }
   }
@@ -744,7 +752,7 @@ function download(name, text) {
 function writeSession() {
   try {
     sessionStorage.setItem(SESSION_KEY, JSON.stringify({gameId: ui.gameId, scorerLabel: ui.scorerLabel,
-      testing: ui.testing, mode: ui.mode, replay: ui.replay}));
+      botLabel: ui.botLabel, testing: ui.testing, mode: ui.mode, replay: ui.replay}));
   } catch {
     // storage can be switched off; the page works without it
   }
@@ -764,7 +772,8 @@ function readSession() {
 async function restore() {
   const saved = readSession();
   if (!saved) return;
-  Object.assign(ui, {testing: Boolean(saved.testing), scorerLabel: saved.scorerLabel ?? null});
+  Object.assign(ui, {testing: Boolean(saved.testing), scorerLabel: saved.scorerLabel ?? null,
+                   botLabel: saved.botLabel ?? null});
   const replay = saved.mode === "replay" && saved.replay ? saved.replay : null;
   if (!saved.gameId && !replay) return;
   await work(replay ? "Opening the replay\u2026" : "Opening the game\u2026", async () => {
