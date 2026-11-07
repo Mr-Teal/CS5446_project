@@ -6,7 +6,7 @@ page draws what it is sent and sends clicks. Routes (an error is {"error": messa
     GET  /                          the page, static/index.html
     GET  /static/<name>             a file directly inside static/, else 404
     GET  /api/config                {rules: {name, label}, scorers: [{id, label, available, reason}], default_scorer,
-                                    torch, machine}
+                                    bots: [{id, label, available, reason}], default_bot, torch, machine}
     POST /api/games                 GameOptions fields (scorer: default_scorer when absent) -> {id, state}; 409 once
                                     the app is closing
     GET  /api/games/<id>[?ply=n]    Session.state(n)
@@ -71,7 +71,7 @@ from .paths import lab_home, write_atomically
 from .record import GameRecord, view_state
 from .runs import RunBusy, RunManager
 from .scorers import ScorerInfo, ScorerOptions, available_scorers, default_scorer, open_scorer, torch_available
-from .session import GameOptions, Session
+from .session import BOTS, GameOptions, Session
 
 LOOPBACK = "127.0.0.1"
 LOCAL_NAMES = frozenset({"127.0.0.1", "localhost", "::1"})
@@ -243,6 +243,8 @@ class LabApp:
         return {"rules": {"name": self.rules.name, "label": self.rules.label},
                 "scorers": [dataclasses.asdict(info) for info in infos],
                 "default_scorer": default_scorer(infos),
+                "bots": [self._bot(bot_id) for bot_id in BOTS],
+                "default_bot": GameOptions.bot,
                 "torch": torch_available(),
                 "machine": _machine()}
 
@@ -256,13 +258,20 @@ class LabApp:
                 if info.available and info.id in failed else info
                 for info in available_scorers(self.scorer_opts)]
 
+    def _bot(self, bot_id: str) -> dict:
+        """The bot's row in the config: {id, label, available, reason}, where reason says why it cannot play under
+        the app's rules, or is None when it can."""
+        spec = BOTS[bot_id]
+        reason = None if spec.unavailable is None else spec.unavailable(self.rules)
+        return {"id": bot_id, "label": spec.label, "available": reason is None, "reason": reason}
+
     # ---- the live game ----
 
     def new_game(self, request: Request) -> dict:
         """Start a game and make it the live one, closing the old one. The old game is left alone if the new one
-        cannot be started: 400 for options that are wrong, a scorer that is unavailable or will not open, and a start
-        that the rules refuse. 409 once the app is closing, even for a game that was opening its scorers when it
-        closed: that one is closed at once (R19)."""
+        cannot be started: 400 for options that are wrong, a bot or a scorer that is unavailable, a scorer that will
+        not open, and a start that the rules refuse. 409 once the app is closing, even for a game that was opening its
+        scorers when it closed: that one is closed at once (R19)."""
         with self._lock:
             if self._closed:
                 raise ApiError(409, _CLOSING)
@@ -276,6 +285,9 @@ class LabApp:
             options = GameOptions(**fields)
         except (TypeError, ValueError) as error:
             raise ApiError(400, str(error)) from error
+        bot_row = self._bot(options.bot)
+        if not bot_row["available"]:
+            raise ApiError(400, bot_row["reason"])
         bot, inspector = self._open_scorers(options.scorer)
         try:
             session = Session(options, self.rules, bot, inspector)  # owns both scorers: closes them if it raises
