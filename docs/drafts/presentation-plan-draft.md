@@ -47,17 +47,17 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 **Purpose:** Project and team introduction. Planned 20 seconds.
 
-**Say:** Hello everyone. We’re presenting our project on Fog of War Chess, where an agent has to act without seeing the full board. We looked at how to keep track of that uncertainty, and whether learning more accurate position values actually leads to better decisions.
+**Say:** Hello everyone. Today we’ll be presenting our Fog of War Chess project. Our agent has to choose moves without seeing the full board. We explored how it can keep track of what might be hidden, and whether learning more accurate position values helps it make better decisions.
 
-**Transition:** I’ll start with a simple example of that uncertainty.
+**Transition:** Let’s start with a situation the agent could face.
 
 ### Slide 2 Where would you move?
 
 **Purpose:** Hidden information. Planned 25 seconds.
 
-**Say:** You control the white king. The icons show which pieces each side has left, but the opponent’s locations are hidden. All eight moves are available. Which would you choose?
+**Say:** Look at this chessboard. White has only a king left, while Black still has a king and a rook. If you were playing White, what move would you make? All eight surrounding squares are available, but you can’t see where Black’s pieces are.
 
-**Transition:** Here are a few positions that could be hidden behind that same view.
+**Transition:** Let’s look at what could be hidden.
 
 **Delivery cues (not spoken):** Pause briefly for the audience to consider the choice. Avoid explaining chess notation or individual squares.
 
@@ -65,75 +65,75 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 **Purpose:** Hidden information. Planned 20 seconds.
 
-**Say:** In this possibility, all three moves to the left would allow the hidden rook to capture our king. Those moves are marked in red.
+**Say:** Suppose Black’s rook is here. Any of the three moves to the left would put our king in its path, so Black could capture it on the next turn.
 
-**Transition:** But the hidden position could be different.
+**Transition:** But we don’t know that the rook is there.
 
-**Delivery cues (not spoken):** Indicate the three red dots together, without naming their squares.
+**Delivery cues (not spoken):** Indicate the three threatened destinations together without describing their colour or naming squares.
 
 ### Slide 4 Possibility B: all three moves right are exposed
 
 **Purpose:** Hidden information. Planned 20 seconds.
 
-**Say:** Here, the same observation hides a threat on the other side. Now all three moves to the right are dangerous.
+**Say:** If the rook were on the other side, the three moves to the right would allow it to capture our king instead. Our view of the board would still be exactly the same.
 
-**Transition:** A third position changes the consequences again.
+**Transition:** There’s another possibility.
 
 ### Slide 5 Possibility C: the king is already in check
 
 **Purpose:** Hidden information. Planned 25 seconds.
 
-**Say:** Here, our king is already under attack. Moving up or down still allows it to be captured. All eight moves remain available under these rules.
+**Say:** The rook could already be attacking our king without us knowing. Moving straight up or down would still leave the king exposed. In this version of chess, those moves are allowed even though Black could capture us next.
 
-**Transition:** That’s the setting we’re working with.
+**Transition:** So what makes this different from ordinary chess?
 
 ### Slide 6 Fog of War Chess
 
 **Purpose:** Game and problem formulation. Planned 35 seconds.
 
-**Say:** In this version of chess, the goal is to capture the opponent’s king, but we can only see part of the board. Each move changes both the position and what we can observe. That makes it a useful setting for studying decisions under partial observability.
+**Say:** In Fog of War Chess, we win by capturing the opponent’s king. We can only see part of the board, and the game doesn’t stop us from moving into danger. Each move changes the position and what we can see. For our agent, this means choosing actions with only partial information.
 
-**Transition:** History can reduce that uncertainty. Here’s an example.
+**Transition:** But the current view isn’t all the information we have.
 
 ### Slide 7 A capture reveals a hidden rook
 
 **Purpose:** Historical observations. Planned 30 seconds.
 
-**Say:** Here, our knight was visible before the opponent moved. After one opponent move, it has been captured, but the attacking piece is still hidden. We know the opponent only has a king and rook left, and the king was too far away to make that capture. So the rook must now be where our knight was. We’ve learned its location from the change in our observations.
+**Say:** Now suppose we also have a knight. Before Black moves, we can see our knight and Black’s king. After Black moves, our knight has been captured. The king was too far away to capture it, so it must have been the rook. That tells us where the rook is now, even though we still can’t see it.
 
-**Transition:** What would we know if we kept only the current board view?
+**Transition:** Would we know that if we kept only the latest view?
 
 ### Slide 8 History filters the possible boards
 
 **Purpose:** Belief tracking. Planned 35 seconds.
 
-**Say:** The fog view on the left matches all three boards on the right. The current view alone doesn’t locate the rook. But the capture we just saw rules out A and B, leaving C. A belief tracker keeps hypotheses consistent with the observation history, then updates them as new information arrives.
+**Say:** If we forget the capture and look only at what we can see now, all three positions fit. Remembering the capture rules out A and B, leaving C. That’s why our agent needs a belief tracker: it keeps track of which hidden boards still fit what has happened so far.
 
-**Transition:** That distinction between the hidden state and the agent’s information matters for our RL formulation.
+**Transition:** This changes the information our agent uses to make a decision.
 
 ### Slide 9 Information available for a decision
 
 **Purpose:** Sequential decision formulation. Planned 45 seconds.
 
-**Say:** The Markov formulation assumes the state contains the information needed by the transition model. In our game, that underlying state is hidden. The agent instead has a current view and a private history. We use those to maintain possible boards and choose an action. The current fog view alone leaves out useful information, as the capture example showed.
+**Say:** The actual game state determines what can happen next, but our agent doesn’t get to see all of it. It gets a partial view and a history of its own actions and observations. We use that history to maintain possible boards. The agent then chooses a move using those possibilities. Treating the latest view as the full state would throw away information we already have.
 
-**Transition:** The next step is to compare actions using that information.
+**Transition:** How do we choose a move when several boards are still possible?
 
 ### Slide 10 Choosing a move under uncertainty
 
 **Purpose:** Approach. Planned 35 seconds.
 
-**Say:** The tracker supplies possible states. Search compares actions and replies across them, and the value function estimates positions where search stops. The rules provide the transitions. Our learning experiments focus on the value function and ask whether improving its predictions improves the move choice.
+**Say:** We consider possible boards from the tracker and use search to compare moves and the opponent’s replies. When search stops, a value function estimates how good the resulting positions are. We already have the rules to simulate moves. What we want to learn is a better value estimate, and then test whether it helps us choose better moves.
 
-**Transition:** The interface helps us see what information the agent is working with.
+**Transition:** Here’s what those possible boards look like in a recorded decision.
 
 ### Slide 11 One observation, several possible hidden states
 
 **Purpose:** Demonstration. Planned 35 seconds.
 
-**Say:** Here is one recorded bot decision, shown from Black’s perspective. On the left is what it could observe. The two hypotheses on the right place the hidden white knight differently. Both fit that observation and feed action evaluation. This run used a simple material evaluator; the next section looks at learned values.
+**Say:** This time, we’re looking from the Black bot’s perspective. It can’t see White’s knight, so it considers different places the knight could be. These two boards both fit what it can observe. The agent has to evaluate moves across such possibilities. This particular recording used a simple material score.
 
-**Transition:** I’ll hand over to my teammate to explain how we trained and tested those values.
+**Transition:** I’ll hand over to my teammate to explain how we learned and tested position values.
 
 **Delivery cues (not spoken):** Handoff to Presenter 2 after this slide.
 
@@ -141,73 +141,73 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 **Purpose:** Value learning and training targets. Planned 25 seconds.
 
-**Say:** Thanks. We compared three training targets. Distillation learns from a stronger engine, Monte Carlo uses completed-game returns, and TD bootstraps from the next estimate. We first compared these targets using the same linear correction model. The neural model comes in the later game experiment.
+**Say:** Thanks. We compared three ways to learn position values. Distillation learns to match a stronger engine. Monte Carlo learns from completed-game outcomes. TD learns from the estimate at the next position. We first compared them using the same linear model, then tested a separate neural model in games.
 
-**Transition:** Let’s briefly look at how the return-based targets work.
+**Transition:** For Monte Carlo, the target comes from how the game ends.
 
 ### Slide 13 Monte Carlo learns from completed returns
 
 **Purpose:** Monte Carlo prediction. Planned 35 seconds.
 
-**Say:** Monte Carlo uses the outcome of the completed game as the target for an earlier position. In this example, a final win gives a target of plus one. Our training uses recorded games, so the estimate reflects the policy that generated those games.
+**Say:** A position might occur long before we know who wins. Monte Carlo waits for the game’s outcome and uses that return as the target. Here, the player eventually wins, so the earlier position gets a target of plus one. Because we use recorded games, we’re learning about the policy that played them.
 
-**Transition:** TD uses an estimate of what follows instead of waiting for the final result.
+**Transition:** TD gets its target differently.
 
 ### Slide 14 TD bootstraps from the next estimate
 
 **Purpose:** Temporal-difference prediction. Planned 35 seconds.
 
-**Say:** TD bootstraps from the next position’s value. Because the players alternate, we reverse the sign to express the opponent’s estimate from our player’s perspective. At a terminal position, we use the actual outcome. We fitted these targets offline using recorded games.
+**Say:** TD uses the value estimate at the next position. That next position belongs to the opponent, so we reverse the sign to put it back in our player’s perspective. At the end of the game, we use the actual outcome. We fitted these targets from recorded games, rather than learning during live play.
 
-**Transition:** The results depend on which prediction task we measure.
+**Transition:** We then tested what each method learned to predict.
 
 ### Slide 15 Distillation best matched the engine teacher
 
 **Purpose:** Offline teacher-prediction result. Planned 30 seconds.
 
-**Say:** Distillation gives the lowest error against the stronger engine. That is the target it was trained to match. This comparison uses the linear model, and the training distributions also differ, so the result doesn’t isolate the effect of the target alone.
+**Say:** Distillation came closest to the stronger engine’s values, which is what it was trained to predict. The methods used the same linear model, but different training distributions. So we can’t attribute the difference to the training target alone.
 
-**Transition:** Predicting the recorded returns gives a different ordering.
+**Transition:** What if we compare them against game outcomes instead?
 
 ### Slide 16 MC and TD better matched recorded outcomes
 
 **Purpose:** Offline outcome-prediction result. Planned 30 seconds.
 
-**Say:** MC and TD have slightly lower error on the recorded game outcomes. Those are returns from the policy that played the games, rather than optimal play. The two charts use different metrics and evaluation sets, so their error values shouldn’t be compared directly. Both results concern prediction; we still need to test the decisions.
+**Say:** MC and TD did slightly better at predicting the recorded outcomes. That means predicting returns under the policy that played those games, rather than optimal play. This chart uses a different metric and evaluation set from the previous one, so we compare methods within each chart. So far, we’ve only tested predictions.
 
-**Transition:** We did that in a separate experiment with a neural value model.
+**Transition:** To test actual play, we ran a separate experiment with a neural value model.
 
 ### Slide 17 Can a learned evaluator improve play?
 
 **Purpose:** Learning method. Planned 30 seconds.
 
-**Say:** The neural model learns a correction to a quick engine estimate, using a stronger engine as its target. We add that correction when ranking actions. This lets us test the question at the centre of the project: does a more accurate value estimate lead to better play?
+**Say:** For this experiment, the neural model learns a correction to a quick engine estimate, using a stronger engine as the target. We add that correction when comparing moves. The question is whether the more accurate estimates actually help the agent play better.
 
-**Transition:** We evaluated prediction, game outcomes and computational cost.
+**Transition:** We checked prediction accuracy, game results and time per move.
 
 ### Slide 18 Evaluation: prediction, play and cost
 
 **Purpose:** Experimental comparison. Planned 25 seconds.
 
-**Say:** We used paired games from the same openings, swapping colours. Both agents used the same one-move outer planner, while we measured prediction error, game score and time per move. Their computational costs were different, so this wasn’t an equal-time comparison.
+**Say:** We played each opening twice, swapping the agents’ colours. Both agents looked one move ahead in the outer planner. We compared game scores and time per move, alongside a separate prediction check. Their computational costs differed, so the games weren’t an equal-time comparison.
 
-**Transition:** First, the prediction result.
+**Transition:** Did the predictions improve?
 
 ### Slide 19 Prediction error decreased by about 20%
 
 **Purpose:** Prediction result. Planned 30 seconds.
 
-**Say:** The neural model reduced prediction error by about twenty percent. This was development data that also helped us choose the model, so it isn’t an independent test set. It shows closer agreement with the stronger engine, which we then need to connect to game performance.
+**Say:** Yes. Prediction error fell by about twenty percent. But we also used this development data to help choose the model, so it isn’t an independent test. The model agreed more closely with the stronger engine. The next question is whether that helped it win more points.
 
-**Transition:** Here’s what happened in the games.
+**Transition:** The game results were less conclusive.
 
 ### Slide 20 The games did not establish a playing gain
 
 **Purpose:** Outcome result. Planned 45 seconds.
 
-**Say:** The neural model took 51.5 percent of the available game points. But the uncertainty interval includes equal points, so this batch doesn’t establish an improvement. It also doesn’t establish that the agents are equivalent. The prediction gain didn’t translate into a demonstrated playing gain in this one-ply setup.
+**Say:** The neural model scored 51.5 percent of the available points. That’s slightly above half, but the uncertainty interval includes an even split. We can’t conclude that it improved play, or that the two agents are equivalent. In this one-ply setup, the better predictions didn’t produce a demonstrated gain in game score.
 
-**Transition:** And the more accurate predictions took extra computation.
+**Transition:** They also came at a computational cost.
 
 **Delivery cues (not spoken):** Indicate the equal-points reference and interval. Explain the result, without reading the interval endpoints.
 
@@ -215,47 +215,47 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 **Purpose:** Resource result. Planned 25 seconds.
 
-**Say:** The neural correction took about three times as long per move. So we got lower prediction error at a higher cost, without an established improvement in game score. That makes the total computation budget important when we evaluate the complete agent.
+**Say:** The learned correction took about three times as long per move. We therefore got more accurate predictions at a higher cost, without a demonstrated gain in game score. That matters because extra computation could also be spent searching further ahead.
 
-**Transition:** A simple ranking example shows why prediction error and decision quality can differ.
+**Transition:** Why might smaller prediction errors still fail to improve the chosen move?
 
 ### Slide 22 The reference slightly prefers Move A
 
 **Purpose:** Illustrative ranking reference. Planned 20 seconds.
 
-**Say:** Suppose these are the reference values for two actions. The reference slightly prefers Action A. These numbers are just an illustration.
+**Say:** Consider a simple illustration, rather than a measured result. The reference values put A just above B, so A is the preferred action.
 
-**Transition:** Now consider an inaccurate predictor.
+**Transition:** Now suppose our predictor gets the values wrong.
 
 ### Slide 23 Large value errors can preserve the choice
 
 **Purpose:** Illustrative baseline choice. Planned 15 seconds.
 
-**Say:** Its value estimates are quite far from the reference, but it still ranks A above B. So it makes the same choice as the reference.
+**Say:** These estimates are far from the reference values, but A still ranks above B. Despite the large errors, the agent chooses the preferred action.
 
-**Transition:** A more accurate predictor can still change that choice.
+**Transition:** Now let’s make the predictions more accurate overall.
 
 ### Slide 24 Closer values can still change the choice
 
 **Purpose:** Illustrative learned choice. Planned 20 seconds.
 
-**Say:** Here, the estimates are closer overall, but their order is reversed, so the agent chooses B. Lower average error doesn’t guarantee that the most important ranking is preserved. This illustrates a possible explanation; we haven’t established it as the cause of our game results.
+**Say:** The estimates are closer to the reference, but they put B above A. The agent now chooses the wrong action relative to that reference. Smaller average errors don’t necessarily preserve the ranking that matters for a decision. This could explain a gap between prediction and play, but we haven’t shown that it caused our game results.
 
-**Transition:** That’s why we need to evaluate the full decision process.
+**Transition:** That’s why we evaluate decisions as well as prediction error.
 
 ### Slide 25 Conclusions
 
 **Purpose:** Conclusion. Planned 40 seconds.
 
-**Say:** Our approach uses observation history to maintain possible hidden states. The learning results show why a value estimate then has to be judged within the full decision process: it can become more accurate without an established improvement in play, while costing more time.
+**Say:** Observation history helps our agent narrow down what might be hidden. But once we have those possible states, a more accurate value function doesn’t automatically mean better decisions. Our learned correction improved prediction, cost more time, and did not establish a gain in game score. We need to judge it as part of the agent that uses it.
 
-**Transition:** Our next evaluation should test that under a controlled budget.
+**Transition:** The next test should make that trade-off explicit.
 
 ### Slide 26 Next evaluation
 
 **Purpose:** Next evaluation. Planned 15 seconds.
 
-**Say:** We’d next like to test the learned values inside deeper search, give both agents the same total thinking time, and compare complete games. That evaluation is still to be done. Thank you for listening. We’re happy to take questions.
+**Say:** We’d next test the learned values in deeper search, give both agents the same total thinking time, and compare complete games. That evaluation is still to be done. Thank you for listening. We’re happy to take questions.
 
 **Delivery cues (not spoken):** Allow three minutes for Q&A. Answer the question directly and use an evidence backup when helpful.
 
@@ -346,3 +346,18 @@ The retained allocations total 12:25; the confirmed speaking slot is 12 minutes,
 | 13–14 | The figure changed player perspective and decision time without explaining it. | Use one Black observation with its two saved hypotheses at the same recorded decision. |
 
 All later experimental content, numerical evidence and unrelated speaking budgets are retained. Filled pieces, hidden-rook inference, greetings, coordinate-free speech and the single handoff are preserved.
+
+## Spoken script review
+
+The spoken passages now explain the choice, inference or result rather than narrating colours and slide layout. Existing speaking allocations, slide order and the single handoff are retained.
+
+| Slides | Delivery issue | Revision |
+| --- | --- | --- |
+| 2–5 | The opening described icons, then narrated red markings. | Ask the audience what they would do and explain each hidden rook’s consequences. |
+| 6–8 | The example changed the available pieces without an introduction. | Introduce the knight explicitly, explain the capture inference, then ask what a latest-view-only agent would miss. |
+| 9–10 | The formulation sounded like a definition read from a report. | Connect hidden state to the information the agent actually has, then explain where the learned value function enters. |
+| 11 | Left/right narration distracted from the reason the hypotheses differ. | Explain that the unseen knight can occupy different positions, then connect those possibilities to move evaluation. |
+| 12–16 | Technical descriptions and transitions gave little reason to follow the comparison. | Explain how the targets arise and ask what each method predicts well. Keep the policy and evaluation caveats. |
+| 17–21 | The central question was repeatedly announced. | Follow one sequence: predictions improved, game results were inconclusive, and computation increased. Retain the development-set and unequal-compute limitations. |
+| 22–24 | The ranking example used generic presenter transitions. | Walk through the choice: wrong values can preserve the preferred action, while closer values can reverse it. Retain the illustrative scope. |
+| 25–26 | The conclusion used abstract phrasing. | State the observed trade-off and the next equal-time deeper-search evaluation directly. |

@@ -196,7 +196,7 @@ endobj
 endobj
 5 0 obj
 <<
-/Length 3857
+/Length 3867
 >>
 stream
 q
@@ -345,13 +345,13 @@ q
 1 0 0 1 36 392.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (Hello everyone. We\001re presenting our project on Fog of War Chess, where an agent has to act without) Tj T* (seeing the full board. We looked at how to keep track of that uncertainty, and whether learning more) Tj T* (accurate position values actually leads to better decisions.) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (Hello everyone. Today we\001ll be presenting our Fog of War Chess project. Our agent has to choose) Tj T* (moves without seeing the full board. We explored how it can keep track of what might be hidden, and) Tj T* (whether learning more accurate position values helps it make better decisions.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 360.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: I\001ll start with a simple example of that uncertainty.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Let\001s start with a situation the agent could face.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -7166,7 +7166,7 @@ endobj
 endobj
 365 0 obj
 <<
-/Length 69115
+/Length 69160
 >>
 stream
 q
@@ -11757,20 +11757,20 @@ BT 1 0 0 1 477.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 25 seconds) Tj T* ET
 .03 .49 .51 rg
 BT 1 0 0 1 36 458.5472 Tm /F2+0 11 Tf 13.2 TL (Script) Tj T* ET
 q
-1 0 0 1 36 408.5472 cm
+1 0 0 1 36 392.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 20.5 Tm /F3+0 11.5 Tf 16 TL (You control the white king. The icons show which pieces each side has left, but the opponent\001s) Tj T* (locations are hidden. All eight moves are available. Which would you choose?) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (Look at this chessboard. White has only a king left, while Black still has a king and a rook. If you were) Tj T* (playing White, what move would you make? All eight surrounding squares are available, but you can\001t) Tj T* (see where Black\001s pieces are.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 36 376.5472 cm
+1 0 0 1 36 360.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Here are a few positions that could be hidden behind that same view.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Let\001s look at what could be hidden.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 36 330.5472 cm
+1 0 0 1 36 314.5472 cm
 q
 BT 1 0 0 1 0 17.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Delivery cues \(not spoken\): Pause briefly for the audience to consider the choice. Avoid explaining chess) Tj T* (notation or individual squares.) Tj T* ET
 Q
@@ -11975,7 +11975,7 @@ endobj
 endobj
 369 0 obj
 <<
-/Length 25119
+/Length 25179
 >>
 stream
 q
@@ -13259,19 +13259,19 @@ q
 1 0 0 1 36 408.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 20.5 Tm /F3+0 11.5 Tf 16 TL (In this possibility, all three moves to the left would allow the hidden rook to capture our king. Those) Tj T* (moves are marked in red.) Tj T* ET
+BT 1 0 0 1 0 20.5 Tm /F3+0 11.5 Tf 16 TL (Suppose Black\001s rook is here. Any of the three moves to the left would put our king in its path, so Black) Tj T* (could capture it on the next turn.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 376.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: But the hidden position could be different.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: But we don\001t know that the rook is there.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 36 344.5472 cm
+1 0 0 1 36 330.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Delivery cues \(not spoken\): Indicate the three red dots together, without naming their squares.) Tj T* ET
+BT 1 0 0 1 0 17.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Delivery cues \(not spoken\): Indicate the three threatened destinations together without describing their colour or) Tj T* (naming squares.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -13474,7 +13474,7 @@ endobj
 endobj
 373 0 obj
 <<
-/Length 24846
+/Length 24884
 >>
 stream
 q
@@ -14758,13 +14758,13 @@ q
 1 0 0 1 36 408.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 20.5 Tm /F3+0 11.5 Tf 16 TL (Here, the same observation hides a threat on the other side. Now all three moves to the right are) Tj T* (dangerous.) Tj T* ET
+BT 1 0 0 1 0 20.5 Tm /F3+0 11.5 Tf 16 TL (If the rook were on the other side, the three moves to the right would allow it to capture our king) Tj T* (instead. Our view of the board would still be exactly the same.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 376.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: A third position changes the consequences again.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: There\001s another possibility.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -14967,7 +14967,7 @@ endobj
 endobj
 377 0 obj
 <<
-/Length 24924
+/Length 25032
 >>
 stream
 q
@@ -16248,16 +16248,16 @@ BT 1 0 0 1 477.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 25 seconds) Tj T* ET
 .03 .49 .51 rg
 BT 1 0 0 1 36 458.5472 Tm /F2+0 11 Tf 13.2 TL (Script) Tj T* ET
 q
-1 0 0 1 36 408.5472 cm
+1 0 0 1 36 392.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 20.5 Tm /F3+0 11.5 Tf 16 TL (Here, our king is already under attack. Moving up or down still allows it to be captured. All eight moves) Tj T* (remain available under these rules.) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm -0.052665 Tw /F3+0 11.5 Tf 16 TL (The rook could already be attacking our king without us knowing. Moving straight up or down would still) Tj T* 0 Tw (leave the king exposed. In this version of chess, those moves are allowed even though Black could) Tj T* (capture us next.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 36 376.5472 cm
+1 0 0 1 36 360.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: That\001s the setting we\001re working with.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: So what makes this different from ordinary chess?) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -16460,7 +16460,7 @@ endobj
 endobj
 381 0 obj
 <<
-/Length 70665
+/Length 70692
 >>
 stream
 q
@@ -20799,13 +20799,13 @@ q
 1 0 0 1 36 392.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (In this version of chess, the goal is to capture the opponent\001s king, but we can only see part of the) Tj T* (board. Each move changes both the position and what we can observe. That makes it a useful setting) Tj T* (for studying decisions under partial observability.) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (In Fog of War Chess, we win by capturing the opponent\001s king. We can only see part of the board, and) Tj T* (the game doesn\001t stop us from moving into danger. Each move changes the position and what we can) Tj T* (see. For our agent, this means choosing actions with only partial information.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 360.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: History can reduce that uncertainty. Here\001s an example.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: But the current view isn\001t all the information we have.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -21008,7 +21008,7 @@ endobj
 endobj
 385 0 obj
 <<
-/Length 93932
+/Length 93850
 >>
 stream
 q
@@ -27493,16 +27493,16 @@ BT 1 0 0 1 477.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 30 seconds) Tj T* ET
 .03 .49 .51 rg
 BT 1 0 0 1 36 458.5472 Tm /F2+0 11 Tf 13.2 TL (Script) Tj T* ET
 q
-1 0 0 1 36 376.5472 cm
+1 0 0 1 36 392.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 52.5 Tm /F3+0 11.5 Tf 16 TL (Here, our knight was visible before the opponent moved. After one opponent move, it has been) Tj T* (captured, but the attacking piece is still hidden. We know the opponent only has a king and rook left,) Tj T* (and the king was too far away to make that capture. So the rook must now be where our knight was.) Tj T* (We\001ve learned its location from the change in our observations.) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (Now suppose we also have a knight. Before Black moves, we can see our knight and Black\001s king.) Tj T* (After Black moves, our knight has been captured. The king was too far away to capture it, so it must) Tj T* (have been the rook. That tells us where the rook is now, even though we still can\001t see it.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 36 344.5472 cm
+1 0 0 1 36 360.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: What would we know if we kept only the current board view?) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Would we know that if we kept only the latest view?) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -27705,7 +27705,7 @@ endobj
 endobj
 389 0 obj
 <<
-/Length 95926
+/Length 95837
 >>
 stream
 q
@@ -33906,13 +33906,13 @@ q
 1 0 0 1 36 392.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 36.5 Tm -0.081699 Tw /F3+0 11.5 Tf 16 TL (The fog view on the left matches all three boards on the right. The current view alone doesn\001t locate the) Tj T* 0 Tw (rook. But the capture we just saw rules out A and B, leaving C. A belief tracker keeps hypotheses) Tj T* (consistent with the observation history, then updates them as new information arrives.) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (If we forget the capture and look only at what we can see now, all three positions fit. Remembering the) Tj T* (capture rules out A and B, leaving C. That\001s why our agent needs a belief tracker: it keeps track of) Tj T* (which hidden boards still fit what has happened so far.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 360.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: That distinction between the hidden state and the agent\001s information matters for our RL formulation.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: This changes the information our agent uses to make a decision.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -34115,7 +34115,7 @@ endobj
 endobj
 393 0 obj
 <<
-/Length 4998
+/Length 4999
 >>
 stream
 q
@@ -34288,13 +34288,13 @@ q
 1 0 0 1 36 376.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 52.5 Tm /F3+0 11.5 Tf 16 TL (The Markov formulation assumes the state contains the information needed by the transition model. In) Tj T* (our game, that underlying state is hidden. The agent instead has a current view and a private history.) Tj T* -0.016992 Tw (We use those to maintain possible boards and choose an action. The current fog view alone leaves out) Tj T* 0 Tw (useful information, as the capture example showed.) Tj T* ET
+BT 1 0 0 1 0 52.5 Tm /F3+0 11.5 Tf 16 TL (The actual game state determines what can happen next, but our agent doesn\001t get to see all of it. It) Tj T* (gets a partial view and a history of its own actions and observations. We use that history to maintain) Tj T* (possible boards. The agent then chooses a move using those possibilities. Treating the latest view as) Tj T* (the full state would throw away information we already have.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 344.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: The next step is to compare actions using that information.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: How do we choose a move when several boards are still possible?) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -34497,7 +34497,7 @@ endobj
 endobj
 397 0 obj
 <<
-/Length 5168
+/Length 5204
 >>
 stream
 q
@@ -34686,13 +34686,13 @@ q
 1 0 0 1 36 376.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 52.5 Tm /F3+0 11.5 Tf 16 TL (The tracker supplies possible states. Search compares actions and replies across them, and the value) Tj T* (function estimates positions where search stops. The rules provide the transitions. Our learning) Tj T* (experiments focus on the value function and ask whether improving its predictions improves the move) Tj T* (choice.) Tj T* ET
+BT 1 0 0 1 0 52.5 Tm /F3+0 11.5 Tf 16 TL (We consider possible boards from the tracker and use search to compare moves and the opponent\001s) Tj T* (replies. When search stops, a value function estimates how good the resulting positions are. We) Tj T* (already have the rules to simulate moves. What we want to learn is a better value estimate, and then) Tj T* (test whether it helps us choose better moves.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 344.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: The interface helps us see what information the agent is working with.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Here\001s what those possible boards look like in a recorded decision.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -34895,7 +34895,7 @@ endobj
 endobj
 401 0 obj
 <<
-/Length 237606
+/Length 237577
 >>
 stream
 q
@@ -45941,20 +45941,20 @@ BT 1 0 0 1 477.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 35 seconds) Tj T* ET
 .03 .49 .51 rg
 BT 1 0 0 1 36 458.5472 Tm /F2+0 11 Tf 13.2 TL (Script) Tj T* ET
 q
-1 0 0 1 36 376.5472 cm
+1 0 0 1 36 392.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 52.5 Tm -0.088669 Tw /F3+0 11.5 Tf 16 TL (Here is one recorded bot decision, shown from Black\001s perspective. On the left is what it could observe.) Tj T* 0 Tw (The two hypotheses on the right place the hidden white knight differently. Both fit that observation and) Tj T* (feed action evaluation. This run used a simple material evaluator; the next section looks at learned) Tj T* (values.) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (This time, we\001re looking from the Black bot\001s perspective. It can\001t see White\001s knight, so it considers) Tj T* (different places the knight could be. These two boards both fit what it can observe. The agent has to) Tj T* (evaluate moves across such possibilities. This particular recording used a simple material score.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 36 344.5472 cm
+1 0 0 1 36 360.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: I\001ll hand over to my teammate to explain how we trained and tested those values.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: I\001ll hand over to my teammate to explain how we learned and tested position values.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 36 312.5472 cm
+1 0 0 1 36 328.5472 cm
 q
 BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Delivery cues \(not spoken\): Handoff to Presenter 2 after this slide.) Tj T* ET
 Q
@@ -46159,7 +46159,7 @@ endobj
 endobj
 405 0 obj
 <<
-/Length 4526
+/Length 4538
 >>
 stream
 q
@@ -46305,16 +46305,16 @@ BT 1 0 0 1 477.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 25 seconds) Tj T* ET
 .03 .49 .51 rg
 BT 1 0 0 1 36 458.5472 Tm /F2+0 11 Tf 13.2 TL (Script) Tj T* ET
 q
-1 0 0 1 36 392.5472 cm
+1 0 0 1 36 376.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (Thanks. We compared three training targets. Distillation learns from a stronger engine, Monte Carlo) Tj T* (uses completed-game returns, and TD bootstraps from the next estimate. We first compared these) Tj T* (targets using the same linear correction model. The neural model comes in the later game experiment.) Tj T* ET
+BT 1 0 0 1 0 52.5 Tm /F3+0 11.5 Tf 16 TL (Thanks. We compared three ways to learn position values. Distillation learns to match a stronger) Tj T* (engine. Monte Carlo learns from completed-game outcomes. TD learns from the estimate at the next) Tj T* (position. We first compared them using the same linear model, then tested a separate neural model in) Tj T* (games.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 36 360.5472 cm
+1 0 0 1 36 344.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Let\001s briefly look at how the return-based targets work.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: For Monte Carlo, the target comes from how the game ends.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -46517,7 +46517,7 @@ endobj
 endobj
 409 0 obj
 <<
-/Length 4335
+/Length 4347
 >>
 stream
 q
@@ -46658,13 +46658,13 @@ q
 1 0 0 1 36 392.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (Monte Carlo uses the outcome of the completed game as the target for an earlier position. In this) Tj T* (example, a final win gives a target of plus one. Our training uses recorded games, so the estimate) Tj T* (reflects the policy that generated those games.) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (A position might occur long before we know who wins. Monte Carlo waits for the game\001s outcome and) Tj T* (uses that return as the target. Here, the player eventually wins, so the earlier position gets a target of) Tj T* (plus one. Because we use recorded games, we\001re learning about the policy that played them.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 360.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: TD uses an estimate of what follows instead of waiting for the final result.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: TD gets its target differently.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -46867,7 +46867,7 @@ endobj
 endobj
 413 0 obj
 <<
-/Length 4313
+/Length 4330
 >>
 stream
 q
@@ -47008,13 +47008,13 @@ q
 1 0 0 1 36 392.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (TD bootstraps from the next position\001s value. Because the players alternate, we reverse the sign to) Tj T* (express the opponent\001s estimate from our player\001s perspective. At a terminal position, we use the) Tj T* (actual outcome. We fitted these targets offline using recorded games.) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (TD uses the value estimate at the next position. That next position belongs to the opponent, so we) Tj T* (reverse the sign to put it back in our player\001s perspective. At the end of the game, we use the actual) Tj T* (outcome. We fitted these targets from recorded games, rather than learning during live play.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 360.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: The results depend on which prediction task we measure.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: We then tested what each method learned to predict.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -47217,7 +47217,7 @@ endobj
 endobj
 417 0 obj
 <<
-/Length 6190
+/Length 6179
 >>
 stream
 q
@@ -47494,13 +47494,13 @@ q
 1 0 0 1 36 392.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (Distillation gives the lowest error against the stronger engine. That is the target it was trained to match.) Tj T* (This comparison uses the linear model, and the training distributions also differ, so the result doesn\001t) Tj T* (isolate the effect of the target alone.) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (Distillation came closest to the stronger engine\001s values, which is what it was trained to predict. The) Tj T* (methods used the same linear model, but different training distributions. So we can\001t attribute the) Tj T* (difference to the training target alone.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 360.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Predicting the recorded returns gives a different ordering.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: What if we compare them against game outcomes instead?) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -47703,7 +47703,7 @@ endobj
 endobj
 421 0 obj
 <<
-/Length 6555
+/Length 6558
 >>
 stream
 q
@@ -47980,13 +47980,13 @@ q
 1 0 0 1 36 376.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 52.5 Tm /F3+0 11.5 Tf 16 TL (MC and TD have slightly lower error on the recorded game outcomes. Those are returns from the) Tj T* (policy that played the games, rather than optimal play. The two charts use different metrics and) Tj T* (evaluation sets, so their error values shouldn\001t be compared directly. Both results concern prediction;) Tj T* (we still need to test the decisions.) Tj T* ET
+BT 1 0 0 1 0 52.5 Tm /F3+0 11.5 Tf 16 TL (MC and TD did slightly better at predicting the recorded outcomes. That means predicting returns) Tj T* (under the policy that played those games, rather than optimal play. This chart uses a different metric) Tj T* (and evaluation set from the previous one, so we compare methods within each chart. So far, we\001ve) Tj T* (only tested predictions.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 344.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: We did that in a separate experiment with a neural value model.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: To test actual play, we ran a separate experiment with a neural value model.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -48189,7 +48189,7 @@ endobj
 endobj
 425 0 obj
 <<
-/Length 4614
+/Length 4625
 >>
 stream
 q
@@ -48354,13 +48354,13 @@ q
 1 0 0 1 36 392.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (The neural model learns a correction to a quick engine estimate, using a stronger engine as its target.) Tj T* (We add that correction when ranking actions. This lets us test the question at the centre of the project:) Tj T* (does a more accurate value estimate lead to better play?) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (For this experiment, the neural model learns a correction to a quick engine estimate, using a stronger) Tj T* -0.135974 Tw (engine as the target. We add that correction when comparing moves. The question is whether the more) Tj T* 0 Tw (accurate estimates actually help the agent play better.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 360.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: We evaluated prediction, game outcomes and computational cost.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: We checked prediction accuracy, game results and time per move.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -48563,7 +48563,7 @@ endobj
 endobj
 429 0 obj
 <<
-/Length 4842
+/Length 4863
 >>
 stream
 q
@@ -48752,13 +48752,13 @@ q
 1 0 0 1 36 392.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (We used paired games from the same openings, swapping colours. Both agents used the same) Tj T* (one-move outer planner, while we measured prediction error, game score and time per move. Their) Tj T* (computational costs were different, so this wasn\001t an equal-time comparison.) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (We played each opening twice, swapping the agents\001 colours. Both agents looked one move ahead in) Tj T* (the outer planner. We compared game scores and time per move, alongside a separate prediction) Tj T* (check. Their computational costs differed, so the games weren\001t an equal-time comparison.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 360.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: First, the prediction result.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Did the predictions improve?) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -48961,7 +48961,7 @@ endobj
 endobj
 433 0 obj
 <<
-/Length 5650
+/Length 5629
 >>
 stream
 q
@@ -49215,13 +49215,13 @@ q
 1 0 0 1 36 392.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (The neural model reduced prediction error by about twenty percent. This was development data that) Tj T* -0.122113 Tw (also helped us choose the model, so it isn\001t an independent test set. It shows closer agreement with the) Tj T* 0 Tw (stronger engine, which we then need to connect to game performance.) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (Yes. Prediction error fell by about twenty percent. But we also used this development data to help) Tj T* (choose the model, so it isn\001t an independent test. The model agreed more closely with the stronger) Tj T* (engine. The next question is whether that helped it win more points.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 360.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Here\001s what happened in the games.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: The game results were less conclusive.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -49424,7 +49424,7 @@ endobj
 endobj
 437 0 obj
 <<
-/Length 11068
+/Length 11053
 >>
 stream
 q
@@ -49970,13 +49970,13 @@ q
 1 0 0 1 36 376.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 52.5 Tm /F3+0 11.5 Tf 16 TL (The neural model took 51.5 percent of the available game points. But the uncertainty interval includes) Tj T* (equal points, so this batch doesn\001t establish an improvement. It also doesn\001t establish that the agents) Tj T* (are equivalent. The prediction gain didn\001t translate into a demonstrated playing gain in this one-ply) Tj T* (setup.) Tj T* ET
+BT 1 0 0 1 0 52.5 Tm /F3+0 11.5 Tf 16 TL (The neural model scored 51.5 percent of the available points. That\001s slightly above half, but the) Tj T* (uncertainty interval includes an even split. We can\001t conclude that it improved play, or that the two) Tj T* (agents are equivalent. In this one-ply setup, the better predictions didn\001t produce a demonstrated gain) Tj T* (in game score.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 344.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: And the more accurate predictions took extra computation.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: They also came at a computational cost.) Tj T* ET
 Q
 Q
 q
@@ -50185,7 +50185,7 @@ endobj
 endobj
 441 0 obj
 <<
-/Length 5153
+/Length 5144
 >>
 stream
 q
@@ -50431,13 +50431,13 @@ q
 1 0 0 1 36 392.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (The neural correction took about three times as long per move. So we got lower prediction error at a) Tj T* (higher cost, without an established improvement in game score. That makes the total computation) Tj T* (budget important when we evaluate the complete agent.) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (The learned correction took about three times as long per move. We therefore got more accurate) Tj T* (predictions at a higher cost, without a demonstrated gain in game score. That matters because extra) Tj T* (computation could also be spent searching further ahead.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 360.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: A simple ranking example shows why prediction error and decision quality can differ.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Why might smaller prediction errors still fail to improve the chosen move?) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -50640,7 +50640,7 @@ endobj
 endobj
 445 0 obj
 <<
-/Length 4961
+/Length 4969
 >>
 stream
 q
@@ -50862,13 +50862,13 @@ q
 1 0 0 1 36 408.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 20.5 Tm /F3+0 11.5 Tf 16 TL (Suppose these are the reference values for two actions. The reference slightly prefers Action A. These) Tj T* (numbers are just an illustration.) Tj T* ET
+BT 1 0 0 1 0 20.5 Tm /F3+0 11.5 Tf 16 TL (Consider a simple illustration, rather than a measured result. The reference values put A just above B,) Tj T* (so A is the preferred action.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 376.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Now consider an inaccurate predictor.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Now suppose our predictor gets the values wrong.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -51071,7 +51071,7 @@ endobj
 endobj
 449 0 obj
 <<
-/Length 5218
+/Length 5233
 >>
 stream
 q
@@ -51301,13 +51301,13 @@ q
 1 0 0 1 36 408.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 20.5 Tm /F3+0 11.5 Tf 16 TL (Its value estimates are quite far from the reference, but it still ranks A above B. So it makes the same) Tj T* (choice as the reference.) Tj T* ET
+BT 1 0 0 1 0 20.5 Tm /F3+0 11.5 Tf 16 TL (These estimates are far from the reference values, but A still ranks above B. Despite the large errors,) Tj T* (the agent chooses the preferred action.) Tj T* ET
 Q
 Q
 q
 1 0 0 1 36 376.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: A more accurate predictor can still change that choice.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Now let\001s make the predictions more accurate overall.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -51510,7 +51510,7 @@ endobj
 endobj
 453 0 obj
 <<
-/Length 5356
+/Length 5423
 >>
 stream
 q
@@ -51737,16 +51737,16 @@ BT 1 0 0 1 477.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 20 seconds) Tj T* ET
 .03 .49 .51 rg
 BT 1 0 0 1 36 458.5472 Tm /F2+0 11 Tf 13.2 TL (Script) Tj T* ET
 q
-1 0 0 1 36 392.5472 cm
+1 0 0 1 36 376.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (Here, the estimates are closer overall, but their order is reversed, so the agent chooses B. Lower) Tj T* (average error doesn\001t guarantee that the most important ranking is preserved. This illustrates a) Tj T* (possible explanation; we haven\001t established it as the cause of our game results.) Tj T* ET
+BT 1 0 0 1 0 52.5 Tm /F3+0 11.5 Tf 16 TL (The estimates are closer to the reference, but they put B above A. The agent now chooses the wrong) Tj T* (action relative to that reference. Smaller average errors don\001t necessarily preserve the ranking that) Tj T* (matters for a decision. This could explain a gap between prediction and play, but we haven\001t shown) Tj T* (that it caused our game results.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 36 360.5472 cm
+1 0 0 1 36 344.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: That\001s why we need to evaluate the full decision process.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: That\001s why we evaluate decisions as well as prediction error.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -51949,7 +51949,7 @@ endobj
 endobj
 457 0 obj
 <<
-/Length 4323
+/Length 4392
 >>
 stream
 q
@@ -52071,16 +52071,16 @@ BT 1 0 0 1 477.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 40 seconds) Tj T* ET
 .03 .49 .51 rg
 BT 1 0 0 1 36 458.5472 Tm /F2+0 11 Tf 13.2 TL (Script) Tj T* ET
 q
-1 0 0 1 36 392.5472 cm
+1 0 0 1 36 376.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (Our approach uses observation history to maintain possible hidden states. The learning results show) Tj T* (why a value estimate then has to be judged within the full decision process: it can become more) Tj T* (accurate without an established improvement in play, while costing more time.) Tj T* ET
+BT 1 0 0 1 0 52.5 Tm /F3+0 11.5 Tf 16 TL (Observation history helps our agent narrow down what might be hidden. But once we have those) Tj T* (possible states, a more accurate value function doesn\001t automatically mean better decisions. Our) Tj T* (learned correction improved prediction, cost more time, and did not establish a gain in game score. We) Tj T* (need to judge it as part of the agent that uses it.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 36 360.5472 cm
+1 0 0 1 36 344.5472 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Our next evaluation should test that under a controlled budget.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: The next test should make that trade-off explicit.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -52283,7 +52283,7 @@ endobj
 endobj
 461 0 obj
 <<
-/Length 3505
+/Length 3493
 >>
 stream
 q
@@ -52392,7 +52392,7 @@ q
 1 0 0 1 36 392.5472 cm
 q
 .12549 .156863 .168627 rg
-BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (We\001d next like to test the learned values inside deeper search, give both agents the same total thinking) Tj T* (time, and compare complete games. That evaluation is still to be done. Thank you for listening. We\001re) Tj T* (happy to take questions.) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (We\001d next test the learned values in deeper search, give both agents the same total thinking time, and) Tj T* (compare complete games. That evaluation is still to be done. Thank you for listening. We\001re happy to) Tj T* (take questions.) Tj T* ET
 Q
 Q
 q
@@ -57814,496 +57814,496 @@ xref
 0000000534 00000 n 
 0000000601 00000 n 
 0000002939 00000 n 
-0000006848 00000 n 
-0000006887 00000 n 
-0000006926 00000 n 
-0000006965 00000 n 
-0000007004 00000 n 
-0000007044 00000 n 
-0000007084 00000 n 
-0000007124 00000 n 
-0000007164 00000 n 
-0000007204 00000 n 
-0000007244 00000 n 
-0000007284 00000 n 
-0000007324 00000 n 
-0000007364 00000 n 
-0000007404 00000 n 
-0000007444 00000 n 
-0000007484 00000 n 
-0000007524 00000 n 
-0000007564 00000 n 
-0000007604 00000 n 
-0000007644 00000 n 
-0000007684 00000 n 
-0000007724 00000 n 
-0000007764 00000 n 
-0000007804 00000 n 
-0000007844 00000 n 
-0000007884 00000 n 
-0000007924 00000 n 
-0000007964 00000 n 
-0000008004 00000 n 
-0000008044 00000 n 
-0000008084 00000 n 
-0000008124 00000 n 
-0000008164 00000 n 
-0000008204 00000 n 
-0000008244 00000 n 
-0000008284 00000 n 
-0000008392 00000 n 
-0000008758 00000 n 
-0000008953 00000 n 
-0000017463 00000 n 
-0000017989 00000 n 
-0000018363 00000 n 
-0000018558 00000 n 
-0000026744 00000 n 
-0000027281 00000 n 
-0000027572 00000 n 
-0000027772 00000 n 
-0000034371 00000 n 
-0000034814 00000 n 
-0000035065 00000 n 
-0000035265 00000 n 
-0000041149 00000 n 
-0000041546 00000 n 
-0000041816 00000 n 
-0000042011 00000 n 
-0000048144 00000 n 
-0000048566 00000 n 
-0000048845 00000 n 
-0000049045 00000 n 
-0000055324 00000 n 
-0000055749 00000 n 
-0000056003 00000 n 
-0000056198 00000 n 
-0000062108 00000 n 
-0000062512 00000 n 
-0000062814 00000 n 
-0000063009 00000 n 
-0000069740 00000 n 
-0000070199 00000 n 
-0000070441 00000 n 
-0000070636 00000 n 
-0000076340 00000 n 
-0000076733 00000 n 
-0000076988 00000 n 
-0000077188 00000 n 
-0000082896 00000 n 
-0000083301 00000 n 
-0000083551 00000 n 
-0000083746 00000 n 
-0000089596 00000 n 
-0000089997 00000 n 
-0000090211 00000 n 
-0000090413 00000 n 
-0000099715 00000 n 
-0000100067 00000 n 
-0000101201 00000 n 
-0000101456 00000 n 
-0000129023 00000 n 
-0000129773 00000 n 
-0000130052 00000 n 
-0000130252 00000 n 
-0000136637 00000 n 
-0000137063 00000 n 
-0000137356 00000 n 
-0000137558 00000 n 
-0000144057 00000 n 
-0000144500 00000 n 
-0000144682 00000 n 
-0000144888 00000 n 
-0000146783 00000 n 
-0000147089 00000 n 
-0000147427 00000 n 
-0000147629 00000 n 
-0000155218 00000 n 
-0000155703 00000 n 
-0000155973 00000 n 
-0000156175 00000 n 
-0000162445 00000 n 
-0000162861 00000 n 
-0000163106 00000 n 
-0000163303 00000 n 
-0000169035 00000 n 
-0000169429 00000 n 
-0000169707 00000 n 
-0000169909 00000 n 
-0000176272 00000 n 
-0000176694 00000 n 
-0000177000 00000 n 
-0000177202 00000 n 
-0000183636 00000 n 
-0000184088 00000 n 
-0000184393 00000 n 
-0000184590 00000 n 
-0000191361 00000 n 
-0000191822 00000 n 
-0000192159 00000 n 
-0000192356 00000 n 
-0000200131 00000 n 
-0000200620 00000 n 
-0000200885 00000 n 
-0000201082 00000 n 
-0000207277 00000 n 
-0000207688 00000 n 
-0000208786 00000 n 
-0000209031 00000 n 
-0000239235 00000 n 
-0000239988 00000 n 
-0000240290 00000 n 
-0000240492 00000 n 
-0000247105 00000 n 
-0000247556 00000 n 
-0000247850 00000 n 
-0000248052 00000 n 
-0000254699 00000 n 
-0000255137 00000 n 
-0000255347 00000 n 
-0000255549 00000 n 
-0000260373 00000 n 
-0000260720 00000 n 
-0000261013 00000 n 
-0000261210 00000 n 
-0000267783 00000 n 
-0000268228 00000 n 
-0000268522 00000 n 
-0000268724 00000 n 
-0000275393 00000 n 
-0000275832 00000 n 
-0000276025 00000 n 
-0000276227 00000 n 
-0000280507 00000 n 
-0000280837 00000 n 
-0000281098 00000 n 
-0000281302 00000 n 
-0000292318 00000 n 
-0000292718 00000 n 
-0000292905 00000 n 
-0000293109 00000 n 
-0000300245 00000 n 
-0000300565 00000 n 
-0000300866 00000 n 
-0000301063 00000 n 
-0000308012 00000 n 
-0000308466 00000 n 
-0000308808 00000 n 
-0000309010 00000 n 
-0000316937 00000 n 
-0000317434 00000 n 
-0000317727 00000 n 
-0000317924 00000 n 
-0000324527 00000 n 
-0000324973 00000 n 
-0000325263 00000 n 
-0000325467 00000 n 
-0000338066 00000 n 
-0000338494 00000 n 
-0000338669 00000 n 
-0000338873 00000 n 
-0000345601 00000 n 
-0000345904 00000 n 
-0000346083 00000 n 
-0000346287 00000 n 
-0000353509 00000 n 
-0000353816 00000 n 
-0000353999 00000 n 
-0000354203 00000 n 
-0000361481 00000 n 
-0000361793 00000 n 
-0000361992 00000 n 
-0000362196 00000 n 
-0000370309 00000 n 
-0000370644 00000 n 
-0000370886 00000 n 
-0000371090 00000 n 
-0000381308 00000 n 
-0000381688 00000 n 
-0000381982 00000 n 
-0000382186 00000 n 
-0000395367 00000 n 
-0000395798 00000 n 
-0000396075 00000 n 
-0000396272 00000 n 
-0000402770 00000 n 
-0000403196 00000 n 
-0000403425 00000 n 
-0000403622 00000 n 
-0000409095 00000 n 
-0000409468 00000 n 
-0000409797 00000 n 
-0000409994 00000 n 
-0000417352 00000 n 
-0000417834 00000 n 
-0000418159 00000 n 
-0000418356 00000 n 
-0000425518 00000 n 
-0000425991 00000 n 
-0000426290 00000 n 
-0000426489 00000 n 
-0000441515 00000 n 
-0000441967 00000 n 
-0000442187 00000 n 
-0000442391 00000 n 
-0000450187 00000 n 
-0000450542 00000 n 
-0000450770 00000 n 
-0000450974 00000 n 
-0000460624 00000 n 
-0000460989 00000 n 
-0000461274 00000 n 
-0000461471 00000 n 
-0000467886 00000 n 
-0000468322 00000 n 
-0000468587 00000 n 
-0000468784 00000 n 
-0000474787 00000 n 
-0000475203 00000 n 
-0000475424 00000 n 
-0000475628 00000 n 
-0000484807 00000 n 
-0000485164 00000 n 
-0000485433 00000 n 
-0000485630 00000 n 
-0000491805 00000 n 
-0000492221 00000 n 
-0000492662 00000 n 
-0000492859 00000 n 
-0000502148 00000 n 
-0000502747 00000 n 
-0000502985 00000 n 
-0000503187 00000 n 
-0000508686 00000 n 
-0000509066 00000 n 
-0000509395 00000 n 
-0000509592 00000 n 
-0000516875 00000 n 
-0000517361 00000 n 
-0000517650 00000 n 
-0000517847 00000 n 
-0000524425 00000 n 
-0000524865 00000 n 
-0000525111 00000 n 
-0000525313 00000 n 
-0000530942 00000 n 
-0000531333 00000 n 
-0000531534 00000 n 
-0000531731 00000 n 
-0000536707 00000 n 
-0000537045 00000 n 
-0000537408 00000 n 
-0000537612 00000 n 
-0000554196 00000 n 
-0000554711 00000 n 
-0000555024 00000 n 
-0000555221 00000 n 
-0000562054 00000 n 
-0000562523 00000 n 
-0000563029 00000 n 
-0000564953 00000 n 
-0000565495 00000 n 
-0000567532 00000 n 
-0000568083 00000 n 
-0000570157 00000 n 
-0000570708 00000 n 
-0000572770 00000 n 
-0000573327 00000 n 
-0000575384 00000 n 
-0000576643 00000 n 
-0000585681 00000 n 
-0000586940 00000 n 
-0000595947 00000 n 
-0000596633 00000 n 
-0000603240 00000 n 
-0000604189 00000 n 
-0000610958 00000 n 
-0000611874 00000 n 
-0000618326 00000 n 
-0000620477 00000 n 
-0000623279 00000 n 
-0000623591 00000 n 
-0000625469 00000 n 
-0000626020 00000 n 
-0000628072 00000 n 
-0000628635 00000 n 
-0000631255 00000 n 
-0000631831 00000 n 
-0000633645 00000 n 
-0000634208 00000 n 
-0000636276 00000 n 
-0000636561 00000 n 
-0000637976 00000 n 
-0000638756 00000 n 
-0000639035 00000 n 
-0000639318 00000 n 
-0000639598 00000 n 
-0000639882 00000 n 
-0000640162 00000 n 
-0000640447 00000 n 
-0000640727 00000 n 
-0000641012 00000 n 
-0000641292 00000 n 
-0000641576 00000 n 
-0000641860 00000 n 
-0000642144 00000 n 
-0000642428 00000 n 
-0000642713 00000 n 
-0000642998 00000 n 
-0000643279 00000 n 
-0000643559 00000 n 
-0000643839 00000 n 
-0000644124 00000 n 
-0000644409 00000 n 
-0000644694 00000 n 
-0000644979 00000 n 
-0000645260 00000 n 
-0000645540 00000 n 
-0000645820 00000 n 
-0000646101 00000 n 
-0000646382 00000 n 
-0000646666 00000 n 
-0000646950 00000 n 
-0000647234 00000 n 
-0000647518 00000 n 
-0000647800 00000 n 
-0000648080 00000 n 
-0000648362 00000 n 
-0000648642 00000 n 
-0000648692 00000 n 
-0000648797 00000 n 
-0000648859 00000 n 
-0000651201 00000 n 
-0000720371 00000 n 
-0000720423 00000 n 
-0000720550 00000 n 
-0000722892 00000 n 
-0000748066 00000 n 
-0000748118 00000 n 
-0000748271 00000 n 
-0000750613 00000 n 
-0000775514 00000 n 
-0000775566 00000 n 
-0000775720 00000 n 
-0000778062 00000 n 
-0000803041 00000 n 
-0000803093 00000 n 
-0000803242 00000 n 
-0000805584 00000 n 
-0000876304 00000 n 
-0000876356 00000 n 
-0000876475 00000 n 
-0000878817 00000 n 
-0000972804 00000 n 
-0000972856 00000 n 
-0000972990 00000 n 
-0000975332 00000 n 
-0001071313 00000 n 
-0001071365 00000 n 
-0001071503 00000 n 
-0001073845 00000 n 
-0001078897 00000 n 
-0001078949 00000 n 
-0001079088 00000 n 
-0001081430 00000 n 
-0001086652 00000 n 
-0001086704 00000 n 
-0001086841 00000 n 
-0001089183 00000 n 
-0001326845 00000 n 
-0001326897 00000 n 
-0001327051 00000 n 
-0001329393 00000 n 
-0001333973 00000 n 
-0001334025 00000 n 
-0001334164 00000 n 
-0001336506 00000 n 
-0001340895 00000 n 
-0001340947 00000 n 
-0001341092 00000 n 
-0001343434 00000 n 
-0001347801 00000 n 
-0001347853 00000 n 
-0001347993 00000 n 
-0001350335 00000 n 
-0001356579 00000 n 
-0001356631 00000 n 
-0001356779 00000 n 
-0001359121 00000 n 
-0001365730 00000 n 
-0001365782 00000 n 
-0001365928 00000 n 
-0001368270 00000 n 
-0001372938 00000 n 
-0001372990 00000 n 
-0001373134 00000 n 
-0001375476 00000 n 
-0001380372 00000 n 
-0001380424 00000 n 
-0001380571 00000 n 
-0001382913 00000 n 
-0001388617 00000 n 
-0001388669 00000 n 
-0001388815 00000 n 
-0001391157 00000 n 
-0001402280 00000 n 
-0001402332 00000 n 
-0001402478 00000 n 
-0001404820 00000 n 
-0001410027 00000 n 
-0001410079 00000 n 
-0001410230 00000 n 
-0001412572 00000 n 
-0001417587 00000 n 
-0001417639 00000 n 
-0001417780 00000 n 
-0001420122 00000 n 
-0001425394 00000 n 
-0001425446 00000 n 
-0001425592 00000 n 
-0001427934 00000 n 
-0001433344 00000 n 
-0001433396 00000 n 
-0001433541 00000 n 
-0001435883 00000 n 
-0001440260 00000 n 
-0001440312 00000 n 
-0001440427 00000 n 
-0001442769 00000 n 
-0001446328 00000 n 
-0001446380 00000 n 
-0001446499 00000 n 
-0001448841 00000 n 
-0001461481 00000 n 
-0001461533 00000 n 
-0001461650 00000 n 
-0001463992 00000 n 
-0001472277 00000 n 
-0001472329 00000 n 
-0001472446 00000 n 
-0001474788 00000 n 
-0001481125 00000 n 
-0001481177 00000 n 
-0001481294 00000 n 
-0001483636 00000 n 
-0001494824 00000 n 
-0001494876 00000 n 
-0001494993 00000 n 
-0001497335 00000 n 
-0001508068 00000 n 
-0001508120 00000 n 
-0001508237 00000 n 
-0001510579 00000 n 
-0001519139 00000 n 
-0001519191 00000 n 
-0001519308 00000 n 
-0001521650 00000 n 
-0001533041 00000 n 
-0001533093 00000 n 
-0001533210 00000 n 
-0001535552 00000 n 
-0001541008 00000 n 
-0001541060 00000 n 
+0000006858 00000 n 
+0000006897 00000 n 
+0000006936 00000 n 
+0000006975 00000 n 
+0000007014 00000 n 
+0000007054 00000 n 
+0000007094 00000 n 
+0000007134 00000 n 
+0000007174 00000 n 
+0000007214 00000 n 
+0000007254 00000 n 
+0000007294 00000 n 
+0000007334 00000 n 
+0000007374 00000 n 
+0000007414 00000 n 
+0000007454 00000 n 
+0000007494 00000 n 
+0000007534 00000 n 
+0000007574 00000 n 
+0000007614 00000 n 
+0000007654 00000 n 
+0000007694 00000 n 
+0000007734 00000 n 
+0000007774 00000 n 
+0000007814 00000 n 
+0000007854 00000 n 
+0000007894 00000 n 
+0000007934 00000 n 
+0000007974 00000 n 
+0000008014 00000 n 
+0000008054 00000 n 
+0000008094 00000 n 
+0000008134 00000 n 
+0000008174 00000 n 
+0000008214 00000 n 
+0000008254 00000 n 
+0000008294 00000 n 
+0000008402 00000 n 
+0000008768 00000 n 
+0000008963 00000 n 
+0000017473 00000 n 
+0000017999 00000 n 
+0000018373 00000 n 
+0000018568 00000 n 
+0000026754 00000 n 
+0000027291 00000 n 
+0000027582 00000 n 
+0000027782 00000 n 
+0000034381 00000 n 
+0000034824 00000 n 
+0000035075 00000 n 
+0000035275 00000 n 
+0000041159 00000 n 
+0000041556 00000 n 
+0000041826 00000 n 
+0000042021 00000 n 
+0000048154 00000 n 
+0000048576 00000 n 
+0000048855 00000 n 
+0000049055 00000 n 
+0000055334 00000 n 
+0000055759 00000 n 
+0000056013 00000 n 
+0000056208 00000 n 
+0000062118 00000 n 
+0000062522 00000 n 
+0000062824 00000 n 
+0000063019 00000 n 
+0000069750 00000 n 
+0000070209 00000 n 
+0000070451 00000 n 
+0000070646 00000 n 
+0000076350 00000 n 
+0000076743 00000 n 
+0000076998 00000 n 
+0000077198 00000 n 
+0000082906 00000 n 
+0000083311 00000 n 
+0000083561 00000 n 
+0000083756 00000 n 
+0000089606 00000 n 
+0000090007 00000 n 
+0000090221 00000 n 
+0000090423 00000 n 
+0000099725 00000 n 
+0000100077 00000 n 
+0000101211 00000 n 
+0000101466 00000 n 
+0000129033 00000 n 
+0000129783 00000 n 
+0000130062 00000 n 
+0000130262 00000 n 
+0000136647 00000 n 
+0000137073 00000 n 
+0000137366 00000 n 
+0000137568 00000 n 
+0000144067 00000 n 
+0000144510 00000 n 
+0000144692 00000 n 
+0000144898 00000 n 
+0000146793 00000 n 
+0000147099 00000 n 
+0000147437 00000 n 
+0000147639 00000 n 
+0000155228 00000 n 
+0000155713 00000 n 
+0000155983 00000 n 
+0000156185 00000 n 
+0000162455 00000 n 
+0000162871 00000 n 
+0000163116 00000 n 
+0000163313 00000 n 
+0000169045 00000 n 
+0000169439 00000 n 
+0000169717 00000 n 
+0000169919 00000 n 
+0000176282 00000 n 
+0000176704 00000 n 
+0000177010 00000 n 
+0000177212 00000 n 
+0000183646 00000 n 
+0000184098 00000 n 
+0000184403 00000 n 
+0000184600 00000 n 
+0000191371 00000 n 
+0000191832 00000 n 
+0000192169 00000 n 
+0000192366 00000 n 
+0000200141 00000 n 
+0000200630 00000 n 
+0000200895 00000 n 
+0000201092 00000 n 
+0000207287 00000 n 
+0000207698 00000 n 
+0000208796 00000 n 
+0000209041 00000 n 
+0000239245 00000 n 
+0000239998 00000 n 
+0000240300 00000 n 
+0000240502 00000 n 
+0000247115 00000 n 
+0000247566 00000 n 
+0000247860 00000 n 
+0000248062 00000 n 
+0000254709 00000 n 
+0000255147 00000 n 
+0000255357 00000 n 
+0000255559 00000 n 
+0000260383 00000 n 
+0000260730 00000 n 
+0000261023 00000 n 
+0000261220 00000 n 
+0000267793 00000 n 
+0000268238 00000 n 
+0000268532 00000 n 
+0000268734 00000 n 
+0000275403 00000 n 
+0000275842 00000 n 
+0000276035 00000 n 
+0000276237 00000 n 
+0000280517 00000 n 
+0000280847 00000 n 
+0000281108 00000 n 
+0000281312 00000 n 
+0000292328 00000 n 
+0000292728 00000 n 
+0000292915 00000 n 
+0000293119 00000 n 
+0000300255 00000 n 
+0000300575 00000 n 
+0000300876 00000 n 
+0000301073 00000 n 
+0000308022 00000 n 
+0000308476 00000 n 
+0000308818 00000 n 
+0000309020 00000 n 
+0000316947 00000 n 
+0000317444 00000 n 
+0000317737 00000 n 
+0000317934 00000 n 
+0000324537 00000 n 
+0000324983 00000 n 
+0000325273 00000 n 
+0000325477 00000 n 
+0000338076 00000 n 
+0000338504 00000 n 
+0000338679 00000 n 
+0000338883 00000 n 
+0000345611 00000 n 
+0000345914 00000 n 
+0000346093 00000 n 
+0000346297 00000 n 
+0000353519 00000 n 
+0000353826 00000 n 
+0000354009 00000 n 
+0000354213 00000 n 
+0000361491 00000 n 
+0000361803 00000 n 
+0000362002 00000 n 
+0000362206 00000 n 
+0000370319 00000 n 
+0000370654 00000 n 
+0000370896 00000 n 
+0000371100 00000 n 
+0000381318 00000 n 
+0000381698 00000 n 
+0000381992 00000 n 
+0000382196 00000 n 
+0000395377 00000 n 
+0000395808 00000 n 
+0000396085 00000 n 
+0000396282 00000 n 
+0000402780 00000 n 
+0000403206 00000 n 
+0000403435 00000 n 
+0000403632 00000 n 
+0000409105 00000 n 
+0000409478 00000 n 
+0000409807 00000 n 
+0000410004 00000 n 
+0000417362 00000 n 
+0000417844 00000 n 
+0000418169 00000 n 
+0000418366 00000 n 
+0000425528 00000 n 
+0000426001 00000 n 
+0000426300 00000 n 
+0000426499 00000 n 
+0000441525 00000 n 
+0000441977 00000 n 
+0000442197 00000 n 
+0000442401 00000 n 
+0000450197 00000 n 
+0000450552 00000 n 
+0000450780 00000 n 
+0000450984 00000 n 
+0000460634 00000 n 
+0000460999 00000 n 
+0000461284 00000 n 
+0000461481 00000 n 
+0000467896 00000 n 
+0000468332 00000 n 
+0000468597 00000 n 
+0000468794 00000 n 
+0000474797 00000 n 
+0000475213 00000 n 
+0000475434 00000 n 
+0000475638 00000 n 
+0000484817 00000 n 
+0000485174 00000 n 
+0000485443 00000 n 
+0000485640 00000 n 
+0000491815 00000 n 
+0000492231 00000 n 
+0000492672 00000 n 
+0000492869 00000 n 
+0000502158 00000 n 
+0000502757 00000 n 
+0000502995 00000 n 
+0000503197 00000 n 
+0000508696 00000 n 
+0000509076 00000 n 
+0000509405 00000 n 
+0000509602 00000 n 
+0000516885 00000 n 
+0000517371 00000 n 
+0000517660 00000 n 
+0000517857 00000 n 
+0000524435 00000 n 
+0000524875 00000 n 
+0000525121 00000 n 
+0000525323 00000 n 
+0000530952 00000 n 
+0000531343 00000 n 
+0000531544 00000 n 
+0000531741 00000 n 
+0000536717 00000 n 
+0000537055 00000 n 
+0000537418 00000 n 
+0000537622 00000 n 
+0000554206 00000 n 
+0000554721 00000 n 
+0000555034 00000 n 
+0000555231 00000 n 
+0000562064 00000 n 
+0000562533 00000 n 
+0000563039 00000 n 
+0000564963 00000 n 
+0000565505 00000 n 
+0000567542 00000 n 
+0000568093 00000 n 
+0000570167 00000 n 
+0000570718 00000 n 
+0000572780 00000 n 
+0000573337 00000 n 
+0000575394 00000 n 
+0000576653 00000 n 
+0000585691 00000 n 
+0000586950 00000 n 
+0000595957 00000 n 
+0000596643 00000 n 
+0000603250 00000 n 
+0000604199 00000 n 
+0000610968 00000 n 
+0000611884 00000 n 
+0000618336 00000 n 
+0000620487 00000 n 
+0000623289 00000 n 
+0000623601 00000 n 
+0000625479 00000 n 
+0000626030 00000 n 
+0000628082 00000 n 
+0000628645 00000 n 
+0000631265 00000 n 
+0000631841 00000 n 
+0000633655 00000 n 
+0000634218 00000 n 
+0000636286 00000 n 
+0000636571 00000 n 
+0000637986 00000 n 
+0000638766 00000 n 
+0000639045 00000 n 
+0000639328 00000 n 
+0000639608 00000 n 
+0000639892 00000 n 
+0000640172 00000 n 
+0000640457 00000 n 
+0000640737 00000 n 
+0000641022 00000 n 
+0000641302 00000 n 
+0000641586 00000 n 
+0000641870 00000 n 
+0000642154 00000 n 
+0000642438 00000 n 
+0000642723 00000 n 
+0000643008 00000 n 
+0000643289 00000 n 
+0000643569 00000 n 
+0000643849 00000 n 
+0000644134 00000 n 
+0000644419 00000 n 
+0000644704 00000 n 
+0000644989 00000 n 
+0000645270 00000 n 
+0000645550 00000 n 
+0000645830 00000 n 
+0000646111 00000 n 
+0000646392 00000 n 
+0000646676 00000 n 
+0000646960 00000 n 
+0000647244 00000 n 
+0000647528 00000 n 
+0000647810 00000 n 
+0000648090 00000 n 
+0000648372 00000 n 
+0000648652 00000 n 
+0000648702 00000 n 
+0000648807 00000 n 
+0000648869 00000 n 
+0000651211 00000 n 
+0000720426 00000 n 
+0000720478 00000 n 
+0000720605 00000 n 
+0000722947 00000 n 
+0000748181 00000 n 
+0000748233 00000 n 
+0000748386 00000 n 
+0000750728 00000 n 
+0000775667 00000 n 
+0000775719 00000 n 
+0000775873 00000 n 
+0000778215 00000 n 
+0000803302 00000 n 
+0000803354 00000 n 
+0000803503 00000 n 
+0000805845 00000 n 
+0000876592 00000 n 
+0000876644 00000 n 
+0000876763 00000 n 
+0000879105 00000 n 
+0000973010 00000 n 
+0000973062 00000 n 
+0000973196 00000 n 
+0000975538 00000 n 
+0001071430 00000 n 
+0001071482 00000 n 
+0001071620 00000 n 
+0001073962 00000 n 
+0001079015 00000 n 
+0001079067 00000 n 
+0001079206 00000 n 
+0001081548 00000 n 
+0001086806 00000 n 
+0001086858 00000 n 
+0001086995 00000 n 
+0001089337 00000 n 
+0001326970 00000 n 
+0001327022 00000 n 
+0001327176 00000 n 
+0001329518 00000 n 
+0001334110 00000 n 
+0001334162 00000 n 
+0001334301 00000 n 
+0001336643 00000 n 
+0001341044 00000 n 
+0001341096 00000 n 
+0001341241 00000 n 
+0001343583 00000 n 
+0001347967 00000 n 
+0001348019 00000 n 
+0001348159 00000 n 
+0001350501 00000 n 
+0001356734 00000 n 
+0001356786 00000 n 
+0001356934 00000 n 
+0001359276 00000 n 
+0001365888 00000 n 
+0001365940 00000 n 
+0001366086 00000 n 
+0001368428 00000 n 
+0001373107 00000 n 
+0001373159 00000 n 
+0001373303 00000 n 
+0001375645 00000 n 
+0001380562 00000 n 
+0001380614 00000 n 
+0001380761 00000 n 
+0001383103 00000 n 
+0001388786 00000 n 
+0001388838 00000 n 
+0001388984 00000 n 
+0001391326 00000 n 
+0001402434 00000 n 
+0001402486 00000 n 
+0001402632 00000 n 
+0001404974 00000 n 
+0001410172 00000 n 
+0001410224 00000 n 
+0001410375 00000 n 
+0001412717 00000 n 
+0001417740 00000 n 
+0001417792 00000 n 
+0001417933 00000 n 
+0001420275 00000 n 
+0001425562 00000 n 
+0001425614 00000 n 
+0001425760 00000 n 
+0001428102 00000 n 
+0001433579 00000 n 
+0001433631 00000 n 
+0001433776 00000 n 
+0001436118 00000 n 
+0001440564 00000 n 
+0001440616 00000 n 
+0001440731 00000 n 
+0001443073 00000 n 
+0001446620 00000 n 
+0001446672 00000 n 
+0001446791 00000 n 
+0001449133 00000 n 
+0001461773 00000 n 
+0001461825 00000 n 
+0001461942 00000 n 
+0001464284 00000 n 
+0001472569 00000 n 
+0001472621 00000 n 
+0001472738 00000 n 
+0001475080 00000 n 
+0001481417 00000 n 
+0001481469 00000 n 
+0001481586 00000 n 
+0001483928 00000 n 
+0001495116 00000 n 
+0001495168 00000 n 
+0001495285 00000 n 
+0001497627 00000 n 
+0001508360 00000 n 
+0001508412 00000 n 
+0001508529 00000 n 
+0001510871 00000 n 
+0001519431 00000 n 
+0001519483 00000 n 
+0001519600 00000 n 
+0001521942 00000 n 
+0001533333 00000 n 
+0001533385 00000 n 
+0001533502 00000 n 
+0001535844 00000 n 
+0001541300 00000 n 
+0001541352 00000 n 
 trailer
 <<
 /Size 496
@@ -58311,5 +58311,5 @@ trailer
 /Info 1 0 R
 >>
 startxref
-1541163
+1541455
 %%EOF
