@@ -16,9 +16,9 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 | --- | --- | --- |
 | 1 | Fog of War Chess | 0:20 |
 | 2 | Where would you move? | 0:25 |
-| 3 | Possibility A: all three moves left are exposed | 0:20 |
-| 4 | Possibility B: all three moves right are exposed | 0:20 |
-| 5 | Possibility C: the king is already in check | 0:25 |
+| 3 | Possibility A | 0:20 |
+| 4 | Possibility B | 0:20 |
+| 5 | Possibility C | 0:25 |
 | 6 | Fog of War Chess | 0:35 |
 | 7 | A capture reveals a hidden rook | 0:30 |
 | 8 | History filters the possible boards | 0:35 |
@@ -61,7 +61,7 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 **Delivery cues (not spoken):** Pause briefly for the audience to consider the choice. Avoid explaining chess notation or individual squares.
 
-### Slide 3 Possibility A: all three moves left are exposed
+### Slide 3 Possibility A
 
 **Purpose:** Hidden information. Planned 20 seconds.
 
@@ -71,7 +71,7 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 **Delivery cues (not spoken):** Indicate the three threatened destinations together without describing their colour or naming squares.
 
-### Slide 4 Possibility B: all three moves right are exposed
+### Slide 4 Possibility B
 
 **Purpose:** Hidden information. Planned 20 seconds.
 
@@ -79,7 +79,7 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 **Transition:** There’s another possibility.
 
-### Slide 5 Possibility C: the king is already in check
+### Slide 5 Possibility C
 
 **Purpose:** Hidden information. Planned 25 seconds.
 
@@ -361,3 +361,9 @@ The spoken passages now explain the choice, inference or result rather than narr
 | 17–21 | The central question was repeatedly announced. | Follow one sequence: predictions improved, game results were inconclusive, and computation increased. Retain the development-set and unequal-compute limitations. |
 | 22–24 | The ranking example used generic presenter transitions. | Walk through the choice: wrong values can preserve the preferred action, while closer values can reverse it. Retain the illustrative scope. |
 | 25–26 | The conclusion used abstract phrasing. | State the observed trade-off and the next equal-time deeper-search evaluation directly. |
+
+## Visible slide copy review
+
+Removed repeated headings, explanations of obvious colours and generic footer text from the core slides. The opening possibilities now use short titles with one consequence beside each board. Removed captions that restated the title, diagram or adjacent labels, including “Teacher agreement is one objective”. Enlarged the charts where their duplicated side commentary was removed.
+
+Retained information needed to interpret the results: recorded-policy outcomes, different evaluation sets, development-set model selection, unequal computation, uncertainty intervals and the illustrative status of the ranking example. Full source details remain in speaker notes and the hidden evidence slides. Speech, timing, slide order and the single presenter handoff are unchanged.
