@@ -8,11 +8,12 @@ The existing Network 1 checkpoint was loaded on CPU into Pair A's fixed depth-2
 search; the control used the same search with a depth-1 Stockfish leaf. Both
 sides used the same engine executable, exact tracker, solver settings and
 public pawn fixture. Colours alternated with seeds 17 and 18. The copied INI,
-raw `games.jsonl` and runner `summary.json` are retained unchanged.
+raw `games.jsonl` and runner `summary.json` are retained unchanged in the local
+validation workspace; they are not uploaded to this repository.
 
-`environment.json` retains versions, actual engine/checkpoint hashes and hashes
-of the accompanying changed source files. Local executable paths are replaced
-by a placeholder; the original, larger provenance file is retained locally.
+The local `environment.json` retains versions, actual engine/checkpoint hashes
+and hashes of the accompanying changed source files. Its executable paths are
+normalized; the full original provenance is also retained locally.
 The run used a source snapshot based on main 36f81fb, not a local Git commit.
 The environment used Python 3.12.15, torch 2.2.2 and NumPy 1.26.4 on Intel macOS;
 this does not certify the newer dependency lock or another platform.
