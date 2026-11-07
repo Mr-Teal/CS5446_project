@@ -1,0 +1,88 @@
+{
+  "date": "2026-11-07",
+  "kind": "local_implementation_and_budget_validation_not_strength",
+  "shared_pair_a": {
+    "tests": 1001,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "pair_c_separate_environment": {
+    "tests": 46,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "fixed_cases": 12,
+  "complete_fixed": 9,
+  "fixed_history_and_sample_parity": true,
+  "fixed_inventory_count_one": true,
+  "replays_complete": 8,
+  "replay_accepted_updates": 1075,
+  "replay_attempted_updates": 1077,
+  "accepted_replay_counts_and_true_paths_match": true,
+  "live_prefix11_matches_fixed_input": true,
+  "live": [
+    {
+      "seed": 17,
+      "status": "complete",
+      "plies": 39,
+      "winner": "white",
+      "applied_plies": 39,
+      "max_update_ms": 4.916499994578771,
+      "max_returned_whole_turn_ms": 1384.5308000018122,
+      "peak_rss_bytes": 132747264,
+      "failed_update": null
+    },
+    {
+      "seed": 18,
+      "status": "failed",
+      "error": "TrackingBudgetError: budgeted-exact tracking stopped: total_time; status=partial; calls=1; partial beliefs are not submitted",
+      "applied_plies": 13,
+      "max_update_ms": 15056.783399995766,
+      "max_returned_whole_turn_ms": 8783.66939999978,
+      "peak_rss_bytes": 645271552,
+      "failed_update": {
+        "seed": 18,
+        "player": "black",
+        "ply": 13,
+        "wall_ms": 15056.783399995766,
+        "error": "TrackingBudgetError: budgeted-exact tracking stopped: total_time; status=partial; calls=1; partial beliefs are not submitted",
+        "process_rss_bytes": 645267456,
+        "process_peak_rss_bytes": 645271552,
+        "process_private_bytes": 624427008,
+        "result": {
+          "status": "partial",
+          "stopped_by": "time",
+          "support_complete": false,
+          "expansion_complete": false,
+          "generated_valid_count": 25371684,
+          "retained_count": 25371684,
+          "state_count": 361156,
+          "attempted_transitions": 1167334,
+          "elapsed_ms": 15056.668699995498,
+          "accounted_bytes": 647068453,
+          "memory_inventory_count": 1,
+          "memory_inventory_ms": 1209.9247000005562,
+          "temporary_peak_bytes": 0
+        }
+      }
+    }
+  ],
+  "current_assets_verified": 66,
+  "historical_files_unchanged": 134,
+  "source_sha256": {
+    "belief_tracker.py": "7b9bebe8f25ea75ba82b90c6e7a08679364232ad4c72b097895d049e5c0015c3",
+    "_belief_graph.py": "e41dab7ce71ca05544d9bfc8e4d8e42fe0a2e4e8dd23b94414b9b7f2ae59b709",
+    "_belief_memory.py": "e3e73356317801fbb3f0f0e455a564006e081c9ccbfba569788c7f024a96b458",
+    "_belief_native.py": "f8faad4c6b414086b7691ff455db96ed1a2c3e16aad695bbf0b4dd9565ca8b0d",
+    "evaluation_tracking.py": "e7a566f59c6b42bbc101e91cc4af888d6ed4e935f1bf27581820877b49f1b662",
+    "evaluation_factories.py": "d1228c787e804637433e114c587b31e59697bbd310d1184c6a467882bac58375",
+    "benchmark_tracker_policy.py": "4216e7a5daf027652062bf02807d1f6b928c799e6b19a4ebbe5702fd6a1f901a",
+    "benchmark_tracker_matches.py": "d43763f0b0cd25f9d11a14a7e3a90a6088d28b8e8a671cd144f72bca7d4799af",
+    "benchmark_tracker_budget_replay.py": "d36385c0ee4996f0ef3dadeac601de12e9c94d99111defb603f14520a8664d0f"
+  },
+  "formal_batch_started": false,
+  "remote_writes": false,
+  "pr33_changed": false
+}
