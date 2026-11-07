@@ -1,6 +1,8 @@
 {
-  "source_sha256": "8d92ad3f5e325b4d3d8095dcd927ec5292dcc2302b28e08a9635610bea016bc6",
-  "dll_sha256": "efa67a4977ab74282b16a0fd8b777dfa21273dde12da50f2ad582b47d585f3cc",
-  "compiler": "conda-forge x86_64-w64-mingw32-g++ 16.2.0-7",
-  "rebuild": "pixi run --manifest-path zs21_runtime/pixi.toml --locked -e darkchess build-native"
+  "source_sha256": "7b95d76abdf2954940cbd47d9f9eeb907fc6c4a2f1027e3d08e54d3929ccb296",
+  "dll_sha256": "9d9e13686381baaba08d090e85647f9bba557e01896facc71d9db96aba8e581a",
+  "compiler": "x86_64-w64-mingw32-g++.exe (conda-forge gcc 16.2.0-7) 16.2.0",
+  "rebuild": "pixi run --manifest-path zs21_runtime/pixi.toml --locked -e darkchess build-native",
+  "source_revision": "e6a5701f481dc4ab4710f49b7727056ec58f9b50",
+  "build_record": "zs21_runtime/builds/windows-native-2026-11-07.json"
 }
