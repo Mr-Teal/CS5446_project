@@ -2,13 +2,13 @@
 
 Presentation plan for a 12-minute presentation followed by 3-minute Q&A
 
-8 November 2026. Twenty-six core slides, eight hidden backups. Bryan: slides 1–11 (5:25). Colin: slides 12–26 (6:25). One handoff after slide 11.
+8 November 2026. Twenty-six core slides, eight hidden backups. Bryan: slides 1–11 (5:25). Colin: slides 12–26 (7:10). One handoff after slide 11.
 
 ## The argument
 
 Observation history helps constrain hidden state. Learned values must be evaluated through decisions, outcomes and computation. Colin presents three distinct studies: linear prediction targets, a neural correction tested in games, and a preliminary network trained from search-generated targets.
 
-Planned delivery is 11:50, leaving ten seconds within the 12-minute talk. These are rehearsal targets, not a measured runtime. Three minutes of Q&A follow separately.
+The rehearsal guide totals 12:35, allowing pauses for the comparison charts and action-ranking example. This is 35 seconds above the 12-minute presentation slot, with a separate three-minute Q&A. It is a planning guide, not a measured runtime. Prioritize understanding and natural delivery when rehearsing.
 
 ## Run of show
 
@@ -28,15 +28,15 @@ Planned delivery is 11:50, leaving ten seconds within the 12-minute talk. These 
 | 12 | Three ways to learn position values | 0:20 |
 | 13 | Monte Carlo learns from completed returns | 0:30 |
 | 14 | TD bootstraps from the next estimate | 0:25 |
-| 15 | Distillation best matched the engine teacher | 0:20 |
-| 16 | MC and TD better matched recorded outcomes | 0:20 |
+| 15 | Distillation best matched the engine teacher | 0:30 |
+| 16 | MC and TD better matched recorded outcomes | 0:30 |
 | 17 | Testing a learned value correction | 0:40 |
 | 18 | Prediction error decreased by about 20% | 0:25 |
 | 19 | The games did not establish a playing gain | 0:40 |
 | 20 | The learned correction took about 3× as long | 0:25 |
-| 21 | The reference slightly prefers Move A | 0:10 |
-| 22 | Large value errors can preserve the choice | 0:10 |
-| 23 | Closer values can still change the choice | 0:20 |
+| 21 | The reference slightly prefers Move A | 0:15 |
+| 22 | Large value errors can preserve the choice | 0:20 |
+| 23 | Closer values can still change the choice | 0:30 |
 | 24 | Learning from our own search | 0:25 |
 | 25 | Does the learned evaluator help? | 0:30 |
 | 26 | Conclusions and next evaluation | 0:45 |
@@ -193,21 +193,25 @@ Planned delivery is 11:50, leaving ten seconds within the 12-minute talk. These 
 
 **Presenter:** Colin
 
-**Purpose:** Offline teacher-prediction result. Planned 20 seconds.
+**Purpose:** Offline teacher-prediction result. Planned 30 seconds.
 
-**Say:** Distillation best matched the stronger engine’s values. That fits its training objective. The training distributions also differed, so this comparison doesn’t isolate the effect of the target.
+**Say:** First, how closely does each model match the stronger engine? Lower bars mean smaller errors. Distillation comes closest, which fits its training target. All three use the same linear model, but their training distributions differ, so the target alone may not explain the gap.
 
-**Transition:** The outcome comparison tells a different story.
+**Transition:** Now change what we ask them to predict.
+
+**Delivery cues (not spoken):** Give the audience a moment to locate the three methods. Indicate the lower distillation bar, then state the finding. Do not read every value. The pause is included in the allocation.
 
 ### Slide 16 MC and TD better matched recorded outcomes
 
 **Presenter:** Colin
 
-**Purpose:** Offline outcome-prediction result. Planned 20 seconds.
+**Purpose:** Offline outcome-prediction result. Planned 30 seconds.
 
-**Say:** MC and TD slightly better predicted returns under the recorded policy. Each chart has its own metric and evaluation set. Together, they show that what we train a value function to predict matters.
+**Say:** Here we change the question: how well does each model predict the recorded game outcome? MC and TD now do slightly better. These are returns under the policy that generated the games. Because the metric and evaluation set differ, we compare methods within each chart.
 
-**Transition:** We then tested whether better predictions help actual play.
+**Transition:** Neither chart tells us yet whether the agent plays better.
+
+**Delivery cues (not spoken):** Pause briefly on the new chart before speaking. Compare the methods within this chart, without comparing its bar heights to the preceding chart. The pause is included in the allocation.
 
 ### Slide 17 Testing a learned value correction
 
@@ -257,37 +261,37 @@ Planned delivery is 11:50, leaving ten seconds within the 12-minute talk. These 
 
 **Presenter:** Colin
 
-**Purpose:** Illustrative ranking reference. Planned 10 seconds.
+**Purpose:** Illustrative ranking reference. Planned 15 seconds.
 
-**Say:** In this illustration, the reference slightly prefers A over B.
+**Say:** Suppose these are the reference values for two actions. Higher is better, so A is preferred, although only slightly.
 
-**Transition:** Now consider these estimates.
+**Transition:** Now suppose our evaluator predicts these values.
 
-**Delivery cues (not spoken):** Advance these three visual steps as one continuous explanation. The values are illustrative, not measured results.
+**Delivery cues (not spoken):** Keep the reference visible for about two seconds before advancing. Indicate A and B together. Establish that the example is illustrative, not a project measurement.
 
 ### Slide 22 Large value errors can preserve the choice
 
 **Presenter:** Colin
 
-**Purpose:** Illustrative baseline choice. Planned 10 seconds.
+**Purpose:** Illustrative baseline choice. Planned 20 seconds.
 
-**Say:** The values are inaccurate, but A still ranks first, so the choice is preserved.
+**Say:** These estimates are quite far off. Which action would the agent choose? Still A, because it ranks higher. Despite the inaccurate values, the preferred action is preserved.
 
-**Transition:** Now make the values closer.
+**Transition:** Now let’s reduce the prediction errors.
 
-**Delivery cues (not spoken):** Advance these three visual steps as one continuous explanation. The values are illustrative, not measured results.
+**Delivery cues (not spoken):** Pause for about two seconds after the question so the audience can make the choice silently. Indicate the selected action, without calculating the numerical error aloud.
 
 ### Slide 23 Closer values can still change the choice
 
 **Presenter:** Colin
 
-**Purpose:** Illustrative learned choice. Planned 20 seconds.
+**Purpose:** Illustrative learned choice. Planned 30 seconds.
 
-**Say:** These estimates are closer overall, but they reverse the ranking and select B. Smaller average errors can still change the action. This illustrates a possible explanation, not a measured cause of our game results.
+**Say:** Now the estimates are closer, but B ranks above A. The agent chooses B, even though the average error is smaller. A more accurate value function can still change the action ranking. This illustrates a possible explanation for our results, rather than an established cause.
 
 **Transition:** A separate experiment learns directly from the agent’s own search.
 
-**Delivery cues (not spoken):** Advance these three visual steps as one continuous explanation. The values are illustrative, not measured results.
+**Delivery cues (not spoken):** Allow a brief look at the changed ranking before explaining it. Connect the reversed choice to the distinction between value accuracy and action quality. Keep the illustrative scope clear.
 
 ### Slide 24 Learning from our own search
 
@@ -364,9 +368,9 @@ Planned delivery is 11:50, leaving ten seconds within the 12-minute talk. These 
 
 ## Delivery and rehearsal
 
-Bryan covers the introduction, hidden-state examples, information formulation and the aligned recorded demo (slides 1–11, retained allocation 5:25). Colin covers learning targets, experiments, interpretation and conclusions (slides 12–26, 6:25). Handoff once after slide 11. Bryan and Colin both prepare for Q&A.
+Bryan covers the introduction, hidden-state examples, information formulation and the aligned recorded demo (slides 1–11, retained allocation 5:25). Colin covers learning targets, experiments, interpretation and conclusions (slides 12–26, 7:10). Handoff once after slide 11. Bryan and Colin both prepare for Q&A.
 
-The planned allocations total 11:50; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
+The planned allocations total 12:35; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
 
 ## Hidden backup navigation
 
@@ -410,16 +414,16 @@ The planned allocations total 11:50; the confirmed speaking slot is 12 minutes, 
 
 ## Delivery and pacing
 
-Bryan’s slides 1–11 and 5:25 allocation are unchanged. Colin’s section is 6:25. One handoff follows slide 11. The separate MC/TD visuals and three-step action-ranking illustration remain. Treat the ranking reveals as one continuous explanation. The combined setup is slide 17; detailed game protocol remains in the archived-match backup. Slide 26 combines conclusions with the next evaluation.
+Bryan’s slides 1–11 and 5:25 allocation are unchanged. Colin’s section is 7:10. One handoff follows slide 11. The separate MC/TD visuals and three-step action-ranking illustration remain. Treat the ranking reveals as one connected explanation, allowing time for the audience to identify the preferred action before revealing the change. The combined setup is slide 17; detailed game protocol remains in the archived-match backup. Slide 26 combines conclusions with the next evaluation.
 
 | Colin’s section | Target |
 | --- | --- |
 | 12–14: training targets | 1:15 |
-| 15–16: prediction comparisons | 0:40 |
+| 15–16: prediction comparisons | 1:00 |
 | 17: neural correction and evaluation | 0:40 |
 | 18–20: accuracy, games and cost | 1:30 |
-| 21–23: action-ranking illustration | 0:40 |
+| 21–23: action-ranking illustration | 1:05 |
 | 24–25: preliminary search-trained model | 0:55 |
 | 26: conclusions and next evaluation | 0:45 |
 
-Each limitation is explained beside the result it qualifies. Keep the development-data selection warning, uncertainty interpretation, unequal-time comparison and preliminary-study attribution. Do not read detailed methods or source notes during the core talk. Rehearse once with slide advances and the handoff to check the 11:50 target.
+Each limitation is explained beside the result it qualifies. Keep the development-data selection warning, uncertainty interpretation, unequal-time comparison and preliminary-study attribution. Do not read detailed methods or source notes during the core talk. Rehearse with slide advances, the built-in pauses and the handoff. Check understanding and actual elapsed time without speeding through the charts to match an allocation.

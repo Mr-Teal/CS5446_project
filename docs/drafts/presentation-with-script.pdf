@@ -47729,7 +47729,7 @@ endobj
 endobj
 401 0 obj
 <<
-/Length 4854
+/Length 5269
 >>
 stream
 q
@@ -47959,20 +47959,26 @@ q
 .03 .49 .51 rg
 BT 1 0 0 1 34 809.8898 Tm /F2+0 12 Tf 14.4 TL (Slide 15  /  Colin) Tj T* ET
 .4 .46 .49 rg
-BT 1 0 0 1 479.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 20 seconds) Tj T* ET
+BT 1 0 0 1 479.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 30 seconds) Tj T* ET
 .03 .49 .51 rg
 BT 1 0 0 1 34 456.2972 Tm /F2+0 11 Tf 13.2 TL (Script) Tj T* ET
 q
-1 0 0 1 34 406.2972 cm
+1 0 0 1 34 390.2972 cm
 q
 .12549 .14902 .168627 rg
-BT 1 0 0 1 0 20.5 Tm /F3+0 11.5 Tf 16 TL (Distillation best matched the stronger engine\001s values. That fits its training objective. The training) Tj T* (distributions also differed, so this comparison doesn\001t isolate the effect of the target.) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (First, how closely does each model match the stronger engine? Lower bars mean smaller errors.) Tj T* (Distillation comes closest, which fits its training target. All three use the same linear model, but their) Tj T* (training distributions differ, so the target alone may not explain the gap.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 34 374.2972 cm
+1 0 0 1 34 358.2972 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: The outcome comparison tells a different story.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Now change what we ask them to predict.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 34 312.2972 cm
+q
+BT 1 0 0 1 0 17.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Delivery cues \(not spoken\): Give the audience a moment to locate the three methods. Indicate the lower) Tj T* (distillation bar, then state the finding. Do not read every value. The pause is included in the allocation.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -48171,7 +48177,7 @@ endobj
 endobj
 405 0 obj
 <<
-/Length 5331
+/Length 5749
 >>
 stream
 q
@@ -48409,20 +48415,26 @@ q
 .03 .49 .51 rg
 BT 1 0 0 1 34 809.8898 Tm /F2+0 12 Tf 14.4 TL (Slide 16  /  Colin) Tj T* ET
 .4 .46 .49 rg
-BT 1 0 0 1 479.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 20 seconds) Tj T* ET
+BT 1 0 0 1 479.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 30 seconds) Tj T* ET
 .03 .49 .51 rg
 BT 1 0 0 1 34 456.2972 Tm /F2+0 11 Tf 13.2 TL (Script) Tj T* ET
 q
-1 0 0 1 34 406.2972 cm
+1 0 0 1 34 390.2972 cm
 q
 .12549 .14902 .168627 rg
-BT 1 0 0 1 0 20.5 Tm /F3+0 11.5 Tf 16 TL (MC and TD slightly better predicted returns under the recorded policy. Each chart has its own metric) Tj T* (and evaluation set. Together, they show that what we train a value function to predict matters.) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (Here we change the question: how well does each model predict the recorded game outcome? MC and) Tj T* (TD now do slightly better. These are returns under the policy that generated the games. Because the) Tj T* (metric and evaluation set differ, we compare methods within each chart.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 34 374.2972 cm
+1 0 0 1 34 358.2972 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: We then tested whether better predictions help actual play.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Neither chart tells us yet whether the agent plays better.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 34 312.2972 cm
+q
+BT 1 0 0 1 0 17.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Delivery cues \(not spoken\): Pause briefly on the new chart before speaking. Compare the methods within this) Tj T* (chart, without comparing its bar heights to the preceding chart. The pause is included in the allocation.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -50624,7 +50636,7 @@ endobj
 endobj
 425 0 obj
 <<
-/Length 4008
+/Length 4140
 >>
 stream
 q
@@ -50815,26 +50827,26 @@ q
 .03 .49 .51 rg
 BT 1 0 0 1 34 809.8898 Tm /F2+0 12 Tf 14.4 TL (Slide 21  /  Colin) Tj T* ET
 .4 .46 .49 rg
-BT 1 0 0 1 479.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 10 seconds) Tj T* ET
+BT 1 0 0 1 479.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 15 seconds) Tj T* ET
 .03 .49 .51 rg
 BT 1 0 0 1 34 456.2972 Tm /F2+0 11 Tf 13.2 TL (Script) Tj T* ET
 q
-1 0 0 1 34 422.2972 cm
+1 0 0 1 34 406.2972 cm
 q
 .12549 .14902 .168627 rg
-BT 1 0 0 1 0 4.5 Tm /F3+0 11.5 Tf 16 TL (In this illustration, the reference slightly prefers A over B.) Tj T* ET
+BT 1 0 0 1 0 20.5 Tm /F3+0 11.5 Tf 16 TL (Suppose these are the reference values for two actions. Higher is better, so A is preferred, although) Tj T* (only slightly.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 34 390.2972 cm
+1 0 0 1 34 374.2972 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Now consider these estimates.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Now suppose our evaluator predicts these values.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 34 344.2972 cm
+1 0 0 1 34 328.2972 cm
 q
-BT 1 0 0 1 0 17.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Delivery cues \(not spoken\): Advance these three visual steps as one continuous explanation. The values are) Tj T* (illustrative, not measured results.) Tj T* ET
+BT 1 0 0 1 0 17.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Delivery cues \(not spoken\): Keep the reference visible for about two seconds before advancing. Indicate A and B) Tj T* (together. Establish that the example is illustrative, not a project measurement.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -51033,7 +51045,7 @@ endobj
 endobj
 429 0 obj
 <<
-/Length 4800
+/Length 4989
 >>
 stream
 q
@@ -51248,26 +51260,26 @@ q
 .03 .49 .51 rg
 BT 1 0 0 1 34 809.8898 Tm /F2+0 12 Tf 14.4 TL (Slide 22  /  Colin) Tj T* ET
 .4 .46 .49 rg
-BT 1 0 0 1 479.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 10 seconds) Tj T* ET
+BT 1 0 0 1 479.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 20 seconds) Tj T* ET
 .03 .49 .51 rg
 BT 1 0 0 1 34 456.2972 Tm /F2+0 11 Tf 13.2 TL (Script) Tj T* ET
 q
-1 0 0 1 34 422.2972 cm
+1 0 0 1 34 406.2972 cm
 q
 .12549 .14902 .168627 rg
-BT 1 0 0 1 0 4.5 Tm /F3+0 11.5 Tf 16 TL (The values are inaccurate, but A still ranks first, so the choice is preserved.) Tj T* ET
+BT 1 0 0 1 0 20.5 Tm -0.118282 Tw /F3+0 11.5 Tf 16 TL (These estimates are quite far off. Which action would the agent choose? Still A, because it ranks higher.) Tj T* 0 Tw (Despite the inaccurate values, the preferred action is preserved.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 34 390.2972 cm
+1 0 0 1 34 374.2972 cm
 q
-BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Now make the values closer.) Tj T* ET
+BT 1 0 0 1 0 3.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Transition: Now let\001s reduce the prediction errors.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 34 344.2972 cm
+1 0 0 1 34 328.2972 cm
 q
-BT 1 0 0 1 0 17.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Delivery cues \(not spoken\): Advance these three visual steps as one continuous explanation. The values are) Tj T* (illustrative, not measured results.) Tj T* ET
+BT 1 0 0 1 0 17.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Delivery cues \(not spoken\): Pause for about two seconds after the question so the audience can make the choice) Tj T* (silently. Indicate the selected action, without calculating the numerical error aloud.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -51466,7 +51478,7 @@ endobj
 endobj
 433 0 obj
 <<
-/Length 4980
+/Length 5113
 >>
 stream
 q
@@ -51681,14 +51693,14 @@ q
 .03 .49 .51 rg
 BT 1 0 0 1 34 809.8898 Tm /F2+0 12 Tf 14.4 TL (Slide 23  /  Colin) Tj T* ET
 .4 .46 .49 rg
-BT 1 0 0 1 479.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 20 seconds) Tj T* ET
+BT 1 0 0 1 479.7131 809.8898 Tm /F3+0 9 Tf 10.8 TL (Planned 30 seconds) Tj T* ET
 .03 .49 .51 rg
 BT 1 0 0 1 34 456.2972 Tm /F2+0 11 Tf 13.2 TL (Script) Tj T* ET
 q
 1 0 0 1 34 390.2972 cm
 q
 .12549 .14902 .168627 rg
-BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (These estimates are closer overall, but they reverse the ranking and select B. Smaller average errors) Tj T* (can still change the action. This illustrates a possible explanation, not a measured cause of our game) Tj T* (results.) Tj T* ET
+BT 1 0 0 1 0 36.5 Tm /F3+0 11.5 Tf 16 TL (Now the estimates are closer, but B ranks above A. The agent chooses B, even though the average) Tj T* (error is smaller. A more accurate value function can still change the action ranking. This illustrates a) Tj T* (possible explanation for our results, rather than an established cause.) Tj T* ET
 Q
 Q
 q
@@ -51700,7 +51712,7 @@ Q
 q
 1 0 0 1 34 312.2972 cm
 q
-BT 1 0 0 1 0 17.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Delivery cues \(not spoken\): Advance these three visual steps as one continuous explanation. The values are) Tj T* (illustrative, not measured results.) Tj T* ET
+BT 1 0 0 1 0 17.5 Tm 14 TL .317647 .384314 .411765 rg /F3+0 10.5 Tf 14 TL (Delivery cues \(not spoken\): Allow a brief look at the changed ranking before explaining it. Connect the reversed) Tj T* (choice to the distinction between value accuracy and action quality. Keep the illustrative scope clear.) Tj T* ET
 Q
 Q
 .4 .46 .49 rg
@@ -58556,84 +58568,84 @@ xref
 0001297008 00000 n 
 0001297148 00000 n 
 0001299438 00000 n 
-0001304346 00000 n 
-0001304398 00000 n 
-0001304546 00000 n 
-0001306836 00000 n 
-0001312221 00000 n 
-0001312273 00000 n 
-0001312419 00000 n 
-0001314709 00000 n 
-0001319443 00000 n 
-0001319495 00000 n 
-0001319633 00000 n 
-0001321923 00000 n 
-0001326919 00000 n 
-0001326971 00000 n 
-0001327117 00000 n 
-0001329407 00000 n 
-0001339961 00000 n 
-0001340013 00000 n 
-0001340159 00000 n 
-0001342449 00000 n 
-0001346633 00000 n 
-0001346685 00000 n 
-0001346836 00000 n 
-0001349126 00000 n 
-0001353188 00000 n 
-0001353240 00000 n 
-0001353381 00000 n 
-0001355671 00000 n 
-0001360525 00000 n 
-0001360577 00000 n 
-0001360723 00000 n 
-0001363013 00000 n 
-0001368047 00000 n 
-0001368099 00000 n 
-0001368244 00000 n 
-0001370534 00000 n 
-0001374917 00000 n 
-0001374969 00000 n 
-0001375101 00000 n 
-0001377391 00000 n 
-0001381762 00000 n 
-0001381814 00000 n 
-0001381953 00000 n 
-0001384243 00000 n 
-0001388448 00000 n 
-0001388500 00000 n 
-0001388635 00000 n 
-0001390925 00000 n 
-0001403538 00000 n 
-0001403590 00000 n 
-0001403707 00000 n 
-0001405997 00000 n 
-0001414263 00000 n 
-0001414315 00000 n 
-0001414432 00000 n 
-0001416722 00000 n 
-0001423030 00000 n 
-0001423082 00000 n 
-0001423199 00000 n 
-0001425489 00000 n 
-0001436573 00000 n 
-0001436625 00000 n 
-0001436742 00000 n 
-0001439032 00000 n 
-0001449718 00000 n 
-0001449770 00000 n 
-0001449887 00000 n 
-0001452177 00000 n 
-0001460721 00000 n 
-0001460773 00000 n 
-0001460890 00000 n 
-0001463180 00000 n 
-0001474801 00000 n 
-0001474853 00000 n 
-0001474970 00000 n 
-0001477260 00000 n 
-0001482738 00000 n 
-0001482790 00000 n 
+0001304761 00000 n 
+0001304813 00000 n 
+0001304961 00000 n 
+0001307251 00000 n 
+0001313054 00000 n 
+0001313106 00000 n 
+0001313252 00000 n 
+0001315542 00000 n 
+0001320276 00000 n 
+0001320328 00000 n 
+0001320466 00000 n 
+0001322756 00000 n 
+0001327752 00000 n 
+0001327804 00000 n 
+0001327950 00000 n 
+0001330240 00000 n 
+0001340794 00000 n 
+0001340846 00000 n 
+0001340992 00000 n 
+0001343282 00000 n 
+0001347466 00000 n 
+0001347518 00000 n 
+0001347669 00000 n 
+0001349959 00000 n 
+0001354153 00000 n 
+0001354205 00000 n 
+0001354346 00000 n 
+0001356636 00000 n 
+0001361679 00000 n 
+0001361731 00000 n 
+0001361877 00000 n 
+0001364167 00000 n 
+0001369334 00000 n 
+0001369386 00000 n 
+0001369531 00000 n 
+0001371821 00000 n 
+0001376204 00000 n 
+0001376256 00000 n 
+0001376388 00000 n 
+0001378678 00000 n 
+0001383049 00000 n 
+0001383101 00000 n 
+0001383240 00000 n 
+0001385530 00000 n 
+0001389735 00000 n 
+0001389787 00000 n 
+0001389922 00000 n 
+0001392212 00000 n 
+0001404825 00000 n 
+0001404877 00000 n 
+0001404994 00000 n 
+0001407284 00000 n 
+0001415550 00000 n 
+0001415602 00000 n 
+0001415719 00000 n 
+0001418009 00000 n 
+0001424317 00000 n 
+0001424369 00000 n 
+0001424486 00000 n 
+0001426776 00000 n 
+0001437860 00000 n 
+0001437912 00000 n 
+0001438029 00000 n 
+0001440319 00000 n 
+0001451005 00000 n 
+0001451057 00000 n 
+0001451174 00000 n 
+0001453464 00000 n 
+0001462008 00000 n 
+0001462060 00000 n 
+0001462177 00000 n 
+0001464467 00000 n 
+0001476088 00000 n 
+0001476140 00000 n 
+0001476257 00000 n 
+0001478547 00000 n 
+0001484025 00000 n 
+0001484077 00000 n 
 trailer
 <<
 /Size 480
@@ -58641,5 +58653,5 @@ trailer
 /Info 1 0 R
 >>
 startxref
-1482893
+1484180
 %%EOF
