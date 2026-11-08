@@ -2,13 +2,13 @@
 
 Presentation plan for a 12-minute presentation followed by 3-minute Q&A
 
-8 November 2026. Twenty-six core slides, eight hidden backups. Bryan: slides 1–11 (5:25). Colin: slides 12–26 (7:00). One handoff from Bryan to Colin after slide 11.
+8 November 2026. Twenty-eight core slides, eight hidden backups. Bryan: slides 1–11 (5:25). Colin: slides 12–28 (8:05). One handoff from Bryan to Colin after slide 11.
 
 ## The argument
 
-The talk develops two points: observation history helps constrain hidden state, and more accurate value predictions must be evaluated through decisions, outcomes and computation. The opening uses piece icons, hidden-rook choices and a capture-history example. A single comparison places the current fog view beside candidate boards. The course formulation distinguishes hidden game state from information available to the player. One recorded bot decision then aligns its private view and hypotheses before the learning experiments.
+The talk develops two points: observation history helps constrain hidden state, and learned values must be evaluated through decisions, outcomes and computation. The original evaluator studies remain distinct from the separate solver-trained network extension. The extension shows a reported single cycle from search-generated targets to a network used inside search, followed by the preliminary finding that a benefit over material is not established.
 
-The redundant risk-summary slide is removed. The former fog/candidate slides are one 35-second comparison, and the former two-view demo is one 35-second illustration. The retained allocations total 12:25, 25 seconds beyond the 12-minute speaking slot. All other speaking budgets are unchanged. These are unrehearsed allocations rather than a measured script runtime. Three minutes of Q&A follow separately.
+The two new slides add 1:05. Every previous speaking allocation is unchanged. Planned allocations total 13:30 against the 12-minute presentation slot; these are unrehearsed allocations, and delivery remains with the presenters. Three minutes of Q&A follow separately.
 
 ## Run of show
 
@@ -38,8 +38,10 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 | 22 | The reference slightly prefers Move A | 0:20 |
 | 23 | Large value errors can preserve the choice | 0:15 |
 | 24 | Closer values can still change the choice | 0:20 |
-| 25 | Conclusions | 0:40 |
-| 26 | Next evaluation | 0:15 |
+| 25 | Learning from our own search | 0:30 |
+| 26 | Does the learned evaluator help? | 0:35 |
+| 27 | Conclusions | 0:40 |
+| 28 | Next evaluation | 0:15 |
 
 ## Slide notes
 
@@ -289,29 +291,60 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 **Say:** The estimates are closer to the reference, but they put B above A. The agent now chooses the wrong action relative to that reference. Smaller average errors don’t necessarily preserve the ranking that matters for a decision. This could explain a gap between prediction and play, but we haven’t shown that it caused our game results.
 
-**Transition:** That’s why we evaluate decisions as well as prediction error.
+**Transition:** A separate experiment takes the next step: learning from the search itself.
 
-### Slide 25 Conclusions
+### Slide 25 Learning from our own search
+
+**Presenter:** Colin
+
+**Purpose:** Search-generated learning targets. Planned 30 seconds.
+
+**Say:** Another experiment learns from the agent’s own search. It generates value targets during self-play, trains a separate network on those targets, and puts that network back into search as the evaluator. Pair A reports one completed cycle on an experimental branch. Repeating the cycle to improve the agent further is still untested.
+
+**Transition:** The important question is whether that learned evaluator improves decisions.
+
+### Slide 26 Does the learned evaluator help?
+
+**Presenter:** Colin
+
+**Purpose:** Preliminary results and interpretation. Planned 35 seconds.
+
+**Say:** Pair A reports higher prediction error than material counting, and its game comparison has not established an improvement over the material evaluator. That doesn’t establish equivalence either. The labels come from shallow material-based search, which may explain why the baseline is hard to beat. These findings remain preliminary until the complete game records are reconciled.
+
+**Transition:** Together, these studies show why we need to test the whole decision process.
+
+**Delivery cues (not spoken):** Treat the material-label explanation as a hypothesis, not an established cause. Do not present the handover’s game score as a verified strength result.
+
+### Slide 27 Conclusions
 
 **Presenter:** Colin
 
 **Purpose:** Conclusion. Planned 40 seconds.
 
-**Say:** Observation history helps our agent narrow down what might be hidden. But once we have those possible states, a more accurate value function doesn’t automatically mean better decisions. Our learned correction improved prediction, cost more time, and did not establish a gain in game score. We need to judge it as part of the agent that uses it.
+**Say:** Observation history helps our agent narrow down what might be hidden. Our original learned correction improved prediction, cost more time, and did not establish a gain in game score. The separate solver-trained network extends learning into search, but its reported benefit over material is still unproven. Both studies reinforce why we need to judge learned values within the agent that uses them.
 
-**Transition:** The next test should make that trade-off explicit.
+**Transition:** Our next evaluation should resolve the remaining uncertainty.
 
-### Slide 26 Next evaluation
+### Slide 28 Next evaluation
 
 **Presenter:** Colin
 
 **Purpose:** Next evaluation. Planned 15 seconds.
 
-**Say:** We’d next test the learned values in deeper search, give both agents the same total thinking time, and compare complete games. That evaluation is still to be done. Thank you for listening. We’re happy to take questions.
+**Say:** Next, we need to reconcile the full game records, compare evaluators under the same total thinking time, and test against stronger opponents. Thank you for listening. We’re happy to take questions.
 
 **Delivery cues (not spoken):** Allow three minutes for Q&A. Answer the question directly and use an evidence backup when helpful.
 
 ## Questions every team member should be able to answer
+
+**Is the solver-trained network Network 1?** No. The original Network 1 learns a correction toward stronger-engine values. The separate solver-trained network learns targets produced by the search agent. Its experimental code and handover are separate from the archived one-ply batch.
+
+**Have we completed an iterative learning loop?** Pair A reports one target-generation, training and deployment cycle. Repeated policy improvement has not been tested.
+
+**Are the new findings independently verified?** The accessible label-runner code and network-loading hook have been inspected. The new dataset, checkpoint and complete per-attempt run records are not supplied in the inspected repository trees. The qualitative findings are explicitly attributed to the handover; no new performance numbers are presented. Complete game accounting and independent reproduction remain open.
+
+**Does a non-significant network/material comparison show equivalence?** No. It establishes neither superiority nor equivalence. The reported comparison is conditional on both arms completing, and the simple greedy opponent limits how much the strongest arms can be separated.
+
 
 **Is the state the visible board?** No. The hidden environment state and the player’s observation are different. The game state includes the configuration and relevant history; the player has a current view and private history, represented here by possible boards. This finite hypothesis representation is not a claim of an exact Markov belief state. The value evaluator scores hypothetical complete positions inside planning.
 
@@ -345,15 +378,17 @@ The redundant risk-summary slide is removed. The former fog/candidate slides are
 
 ## Delivery and rehearsal
 
-Bryan covers the introduction, hidden-state examples, information formulation and the aligned recorded demo (slides 1–11, retained allocation 5:25). Colin covers learning targets, experiments, interpretation and conclusions (slides 12–26, 7:00). Handoff once after slide 11. Bryan and Colin both prepare for Q&A.
+Bryan covers the introduction, hidden-state examples, information formulation and the aligned recorded demo (slides 1–11, retained allocation 5:25). Colin covers learning targets, experiments, interpretation and conclusions (slides 12–28, 8:05). Handoff once after slide 11. Bryan and Colin both prepare for Q&A.
 
-The retained allocations total 12:25; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
+The retained allocations total 13:30; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
 
 ## Hidden backup navigation
 
-27: archived match rows. 28: full value/move metrics. 29: offline belief context. 30: full MC/TD comparison. 31: retained-search prototype. 32: evaluator inventory. 33: contribution confirmations. 34: sources and scope. These are hidden during the core talk; the PDFs include all pages.
+29: archived match rows. 30: full value/move metrics. 31: offline belief context. 32: full MC/TD comparison. 33: retained-search prototype. 34: evaluator inventory. 35: contribution confirmations. 36: sources and scope. These are hidden during the core talk; the PDFs and slide-with-script Word copy include all pages.
 
 ## Sources and evidence boundaries
+
+**Solver-trained network extension:** Separate solver-trained network extension. Pair A handover, PR73 at 8abc854ed1779013c9cc4818584108cc07f552c2: https://github.com/Mr-Teal/CS5446_project/blob/8abc854ed1779013c9cc4818584108cc07f552c2/pair_a_prep/docs/handover_2026-11-08.md . Self-play label collection code inspected at 87b30892ee5016f0c1fc7216bec7f885b76137bb: https://github.com/Mr-Teal/CS5446_project/blob/87b30892ee5016f0c1fc7216bec7f885b76137bb/pair_a_prep/label_run.py . Network evaluator hook inspected at d63de87a9d1591c7b2fc06fea8360b00494a99b9: https://github.com/Mr-Teal/CS5446_project/blob/d63de87a9d1591c7b2fc06fea8360b00494a99b9/pair_a_prep/evaluation_factories.py . These establish accessible pipeline code, not independent execution or strength validation. The new belief-solver-v1 checkpoint, solver-v1 dataset and complete per-attempt records are not in the inspected repository trees or local workspace. Handover training counts and result figures are author-reported; numerical performance claims are therefore omitted from the slides. The reported offline error is worse than material and the jointly surviving game comparison does not establish an improvement or equivalence. Complete attempted/terminal/capped/failed/killed/unplayed accounting and frozen configs/weights/engine identities still need reconciliation. Greedy-opponent ceiling and platform separation matter. One cycle is reported, not repeated policy improvement or an AlphaZero/Obscuro reproduction. The suggestion that shallow material-derived targets explain the offline result is a hypothesis. This is a separate model, target source and experiment from the archived Network 1 correction study; do not pool them.
 
 **Rules:** Rules and worked example: docs/drafts/presentation-assets/hidden-rook-example.json and verify_hidden_rook_example.py. Public custom start k7/8/7r/8/3K4/8/8/8 b - - 0 1. Alternative hidden Black moves h6c6, h6e6 and h6d6 produce identical White observations, legal feedback and private history. White king d4 has all eight legal moves: c3/c4/c5, d3/d5, e3/e4/e5. A: rook c6 can capture after all three left-file moves. B: rook e6 can capture after all three right-file moves. C: rook d6 already attacks d4 and can capture after d3 or d5. All 24 move/state consequences are checked against RulesAdapter. No move avoids immediate capture across all three selected states. No assigned probabilities, optimality, inevitable-loss or complete-posterior claim. Check does not restrict legal moves under the project rules. Visibility is own occupied squares plus reachable destinations, with pawn and en-passant special cases. Rule reference: https://github.com/Mr-Teal/CS5446_project/blob/149278181ed6d2b52dce31991fb311a2a74339d0/pair_a_prep/rules_adapter.py . Destination dots follow the selected-piece convention requested by the user; reference https://support.chess.com/en/articles/8708625-how-do-i-turn-on-off-the-legal-moves-dots-on-the-board . Grey dots are legal destinations, not a safety guarantee; red dots annotate immediate capture in a revealed possibility.
 
@@ -377,7 +412,7 @@ The retained allocations total 12:25; the confirmed speaking slot is 12 minutes,
 
 **Demonstration:** The archived screenshot and two-ply record remain in presentation-assets/. The revised main figure aligns the Black observation and two saved hypotheses at the same pre-action decision point. It illustrates the information pipeline with a material evaluator, not learned-model strength.
 
-**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 26-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
+**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 28-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
 
 **Contributions and AI assistance:** The existing individual contribution statements remain in backup and require each member's confirmation. Do not infer the human identity of xiaomiao-fong from the account name. Copilot assisted earlier drafts. Codex assisted the restructuring, rules-example checks and browser demonstration under Bryan's direction. No new training or formal match batch was run.
 
@@ -419,3 +454,8 @@ The spoken passages now explain the choice, inference or result rather than narr
 Removed repeated headings, explanations of obvious colours and generic footer text from the core slides. The opening possibilities now use short titles with one consequence beside each board. Removed captions that restated the title, diagram or adjacent labels, including “Teacher agreement is one objective”. Enlarged the charts where their duplicated side commentary was removed.
 
 Retained information needed to interpret the results: recorded-policy outcomes, different evaluation sets, development-set model selection, unequal computation, uncertainty intervals and the illustrative status of the ranking example. Full source details remain in speaker notes and the hidden evidence slides. Speech, timing, slide order and the single presenter handoff are unchanged.
+
+
+## Solver trained network extension review
+
+New slides 25–26 belong to Colin’s learning/evaluation section, before conclusions at 27 and next evaluation at 28. No third main point is introduced. The extension uses a native editable process diagram and concise reported findings, with no new numerical performance chart. All older experimental values retain their source identity.
