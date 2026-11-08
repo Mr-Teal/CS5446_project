@@ -1,0 +1,15 @@
+/app1/ebenv: line 39: LD_LIBRARY_PATH: unbound variable
+      ======================================================================================
+     Resource Usage on 2026-11-02 19:18:18.285413:
+     JobId: 1031227[3].venus01  				 Project: _pbs_project_default 
+     Submission Host: atlas8-c01 
+     Exit Status: 1
+     NCPUs Requested: 1 				 NCPUs Used: 1
+     Memory Requested: 15gb 				 Memory Used: 0b 
+     Vmem Used: 0kb
+     CPU Time Used: 00:00:00 
+     Walltime requested: 24:00:00 			 Walltime Used: 00:00:01
+     Submit Time:  Mon Nov  2 19:17:02 2026 		 Start Time: Mon Nov  2 19:18:17 2026 
+     End Time: Mon Nov  2 19:18:18 2026 
+     Execution Nodes Used: (cnode-33-43-49:ncpus=1:mem=15728640kb)
+     ======================================================================================

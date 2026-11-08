@@ -1,0 +1,47 @@
+[2026-11-03T10:21:28+0800] task 32 on cnode-33-43-49
+model name	: AMD EPYC 7R13 Processor
+tracker backend available: native
+Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+Players: A=Pair A subgame PCFR+ (belief tail-guarded at 300,000 states, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+Game 1/2 starting | A (white) vs B (black) | seed=1063
+Command terminated by signal 9
+	Command being timed: "python -m pair_c.run_evaluation /hpctmp/tommy.21.31/fow/experiment/guard-s16-c32.ini"
+	User time (seconds): 5661.56
+	System time (seconds): 56.10
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:35:26
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 15745504
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 68784246
+	Voluntary context switches: 1984
+	Involuntary context switches: 3679
+	Swaps: 0
+	File system inputs: 8
+	File system outputs: 744
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+[2026-11-03T11:56:56+0800] task 32 exit=9
+      ======================================================================================
+     Resource Usage on 2026-11-03 11:56:56.792550:
+     JobId: 1031302[32].venus01  				 Project: _pbs_project_default 
+     Submission Host: atlas8-c01 
+     Exit Status: 9
+     NCPUs Requested: 1 				 NCPUs Used: 1
+     Memory Requested: 15gb 				 Memory Used: 15618900kb 
+     Vmem Used: 16251600kb
+     CPU Time Used: 01:33:26 
+     Walltime requested: 72:00:00 			 Walltime Used: 01:35:32
+     Submit Time:  Mon Nov  2 21:14:19 2026 		 Start Time: Tue Nov  3 10:21:24 2026 
+     End Time: Tue Nov  3 11:56:56 2026 
+     Execution Nodes Used: (cnode-33-43-49:ncpus=1:mem=15728640kb)
+     ======================================================================================
+Cgroup mem limit exceeded: Task in /pbs_jobs.service/jobid/1031302[32].venus01 killed as a result of limit of /pbs_jobs.service/jobid/1031302[32].venus01
+

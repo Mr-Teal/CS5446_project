@@ -1,0 +1,789 @@
+[2026-11-01T22:05:45+00:00] starting exact-s16-c1
+[2026-11-01T22:06:57+00:00] exact-s16-c1 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-exact-s16-c1
+[2026-11-01T22:06:57+00:00] starting exact-s256-c1
+[2026-11-01T22:07:28+00:00] exact-s256-c1 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c1
+[2026-11-01T22:07:28+00:00] starting pruned-s16-c1
+[2026-11-01T22:10:34+00:00] pruned-s16-c1 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c1
+[2026-11-01T22:10:34+00:00] starting exact-s16-c2
+[2026-11-01T22:12:41+00:00] exact-s16-c2 exit=137
+[2026-11-01T22:12:41+00:00] exact-s16-c2 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1003
+[2026-11-01T22:12:41+00:00] starting exact-s256-c2
+[2026-11-01T22:14:44+00:00] exact-s256-c2 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c2
+[2026-11-01T22:14:44+00:00] starting pruned-s16-c2
+[2026-11-01T22:16:47+00:00] pruned-s16-c2 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c2
+[2026-11-01T22:16:47+00:00] starting exact-s16-c3
+[2026-11-01T22:19:59+00:00] exact-s16-c3 exit=137
+[2026-11-01T22:19:59+00:00] exact-s16-c3 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1005
+[2026-11-01T22:19:59+00:00] starting exact-s256-c3
+[2026-11-01T22:21:21+00:00] exact-s256-c3 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c3
+[2026-11-01T22:21:21+00:00] starting pruned-s16-c3
+[2026-11-01T22:33:17+00:00] pruned-s16-c3 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c3
+[2026-11-01T22:33:17+00:00] starting exact-s16-c4
+[2026-11-01T22:38:01+00:00] exact-s16-c4 exit=137
+[2026-11-01T22:38:01+00:00] exact-s16-c4 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1007
+[2026-11-01T22:38:01+00:00] starting exact-s256-c4
+[2026-11-01T22:39:13+00:00] exact-s256-c4 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c4
+[2026-11-01T22:39:13+00:00] starting pruned-s16-c4
+[2026-11-01T22:42:06+00:00] pruned-s16-c4 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c4
+[2026-11-01T22:42:06+00:00] starting exact-s16-c5
+[2026-11-01T22:45:41+00:00] exact-s16-c5 exit=137
+[2026-11-01T22:45:41+00:00] exact-s16-c5 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1009
+[2026-11-01T22:45:41+00:00] starting exact-s256-c5
+[2026-11-01T22:46:44+00:00] exact-s256-c5 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c5
+[2026-11-01T22:46:44+00:00] starting pruned-s16-c5
+[2026-11-01T22:47:04+00:00] pruned-s16-c5 exit=1
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c5
+    Evaluation finished with 1 failed game(s). Logs and summary saved to /repo/pair_c/runs/strength-pruned-s16-c5.
+[2026-11-01T22:47:04+00:00] starting exact-s16-c6
+[2026-11-01T22:54:46+00:00] exact-s16-c6 exit=137
+[2026-11-01T22:54:46+00:00] exact-s16-c6 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1011
+[2026-11-01T22:54:46+00:00] starting exact-s256-c6
+[2026-11-01T22:55:26+00:00] exact-s256-c6 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c6
+[2026-11-01T22:55:26+00:00] starting pruned-s16-c6
+[2026-11-01T22:57:04+00:00] pruned-s16-c6 exit=0
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c6
+[2026-11-01T22:57:04+00:00] starting exact-s16-c7
+[2026-11-01T22:59:32+00:00] exact-s16-c7 exit=137
+[2026-11-01T22:59:32+00:00] exact-s16-c7 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1013
+[2026-11-01T22:59:32+00:00] starting exact-s256-c7
+[2026-11-01T23:01:16+00:00] exact-s256-c7 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c7
+[2026-11-01T23:01:16+00:00] starting pruned-s16-c7
+[2026-11-01T23:01:45+00:00] pruned-s16-c7 exit=1
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c7
+[2026-11-01T23:01:45+00:00] starting exact-s16-c8
+[2026-11-01T23:09:13+00:00] exact-s16-c8 exit=137
+[2026-11-01T23:09:13+00:00] exact-s16-c8 produced no results (exit 137); not marking done
+    Game 1/2 starting | A (white) vs B (black) | seed=1015
+    Game 1/2 finished | Pair A subgame PCFR+ (exact belief, sample_size 16) (white) won | A (white): 50 moves | B (black): 49 moves | reason=king_capture | seed=1015
+    Game 2/2 starting | A (black) vs B (white) | seed=1016
+[2026-11-01T23:09:13+00:00] starting exact-s256-c8
+[2026-11-01T23:10:09+00:00] exact-s256-c8 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c8
+[2026-11-01T23:10:09+00:00] starting pruned-s16-c8
+[2026-11-01T23:17:16+00:00] pruned-s16-c8 exit=0
+        Win rate: 50.0%
+        Score rate: 75.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c8
+[2026-11-01T23:17:16+00:00] starting exact-s16-c9
+[2026-11-01T23:21:32+00:00] exact-s16-c9 exit=137
+[2026-11-01T23:21:32+00:00] exact-s16-c9 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1017
+[2026-11-01T23:21:32+00:00] starting exact-s256-c9
+[2026-11-01T23:22:13+00:00] exact-s256-c9 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c9
+[2026-11-01T23:22:13+00:00] starting pruned-s16-c9
+[2026-11-01T23:26:12+00:00] pruned-s16-c9 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c9
+[2026-11-01T23:26:12+00:00] starting exact-s16-c10
+[2026-11-01T23:26:39+00:00] exact-s16-c10 exit=0
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-exact-s16-c10
+[2026-11-01T23:26:39+00:00] starting exact-s256-c10
+[2026-11-01T23:27:20+00:00] exact-s256-c10 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c10
+[2026-11-01T23:27:20+00:00] starting pruned-s16-c10
+[2026-11-01T23:27:42+00:00] pruned-s16-c10 exit=1
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c10
+[2026-11-01T23:27:42+00:00] starting exact-s16-c11
+[2026-11-01T23:29:40+00:00] exact-s16-c11 exit=0
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-exact-s16-c11
+[2026-11-01T23:29:40+00:00] starting exact-s256-c11
+[2026-11-01T23:30:14+00:00] exact-s256-c11 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c11
+[2026-11-01T23:30:14+00:00] starting pruned-s16-c11
+[2026-11-01T23:30:39+00:00] pruned-s16-c11 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c11
+[2026-11-01T23:30:39+00:00] starting exact-s16-c12
+[2026-11-01T23:35:40+00:00] exact-s16-c12 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-exact-s16-c12
+[2026-11-01T23:35:40+00:00] starting exact-s256-c12
+[2026-11-01T23:37:13+00:00] exact-s256-c12 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c12
+[2026-11-01T23:37:13+00:00] starting pruned-s16-c12
+[2026-11-01T23:40:27+00:00] pruned-s16-c12 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c12
+[2026-11-01T23:40:27+00:00] starting exact-s16-c13
+[2026-11-01T23:47:36+00:00] exact-s16-c13 exit=137
+[2026-11-01T23:47:36+00:00] exact-s16-c13 produced no results (exit 137); not marking done
+    Game 1/2 starting | A (white) vs B (black) | seed=1025
+    Game 1/2 finished | Pair A subgame PCFR+ (exact belief, sample_size 16) (white) won | A (white): 28 moves | B (black): 27 moves | reason=king_capture | seed=1025
+    Game 2/2 starting | A (black) vs B (white) | seed=1026
+[2026-11-01T23:47:36+00:00] starting exact-s256-c13
+[2026-11-01T23:48:40+00:00] exact-s256-c13 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c13
+[2026-11-01T23:48:40+00:00] starting pruned-s16-c13
+[2026-11-01T23:50:54+00:00] pruned-s16-c13 exit=1
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c13
+    Evaluation finished with 1 failed game(s). Logs and summary saved to /repo/pair_c/runs/strength-pruned-s16-c13.
+[2026-11-01T23:50:54+00:00] starting exact-s16-c14
+[2026-11-01T23:53:39+00:00] exact-s16-c14 exit=137
+[2026-11-01T23:53:39+00:00] exact-s16-c14 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1027
+[2026-11-01T23:53:39+00:00] starting exact-s256-c14
+[2026-11-01T23:55:45+00:00] exact-s256-c14 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c14
+[2026-11-01T23:55:45+00:00] starting pruned-s16-c14
+[2026-11-01T23:58:44+00:00] pruned-s16-c14 exit=1
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c14
+[2026-11-01T23:58:44+00:00] starting exact-s16-c15
+[2026-11-01T23:59:35+00:00] exact-s16-c15 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-exact-s16-c15
+[2026-11-01T23:59:35+00:00] starting exact-s256-c15
+[2026-11-02T00:03:00+00:00] exact-s256-c15 exit=137
+[2026-11-02T00:03:00+00:00] exact-s256-c15 produced no results (exit 137); not marking done
+    Game 1/2 starting | A (white) vs B (black) | seed=1029
+    Game 1/2 finished | Material OnePlyBot (particle tracker) (black) won | A (white): 12 moves | B (black): 12 moves | reason=king_capture | seed=1029
+    Game 2/2 starting | A (black) vs B (white) | seed=1030
+[2026-11-02T00:03:00+00:00] starting pruned-s16-c15
+[2026-11-02T00:03:41+00:00] pruned-s16-c15 exit=0
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c15
+[2026-11-02T00:03:41+00:00] starting exact-s16-c16
+[2026-11-02T00:13:13+00:00] exact-s16-c16 exit=137
+[2026-11-02T00:13:13+00:00] exact-s16-c16 produced no results (exit 137); not marking done
+    Game 1/2 starting | A (white) vs B (black) | seed=1031
+    Game 1/2 finished | draw | A (white): 55 moves | B (black): 55 moves | reason=threefold_repetition | seed=1031
+    Game 2/2 starting | A (black) vs B (white) | seed=1032
+[2026-11-02T00:13:13+00:00] starting exact-s256-c16
+[2026-11-02T00:14:26+00:00] exact-s256-c16 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c16
+[2026-11-02T00:14:26+00:00] starting pruned-s16-c16
+[2026-11-02T00:18:15+00:00] pruned-s16-c16 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c16
+[2026-11-02T00:18:15+00:00] starting exact-s16-c17
+[2026-11-02T00:20:54+00:00] exact-s16-c17 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-exact-s16-c17
+[2026-11-02T00:20:54+00:00] starting exact-s256-c17
+[2026-11-02T00:21:54+00:00] exact-s256-c17 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c17
+[2026-11-02T00:21:54+00:00] starting pruned-s16-c17
+[2026-11-02T00:23:09+00:00] pruned-s16-c17 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c17
+[2026-11-02T00:23:09+00:00] starting exact-s16-c18
+[2026-11-02T00:23:24+00:00] exact-s16-c18 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s16-c18
+[2026-11-02T00:23:24+00:00] starting exact-s256-c18
+[2026-11-02T00:23:52+00:00] exact-s256-c18 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c18
+[2026-11-02T00:23:52+00:00] starting pruned-s16-c18
+[2026-11-02T00:24:08+00:00] pruned-s16-c18 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c18
+[2026-11-02T00:24:08+00:00] starting exact-s16-c19
+[2026-11-02T00:24:44+00:00] exact-s16-c19 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-exact-s16-c19
+[2026-11-02T00:24:44+00:00] starting exact-s256-c19
+[2026-11-02T00:24:55+00:00] exact-s256-c19 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c19
+[2026-11-02T00:24:55+00:00] starting pruned-s16-c19
+[2026-11-02T00:25:46+00:00] pruned-s16-c19 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c19
+[2026-11-02T00:25:46+00:00] starting exact-s16-c20
+[2026-11-02T00:28:22+00:00] exact-s16-c20 exit=137
+[2026-11-02T00:28:22+00:00] exact-s16-c20 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1039
+[2026-11-02T00:28:22+00:00] starting exact-s256-c20
+[2026-11-02T00:28:44+00:00] exact-s256-c20 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c20
+[2026-11-02T00:28:44+00:00] starting pruned-s16-c20
+[2026-11-02T00:30:08+00:00] pruned-s16-c20 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c20
+[2026-11-02T00:30:08+00:00] starting exact-s16-c21
+[2026-11-02T00:33:04+00:00] exact-s16-c21 exit=137
+[2026-11-02T00:33:04+00:00] exact-s16-c21 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1041
+[2026-11-02T00:33:04+00:00] starting exact-s256-c21
+[2026-11-02T00:36:05+00:00] exact-s256-c21 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c21
+[2026-11-02T00:36:05+00:00] starting pruned-s16-c21
+[2026-11-02T00:37:41+00:00] pruned-s16-c21 exit=1
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c21
+[2026-11-02T00:37:41+00:00] starting exact-s16-c22
+[2026-11-02T00:40:24+00:00] exact-s16-c22 exit=137
+[2026-11-02T00:40:24+00:00] exact-s16-c22 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1043
+[2026-11-02T00:40:24+00:00] starting exact-s256-c22
+[2026-11-02T00:42:01+00:00] exact-s256-c22 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c22
+[2026-11-02T00:42:01+00:00] starting pruned-s16-c22
+[2026-11-02T00:43:48+00:00] pruned-s16-c22 exit=1
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c22
+[2026-11-02T00:43:48+00:00] starting exact-s16-c23
+[2026-11-02T00:46:16+00:00] exact-s16-c23 exit=137
+[2026-11-02T00:46:16+00:00] exact-s16-c23 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1045
+[2026-11-02T00:46:16+00:00] starting exact-s256-c23
+[2026-11-02T00:47:39+00:00] exact-s256-c23 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c23
+[2026-11-02T00:47:39+00:00] starting pruned-s16-c23
+[2026-11-02T00:48:03+00:00] pruned-s16-c23 exit=1
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c23
+    Evaluation finished with 1 failed game(s). Logs and summary saved to /repo/pair_c/runs/strength-pruned-s16-c23.
+[2026-11-02T00:48:03+00:00] starting exact-s16-c24
+[2026-11-02T00:52:53+00:00] exact-s16-c24 exit=137
+[2026-11-02T00:52:53+00:00] exact-s16-c24 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1047
+[2026-11-02T00:52:53+00:00] starting exact-s256-c24
+[2026-11-02T00:53:55+00:00] exact-s256-c24 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c24
+[2026-11-02T00:53:55+00:00] starting pruned-s16-c24
+[2026-11-02T00:58:30+00:00] pruned-s16-c24 exit=1
+        Win rate: 0.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c24
+[2026-11-02T00:58:30+00:00] starting exact-s16-c25
+[2026-11-02T01:01:24+00:00] exact-s16-c25 exit=137
+[2026-11-02T01:01:24+00:00] exact-s16-c25 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1049
+[2026-11-02T01:01:24+00:00] starting exact-s256-c25
+[2026-11-02T01:03:20+00:00] exact-s256-c25 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c25
+[2026-11-02T01:03:20+00:00] starting pruned-s16-c25
+[2026-11-02T01:04:30+00:00] pruned-s16-c25 exit=1
+        Score rate: unavailable
+    Results: /repo/pair_c/runs/strength-pruned-s16-c25
+    Evaluation finished with 2 failed game(s). Logs and summary saved to /repo/pair_c/runs/strength-pruned-s16-c25.
+[2026-11-02T01:04:30+00:00] starting exact-s16-c26
+[2026-11-02T01:07:03+00:00] exact-s16-c26 exit=137
+[2026-11-02T01:07:03+00:00] exact-s16-c26 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1051
+[2026-11-02T01:07:03+00:00] starting exact-s256-c26
+[2026-11-02T01:07:30+00:00] exact-s256-c26 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c26
+[2026-11-02T01:07:30+00:00] starting pruned-s16-c26
+[2026-11-02T01:20:46+00:00] pruned-s16-c26 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c26
+[2026-11-02T01:20:46+00:00] starting exact-s16-c27
+[2026-11-02T01:23:15+00:00] exact-s16-c27 exit=137
+[2026-11-02T01:23:15+00:00] exact-s16-c27 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1053
+[2026-11-02T01:23:15+00:00] starting exact-s256-c27
+[2026-11-02T01:26:04+00:00] exact-s256-c27 exit=137
+[2026-11-02T01:26:04+00:00] exact-s256-c27 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 256) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1053
+[2026-11-02T01:26:04+00:00] starting pruned-s16-c27
+[2026-11-02T01:28:06+00:00] pruned-s16-c27 exit=1
+        Win rate: unavailable
+        Score rate: unavailable
+    Results: /repo/pair_c/runs/strength-pruned-s16-c27
+[2026-11-02T01:28:06+00:00] starting exact-s16-c28
+[2026-11-02T01:30:32+00:00] exact-s16-c28 exit=137
+[2026-11-02T01:30:32+00:00] exact-s16-c28 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1055
+[2026-11-02T01:30:32+00:00] starting exact-s256-c28
+[2026-11-02T01:31:04+00:00] exact-s256-c28 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c28
+[2026-11-02T01:31:04+00:00] starting pruned-s16-c28
+[2026-11-02T01:33:06+00:00] pruned-s16-c28 exit=1
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c28
+[2026-11-02T01:33:06+00:00] starting exact-s16-c29
+[2026-11-02T01:35:16+00:00] exact-s16-c29 exit=137
+[2026-11-02T01:35:16+00:00] exact-s16-c29 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1057
+[2026-11-02T01:35:16+00:00] starting exact-s256-c29
+[2026-11-02T01:41:05+00:00] exact-s256-c29 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c29
+[2026-11-02T01:41:05+00:00] starting pruned-s16-c29
+[2026-11-02T01:41:56+00:00] pruned-s16-c29 exit=1
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c29
+[2026-11-02T01:41:56+00:00] starting exact-s16-c30
+[2026-11-02T01:44:17+00:00] exact-s16-c30 exit=137
+[2026-11-02T01:44:17+00:00] exact-s16-c30 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1059
+[2026-11-02T01:44:17+00:00] starting exact-s256-c30
+[2026-11-02T01:51:40+00:00] exact-s256-c30 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c30
+[2026-11-02T01:51:40+00:00] starting pruned-s16-c30
+[2026-11-02T01:55:20+00:00] pruned-s16-c30 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c30
+[2026-11-02T01:55:20+00:00] starting exact-s16-c31
+[2026-11-02T01:55:56+00:00] exact-s16-c31 exit=0
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-exact-s16-c31
+[2026-11-02T01:55:56+00:00] starting exact-s256-c31
+[2026-11-02T01:57:34+00:00] exact-s256-c31 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c31
+[2026-11-02T01:57:34+00:00] starting pruned-s16-c31
+[2026-11-02T02:00:33+00:00] pruned-s16-c31 exit=0
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c31
+[2026-11-02T02:00:33+00:00] starting exact-s16-c32
+[2026-11-02T02:03:56+00:00] exact-s16-c32 exit=137
+[2026-11-02T02:03:56+00:00] exact-s16-c32 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1063
+[2026-11-02T02:03:56+00:00] starting exact-s256-c32
+[2026-11-02T02:04:25+00:00] exact-s256-c32 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c32
+[2026-11-02T02:04:25+00:00] starting pruned-s16-c32
+[2026-11-02T02:05:51+00:00] pruned-s16-c32 exit=1
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c32
+[2026-11-02T02:05:51+00:00] starting exact-s16-c33
+[2026-11-02T02:11:08+00:00] exact-s16-c33 exit=137
+[2026-11-02T02:11:08+00:00] exact-s16-c33 produced no results (exit 137); not marking done
+    Game 1/2 starting | A (white) vs B (black) | seed=1065
+    Game 1/2 finished | Pair A subgame PCFR+ (exact belief, sample_size 16) (white) won | A (white): 27 moves | B (black): 26 moves | reason=king_capture | seed=1065
+    Game 2/2 starting | A (black) vs B (white) | seed=1066
+[2026-11-02T02:11:08+00:00] starting exact-s256-c33
+[2026-11-02T02:11:47+00:00] exact-s256-c33 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c33
+[2026-11-02T02:11:47+00:00] starting pruned-s16-c33
+[2026-11-02T02:17:41+00:00] pruned-s16-c33 exit=1
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c33
+[2026-11-02T02:17:41+00:00] starting exact-s16-c34
+[2026-11-02T02:23:17+00:00] exact-s16-c34 exit=137
+[2026-11-02T02:23:17+00:00] exact-s16-c34 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1067
+[2026-11-02T02:23:17+00:00] starting exact-s256-c34
+[2026-11-02T02:25:03+00:00] exact-s256-c34 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c34
+[2026-11-02T02:25:03+00:00] starting pruned-s16-c34
+[2026-11-02T02:31:21+00:00] pruned-s16-c34 exit=1
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c34
+    Evaluation finished with 1 failed game(s). Logs and summary saved to /repo/pair_c/runs/strength-pruned-s16-c34.
+[2026-11-02T02:31:21+00:00] starting exact-s16-c35
+[2026-11-02T02:34:06+00:00] exact-s16-c35 exit=137
+[2026-11-02T02:34:06+00:00] exact-s16-c35 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1069
+[2026-11-02T02:34:06+00:00] starting exact-s256-c35
+[2026-11-02T02:34:24+00:00] exact-s256-c35 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c35
+[2026-11-02T02:34:24+00:00] starting pruned-s16-c35
+[2026-11-02T02:38:18+00:00] pruned-s16-c35 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c35
+[2026-11-02T02:38:18+00:00] starting exact-s16-c36
+[2026-11-02T02:41:39+00:00] exact-s16-c36 exit=137
+[2026-11-02T02:41:39+00:00] exact-s16-c36 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1071
+[2026-11-02T02:41:39+00:00] starting exact-s256-c36
+[2026-11-02T02:44:52+00:00] exact-s256-c36 exit=137
+[2026-11-02T02:44:52+00:00] exact-s256-c36 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 256) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1071
+[2026-11-02T02:44:52+00:00] starting pruned-s16-c36
+[2026-11-02T02:47:57+00:00] pruned-s16-c36 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c36
+[2026-11-02T02:47:57+00:00] starting exact-s16-c37
+[2026-11-02T02:49:44+00:00] exact-s16-c37 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-exact-s16-c37
+[2026-11-02T02:49:44+00:00] starting exact-s256-c37
+[2026-11-02T02:50:29+00:00] exact-s256-c37 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c37
+[2026-11-02T02:50:29+00:00] starting pruned-s16-c37
+[2026-11-02T02:54:03+00:00] pruned-s16-c37 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c37
+[2026-11-02T02:54:03+00:00] starting exact-s16-c38
+[2026-11-02T03:00:52+00:00] exact-s16-c38 exit=0
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-exact-s16-c38
+[2026-11-02T03:00:52+00:00] starting exact-s256-c38
+[2026-11-02T03:04:10+00:00] exact-s256-c38 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c38
+[2026-11-02T03:04:10+00:00] starting pruned-s16-c38
+[2026-11-02T03:05:07+00:00] pruned-s16-c38 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c38
+[2026-11-02T03:05:07+00:00] starting exact-s16-c39
+[2026-11-02T03:06:13+00:00] exact-s16-c39 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-exact-s16-c39
+[2026-11-02T03:06:13+00:00] starting exact-s256-c39
+[2026-11-02T03:07:14+00:00] exact-s256-c39 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c39
+[2026-11-02T03:07:14+00:00] starting pruned-s16-c39
+[2026-11-02T03:07:51+00:00] pruned-s16-c39 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c39
+[2026-11-02T03:07:51+00:00] starting exact-s16-c40
+[2026-11-02T03:12:52+00:00] exact-s16-c40 exit=137
+[2026-11-02T03:12:52+00:00] exact-s16-c40 produced no results (exit 137); not marking done
+    Game 1/2 starting | A (white) vs B (black) | seed=1079
+    Game 1/2 finished | Pair A subgame PCFR+ (exact belief, sample_size 16) (white) won | A (white): 19 moves | B (black): 18 moves | reason=king_capture | seed=1079
+    Game 2/2 starting | A (black) vs B (white) | seed=1080
+[2026-11-02T03:12:52+00:00] starting exact-s256-c40
+[2026-11-02T03:13:07+00:00] exact-s256-c40 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c40
+[2026-11-02T03:13:07+00:00] starting pruned-s16-c40
+[2026-11-02T03:15:51+00:00] pruned-s16-c40 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c40
+[2026-11-02T03:15:51+00:00] starting exact-s16-c41
+[2026-11-02T03:16:41+00:00] exact-s16-c41 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s16-c41
+[2026-11-02T03:16:41+00:00] starting exact-s256-c41
+[2026-11-02T03:18:06+00:00] exact-s256-c41 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c41
+[2026-11-02T03:18:06+00:00] starting pruned-s16-c41
+[2026-11-02T03:20:13+00:00] pruned-s16-c41 exit=1
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c41
+[2026-11-02T03:20:13+00:00] starting exact-s16-c42
+[2026-11-02T03:22:37+00:00] exact-s16-c42 exit=137
+[2026-11-02T03:22:37+00:00] exact-s16-c42 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1083
+[2026-11-02T03:22:37+00:00] starting exact-s256-c42
+[2026-11-02T03:23:50+00:00] exact-s256-c42 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c42
+[2026-11-02T03:23:50+00:00] starting pruned-s16-c42
+[2026-11-02T03:25:40+00:00] pruned-s16-c42 exit=1
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c42
+    Evaluation finished with 1 failed game(s). Logs and summary saved to /repo/pair_c/runs/strength-pruned-s16-c42.
+[2026-11-02T03:25:40+00:00] starting exact-s16-c43
+[2026-11-02T03:33:43+00:00] exact-s16-c43 exit=137
+[2026-11-02T03:33:43+00:00] exact-s16-c43 produced no results (exit 137); not marking done
+    Game 1/2 starting | A (white) vs B (black) | seed=1085
+    Game 1/2 finished | Material OnePlyBot (particle tracker) (black) won | A (white): 33 moves | B (black): 33 moves | reason=king_capture | seed=1085
+    Game 2/2 starting | A (black) vs B (white) | seed=1086
+[2026-11-02T03:33:43+00:00] starting exact-s256-c43
+[2026-11-02T03:34:10+00:00] exact-s256-c43 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c43
+[2026-11-02T03:34:10+00:00] starting pruned-s16-c43
+[2026-11-02T03:40:05+00:00] pruned-s16-c43 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c43
+[2026-11-02T03:40:05+00:00] starting exact-s16-c44
+[2026-11-02T03:44:36+00:00] exact-s16-c44 exit=137
+[2026-11-02T03:44:36+00:00] exact-s16-c44 produced no results (exit 137); not marking done
+    Game 1/2 starting | A (white) vs B (black) | seed=1087
+    Game 1/2 finished | draw | A (white): 65 moves | B (black): 65 moves | reason=threefold_repetition | seed=1087
+    Game 2/2 starting | A (black) vs B (white) | seed=1088
+[2026-11-02T03:44:36+00:00] starting exact-s256-c44
+[2026-11-02T03:46:11+00:00] exact-s256-c44 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c44
+[2026-11-02T03:46:11+00:00] starting pruned-s16-c44
+[2026-11-02T03:48:40+00:00] pruned-s16-c44 exit=0
+        Win rate: 50.0%
+        Score rate: 75.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c44
+[2026-11-02T03:48:40+00:00] starting exact-s16-c45
+[2026-11-02T03:49:31+00:00] exact-s16-c45 exit=0
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-exact-s16-c45
+[2026-11-02T03:49:31+00:00] starting exact-s256-c45
+[2026-11-02T03:51:05+00:00] exact-s256-c45 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c45
+[2026-11-02T03:51:05+00:00] starting pruned-s16-c45
+[2026-11-02T03:53:16+00:00] pruned-s16-c45 exit=1
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c45
+[2026-11-02T03:53:16+00:00] starting exact-s16-c46
+[2026-11-02T03:57:47+00:00] exact-s16-c46 exit=137
+[2026-11-02T03:57:47+00:00] exact-s16-c46 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1091
+[2026-11-02T03:57:47+00:00] starting exact-s256-c46
+[2026-11-02T04:00:43+00:00] exact-s256-c46 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c46
+[2026-11-02T04:00:43+00:00] starting pruned-s16-c46
+[2026-11-02T04:02:39+00:00] pruned-s16-c46 exit=0
+        Win rate: 0.0%
+        Score rate: 25.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c46
+[2026-11-02T04:02:39+00:00] starting exact-s16-c47
+[2026-11-02T04:07:32+00:00] exact-s16-c47 exit=137
+[2026-11-02T04:07:32+00:00] exact-s16-c47 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1093
+[2026-11-02T04:07:32+00:00] starting exact-s256-c47
+[2026-11-02T04:08:18+00:00] exact-s256-c47 exit=0
+        Win rate: 50.0%
+        Score rate: 50.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c47
+[2026-11-02T04:08:18+00:00] starting pruned-s16-c47
+[2026-11-02T04:10:50+00:00] pruned-s16-c47 exit=0
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c47
+[2026-11-02T04:10:50+00:00] starting exact-s16-c48
+[2026-11-02T04:14:49+00:00] exact-s16-c48 exit=137
+[2026-11-02T04:14:49+00:00] exact-s16-c48 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1095
+[2026-11-02T04:14:49+00:00] starting exact-s256-c48
+[2026-11-02T04:15:28+00:00] exact-s256-c48 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c48
+[2026-11-02T04:15:28+00:00] starting pruned-s16-c48
+[2026-11-02T04:16:44+00:00] pruned-s16-c48 exit=1
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c48
+[2026-11-02T04:16:44+00:00] starting exact-s16-c49
+[2026-11-02T04:21:35+00:00] exact-s16-c49 exit=137
+[2026-11-02T04:21:35+00:00] exact-s16-c49 produced no results (exit 137); not marking done
+    Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+    Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+    Game 1/2 starting | A (white) vs B (black) | seed=1097
+[2026-11-02T04:21:35+00:00] starting exact-s256-c49
+[2026-11-02T04:22:15+00:00] exact-s256-c49 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c49
+[2026-11-02T04:22:15+00:00] starting pruned-s16-c49
+[2026-11-02T04:22:58+00:00] pruned-s16-c49 exit=0
+        Win rate: 0.0%
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c49
+[2026-11-02T04:22:58+00:00] starting exact-s16-c50
+[2026-11-02T04:24:44+00:00] exact-s16-c50 exit=0
+        Win rate: 0.0%
+        Score rate: 25.0%
+    Results: /repo/pair_c/runs/strength-exact-s16-c50
+[2026-11-02T04:24:44+00:00] starting exact-s256-c50
+[2026-11-02T04:26:03+00:00] exact-s256-c50 exit=0
+        Win rate: 100.0%
+        Score rate: 100.0%
+    Results: /repo/pair_c/runs/strength-exact-s256-c50
+[2026-11-02T04:26:03+00:00] starting pruned-s16-c50
+[2026-11-02T04:28:00+00:00] pruned-s16-c50 exit=1
+        Score rate: 0.0%
+    Results: /repo/pair_c/runs/strength-pruned-s16-c50
+    Evaluation finished with 1 failed game(s). Logs and summary saved to /repo/pair_c/runs/strength-pruned-s16-c50.
+[2026-11-02T04:28:00+00:00] all chunks attempted

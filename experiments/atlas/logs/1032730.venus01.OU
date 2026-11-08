@@ -1,0 +1,66 @@
+[2026-11-04T11:45:10+0800] labels labels-01 task 2 on cnode-33-43-49 code=repo-labels2@87b3089 games=24 seed=7001 budget_ms=5000 max_states=96000 out=/hpctmp/tommy.21.31/fow/repo-labels/pair_c/runs/labels-01/task-2
+model name	: AMD EPYC 7R13 Processor
+label runner importable
+game 0: part-0000.jsonl exists, skipping
+game 1: part-0001.jsonl exists, skipping
+game 2: part-0002.jsonl exists, skipping
+game 3: part-0003.jsonl exists, skipping
+game 4: part-0004.jsonl exists, skipping
+game 5: part-0005.jsonl exists, skipping
+game 6: part-0006.jsonl exists, skipping
+game 7: part-0007.jsonl exists, skipping
+game 8: part-0008.jsonl exists, skipping
+game 9: part-0009.jsonl exists, skipping
+game 10: part-0010.jsonl exists, skipping
+game 11: part-0011.jsonl exists, skipping
+game 12: part-0012.jsonl exists, skipping
+game 13: part-0013.jsonl exists, skipping
+game 14: seed 7029, 61 plies, 57 records, 0 fallbacks, 11 guards, 2932.0 s
+game 15: seed 7031, 44 plies, 40 records, 0 fallbacks, 0 guards, 195.6 s
+game 16: seed 7033, 62 plies, 52 records, 2 fallbacks, 8 guards, 1508.2 s
+game 17: seed 7035, 37 plies, 29 records, 2 fallbacks, 0 guards, 157.7 s
+game 18: seed 7037, 46 plies, 43 records, 1 fallbacks, 2 guards, 572.2 s
+game 19: seed 7039, 85 plies, 82 records, 1 fallbacks, 13 guards, 2728.5 s
+game 20: seed 7041, 50 plies, 41 records, 1 fallbacks, 9 guards, 2505.8 s
+game 21: seed 7043, 24 plies, 22 records, 0 fallbacks, 0 guards, 139.5 s
+game 22: seed 7045, 48 plies, 46 records, 0 fallbacks, 8 guards, 1331.6 s
+game 23: seed 7047, 48 plies, 45 records, 1 fallbacks, 1 guards, 405.7 s
+24 games (0 failed), 1293 records, 20 fallbacks, 120 guards; validation errors: 0
+	Command being timed: "python -m pair_a_prep.label_run --out /hpctmp/tommy.21.31/fow/repo-labels/pair_c/runs/labels-01/task-2 --games 24 --seed 7001 --evaluator material --time-budget-ms 5000 --max-plies 200 --max-states 96000 --sample-size 16 --commit 87b3089"
+	User time (seconds): 12422.43
+	System time (seconds): 50.83
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 3:28:12
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2776756
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 1
+	Minor (reclaiming a frame) page faults: 43531887
+	Voluntary context switches: 1590
+	Involuntary context switches: 9997
+	Swaps: 0
+	File system inputs: 872
+	File system outputs: 34912
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+[2026-11-04T15:13:33+0800] labels labels-01 task 2 exit=0
+      ======================================================================================
+     Resource Usage on 2026-11-04 15:13:33.266263:
+     JobId: 1032730.venus01  				 Project: _pbs_project_default 
+     Submission Host: atlas8-c01 
+     Exit Status: 0
+     NCPUs Requested: 1 				 NCPUs Used: 1
+     Memory Requested: 15gb 				 Memory Used: 2760376kb 
+     Vmem Used: 3304756kb
+     CPU Time Used: 03:27:14 
+     Walltime requested: 72:00:00 			 Walltime Used: 03:28:27
+     Submit Time:  Wed Nov  4 11:03:48 2026 		 Start Time: Wed Nov  4 11:45:06 2026 
+     End Time: Wed Nov  4 15:13:33 2026 
+     Execution Nodes Used: (cnode-33-43-49:ncpus=1:mem=15728640kb)
+     ======================================================================================

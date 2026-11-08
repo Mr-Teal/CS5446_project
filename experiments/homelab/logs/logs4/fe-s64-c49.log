@@ -1,0 +1,24 @@
+Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+Players: A=Pair A subgame PCFR+ (exact belief, sample 64 top-up, full effort) | B=Material OnePlyBot (particle tracker) | colors=alternating
+Game 1/2 starting | A (white) vs B (black) | seed=1097
+Game 1/2 finished | Pair A subgame PCFR+ (exact belief, sample 64 top-up, full effort) (white) won | A (white): 47 moves | B (black): 46 moves | reason=king_capture | seed=1097
+Game 2/2 starting | A (black) vs B (white) | seed=1098
+Game 2/2 finished | Pair A subgame PCFR+ (exact belief, sample 64 top-up, full effort) (black) won | A (black): 22 moves | B (white): 22 moves | reason=king_capture | seed=1098
+
+Results after 2 successful game attempts:
+  Terminal games scored: 2
+  Ply-capped attempts (unscored): 0
+  Failed games: 0
+  Player A: Pair A subgame PCFR+ (exact belief, sample 64 top-up, full effort)
+    Wins: 2
+    Draws: 0
+    Losses: 0
+    Win rate: 100.0%
+    Score rate: 100.0%
+  Player B: Material OnePlyBot (particle tracker)
+    Wins: 0
+    Draws: 0
+    Losses: 2
+    Win rate: 0.0%
+    Score rate: 0.0%
+Results: /repo/pair_c/runs/strength-fe-s64-c49

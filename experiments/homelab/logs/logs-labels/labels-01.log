@@ -1,0 +1,129 @@
+game 0: part-0000.jsonl exists, skipping
+game 1: part-0001.jsonl exists, skipping
+game 2: part-0002.jsonl exists, skipping
+game 3: part-0003.jsonl exists, skipping
+game 4: part-0004.jsonl exists, skipping
+game 5: part-0005.jsonl exists, skipping
+game 6: part-0006.jsonl exists, skipping
+game 7: part-0007.jsonl exists, skipping
+game 8: part-0008.jsonl exists, skipping
+game 9: part-0009.jsonl exists, skipping
+game 10: part-0010.jsonl exists, skipping
+game 11: part-0011.jsonl exists, skipping
+game 12: part-0012.jsonl exists, skipping
+game 13: part-0013.jsonl exists, skipping
+game 14: part-0014.jsonl exists, skipping
+game 15: seed 5031, 59 plies, 51 records, 1 fallbacks, 9 guards, 992.3 s
+game 16: seed 5033, 61 plies, 55 records, 0 fallbacks, 3 guards, 638.8 s
+game 17: seed 5035, 82 plies, 80 records, 0 fallbacks, 12 guards, 1035.6 s
+game 18: seed 5037, 52 plies, 45 records, 0 fallbacks, 5 guards, 553.2 s; FAILED BeliefBudgetError: no_candidate: stopped by None; no descendants of retained support; rebuild from the private stream
+game 19: seed 5039, 45 plies, 42 records, 1 fallbacks, 0 guards, 228.9 s
+game 20: seed 5041, 30 plies, 23 records, 0 fallbacks, 7 guards, 610.2 s; FAILED BeliefBudgetError: no_candidate: stopped by None; no descendants of retained support; rebuild from the private stream
+game 21: seed 5043, 11 plies, 7 records, 0 fallbacks, 0 guards, 30.3 s
+game 22: seed 5045, 71 plies, 68 records, 0 fallbacks, 12 guards, 1140.2 s; FAILED BeliefBudgetError: no_candidate: stopped by None; no descendants of retained support; rebuild from the private stream
+game 23: seed 5047, 106 plies, 97 records, 1 fallbacks, 10 guards, 1072.8 s
+game 24: seed 5049, 60 plies, 58 records, 0 fallbacks, 2 guards, 470.4 s
+game 25: seed 5051, 81 plies, 78 records, 0 fallbacks, 8 guards, 924.3 s
+game 26: seed 5053, 43 plies, 35 records, 0 fallbacks, 3 guards, 242.0 s
+game 27: seed 5055, 105 plies, 100 records, 1 fallbacks, 17 guards, 1679.8 s
+game 28: seed 5057, 83 plies, 77 records, 1 fallbacks, 8 guards, 977.0 s
+game 29: seed 5059, 30 plies, 26 records, 0 fallbacks, 0 guards, 108.9 s
+game 30: seed 5061, 49 plies, 44 records, 0 fallbacks, 3 guards, 366.6 s
+game 31: seed 5063, 47 plies, 40 records, 0 fallbacks, 0 guards, 167.8 s
+game 32: seed 5065, 60 plies, 56 records, 0 fallbacks, 8 guards, 847.7 s
+game 0: part-0000.jsonl exists, skipping
+game 1: part-0001.jsonl exists, skipping
+game 2: part-0002.jsonl exists, skipping
+game 3: part-0003.jsonl exists, skipping
+game 4: part-0004.jsonl exists, skipping
+game 5: part-0005.jsonl exists, skipping
+game 6: part-0006.jsonl exists, skipping
+game 7: part-0007.jsonl exists, skipping
+game 8: part-0008.jsonl exists, skipping
+game 9: part-0009.jsonl exists, skipping
+game 10: part-0010.jsonl exists, skipping
+game 11: part-0011.jsonl exists, skipping
+game 12: part-0012.jsonl exists, skipping
+game 13: part-0013.jsonl exists, skipping
+game 14: part-0014.jsonl exists, skipping
+game 15: part-0015.jsonl exists, skipping
+game 16: part-0016.jsonl exists, skipping
+game 17: part-0017.jsonl exists, skipping
+game 18: part-0018.jsonl exists, skipping
+game 19: part-0019.jsonl exists, skipping
+game 20: part-0020.jsonl exists, skipping
+game 21: part-0021.jsonl exists, skipping
+game 22: part-0022.jsonl exists, skipping
+game 23: part-0023.jsonl exists, skipping
+game 24: part-0024.jsonl exists, skipping
+game 25: part-0025.jsonl exists, skipping
+game 26: part-0026.jsonl exists, skipping
+game 27: part-0027.jsonl exists, skipping
+game 28: part-0028.jsonl exists, skipping
+game 29: part-0029.jsonl exists, skipping
+game 30: part-0030.jsonl exists, skipping
+game 31: part-0031.jsonl exists, skipping
+game 32: part-0032.jsonl exists, skipping
+game 33: seed 5067, 41 plies, 33 records, 0 fallbacks, 2 guards, 229.6 s; FAILED BeliefBudgetError: no_candidate: stopped by None; no descendants of retained support; rebuild from the private stream
+game 34: seed 5069, 47 plies, 41 records, 0 fallbacks, 2 guards, 317.0 s
+game 35: seed 5071, 77 plies, 72 records, 1 fallbacks, 4 guards, 535.9 s
+game 36: seed 5073, 65 plies, 63 records, 0 fallbacks, 0 guards, 294.2 s
+game 37: seed 5075, 35 plies, 28 records, 0 fallbacks, 0 guards, 106.8 s
+game 38: seed 5077, 135 plies, 128 records, 1 fallbacks, 15 guards, 1753.1 s
+game 39: seed 5079, 56 plies, 54 records, 0 fallbacks, 19 guards, 1963.3 s; FAILED BeliefBudgetError: no_candidate: stopped by None; no descendants of retained support; rebuild from the private stream
+game 40: seed 5081, 23 plies, 15 records, 0 fallbacks, 0 guards, 54.9 s
+game 41: seed 5083, 114 plies, 108 records, 1 fallbacks, 15 guards, 2020.1 s
+game 42: seed 5085, 56 plies, 49 records, 0 fallbacks, 0 guards, 190.9 s
+game 43: seed 5087, 53 plies, 47 records, 1 fallbacks, 0 guards, 219.9 s
+game 44: seed 5089, 41 plies, 34 records, 0 fallbacks, 0 guards, 132.2 s
+game 45: seed 5091, 52 plies, 48 records, 0 fallbacks, 8 guards, 726.0 s; FAILED BeliefBudgetError: no_candidate: stopped by None; no descendants of retained support; rebuild from the private stream
+game 46: seed 5093, 88 plies, 78 records, 3 fallbacks, 12 guards, 1202.0 s
+game 47: seed 5095, 118 plies, 115 records, 1 fallbacks, 27 guards, 2753.9 s
+game 48: seed 5097, 94 plies, 89 records, 0 fallbacks, 17 guards, 1412.9 s
+game 49: seed 5099, 37 plies, 32 records, 0 fallbacks, 5 guards, 548.9 s; FAILED BeliefBudgetError: no_candidate: stopped by None; no descendants of retained support; rebuild from the private stream
+game 50: seed 5101, 99 plies, 93 records, 0 fallbacks, 6 guards, 797.3 s
+game 51: seed 5103, 101 plies, 94 records, 2 fallbacks, 1 guards, 667.5 s
+game 52: seed 5105, 98 plies, 93 records, 2 fallbacks, 12 guards, 1544.0 s
+game 53: seed 5107, 33 plies, 27 records, 1 fallbacks, 0 guards, 142.5 s
+game 54: seed 5109, 57 plies, 52 records, 0 fallbacks, 4 guards, 541.3 s
+game 55: seed 5111, 60 plies, 57 records, 0 fallbacks, 11 guards, 1096.6 s
+game 56: seed 5113, 49 plies, 44 records, 0 fallbacks, 0 guards, 194.2 s
+game 57: seed 5115, 75 plies, 73 records, 0 fallbacks, 6 guards, 776.5 s
+game 58: seed 5117, 71 plies, 64 records, 0 fallbacks, 1 guards, 425.9 s
+game 59: seed 5119, 28 plies, 23 records, 0 fallbacks, 0 guards, 96.1 s
+game 60: seed 5121, 80 plies, 78 records, 0 fallbacks, 14 guards, 1805.7 s
+game 61: seed 5123, 86 plies, 79 records, 0 fallbacks, 4 guards, 811.1 s
+game 62: seed 5125, 84 plies, 80 records, 1 fallbacks, 11 guards, 1171.3 s
+game 63: seed 5127, 47 plies, 43 records, 0 fallbacks, 1 guards, 261.9 s
+game 64: seed 5129, 45 plies, 37 records, 0 fallbacks, 3 guards, 337.3 s
+game 65: seed 5131, 9 plies, 5 records, 0 fallbacks, 0 guards, 14.9 s
+game 66: seed 5133, 188 plies, 180 records, 3 fallbacks, 39 guards, 4200.2 s
+game 67: seed 5135, 48 plies, 44 records, 0 fallbacks, 0 guards, 239.5 s
+game 68: seed 5137, 113 plies, 105 records, 0 fallbacks, 9 guards, 1105.5 s
+game 69: seed 5139, 31 plies, 28 records, 0 fallbacks, 0 guards, 123.5 s
+game 70: seed 5141, 45 plies, 39 records, 0 fallbacks, 0 guards, 167.4 s
+game 71: seed 5143, 44 plies, 38 records, 0 fallbacks, 0 guards, 158.1 s
+game 72: seed 5145, 68 plies, 62 records, 0 fallbacks, 0 guards, 260.6 s
+game 73: seed 5147, 92 plies, 84 records, 0 fallbacks, 2 guards, 572.6 s
+game 74: seed 5149, 76 plies, 69 records, 2 fallbacks, 10 guards, 1092.4 s
+game 75: seed 5151, 40 plies, 36 records, 0 fallbacks, 0 guards, 148.2 s
+game 76: seed 5153, 68 plies, 63 records, 0 fallbacks, 6 guards, 664.4 s
+game 77: seed 5155, 26 plies, 21 records, 0 fallbacks, 2 guards, 268.5 s
+game 78: seed 5157, 63 plies, 59 records, 0 fallbacks, 6 guards, 701.4 s
+game 79: seed 5159, 73 plies, 70 records, 0 fallbacks, 5 guards, 653.6 s
+game 80: seed 5161, 104 plies, 100 records, 0 fallbacks, 9 guards, 1015.9 s
+game 81: seed 5163, 86 plies, 81 records, 0 fallbacks, 8 guards, 971.7 s
+game 82: seed 5165, 36 plies, 32 records, 0 fallbacks, 3 guards, 363.4 s
+game 83: seed 5167, 67 plies, 61 records, 0 fallbacks, 2 guards, 432.0 s
+game 84: seed 5169, 65 plies, 60 records, 1 fallbacks, 6 guards, 690.9 s
+game 85: seed 5171, 44 plies, 36 records, 0 fallbacks, 8 guards, 666.9 s
+game 86: seed 5173, 67 plies, 61 records, 0 fallbacks, 2 guards, 496.4 s
+game 87: seed 5175, 65 plies, 61 records, 1 fallbacks, 5 guards, 539.6 s
+game 88: seed 5177, 21 plies, 17 records, 0 fallbacks, 0 guards, 66.2 s
+game 89: seed 5179, 76 plies, 68 records, 0 fallbacks, 1 guards, 317.6 s
+game 90: seed 5181, 36 plies, 33 records, 0 fallbacks, 1 guards, 208.2 s
+game 91: seed 5183, 56 plies, 49 records, 0 fallbacks, 0 guards, 213.3 s
+game 92: seed 5185, 61 plies, 57 records, 0 fallbacks, 5 guards, 677.6 s
+game 93: seed 5187, 48 plies, 42 records, 0 fallbacks, 1 guards, 210.3 s
+game 94: seed 5189, 65 plies, 61 records, 0 fallbacks, 7 guards, 751.6 s
+game 95: seed 5191, 52 plies, 48 records, 0 fallbacks, 1 guards, 268.9 s

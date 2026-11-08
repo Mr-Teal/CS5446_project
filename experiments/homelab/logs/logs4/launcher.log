@@ -1,0 +1,4 @@
+[2026-11-02T18:40:36+00:00] waiting for the clock driver (pid 2781115) to exit
+[2026-11-03T00:47:36+00:00] clock driver gone; starting lanes
+[2026-11-03T00:47:36+00:00] lane A pid 2930257 (guard-fe-s16 @4500m), lane B pid 2930258 (sf14 -> fe-s16 -> fe-s64 -> fe-s256 @8000m)
+[2026-11-04T22:50:19+00:00] both lanes finished

@@ -1,0 +1,44 @@
+[2026-11-04T05:07:28+0800] labels labels-01 task 5 on cnode-33-43-49 code=repo-labels@30b5753 games=24 seed=10001 budget_ms=5000 max_states=96000
+model name	: AMD EPYC 7R13 Processor
+label runner importable
+Command terminated by signal 9
+	Command being timed: "python -m pair_a_prep.label_run --out pair_c/runs/labels-01/task-5 --games 24 --seed 10001 --evaluator material --time-budget-ms 5000 --max-plies 200 --max-states 96000 --sample-size 16 --commit 30b5753"
+	User time (seconds): 40704.99
+	System time (seconds): 267.69
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 11:23:11
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 15745372
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 235023866
+	Voluntary context switches: 2066
+	Involuntary context switches: 20806
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 161968
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+[2026-11-04T16:30:48+0800] labels labels-01 task 5 exit=9
+      ======================================================================================
+     Resource Usage on 2026-11-04 16:30:48.533390:
+     JobId: 1032509[5].venus01  				 Project: _pbs_project_default 
+     Submission Host: atlas8-c01 
+     Exit Status: 9
+     NCPUs Requested: 1 				 NCPUs Used: 1
+     Memory Requested: 15gb 				 Memory Used: 13740548kb 
+     Vmem Used: 15186280kb
+     CPU Time Used: 11:22:05 
+     Walltime requested: 72:00:00 			 Walltime Used: 11:23:25
+     Submit Time:  Wed Nov  4 03:39:22 2026 		 Start Time: Wed Nov  4 05:07:23 2026 
+     End Time: Wed Nov  4 16:30:48 2026 
+     Execution Nodes Used: (cnode-33-43-49:ncpus=1:mem=15728640kb)
+     ======================================================================================
+Cgroup mem limit exceeded: Task in /pbs_jobs.service/jobid/1032509[5].venus01 killed as a result of limit of /pbs_jobs.service/jobid/1032509[5].venus01
+

@@ -1,0 +1,140 @@
+[2026-11-02T11:03:20+00:00] starting clock-s16-c1
+[2026-11-02T11:03:21+00:00] clock-s16-c1 exit=1 elapsed=1s
+[2026-11-02T11:03:21+00:00] clock-s16-c1 produced no results (exit 1); not marking done
+[2026-11-02T11:03:21+00:00] clock-s64-c1 already done, skipping
+[2026-11-02T11:03:21+00:00] clock-s16-c2 already done, skipping
+[2026-11-02T11:03:21+00:00] starting clock-s64-c2
+[2026-11-02T11:03:21+00:00] clock-s64-c2 exit=1 elapsed=0s
+[2026-11-02T11:03:21+00:00] clock-s64-c2 produced no results (exit 1); not marking done
+[2026-11-02T11:03:21+00:00] clock-s16-c3 already done, skipping
+[2026-11-02T11:03:21+00:00] clock-s64-c3 already done, skipping
+[2026-11-02T11:03:21+00:00] starting clock-s16-c4
+[2026-11-02T11:03:22+00:00] clock-s16-c4 exit=1 elapsed=1s
+[2026-11-02T11:03:22+00:00] clock-s16-c4 produced no results (exit 1); not marking done
+[2026-11-02T11:03:22+00:00] clock-s64-c4 already done, skipping
+[2026-11-02T11:03:22+00:00] clock-s16-c5 already done, skipping
+[2026-11-02T11:03:22+00:00] clock-s64-c5 already done, skipping
+[2026-11-02T11:03:22+00:00] clock-s16-c6 already done, skipping
+[2026-11-02T11:03:22+00:00] starting clock-s64-c6
+[2026-11-02T11:03:22+00:00] clock-s64-c6 exit=1 elapsed=0s
+[2026-11-02T11:03:22+00:00] clock-s64-c6 produced no results (exit 1); not marking done
+[2026-11-02T11:03:22+00:00] clock-s16-c7 already done, skipping
+[2026-11-02T11:03:22+00:00] clock-s64-c7 already done, skipping
+[2026-11-02T11:03:22+00:00] starting clock-s16-c8
+[2026-11-02T11:03:23+00:00] clock-s16-c8 exit=1 elapsed=1s
+[2026-11-02T11:03:23+00:00] clock-s16-c8 produced no results (exit 1); not marking done
+[2026-11-02T11:03:23+00:00] starting clock-s64-c8
+[2026-11-02T11:13:36+00:00] clock-s64-c8 exit=137 elapsed=613s
+[2026-11-02T11:13:36+00:00] clock-s64-c8 produced no results (exit 137); not marking done
+[2026-11-02T11:13:36+00:00] starting clock-s16-c9
+[2026-11-02T11:16:41+00:00] clock-s16-c9 exit=137 elapsed=185s
+[2026-11-02T11:16:41+00:00] clock-s16-c9 produced no results (exit 137); not marking done
+[2026-11-02T11:16:41+00:00] starting clock-s64-c9
+[2026-11-02T11:21:03+00:00] clock-s64-c9 exit=0 elapsed=262s
+[2026-11-02T11:21:03+00:00] starting clock-s16-c10
+[2026-11-02T11:25:44+00:00] clock-s16-c10 exit=0 elapsed=281s
+[2026-11-02T11:25:44+00:00] starting clock-s64-c10
+[2026-11-02T11:30:19+00:00] clock-s64-c10 exit=0 elapsed=275s
+[2026-11-02T11:30:19+00:00] starting clock-s16-c11
+[2026-11-02T11:45:46+00:00] clock-s16-c11 exit=137 elapsed=927s
+[2026-11-02T11:45:46+00:00] clock-s16-c11 produced no results (exit 137); not marking done
+[2026-11-02T11:45:46+00:00] starting clock-s64-c11
+[2026-11-02T12:03:28+00:00] clock-s64-c11 exit=137 elapsed=1062s
+[2026-11-02T12:03:28+00:00] clock-s64-c11 produced no results (exit 137); not marking done
+[2026-11-02T12:03:28+00:00] starting clock-s16-c12
+[2026-11-02T12:09:49+00:00] clock-s16-c12 exit=0 elapsed=381s
+[2026-11-02T12:09:49+00:00] starting clock-s64-c12
+[2026-11-02T12:15:29+00:00] clock-s64-c12 exit=0 elapsed=340s
+[2026-11-02T12:15:29+00:00] starting clock-s16-c13
+[2026-11-02T12:21:14+00:00] clock-s16-c13 exit=137 elapsed=345s
+[2026-11-02T12:21:14+00:00] clock-s16-c13 produced no results (exit 137); not marking done
+[2026-11-02T12:21:14+00:00] starting clock-s64-c13
+[2026-11-02T12:27:14+00:00] clock-s64-c13 exit=0 elapsed=360s
+[2026-11-02T12:27:14+00:00] starting clock-s16-c14
+[2026-11-02T12:36:06+00:00] clock-s16-c14 exit=137 elapsed=532s
+[2026-11-02T12:36:06+00:00] clock-s16-c14 produced no results (exit 137); not marking done
+[2026-11-02T12:36:06+00:00] starting clock-s64-c14
+[2026-11-02T12:45:27+00:00] clock-s64-c14 exit=0 elapsed=561s
+[2026-11-02T12:45:27+00:00] starting clock-s16-c15
+[2026-11-02T12:49:57+00:00] clock-s16-c15 exit=0 elapsed=270s
+[2026-11-02T12:49:57+00:00] starting clock-s64-c15
+[2026-11-02T12:53:00+00:00] clock-s64-c15 exit=0 elapsed=183s
+[2026-11-02T12:53:00+00:00] starting clock-s16-c16
+[2026-11-02T13:00:55+00:00] clock-s16-c16 exit=137 elapsed=475s
+[2026-11-02T13:00:55+00:00] clock-s16-c16 produced no results (exit 137); not marking done
+[2026-11-02T13:00:55+00:00] starting clock-s64-c16
+[2026-11-02T13:08:38+00:00] clock-s64-c16 exit=137 elapsed=463s
+[2026-11-02T13:08:38+00:00] clock-s64-c16 produced no results (exit 137); not marking done
+[2026-11-02T13:08:38+00:00] starting clock-s16-c17
+[2026-11-02T13:13:08+00:00] clock-s16-c17 exit=0 elapsed=270s
+[2026-11-02T13:13:08+00:00] starting clock-s64-c17
+[2026-11-02T13:16:35+00:00] clock-s64-c17 exit=0 elapsed=207s
+[2026-11-02T13:16:35+00:00] starting clock-s16-c18
+[2026-11-02T13:18:57+00:00] clock-s16-c18 exit=0 elapsed=142s
+[2026-11-02T13:18:57+00:00] starting clock-s64-c18
+[2026-11-02T13:23:34+00:00] clock-s64-c18 exit=0 elapsed=277s
+[2026-11-02T13:23:34+00:00] starting clock-s16-c19
+[2026-11-02T13:30:43+00:00] clock-s16-c19 exit=0 elapsed=429s
+[2026-11-02T13:30:43+00:00] starting clock-s64-c19
+[2026-11-02T13:33:31+00:00] clock-s64-c19 exit=0 elapsed=168s
+[2026-11-02T13:33:31+00:00] starting clock-s16-c20
+[2026-11-02T13:49:59+00:00] clock-s16-c20 exit=137 elapsed=988s
+[2026-11-02T13:49:59+00:00] clock-s16-c20 produced no results (exit 137); not marking done
+[2026-11-02T13:49:59+00:00] starting clock-s64-c20
+[2026-11-02T13:55:59+00:00] clock-s64-c20 exit=137 elapsed=360s
+[2026-11-02T13:55:59+00:00] clock-s64-c20 produced no results (exit 137); not marking done
+[2026-11-02T13:55:59+00:00] starting clock-s16-c21
+[2026-11-02T13:59:43+00:00] clock-s16-c21 exit=0 elapsed=224s
+[2026-11-02T13:59:43+00:00] starting clock-s64-c21
+[2026-11-02T14:10:29+00:00] clock-s64-c21 exit=0 elapsed=646s
+[2026-11-02T14:10:29+00:00] starting clock-s16-c22
+[2026-11-02T14:15:41+00:00] clock-s16-c22 exit=0 elapsed=312s
+[2026-11-02T14:15:41+00:00] starting clock-s64-c22
+[2026-11-02T14:20:22+00:00] clock-s64-c22 exit=0 elapsed=281s
+[2026-11-02T14:20:22+00:00] starting clock-s16-c23
+[2026-11-02T14:26:14+00:00] clock-s16-c23 exit=0 elapsed=352s
+[2026-11-02T14:26:14+00:00] starting clock-s64-c23
+[2026-11-02T14:40:29+00:00] clock-s64-c23 exit=0 elapsed=855s
+[2026-11-02T14:40:29+00:00] starting clock-s16-c24
+[2026-11-02T14:46:33+00:00] clock-s16-c24 exit=0 elapsed=364s
+[2026-11-02T14:46:33+00:00] starting clock-s64-c24
+[2026-11-02T14:54:14+00:00] clock-s64-c24 exit=137 elapsed=461s
+[2026-11-02T14:54:14+00:00] clock-s64-c24 produced no results (exit 137); not marking done
+[2026-11-02T14:54:14+00:00] starting clock-s16-c25
+[2026-11-02T14:57:24+00:00] clock-s16-c25 exit=137 elapsed=190s
+[2026-11-02T14:57:24+00:00] clock-s16-c25 produced no results (exit 137); not marking done
+[2026-11-02T14:57:24+00:00] starting clock-s64-c25
+[2026-11-02T15:01:46+00:00] clock-s64-c25 exit=137 elapsed=262s
+[2026-11-02T15:01:46+00:00] clock-s64-c25 produced no results (exit 137); not marking done
+[2026-11-02T15:01:46+00:00] starting clock-s16-c26
+[2026-11-02T15:07:05+00:00] clock-s16-c26 exit=0 elapsed=319s
+[2026-11-02T15:07:05+00:00] starting clock-s64-c26
+[2026-11-02T15:12:05+00:00] clock-s64-c26 exit=137 elapsed=300s
+[2026-11-02T15:12:05+00:00] clock-s64-c26 produced no results (exit 137); not marking done
+[2026-11-02T15:12:05+00:00] starting clock-s16-c27
+[2026-11-02T15:22:01+00:00] clock-s16-c27 exit=0 elapsed=596s
+[2026-11-02T15:22:01+00:00] starting clock-s64-c27
+[2026-11-02T15:25:44+00:00] clock-s64-c27 exit=137 elapsed=223s
+[2026-11-02T15:25:44+00:00] clock-s64-c27 produced no results (exit 137); not marking done
+[2026-11-02T15:25:44+00:00] starting clock-s16-c28
+[2026-11-02T15:33:10+00:00] clock-s16-c28 exit=137 elapsed=446s
+[2026-11-02T15:33:10+00:00] clock-s16-c28 produced no results (exit 137); not marking done
+[2026-11-02T15:33:10+00:00] starting clock-s64-c28
+[2026-11-02T15:45:52+00:00] clock-s64-c28 exit=137 elapsed=762s
+[2026-11-02T15:45:52+00:00] clock-s64-c28 produced no results (exit 137); not marking done
+[2026-11-02T15:45:52+00:00] starting clock-s16-c29
+[2026-11-02T15:48:55+00:00] clock-s16-c29 exit=137 elapsed=183s
+[2026-11-02T15:48:55+00:00] clock-s16-c29 produced no results (exit 137); not marking done
+[2026-11-02T15:48:55+00:00] starting clock-s64-c29
+[2026-11-02T15:55:48+00:00] clock-s64-c29 exit=137 elapsed=413s
+[2026-11-02T15:55:48+00:00] clock-s64-c29 produced no results (exit 137); not marking done
+[2026-11-02T15:55:48+00:00] starting clock-s16-c30
+[2026-11-02T16:02:27+00:00] clock-s16-c30 exit=0 elapsed=399s
+[2026-11-02T16:02:27+00:00] starting clock-s64-c30
+[2026-11-02T16:05:45+00:00] clock-s64-c30 exit=137 elapsed=198s
+[2026-11-02T16:05:45+00:00] clock-s64-c30 produced no results (exit 137); not marking done
+[2026-11-02T16:05:45+00:00] starting clock-s16-c31
+[2026-11-02T16:09:00+00:00] clock-s16-c31 exit=0 elapsed=195s
+[2026-11-02T16:09:00+00:00] starting clock-s64-c31
+[2026-11-02T16:14:59+00:00] clock-s64-c31 exit=0 elapsed=359s
+[2026-11-02T16:14:59+00:00] starting clock-s16-c32

@@ -1,0 +1,24 @@
+Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+Players: A=Pair A subgame PCFR+ (exact belief, sample 16, belief-solver-v1 network leaf) | B=Material OnePlyBot (particle tracker) | colors=alternating
+Game 1/2 starting | A (white) vs B (black) | seed=1025
+Game 1/2 finished | Pair A subgame PCFR+ (exact belief, sample 16, belief-solver-v1 network leaf) (white) won | A (white): 25 moves | B (black): 24 moves | reason=king_capture | seed=1025
+Game 2/2 starting | A (black) vs B (white) | seed=1026
+Game 2/2 finished | Pair A subgame PCFR+ (exact belief, sample 16, belief-solver-v1 network leaf) (black) won | A (black): 31 moves | B (white): 31 moves | reason=king_capture | seed=1026
+
+Results after 2 successful game attempts:
+  Terminal games scored: 2
+  Ply-capped attempts (unscored): 0
+  Failed games: 0
+  Player A: Pair A subgame PCFR+ (exact belief, sample 16, belief-solver-v1 network leaf)
+    Wins: 2
+    Draws: 0
+    Losses: 0
+    Win rate: 100.0%
+    Score rate: 100.0%
+  Player B: Material OnePlyBot (particle tracker)
+    Wins: 0
+    Draws: 0
+    Losses: 2
+    Win rate: 0.0%
+    Score rate: 0.0%
+Results: /repo/pair_c/runs/strength-net-fe-s16-c13

@@ -1,0 +1,3 @@
+docker: Post "http://%2Fvar%2Frun%2Fdocker.sock/v1.55/containers/create?name=fow-fe-s64-c30": dial unix /var/run/docker.sock: i/o timeout
+
+Run 'docker run --help' for more information

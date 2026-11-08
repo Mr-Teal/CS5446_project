@@ -1,0 +1,24 @@
+Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+Players: A=Pair A subgame PCFR+ (belief pruned to 10k histories, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+Game 1/2 starting | A (white) vs B (black) | seed=1059
+Game 1/2 finished | Material OnePlyBot (particle tracker) (black) won | A (white): 37 moves | B (black): 37 moves | reason=king_capture | seed=1059
+Game 2/2 starting | A (black) vs B (white) | seed=1060
+Game 2/2 finished | Pair A subgame PCFR+ (belief pruned to 10k histories, sample_size 16) (black) won | A (black): 59 moves | B (white): 59 moves | reason=king_capture | seed=1060
+
+Results after 2 successful game attempts:
+  Terminal games scored: 2
+  Ply-capped attempts (unscored): 0
+  Failed games: 0
+  Player A: Pair A subgame PCFR+ (belief pruned to 10k histories, sample_size 16)
+    Wins: 1
+    Draws: 0
+    Losses: 1
+    Win rate: 50.0%
+    Score rate: 50.0%
+  Player B: Material OnePlyBot (particle tracker)
+    Wins: 1
+    Draws: 0
+    Losses: 1
+    Win rate: 50.0%
+    Score rate: 50.0%
+Results: /repo/pair_c/runs/strength-pruned-s16-c30

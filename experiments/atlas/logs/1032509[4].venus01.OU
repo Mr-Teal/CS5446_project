@@ -1,0 +1,73 @@
+[2026-11-04T04:42:11+0800] labels labels-01 task 4 on cnode-33-43-49 code=repo-labels@30b5753 games=24 seed=9001 budget_ms=5000 max_states=96000
+model name	: AMD EPYC 7R13 Processor
+label runner importable
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/hpctmp/tommy.21.31/fow/repo-labels/pair_a_prep/label_run.py", line 221, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/hpctmp/tommy.21.31/fow/repo-labels/pair_a_prep/label_run.py", line 191, in main
+    identity, proto, summaries = collect(
+                                 ^^^^^^^^
+  File "/hpctmp/tommy.21.31/fow/repo-labels/pair_a_prep/label_run.py", line 137, in collect
+    result = play_game(RulesReferee(initial_fen), agents, trackers,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/hpctmp/tommy.21.31/fow/repo-labels/fow_shared/evaluation.py", line 81, in play_game
+    decision = agents[player].act(turn)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/hpctmp/tommy.21.31/fow/repo-labels/pair_a_prep/label_run.py", line 73, in act
+    record = self.label(turn, self.game_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/hpctmp/tommy.21.31/fow/repo-labels/pair_a_prep/chess_subgame_agent.py", line 312, in label
+    return TrainingRecord(turn, result.decision, result.root_value,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in __init__
+  File "/hpctmp/tommy.21.31/fow/repo-labels/fow_shared/contracts.py", line 203, in __post_init__
+    raise ValueError("values must be finite and in [-1, 1]")
+ValueError: values must be finite and in [-1, 1]
+game 0: seed 9001, 47 plies, 45 records, 0 fallbacks, 10 guards, 2758.1 s
+game 1: seed 9003, 81 plies, 72 records, 3 fallbacks, 8 guards, 1698.2 s
+game 2: seed 9005, 36 plies, 32 records, 0 fallbacks, 0 guards, 174.8 s
+game 3: seed 9007, 72 plies, 68 records, 0 fallbacks, 0 guards, 300.1 s
+game 4: seed 9009, 27 plies, 22 records, 1 fallbacks, 0 guards, 107.1 s
+game 5: seed 9011, 41 plies, 35 records, 0 fallbacks, 0 guards, 199.0 s
+Command exited with non-zero status 1
+	Command being timed: "python -m pair_a_prep.label_run --out pair_c/runs/labels-01/task-4 --games 24 --seed 9001 --evaluator material --time-budget-ms 5000 --max-plies 200 --max-states 96000 --sample-size 16 --commit 30b5753"
+	User time (seconds): 5491.52
+	System time (seconds): 68.37
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:33:34
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3093384
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 65526617
+	Voluntary context switches: 992
+	Involuntary context switches: 9499
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 21872
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 1
+[2026-11-04T06:15:57+0800] labels labels-01 task 4 exit=1
+      ======================================================================================
+     Resource Usage on 2026-11-04 06:15:57.279610:
+     JobId: 1032509[4].venus01  				 Project: _pbs_project_default 
+     Submission Host: atlas8-c01 
+     Exit Status: 1
+     NCPUs Requested: 1 				 NCPUs Used: 1
+     Memory Requested: 15gb 				 Memory Used: 3076668kb 
+     Vmem Used: 3664896kb
+     CPU Time Used: 01:31:06 
+     Walltime requested: 72:00:00 			 Walltime Used: 01:33:51
+     Submit Time:  Wed Nov  4 03:39:22 2026 		 Start Time: Wed Nov  4 04:42:06 2026 
+     End Time: Wed Nov  4 06:15:57 2026 
+     Execution Nodes Used: (cnode-33-43-49:ncpus=1:mem=15728640kb)
+     ======================================================================================

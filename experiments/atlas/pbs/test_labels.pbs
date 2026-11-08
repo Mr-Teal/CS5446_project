@@ -1,0 +1,19 @@
+#!/bin/bash
+#PBS -N fow-labels-test
+#PBS -q serial
+#PBS -l select=1:ncpus=1:mem=6gb
+#PBS -l walltime=01:00:00
+#PBS -j oe
+#PBS -o /hpctmp/tommy.21.31/fow/logs/
+
+# Unit tests for the label runner fix (dead-game guard + value clamp) in repo-labels2.
+set -u
+ROOT=/hpctmp/$USER/fow
+cd "$ROOT/repo-labels2"
+source "$ROOT/env.sh"
+export PYTHONPATH=$ROOT/repo-labels2/pair_b/src:$ROOT/experiment
+FILES="pair_a_prep/tests/test_label_run.py pair_a_prep/tests/test_chess_subgame_agent.py $(grep -l TailGuarded pair_a_prep/tests/*.py | tr '\n' ' ')"
+echo "[$(date -Is)] label runner tests on $(hostname) code=repo-labels2 (30b5753 + dead-game guard + value clamp)"
+echo "files: $FILES"
+python -m pytest -q -p no:cacheprovider $FILES 2>&1 | tail -40
+echo "[$(date -Is)] tests exit=${PIPESTATUS[0]}"

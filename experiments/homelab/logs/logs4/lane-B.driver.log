@@ -1,0 +1,438 @@
+[2026-11-03T00:47:36+00:00] repo=/home/dev/cs5446-review/wt-dev commit=cca2fe2 arms=sf14-fe-s16 mem=8000m
+[2026-11-03T00:47:36+00:00] WARNING: wt-dev has uncommitted source changes; the commit above does not identify this code
+mv: cannot move '/home/dev/cs5446-review/wt-dev/pair_c/runs/strength-sf14-fe-s16-c1' to '/home/dev/cs5446-review/wt-dev/pair_c/runs/partial-sf14-fe-s16-c1-1103-0047': Permission denied
+[2026-11-03T00:47:36+00:00] starting sf14-fe-s16-c1
+[2026-11-03T00:47:37+00:00] sf14-fe-s16-c1 exit=1 elapsed=1s
+[2026-11-03T00:47:37+00:00] starting sf14-fe-s16-c2
+[2026-11-03T00:50:20+00:00] sf14-fe-s16-c2 exit=0 elapsed=163s
+[2026-11-03T00:50:20+00:00] starting sf14-fe-s16-c3
+[2026-11-03T00:56:10+00:00] sf14-fe-s16-c3 exit=0 elapsed=350s
+[2026-11-03T00:56:10+00:00] starting sf14-fe-s16-c4
+[2026-11-03T00:58:23+00:00] sf14-fe-s16-c4 exit=1 elapsed=133s
+[2026-11-03T00:58:23+00:00] starting sf14-fe-s16-c5
+[2026-11-03T01:00:51+00:00] sf14-fe-s16-c5 exit=0 elapsed=148s
+[2026-11-03T01:00:51+00:00] starting sf14-fe-s16-c6
+[2026-11-03T01:02:54+00:00] sf14-fe-s16-c6 exit=0 elapsed=123s
+[2026-11-03T01:02:54+00:00] starting sf14-fe-s16-c7
+[2026-11-03T01:04:13+00:00] sf14-fe-s16-c7 exit=0 elapsed=79s
+[2026-11-03T01:04:13+00:00] starting sf14-fe-s16-c8
+[2026-11-03T01:08:02+00:00] sf14-fe-s16-c8 exit=0 elapsed=229s
+[2026-11-03T01:08:02+00:00] starting sf14-fe-s16-c9
+[2026-11-03T01:09:05+00:00] sf14-fe-s16-c9 exit=0 elapsed=63s
+[2026-11-03T01:09:05+00:00] starting sf14-fe-s16-c10
+[2026-11-03T01:13:07+00:00] sf14-fe-s16-c10 exit=0 elapsed=242s
+[2026-11-03T01:13:07+00:00] starting sf14-fe-s16-c11
+[2026-11-03T01:20:40+00:00] sf14-fe-s16-c11 exit=0 elapsed=453s
+[2026-11-03T01:20:40+00:00] starting sf14-fe-s16-c12
+[2026-11-03T01:24:20+00:00] sf14-fe-s16-c12 exit=0 elapsed=220s
+[2026-11-03T01:24:20+00:00] starting sf14-fe-s16-c13
+[2026-11-03T01:26:51+00:00] sf14-fe-s16-c13 exit=0 elapsed=151s
+[2026-11-03T01:26:51+00:00] starting sf14-fe-s16-c14
+[2026-11-03T01:31:03+00:00] sf14-fe-s16-c14 exit=0 elapsed=252s
+[2026-11-03T01:31:03+00:00] starting sf14-fe-s16-c15
+[2026-11-03T01:33:49+00:00] sf14-fe-s16-c15 exit=0 elapsed=166s
+[2026-11-03T01:33:49+00:00] starting sf14-fe-s16-c16
+[2026-11-03T01:36:24+00:00] sf14-fe-s16-c16 exit=0 elapsed=155s
+[2026-11-03T01:36:24+00:00] starting sf14-fe-s16-c17
+[2026-11-03T01:39:14+00:00] sf14-fe-s16-c17 exit=0 elapsed=170s
+[2026-11-03T01:39:14+00:00] starting sf14-fe-s16-c18
+[2026-11-03T01:41:15+00:00] sf14-fe-s16-c18 exit=0 elapsed=121s
+[2026-11-03T01:41:15+00:00] starting sf14-fe-s16-c19
+[2026-11-03T01:42:48+00:00] sf14-fe-s16-c19 exit=0 elapsed=93s
+[2026-11-03T01:42:48+00:00] starting sf14-fe-s16-c20
+[2026-11-03T01:52:11+00:00] sf14-fe-s16-c20 exit=0 elapsed=563s
+[2026-11-03T01:52:11+00:00] starting sf14-fe-s16-c21
+[2026-11-03T01:55:51+00:00] sf14-fe-s16-c21 exit=0 elapsed=220s
+[2026-11-03T01:55:51+00:00] starting sf14-fe-s16-c22
+[2026-11-03T01:58:41+00:00] sf14-fe-s16-c22 exit=0 elapsed=170s
+[2026-11-03T01:58:41+00:00] starting sf14-fe-s16-c23
+[2026-11-03T02:01:47+00:00] sf14-fe-s16-c23 exit=0 elapsed=186s
+[2026-11-03T02:01:47+00:00] starting sf14-fe-s16-c24
+[2026-11-03T02:07:17+00:00] sf14-fe-s16-c24 exit=0 elapsed=330s
+[2026-11-03T02:07:17+00:00] starting sf14-fe-s16-c25
+[2026-11-03T02:19:00+00:00] sf14-fe-s16-c25 exit=0 elapsed=703s
+[2026-11-03T02:19:00+00:00] starting sf14-fe-s16-c26
+[2026-11-03T02:22:50+00:00] sf14-fe-s16-c26 exit=0 elapsed=230s
+[2026-11-03T02:22:50+00:00] starting sf14-fe-s16-c27
+[2026-11-03T02:24:45+00:00] sf14-fe-s16-c27 exit=0 elapsed=115s
+[2026-11-03T02:24:45+00:00] starting sf14-fe-s16-c28
+[2026-11-03T02:27:05+00:00] sf14-fe-s16-c28 exit=0 elapsed=140s
+[2026-11-03T02:27:05+00:00] starting sf14-fe-s16-c29
+[2026-11-03T02:29:55+00:00] sf14-fe-s16-c29 exit=0 elapsed=170s
+[2026-11-03T02:29:55+00:00] starting sf14-fe-s16-c30
+[2026-11-03T02:31:56+00:00] sf14-fe-s16-c30 exit=1 elapsed=121s
+[2026-11-03T02:31:56+00:00] starting sf14-fe-s16-c31
+[2026-11-03T02:33:24+00:00] sf14-fe-s16-c31 exit=0 elapsed=88s
+[2026-11-03T02:33:24+00:00] starting sf14-fe-s16-c32
+[2026-11-03T02:34:39+00:00] sf14-fe-s16-c32 exit=0 elapsed=75s
+[2026-11-03T02:34:39+00:00] starting sf14-fe-s16-c33
+[2026-11-03T02:38:03+00:00] sf14-fe-s16-c33 exit=0 elapsed=204s
+[2026-11-03T02:38:03+00:00] starting sf14-fe-s16-c34
+[2026-11-03T02:39:04+00:00] sf14-fe-s16-c34 exit=0 elapsed=61s
+[2026-11-03T02:39:04+00:00] starting sf14-fe-s16-c35
+[2026-11-03T02:42:18+00:00] sf14-fe-s16-c35 exit=0 elapsed=194s
+[2026-11-03T02:42:18+00:00] starting sf14-fe-s16-c36
+[2026-11-03T02:43:21+00:00] sf14-fe-s16-c36 exit=0 elapsed=63s
+[2026-11-03T02:43:21+00:00] starting sf14-fe-s16-c37
+[2026-11-03T02:45:00+00:00] sf14-fe-s16-c37 exit=0 elapsed=99s
+[2026-11-03T02:45:00+00:00] starting sf14-fe-s16-c38
+[2026-11-03T02:46:50+00:00] sf14-fe-s16-c38 exit=0 elapsed=110s
+[2026-11-03T02:46:50+00:00] starting sf14-fe-s16-c39
+[2026-11-03T02:49:17+00:00] sf14-fe-s16-c39 exit=0 elapsed=147s
+[2026-11-03T02:49:17+00:00] starting sf14-fe-s16-c40
+[2026-11-03T02:53:14+00:00] sf14-fe-s16-c40 exit=0 elapsed=237s
+[2026-11-03T02:53:14+00:00] starting sf14-fe-s16-c41
+[2026-11-03T02:57:51+00:00] sf14-fe-s16-c41 exit=0 elapsed=277s
+[2026-11-03T02:57:51+00:00] starting sf14-fe-s16-c42
+[2026-11-03T03:04:03+00:00] sf14-fe-s16-c42 exit=0 elapsed=372s
+[2026-11-03T03:04:03+00:00] starting sf14-fe-s16-c43
+[2026-11-03T03:05:04+00:00] sf14-fe-s16-c43 exit=0 elapsed=61s
+[2026-11-03T03:05:04+00:00] starting sf14-fe-s16-c44
+[2026-11-03T03:06:34+00:00] sf14-fe-s16-c44 exit=1 elapsed=90s
+[2026-11-03T03:06:34+00:00] starting sf14-fe-s16-c45
+[2026-11-03T03:08:18+00:00] sf14-fe-s16-c45 exit=0 elapsed=104s
+[2026-11-03T03:08:18+00:00] starting sf14-fe-s16-c46
+[2026-11-03T03:12:36+00:00] sf14-fe-s16-c46 exit=0 elapsed=258s
+[2026-11-03T03:12:36+00:00] starting sf14-fe-s16-c47
+[2026-11-03T03:14:43+00:00] sf14-fe-s16-c47 exit=0 elapsed=127s
+[2026-11-03T03:14:43+00:00] starting sf14-fe-s16-c48
+[2026-11-03T03:19:49+00:00] sf14-fe-s16-c48 exit=0 elapsed=306s
+[2026-11-03T03:19:49+00:00] starting sf14-fe-s16-c49
+[2026-11-03T03:22:16+00:00] sf14-fe-s16-c49 exit=0 elapsed=147s
+[2026-11-03T03:22:16+00:00] starting sf14-fe-s16-c50
+[2026-11-03T03:26:07+00:00] sf14-fe-s16-c50 exit=0 elapsed=231s
+[2026-11-03T03:26:07+00:00] mechanism arms: all chunks attempted
+[2026-11-03T03:26:07+00:00] repo=/home/dev/cs5446-review/wt-dev commit=cca2fe2 arms=fe-s16 mem=8000m
+[2026-11-03T03:26:07+00:00] WARNING: wt-dev has uncommitted source changes; the commit above does not identify this code
+mv: cannot move '/home/dev/cs5446-review/wt-dev/pair_c/runs/strength-fe-s16-c1' to '/home/dev/cs5446-review/wt-dev/pair_c/runs/partial-fe-s16-c1-1103-0326': Permission denied
+[2026-11-03T03:26:07+00:00] starting fe-s16-c1
+[2026-11-03T03:26:07+00:00] fe-s16-c1 exit=1 elapsed=0s
+[2026-11-03T03:26:07+00:00] starting fe-s16-c2
+[2026-11-03T03:49:27+00:00] fe-s16-c2 exit=137 elapsed=1400s
+[2026-11-03T03:49:27+00:00] starting fe-s16-c3
+[2026-11-03T04:18:21+00:00] fe-s16-c3 exit=137 elapsed=1734s
+[2026-11-03T04:18:21+00:00] starting fe-s16-c4
+[2026-11-03T04:48:31+00:00] fe-s16-c4 exceeded 1800s; removing container
+[2026-11-03T04:48:31+00:00] fe-s16-c4 exit=124 elapsed=1810s
+[2026-11-03T04:48:31+00:00] starting fe-s16-c5
+[2026-11-03T04:52:26+00:00] fe-s16-c5 exit=0 elapsed=235s
+[2026-11-03T04:52:26+00:00] starting fe-s16-c6
+[2026-11-03T05:03:31+00:00] fe-s16-c6 exit=0 elapsed=665s
+[2026-11-03T05:03:31+00:00] starting fe-s16-c7
+[2026-11-03T05:08:57+00:00] fe-s16-c7 exit=0 elapsed=326s
+[2026-11-03T05:08:57+00:00] starting fe-s16-c8
+[2026-11-03T05:13:25+00:00] fe-s16-c8 exit=0 elapsed=268s
+[2026-11-03T05:13:25+00:00] starting fe-s16-c9
+[2026-11-03T05:37:28+00:00] fe-s16-c9 exit=0 elapsed=1443s
+[2026-11-03T05:37:28+00:00] starting fe-s16-c10
+[2026-11-03T05:40:15+00:00] fe-s16-c10 exit=0 elapsed=167s
+[2026-11-03T05:40:15+00:00] starting fe-s16-c11
+[2026-11-03T06:02:03+00:00] fe-s16-c11 exit=137 elapsed=1308s
+[2026-11-03T06:02:03+00:00] starting fe-s16-c12
+[2026-11-03T06:26:32+00:00] fe-s16-c12 exit=137 elapsed=1469s
+[2026-11-03T06:26:32+00:00] starting fe-s16-c13
+[2026-11-03T06:29:22+00:00] fe-s16-c13 exit=0 elapsed=170s
+[2026-11-03T06:29:22+00:00] starting fe-s16-c14
+[2026-11-03T06:33:34+00:00] fe-s16-c14 exit=0 elapsed=252s
+[2026-11-03T06:33:34+00:00] starting fe-s16-c15
+[2026-11-03T06:36:45+00:00] fe-s16-c15 exit=0 elapsed=191s
+[2026-11-03T06:36:45+00:00] starting fe-s16-c16
+[2026-11-03T06:40:01+00:00] fe-s16-c16 exit=0 elapsed=196s
+[2026-11-03T06:40:01+00:00] starting fe-s16-c17
+[2026-11-03T06:43:33+00:00] fe-s16-c17 exit=0 elapsed=212s
+[2026-11-03T06:43:33+00:00] starting fe-s16-c18
+[2026-11-03T06:47:50+00:00] fe-s16-c18 exit=0 elapsed=257s
+[2026-11-03T06:47:50+00:00] starting fe-s16-c19
+[2026-11-03T07:18:26+00:00] fe-s16-c19 exceeded 1800s; removing container
+[2026-11-03T07:18:26+00:00] fe-s16-c19 exit=124 elapsed=1836s
+[2026-11-03T07:18:26+00:00] starting fe-s16-c20
+[2026-11-03T07:43:16+00:00] fe-s16-c20 exit=137 elapsed=1490s
+[2026-11-03T07:43:16+00:00] starting fe-s16-c21
+[2026-11-03T07:47:58+00:00] fe-s16-c21 exit=0 elapsed=282s
+[2026-11-03T07:47:58+00:00] starting fe-s16-c22
+[2026-11-03T07:51:07+00:00] fe-s16-c22 exit=0 elapsed=189s
+[2026-11-03T07:51:07+00:00] starting fe-s16-c23
+[2026-11-03T07:58:17+00:00] fe-s16-c23 exit=0 elapsed=430s
+[2026-11-03T07:58:17+00:00] starting fe-s16-c24
+[2026-11-03T08:04:38+00:00] fe-s16-c24 exit=0 elapsed=381s
+[2026-11-03T08:04:38+00:00] starting fe-s16-c25
+[2026-11-03T08:18:45+00:00] fe-s16-c25 exit=0 elapsed=847s
+[2026-11-03T08:18:45+00:00] starting fe-s16-c26
+[2026-11-03T08:43:33+00:00] fe-s16-c26 exit=137 elapsed=1488s
+[2026-11-03T08:43:33+00:00] starting fe-s16-c27
+[2026-11-03T09:05:56+00:00] fe-s16-c27 exit=137 elapsed=1343s
+[2026-11-03T09:05:56+00:00] starting fe-s16-c28
+[2026-11-03T09:10:42+00:00] fe-s16-c28 exit=0 elapsed=286s
+[2026-11-03T09:10:42+00:00] starting fe-s16-c29
+[2026-11-03T09:35:52+00:00] fe-s16-c29 exit=137 elapsed=1510s
+[2026-11-03T09:35:52+00:00] starting fe-s16-c30
+[2026-11-03T09:39:42+00:00] fe-s16-c30 exit=0 elapsed=230s
+[2026-11-03T09:39:42+00:00] starting fe-s16-c31
+[2026-11-03T09:44:57+00:00] fe-s16-c31 exit=0 elapsed=315s
+[2026-11-03T09:44:57+00:00] starting fe-s16-c32
+[2026-11-03T09:48:48+00:00] fe-s16-c32 exit=0 elapsed=231s
+[2026-11-03T09:48:48+00:00] starting fe-s16-c33
+[2026-11-03T09:55:22+00:00] fe-s16-c33 exit=0 elapsed=394s
+[2026-11-03T09:55:22+00:00] starting fe-s16-c34
+[2026-11-03T10:13:59+00:00] fe-s16-c34 exit=0 elapsed=1117s
+[2026-11-03T10:13:59+00:00] starting fe-s16-c35
+[2026-11-03T10:27:45+00:00] fe-s16-c35 exit=0 elapsed=826s
+[2026-11-03T10:27:45+00:00] starting fe-s16-c36
+[2026-11-03T10:36:42+00:00] fe-s16-c36 exit=0 elapsed=537s
+[2026-11-03T10:36:42+00:00] starting fe-s16-c37
+[2026-11-03T10:54:02+00:00] fe-s16-c37 exit=0 elapsed=1040s
+[2026-11-03T10:54:02+00:00] starting fe-s16-c38
+[2026-11-03T11:24:04+00:00] fe-s16-c38 exceeded 1800s; removing container
+[2026-11-03T11:24:04+00:00] fe-s16-c38 exit=124 elapsed=1802s
+[2026-11-03T11:24:04+00:00] starting fe-s16-c39
+./run_arms4.sh: line 35: 3306067 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-03T11:55:04+00:00] fe-s16-c39 exit=137 elapsed=1860s
+[2026-11-03T11:55:04+00:00] starting fe-s16-c40
+[2026-11-03T12:01:57+00:00] fe-s16-c40 exit=0 elapsed=413s
+[2026-11-03T12:01:57+00:00] starting fe-s16-c41
+[2026-11-03T12:20:34+00:00] fe-s16-c41 exit=0 elapsed=1117s
+[2026-11-03T12:20:34+00:00] starting fe-s16-c42
+[2026-11-03T12:44:09+00:00] fe-s16-c42 exit=0 elapsed=1415s
+[2026-11-03T12:44:09+00:00] starting fe-s16-c43
+[2026-11-03T12:54:26+00:00] fe-s16-c43 exit=0 elapsed=617s
+[2026-11-03T12:54:26+00:00] starting fe-s16-c44
+[2026-11-03T12:56:50+00:00] fe-s16-c44 exit=0 elapsed=144s
+[2026-11-03T12:56:50+00:00] starting fe-s16-c45
+[2026-11-03T13:21:15+00:00] fe-s16-c45 exit=137 elapsed=1465s
+[2026-11-03T13:21:15+00:00] starting fe-s16-c46
+[2026-11-03T13:33:58+00:00] fe-s16-c46 exit=0 elapsed=763s
+[2026-11-03T13:33:58+00:00] starting fe-s16-c47
+[2026-11-03T13:39:36+00:00] fe-s16-c47 exit=0 elapsed=338s
+[2026-11-03T13:39:36+00:00] starting fe-s16-c48
+[2026-11-03T13:42:19+00:00] fe-s16-c48 exit=0 elapsed=163s
+[2026-11-03T13:42:19+00:00] starting fe-s16-c49
+[2026-11-03T13:46:27+00:00] fe-s16-c49 exit=0 elapsed=248s
+[2026-11-03T13:46:27+00:00] starting fe-s16-c50
+./run_arms4.sh: line 35: 3338461 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-03T14:17:27+00:00] fe-s16-c50 exit=137 elapsed=1860s
+[2026-11-03T14:17:27+00:00] mechanism arms: all chunks attempted
+[2026-11-03T14:17:27+00:00] repo=/home/dev/cs5446-review/wt-dev commit=cca2fe2 arms=fe-s64 mem=8000m
+[2026-11-03T14:17:27+00:00] WARNING: wt-dev has uncommitted source changes; the commit above does not identify this code
+[2026-11-03T14:17:27+00:00] starting fe-s64-c1
+[2026-11-03T14:21:35+00:00] fe-s64-c1 exit=0 elapsed=248s
+[2026-11-03T14:21:35+00:00] starting fe-s64-c2
+./run_arms4.sh: line 35: 3346003 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-03T14:52:35+00:00] fe-s64-c2 exit=137 elapsed=1860s
+[2026-11-03T14:52:35+00:00] starting fe-s64-c3
+[2026-11-03T15:19:25+00:00] fe-s64-c3 exit=137 elapsed=1610s
+[2026-11-03T15:19:25+00:00] starting fe-s64-c4
+[2026-11-03T15:27:32+00:00] fe-s64-c4 exit=0 elapsed=487s
+[2026-11-03T15:27:32+00:00] starting fe-s64-c5
+[2026-11-03T15:48:48+00:00] fe-s64-c5 exit=137 elapsed=1276s
+[2026-11-03T15:48:48+00:00] starting fe-s64-c6
+[2026-11-03T16:03:42+00:00] fe-s64-c6 exit=0 elapsed=894s
+[2026-11-03T16:03:42+00:00] starting fe-s64-c7
+[2026-11-03T16:08:18+00:00] fe-s64-c7 exit=0 elapsed=276s
+[2026-11-03T16:08:18+00:00] starting fe-s64-c8
+[2026-11-03T16:13:41+00:00] fe-s64-c8 exit=0 elapsed=323s
+[2026-11-03T16:13:41+00:00] starting fe-s64-c9
+[2026-11-03T16:35:07+00:00] fe-s64-c9 exit=137 elapsed=1286s
+[2026-11-03T16:35:07+00:00] starting fe-s64-c10
+[2026-11-03T16:40:17+00:00] fe-s64-c10 exit=0 elapsed=310s
+[2026-11-03T16:40:17+00:00] starting fe-s64-c11
+./run_arms4.sh: line 35: 3381657 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-03T17:11:17+00:00] fe-s64-c11 exit=137 elapsed=1860s
+[2026-11-03T17:11:17+00:00] starting fe-s64-c12
+./run_arms4.sh: line 35: 3387834 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-03T17:42:17+00:00] fe-s64-c12 exit=137 elapsed=1860s
+[2026-11-03T17:42:17+00:00] starting fe-s64-c13
+[2026-11-03T17:53:21+00:00] fe-s64-c13 exit=1 elapsed=664s
+[2026-11-03T17:53:21+00:00] starting fe-s64-c14
+./run_arms4.sh: line 35: 3404387 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-03T18:24:21+00:00] fe-s64-c14 exit=137 elapsed=1860s
+[2026-11-03T18:24:21+00:00] starting fe-s64-c15
+./run_arms4.sh: line 35: 3427229 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-03T18:55:21+00:00] fe-s64-c15 exit=137 elapsed=1860s
+[2026-11-03T18:55:21+00:00] starting fe-s64-c16
+[2026-11-03T19:09:06+00:00] fe-s64-c16 exit=0 elapsed=825s
+[2026-11-03T19:09:06+00:00] starting fe-s64-c17
+[2026-11-03T19:15:13+00:00] fe-s64-c17 exit=0 elapsed=367s
+[2026-11-03T19:15:13+00:00] starting fe-s64-c18
+[2026-11-03T19:17:50+00:00] fe-s64-c18 exit=0 elapsed=157s
+[2026-11-03T19:17:50+00:00] starting fe-s64-c19
+[2026-11-03T19:29:02+00:00] fe-s64-c19 exit=0 elapsed=672s
+[2026-11-03T19:29:02+00:00] starting fe-s64-c20
+./run_arms4.sh: line 35: 3441369 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-03T20:00:02+00:00] fe-s64-c20 exit=137 elapsed=1860s
+[2026-11-03T20:00:02+00:00] starting fe-s64-c21
+[2026-11-03T20:22:59+00:00] fe-s64-c21 exit=137 elapsed=1377s
+[2026-11-03T20:22:59+00:00] starting fe-s64-c22
+[2026-11-03T20:34:16+00:00] fe-s64-c22 exit=0 elapsed=677s
+[2026-11-03T20:34:16+00:00] starting fe-s64-c23
+[2026-11-03T20:45:34+00:00] fe-s64-c23 exit=0 elapsed=678s
+[2026-11-03T20:45:34+00:00] starting fe-s64-c24
+[2026-11-03T20:49:06+00:00] fe-s64-c24 exit=0 elapsed=212s
+[2026-11-03T20:49:06+00:00] starting fe-s64-c25
+[2026-11-03T20:51:38+00:00] fe-s64-c25 exit=0 elapsed=152s
+[2026-11-03T20:51:38+00:00] starting fe-s64-c26
+[2026-11-03T21:01:27+00:00] fe-s64-c26 exit=0 elapsed=589s
+[2026-11-03T21:01:27+00:00] starting fe-s64-c27
+./run_arms4.sh: line 35: 3464060 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-03T21:32:27+00:00] fe-s64-c27 exit=137 elapsed=1860s
+[2026-11-03T21:32:27+00:00] starting fe-s64-c28
+[2026-11-03T21:42:27+00:00] fe-s64-c28 exit=0 elapsed=600s
+[2026-11-03T21:42:27+00:00] starting fe-s64-c29
+./run_arms4.sh: line 35: 3472391 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-03T22:16:03+00:00] fe-s64-c29 exit=137 elapsed=2046s
+[2026-11-03T22:18:29+00:00] starting fe-s64-c30
+[2026-11-03T22:48:00+00:00] fe-s64-c30 exit=125 elapsed=1774s
+[2026-11-03T22:49:18+00:00] starting fe-s64-c31
+[2026-11-03T23:23:14+00:00] fe-s64-c31 exceeded 1800s; removing container
+[2026-11-04T01:22:57+00:00] fe-s64-c31 exit=124 elapsed=9180s
+[2026-11-04T01:23:10+00:00] starting fe-s64-c32
+[2026-11-04T01:53:56+00:00] fe-s64-c32 exceeded 1800s; removing container
+[2026-11-04T03:34:09+00:00] fe-s64-c32 exit=124 elapsed=7854s
+[2026-11-04T03:34:09+00:00] starting fe-s64-c33
+[2026-11-04T03:41:50+00:00] fe-s64-c33 exit=0 elapsed=461s
+[2026-11-04T03:41:50+00:00] starting fe-s64-c34
+[2026-11-04T04:10:59+00:00] fe-s64-c34 exit=137 elapsed=1749s
+[2026-11-04T04:10:59+00:00] starting fe-s64-c35
+[2026-11-04T04:13:57+00:00] fe-s64-c35 exit=0 elapsed=178s
+[2026-11-04T04:13:57+00:00] starting fe-s64-c36
+[2026-11-04T04:33:02+00:00] fe-s64-c36 exit=137 elapsed=1145s
+[2026-11-04T04:33:02+00:00] starting fe-s64-c37
+[2026-11-04T04:45:11+00:00] fe-s64-c37 exit=0 elapsed=729s
+[2026-11-04T04:45:11+00:00] starting fe-s64-c38
+[2026-11-04T05:13:46+00:00] fe-s64-c38 exit=137 elapsed=1715s
+[2026-11-04T05:13:46+00:00] starting fe-s64-c39
+[2026-11-04T05:23:30+00:00] fe-s64-c39 exit=0 elapsed=584s
+[2026-11-04T05:23:30+00:00] starting fe-s64-c40
+./run_arms4.sh: line 35: 3490211 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-04T05:54:30+00:00] fe-s64-c40 exit=137 elapsed=1860s
+[2026-11-04T05:54:30+00:00] starting fe-s64-c41
+[2026-11-04T06:11:07+00:00] fe-s64-c41 exit=0 elapsed=997s
+[2026-11-04T06:11:07+00:00] starting fe-s64-c42
+[2026-11-04T06:15:22+00:00] fe-s64-c42 exit=0 elapsed=255s
+[2026-11-04T06:15:22+00:00] starting fe-s64-c43
+[2026-11-04T06:32:01+00:00] fe-s64-c43 exit=0 elapsed=999s
+[2026-11-04T06:32:01+00:00] starting fe-s64-c44
+[2026-11-04T06:36:15+00:00] fe-s64-c44 exit=0 elapsed=254s
+[2026-11-04T06:36:15+00:00] starting fe-s64-c45
+[2026-11-04T06:39:32+00:00] fe-s64-c45 exit=0 elapsed=197s
+[2026-11-04T06:39:32+00:00] starting fe-s64-c46
+[2026-11-04T07:02:51+00:00] fe-s64-c46 exit=137 elapsed=1399s
+[2026-11-04T07:02:51+00:00] starting fe-s64-c47
+[2026-11-04T07:06:29+00:00] fe-s64-c47 exit=0 elapsed=218s
+[2026-11-04T07:06:29+00:00] starting fe-s64-c48
+[2026-11-04T07:11:46+00:00] fe-s64-c48 exit=0 elapsed=317s
+[2026-11-04T07:11:46+00:00] starting fe-s64-c49
+[2026-11-04T07:20:55+00:00] fe-s64-c49 exit=0 elapsed=549s
+[2026-11-04T07:20:55+00:00] starting fe-s64-c50
+[2026-11-04T07:50:38+00:00] fe-s64-c50 exit=137 elapsed=1783s
+[2026-11-04T07:50:38+00:00] mechanism arms: all chunks attempted
+[2026-11-04T07:50:38+00:00] repo=/home/dev/cs5446-review/wt-dev commit=cca2fe2 arms=fe-s256 mem=8000m
+[2026-11-04T07:50:38+00:00] WARNING: wt-dev has uncommitted source changes; the commit above does not identify this code
+[2026-11-04T07:50:38+00:00] starting fe-s256-c1
+[2026-11-04T07:54:27+00:00] fe-s256-c1 exit=0 elapsed=229s
+[2026-11-04T07:54:27+00:00] starting fe-s256-c2
+[2026-11-04T07:57:05+00:00] fe-s256-c2 exit=0 elapsed=158s
+[2026-11-04T07:57:05+00:00] starting fe-s256-c3
+[2026-11-04T08:08:50+00:00] fe-s256-c3 exit=137 elapsed=705s
+[2026-11-04T08:08:50+00:00] starting fe-s256-c4
+[2026-11-04T08:20:50+00:00] fe-s256-c4 exit=137 elapsed=720s
+[2026-11-04T08:20:50+00:00] starting fe-s256-c5
+[2026-11-04T08:39:55+00:00] fe-s256-c5 exit=137 elapsed=1145s
+[2026-11-04T08:39:55+00:00] starting fe-s256-c6
+[2026-11-04T09:01:09+00:00] fe-s256-c6 exit=137 elapsed=1274s
+[2026-11-04T09:01:09+00:00] starting fe-s256-c7
+[2026-11-04T09:26:37+00:00] fe-s256-c7 exit=137 elapsed=1528s
+[2026-11-04T09:26:37+00:00] starting fe-s256-c8
+[2026-11-04T09:38:08+00:00] fe-s256-c8 exit=137 elapsed=691s
+[2026-11-04T09:38:08+00:00] starting fe-s256-c9
+[2026-11-04T10:01:31+00:00] fe-s256-c9 exit=137 elapsed=1403s
+[2026-11-04T10:01:31+00:00] starting fe-s256-c10
+[2026-11-04T10:21:01+00:00] fe-s256-c10 exit=137 elapsed=1170s
+[2026-11-04T10:21:01+00:00] starting fe-s256-c11
+[2026-11-04T10:25:51+00:00] fe-s256-c11 exit=0 elapsed=290s
+[2026-11-04T10:25:51+00:00] starting fe-s256-c12
+[2026-11-04T10:55:09+00:00] fe-s256-c12 exit=0 elapsed=1758s
+[2026-11-04T10:55:09+00:00] starting fe-s256-c13
+[2026-11-04T11:05:14+00:00] fe-s256-c13 exit=0 elapsed=605s
+[2026-11-04T11:05:14+00:00] starting fe-s256-c14
+[2026-11-04T11:25:47+00:00] fe-s256-c14 exit=137 elapsed=1233s
+[2026-11-04T11:25:47+00:00] starting fe-s256-c15
+[2026-11-04T11:44:46+00:00] fe-s256-c15 exit=137 elapsed=1139s
+[2026-11-04T11:44:46+00:00] starting fe-s256-c16
+[2026-11-04T11:51:11+00:00] fe-s256-c16 exit=0 elapsed=385s
+[2026-11-04T11:51:11+00:00] starting fe-s256-c17
+[2026-11-04T11:59:48+00:00] fe-s256-c17 exit=0 elapsed=517s
+[2026-11-04T11:59:48+00:00] starting fe-s256-c18
+[2026-11-04T12:26:51+00:00] fe-s256-c18 exit=137 elapsed=1623s
+[2026-11-04T12:26:51+00:00] starting fe-s256-c19
+[2026-11-04T12:49:56+00:00] fe-s256-c19 exit=137 elapsed=1385s
+[2026-11-04T12:49:56+00:00] starting fe-s256-c20
+[2026-11-04T13:12:03+00:00] fe-s256-c20 exit=137 elapsed=1327s
+[2026-11-04T13:12:03+00:00] starting fe-s256-c21
+[2026-11-04T13:16:12+00:00] fe-s256-c21 exit=0 elapsed=249s
+[2026-11-04T13:16:12+00:00] starting fe-s256-c22
+[2026-11-04T13:36:23+00:00] fe-s256-c22 exit=137 elapsed=1211s
+[2026-11-04T13:36:23+00:00] starting fe-s256-c23
+[2026-11-04T13:48:43+00:00] fe-s256-c23 exit=0 elapsed=740s
+[2026-11-04T13:48:43+00:00] starting fe-s256-c24
+./run_arms4.sh: line 35: 3531000 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-04T14:19:43+00:00] fe-s256-c24 exit=137 elapsed=1860s
+[2026-11-04T14:19:43+00:00] starting fe-s256-c25
+[2026-11-04T14:38:35+00:00] fe-s256-c25 exit=137 elapsed=1132s
+[2026-11-04T14:38:35+00:00] starting fe-s256-c26
+[2026-11-04T15:00:32+00:00] fe-s256-c26 exit=137 elapsed=1317s
+[2026-11-04T15:00:32+00:00] starting fe-s256-c27
+[2026-11-04T15:23:57+00:00] fe-s256-c27 exit=137 elapsed=1405s
+[2026-11-04T15:23:57+00:00] starting fe-s256-c28
+./run_arms4.sh: line 35: 3539102 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-04T15:54:57+00:00] fe-s256-c28 exit=137 elapsed=1860s
+[2026-11-04T15:54:57+00:00] starting fe-s256-c29
+[2026-11-04T16:18:41+00:00] fe-s256-c29 exit=137 elapsed=1424s
+[2026-11-04T16:18:41+00:00] starting fe-s256-c30
+[2026-11-04T16:40:22+00:00] fe-s256-c30 exit=137 elapsed=1301s
+[2026-11-04T16:40:22+00:00] starting fe-s256-c31
+[2026-11-04T16:50:49+00:00] fe-s256-c31 exit=137 elapsed=627s
+[2026-11-04T16:50:49+00:00] starting fe-s256-c32
+[2026-11-04T17:09:44+00:00] fe-s256-c32 exit=137 elapsed=1135s
+[2026-11-04T17:09:44+00:00] starting fe-s256-c33
+[2026-11-04T17:20:15+00:00] fe-s256-c33 exit=0 elapsed=631s
+[2026-11-04T17:20:15+00:00] starting fe-s256-c34
+./run_arms4.sh: line 35: 3548717 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-04T17:51:15+00:00] fe-s256-c34 exit=137 elapsed=1860s
+[2026-11-04T17:51:15+00:00] starting fe-s256-c35
+[2026-11-04T17:54:50+00:00] fe-s256-c35 exit=0 elapsed=215s
+[2026-11-04T17:54:50+00:00] starting fe-s256-c36
+[2026-11-04T18:08:10+00:00] fe-s256-c36 exit=137 elapsed=800s
+[2026-11-04T18:08:10+00:00] starting fe-s256-c37
+[2026-11-04T18:11:33+00:00] fe-s256-c37 exit=0 elapsed=203s
+[2026-11-04T18:11:33+00:00] starting fe-s256-c38
+./run_arms4.sh: line 35: 3552982 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-04T18:42:33+00:00] fe-s256-c38 exit=137 elapsed=1860s
+[2026-11-04T18:42:33+00:00] starting fe-s256-c39
+[2026-11-04T19:00:57+00:00] fe-s256-c39 exit=137 elapsed=1104s
+[2026-11-04T19:00:57+00:00] starting fe-s256-c40
+[2026-11-04T19:04:07+00:00] fe-s256-c40 exit=0 elapsed=190s
+[2026-11-04T19:04:07+00:00] starting fe-s256-c41
+[2026-11-04T19:08:22+00:00] fe-s256-c41 exit=0 elapsed=255s
+[2026-11-04T19:08:22+00:00] starting fe-s256-c42
+[2026-11-04T19:20:35+00:00] fe-s256-c42 exit=137 elapsed=733s
+[2026-11-04T19:20:35+00:00] starting fe-s256-c43
+[2026-11-04T19:37:59+00:00] fe-s256-c43 exit=0 elapsed=1044s
+[2026-11-04T19:37:59+00:00] starting fe-s256-c44
+[2026-11-04T20:04:02+00:00] fe-s256-c44 exit=137 elapsed=1563s
+[2026-11-04T20:04:02+00:00] starting fe-s256-c45
+[2026-11-04T20:32:46+00:00] fe-s256-c45 exit=137 elapsed=1724s
+[2026-11-04T20:32:46+00:00] starting fe-s256-c46
+./run_arms4.sh: line 35: 3641643 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-04T21:03:46+00:00] fe-s256-c46 exit=137 elapsed=1860s
+[2026-11-04T21:03:46+00:00] starting fe-s256-c47
+./run_arms4.sh: line 35: 3655498 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-04T21:34:46+00:00] fe-s256-c47 exit=137 elapsed=1860s
+[2026-11-04T21:34:46+00:00] starting fe-s256-c48
+[2026-11-04T21:45:37+00:00] fe-s256-c48 exit=0 elapsed=651s
+[2026-11-04T21:45:37+00:00] starting fe-s256-c49
+./run_arms4.sh: line 35: 3672584 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-04T22:16:50+00:00] fe-s256-c49 exit=137 elapsed=1878s
+[2026-11-04T22:17:02+00:00] starting fe-s256-c50
+./run_arms4.sh: line 35: 3679618 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -e PYTHONPATH=/repo/pair_b/src:/exp -w /repo "$IMAGE" python -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-04T22:48:47+00:00] fe-s256-c50 exit=137 elapsed=1937s
+[2026-11-04T22:49:54+00:00] mechanism arms: all chunks attempted

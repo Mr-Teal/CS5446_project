@@ -1,0 +1,105 @@
+[2026-11-07T13:26:01+00:00] repo=/home/dev/cs5446-review/wt-net commit=8830785 arms=net-fe-s16 mem=8000m ckpt=48251445d554afce
+[2026-11-07T13:26:01+00:00] WARNING: wt-net has uncommitted source changes (network-leaf factory)
+[2026-11-07T13:26:01+00:00] starting net-fe-s16-c1
+[2026-11-07T13:31:38+00:00] net-fe-s16-c1 exit=0 elapsed=337s
+[2026-11-07T13:31:38+00:00] starting net-fe-s16-c2
+[2026-11-07T13:34:03+00:00] net-fe-s16-c2 exit=0 elapsed=145s
+[2026-11-07T13:34:03+00:00] starting net-fe-s16-c3
+./run_arm_gpu.sh: line 23: 3710541 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --gpus all --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -v /home/dev/fow-chess/.venv:/home/dev/fow-chess/.venv:ro -v /home/dev/.local/share/uv/python:/home/dev/.local/share/uv/python:ro -e PYTHONPATH=/repo:/repo/pair_b/src:/exp -e PYTHONDONTWRITEBYTECODE=1 -w /repo "$IMAGE" "$PY" -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-07T14:05:03+00:00] net-fe-s16-c3 exit=137 elapsed=1860s
+[2026-11-07T14:05:03+00:00] starting net-fe-s16-c4
+[2026-11-07T14:15:05+00:00] net-fe-s16-c4 exit=0 elapsed=602s
+[2026-11-07T14:15:05+00:00] starting net-fe-s16-c5
+[2026-11-07T14:19:39+00:00] net-fe-s16-c5 exit=0 elapsed=274s
+[2026-11-07T14:19:39+00:00] starting net-fe-s16-c6
+[2026-11-07T14:26:10+00:00] net-fe-s16-c6 exit=0 elapsed=391s
+[2026-11-07T14:26:10+00:00] starting net-fe-s16-c7
+[2026-11-07T14:31:34+00:00] net-fe-s16-c7 exit=0 elapsed=324s
+[2026-11-07T14:31:34+00:00] starting net-fe-s16-c8
+[2026-11-07T14:38:36+00:00] net-fe-s16-c8 exit=0 elapsed=422s
+[2026-11-07T14:38:36+00:00] starting net-fe-s16-c9
+[2026-11-07T14:41:07+00:00] net-fe-s16-c9 exit=0 elapsed=151s
+[2026-11-07T14:41:07+00:00] starting net-fe-s16-c10
+[2026-11-07T14:46:36+00:00] net-fe-s16-c10 exit=0 elapsed=329s
+[2026-11-07T14:46:36+00:00] starting net-fe-s16-c11
+[2026-11-07T14:57:50+00:00] net-fe-s16-c11 exit=0 elapsed=674s
+[2026-11-07T14:57:50+00:00] starting net-fe-s16-c12
+[2026-11-07T15:05:33+00:00] net-fe-s16-c12 exit=0 elapsed=463s
+[2026-11-07T15:05:33+00:00] starting net-fe-s16-c13
+[2026-11-07T15:09:46+00:00] net-fe-s16-c13 exit=0 elapsed=253s
+[2026-11-07T15:09:46+00:00] starting net-fe-s16-c14
+[2026-11-07T15:13:01+00:00] net-fe-s16-c14 exit=0 elapsed=195s
+[2026-11-07T15:13:01+00:00] starting net-fe-s16-c15
+[2026-11-07T15:19:26+00:00] net-fe-s16-c15 exit=0 elapsed=385s
+[2026-11-07T15:19:26+00:00] starting net-fe-s16-c16
+[2026-11-07T15:26:38+00:00] net-fe-s16-c16 exit=0 elapsed=432s
+[2026-11-07T15:26:38+00:00] starting net-fe-s16-c17
+[2026-11-07T15:31:12+00:00] net-fe-s16-c17 exit=0 elapsed=274s
+[2026-11-07T15:31:12+00:00] starting net-fe-s16-c18
+[2026-11-07T15:52:56+00:00] net-fe-s16-c18 exit=0 elapsed=1304s
+[2026-11-07T15:52:56+00:00] starting net-fe-s16-c19
+[2026-11-07T16:13:20+00:00] net-fe-s16-c19 exit=137 elapsed=1224s
+[2026-11-07T16:13:20+00:00] starting net-fe-s16-c20
+[2026-11-07T16:33:52+00:00] net-fe-s16-c20 exit=0 elapsed=1232s
+[2026-11-07T16:33:52+00:00] starting net-fe-s16-c21
+[2026-11-07T16:43:54+00:00] net-fe-s16-c21 exit=0 elapsed=602s
+[2026-11-07T16:43:54+00:00] starting net-fe-s16-c22
+[2026-11-07T17:08:58+00:00] net-fe-s16-c22 exit=0 elapsed=1504s
+[2026-11-07T17:08:58+00:00] starting net-fe-s16-c23
+./run_arm_gpu.sh: line 23: 3715301 Killed                  timeout --signal=TERM --kill-after=60 "$LIMIT" docker run --rm --name "fow-$name" --gpus all --memory=$MEM --memory-swap=$MEM -v "$REPO":/repo -v "$EXP":/exp -v "$SF":"$SF":ro -v /home/dev/fow-chess/.venv:/home/dev/fow-chess/.venv:ro -v /home/dev/.local/share/uv/python:/home/dev/.local/share/uv/python:ro -e PYTHONPATH=/repo:/repo/pair_b/src:/exp -e PYTHONDONTWRITEBYTECODE=1 -w /repo "$IMAGE" "$PY" -m pair_c.run_evaluation "/exp/$name.ini" > "$log" 2>&1
+[2026-11-07T17:39:58+00:00] net-fe-s16-c23 exit=137 elapsed=1860s
+[2026-11-07T17:39:58+00:00] starting net-fe-s16-c24
+[2026-11-07T17:49:44+00:00] net-fe-s16-c24 exit=0 elapsed=586s
+[2026-11-07T17:49:44+00:00] starting net-fe-s16-c25
+[2026-11-07T17:57:44+00:00] net-fe-s16-c25 exit=0 elapsed=480s
+[2026-11-07T17:57:44+00:00] starting net-fe-s16-c26
+[2026-11-07T18:04:35+00:00] net-fe-s16-c26 exit=0 elapsed=411s
+[2026-11-07T18:04:35+00:00] starting net-fe-s16-c27
+[2026-11-07T18:08:22+00:00] net-fe-s16-c27 exit=0 elapsed=227s
+[2026-11-07T18:08:22+00:00] starting net-fe-s16-c28
+[2026-11-07T18:11:14+00:00] net-fe-s16-c28 exit=0 elapsed=172s
+[2026-11-07T18:11:14+00:00] starting net-fe-s16-c29
+[2026-11-07T18:15:07+00:00] net-fe-s16-c29 exit=0 elapsed=233s
+[2026-11-07T18:15:07+00:00] starting net-fe-s16-c30
+[2026-11-07T18:18:05+00:00] net-fe-s16-c30 exit=0 elapsed=178s
+[2026-11-07T18:18:05+00:00] starting net-fe-s16-c31
+[2026-11-07T18:23:01+00:00] net-fe-s16-c31 exit=1 elapsed=296s
+[2026-11-07T18:23:01+00:00] starting net-fe-s16-c32
+[2026-11-07T18:29:39+00:00] net-fe-s16-c32 exit=0 elapsed=398s
+[2026-11-07T18:29:39+00:00] starting net-fe-s16-c33
+[2026-11-07T18:32:01+00:00] net-fe-s16-c33 exit=0 elapsed=142s
+[2026-11-07T18:32:01+00:00] starting net-fe-s16-c34
+[2026-11-07T18:34:11+00:00] net-fe-s16-c34 exit=0 elapsed=130s
+[2026-11-07T18:34:11+00:00] starting net-fe-s16-c35
+[2026-11-07T18:37:43+00:00] net-fe-s16-c35 exit=0 elapsed=212s
+[2026-11-07T18:37:43+00:00] starting net-fe-s16-c36
+[2026-11-07T18:39:21+00:00] net-fe-s16-c36 exit=0 elapsed=98s
+[2026-11-07T18:39:21+00:00] starting net-fe-s16-c37
+[2026-11-07T18:43:11+00:00] net-fe-s16-c37 exit=1 elapsed=230s
+[2026-11-07T18:43:11+00:00] starting net-fe-s16-c38
+[2026-11-07T18:49:27+00:00] net-fe-s16-c38 exit=0 elapsed=376s
+[2026-11-07T18:49:27+00:00] starting net-fe-s16-c39
+[2026-11-07T18:56:37+00:00] net-fe-s16-c39 exit=0 elapsed=430s
+[2026-11-07T18:56:37+00:00] starting net-fe-s16-c40
+[2026-11-07T19:05:36+00:00] net-fe-s16-c40 exit=0 elapsed=539s
+[2026-11-07T19:05:36+00:00] starting net-fe-s16-c41
+[2026-11-07T19:11:19+00:00] net-fe-s16-c41 exit=0 elapsed=343s
+[2026-11-07T19:11:19+00:00] starting net-fe-s16-c42
+[2026-11-07T19:14:00+00:00] net-fe-s16-c42 exit=0 elapsed=161s
+[2026-11-07T19:14:00+00:00] starting net-fe-s16-c43
+[2026-11-07T19:20:05+00:00] net-fe-s16-c43 exit=0 elapsed=365s
+[2026-11-07T19:20:05+00:00] starting net-fe-s16-c44
+[2026-11-07T19:29:27+00:00] net-fe-s16-c44 exit=0 elapsed=562s
+[2026-11-07T19:29:27+00:00] starting net-fe-s16-c45
+[2026-11-07T19:35:09+00:00] net-fe-s16-c45 exit=0 elapsed=342s
+[2026-11-07T19:35:09+00:00] starting net-fe-s16-c46
+[2026-11-07T19:42:16+00:00] net-fe-s16-c46 exit=0 elapsed=427s
+[2026-11-07T19:42:16+00:00] starting net-fe-s16-c47
+[2026-11-07T19:51:20+00:00] net-fe-s16-c47 exit=0 elapsed=544s
+[2026-11-07T19:51:20+00:00] starting net-fe-s16-c48
+[2026-11-07T20:18:02+00:00] net-fe-s16-c48 exit=137 elapsed=1602s
+[2026-11-07T20:18:02+00:00] starting net-fe-s16-c49
+[2026-11-07T20:20:19+00:00] net-fe-s16-c49 exit=0 elapsed=137s
+[2026-11-07T20:20:19+00:00] starting net-fe-s16-c50
+[2026-11-07T20:24:00+00:00] net-fe-s16-c50 exit=0 elapsed=221s
+[2026-11-07T20:24:00+00:00] network arm: all chunks attempted

@@ -1,0 +1,58 @@
+{
+  "player_a": "Pair A subgame PCFR+ (belief pruned to 10k histories, sample_size 16)",
+  "player_b": "Material OnePlyBot (particle tracker)",
+  "player_a_factory": "pair_a_prep.evaluation_factories:SearchFactory",
+  "player_b_factory": "pair_c.agent_factories:Factory",
+  "player_a_tracker_factory": "pruned_tracker:Factory",
+  "player_b_tracker_factory": "pair_c.tracker_factories:Factory",
+  "games_requested": 2,
+  "games_completed": 1,
+  "games_scored": 1,
+  "games_capped": 0,
+  "games_failed": 1,
+  "ply_limit_policy": "exclude_from_outcome_rates",
+  "player_a_wins": 0,
+  "draws": 0,
+  "player_a_losses": 1,
+  "player_a_win_rate": 0.0,
+  "player_a_score_rate": 0.0,
+  "player_b_score_rate": 1.0,
+  "color_assignment": "Player A is White in odd-numbered games and Black in even-numbered games",
+  "timing": {
+    "player_a": {
+      "moves": 32,
+      "mean_ms_per_move": 797.8771135676652,
+      "max_ms_per_move": 1219.9641913175583,
+      "over_budget_moves": 0
+    },
+    "player_b": {
+      "moves": 32,
+      "mean_ms_per_move": 19.538520253263414,
+      "max_ms_per_move": 41.42480716109276,
+      "over_budget_moves": 0
+    }
+  },
+  "tracking": {
+    "scope": "tracker.update including all resumes; includes initial, terminal and failed attempts",
+    "player_a": {
+      "updates": 90,
+      "total_ms": 44624.95844811201
+    },
+    "player_b": {
+      "updates": 90,
+      "total_ms": 11262.384586036205
+    },
+    "failed_updates": 1,
+    "all_recorded_agent_and_tracker_ms": 82044.64331641793,
+    "agent_timing_scope": "successful attempts only; failed attempts can omit partial agent records",
+    "budget_scope": "agent over_budget flags exclude tracking; tracker budgets are independent and cooperative"
+  },
+  "runner_forcibly_interrupts_agents": false,
+  "current_one_ply_agent_uses_time_budget": false,
+  "failed_games": [
+    {
+      "game": 2,
+      "error": "BeliefBudgetError: no_candidate: stopped by None; no descendants of retained support; rebuild from the private stream"
+    }
+  ]
+}

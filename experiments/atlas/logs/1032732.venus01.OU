@@ -1,0 +1,66 @@
+[2026-11-04T15:13:45+0800] labels labels-01 task 4 on cnode-33-43-49 code=repo-labels2@87b3089 games=24 seed=9001 budget_ms=5000 max_states=96000 out=/hpctmp/tommy.21.31/fow/repo-labels/pair_c/runs/labels-01/task-4
+model name	: AMD EPYC 7R13 Processor
+label runner importable
+game 0: part-0000.jsonl exists, skipping
+game 1: part-0001.jsonl exists, skipping
+game 2: part-0002.jsonl exists, skipping
+game 3: part-0003.jsonl exists, skipping
+game 4: part-0004.jsonl exists, skipping
+game 5: part-0005.jsonl exists, skipping
+game 6: seed 9013, 121 plies, 109 records, 4 fallbacks, 5 guards, 1836.6 s
+game 7: seed 9015, 69 plies, 57 records, 5 fallbacks, 8 guards, 1443.6 s
+game 8: seed 9017, 9 plies, 3 records, 0 fallbacks, 0 guards, 10.4 s
+game 9: seed 9019, 93 plies, 85 records, 3 fallbacks, 17 guards, 4068.2 s
+game 10: seed 9021, 22 plies, 20 records, 0 fallbacks, 0 guards, 134.2 s
+game 11: seed 9023, 47 plies, 41 records, 0 fallbacks, 1 guards, 248.6 s
+game 12: seed 9025, 50 plies, 47 records, 0 fallbacks, 3 guards, 684.7 s
+game 13: seed 9027, 34 plies, 29 records, 1 fallbacks, 2 guards, 404.2 s
+game 14: seed 9029, 49 plies, 44 records, 0 fallbacks, 1 guards, 390.6 s
+game 15: seed 9031, 68 plies, 61 records, 0 fallbacks, 8 guards, 1633.9 s
+game 16: seed 9033, 75 plies, 69 records, 2 fallbacks, 5 guards, 1405.0 s
+game 17: seed 9035, 76 plies, 71 records, 1 fallbacks, 7 guards, 1058.1 s
+game 18: seed 9037, 49 plies, 42 records, 1 fallbacks, 6 guards, 677.7 s
+game 19: seed 9039, 75 plies, 71 records, 1 fallbacks, 0 guards, 335.5 s
+game 20: seed 9041, 45 plies, 37 records, 0 fallbacks, 3 guards, 575.5 s
+game 21: seed 9043, 95 plies, 90 records, 1 fallbacks, 20 guards, 3727.8 s
+game 22: seed 9045, 74 plies, 67 records, 0 fallbacks, 3 guards, 808.6 s
+game 23: seed 9047, 52 plies, 47 records, 0 fallbacks, 1 guards, 370.0 s
+24 games (0 failed), 1264 records, 23 fallbacks, 108 guards; validation errors: 0
+	Command being timed: "python -m pair_a_prep.label_run --out /hpctmp/tommy.21.31/fow/repo-labels/pair_c/runs/labels-01/task-4 --games 24 --seed 9001 --evaluator material --time-budget-ms 5000 --max-plies 200 --max-states 96000 --sample-size 16 --commit 87b3089"
+	User time (seconds): 19692.04
+	System time (seconds): 74.75
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 5:30:26
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3726500
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 68294899
+	Voluntary context switches: 2223
+	Involuntary context switches: 17069
+	Swaps: 0
+	File system inputs: 11608
+	File system outputs: 94160
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+[2026-11-04T20:44:21+0800] labels labels-01 task 4 exit=0
+      ======================================================================================
+     Resource Usage on 2026-11-04 20:44:21.165923:
+     JobId: 1032732.venus01  				 Project: _pbs_project_default 
+     Submission Host: atlas8-c01 
+     Exit Status: 0
+     NCPUs Requested: 1 				 NCPUs Used: 1
+     Memory Requested: 15gb 				 Memory Used: 3720140kb 
+     Vmem Used: 4139028kb
+     CPU Time Used: 05:28:21 
+     Walltime requested: 72:00:00 			 Walltime Used: 05:30:39
+     Submit Time:  Wed Nov  4 11:03:48 2026 		 Start Time: Wed Nov  4 15:13:42 2026 
+     End Time: Wed Nov  4 20:44:21 2026 
+     Execution Nodes Used: (cnode-33-43-49:ncpus=1:mem=15728640kb)
+     ======================================================================================

@@ -1,0 +1,73 @@
+[2026-11-04T06:48:21+0800] labels labels-01 task 7 on cnode-33-43-49 code=repo-labels@30b5753 games=24 seed=12001 budget_ms=5000 max_states=96000
+model name	: AMD EPYC 7R13 Processor
+label runner importable
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/hpctmp/tommy.21.31/fow/repo-labels/pair_a_prep/label_run.py", line 221, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/hpctmp/tommy.21.31/fow/repo-labels/pair_a_prep/label_run.py", line 191, in main
+    identity, proto, summaries = collect(
+                                 ^^^^^^^^
+  File "/hpctmp/tommy.21.31/fow/repo-labels/pair_a_prep/label_run.py", line 137, in collect
+    result = play_game(RulesReferee(initial_fen), agents, trackers,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/hpctmp/tommy.21.31/fow/repo-labels/fow_shared/evaluation.py", line 97, in play_game
+    beliefs = {viewer: trackers[viewer].update(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/hpctmp/tommy.21.31/fow/repo-labels/pair_a_prep/tail_guard.py", line 76, in update
+    return self._inner.update(observation, own_move)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/hpctmp/tommy.21.31/fow/repo-labels/pair_a_prep/belief_tracker.py", line 173, in update
+    raise BeliefBudgetError(result)
+pair_a_prep.belief_tracker.BeliefBudgetError: no_candidate: stopped by None; no descendants of retained support; rebuild from the private stream
+game 0: seed 12001, 78 plies, 68 records, 2 fallbacks, 9 guards, 1572.1 s
+game 1: seed 12003, 29 plies, 24 records, 0 fallbacks, 0 guards, 104.5 s
+game 2: seed 12005, 68 plies, 66 records, 0 fallbacks, 13 guards, 2837.1 s
+game 3: seed 12007, 71 plies, 62 records, 5 fallbacks, 4 guards, 1181.9 s
+game 4: seed 12009, 54 plies, 45 records, 1 fallbacks, 0 guards, 254.5 s
+game 5: seed 12011, 97 plies, 87 records, 2 fallbacks, 4 guards, 1170.5 s
+game 6: seed 12013, 35 plies, 29 records, 1 fallbacks, 4 guards, 679.7 s
+game 7: seed 12015, 85 plies, 80 records, 1 fallbacks, 2 guards, 746.9 s
+game 8: seed 12017, 59 plies, 53 records, 2 fallbacks, 2 guards, 660.6 s
+game 9: seed 12019, 47 plies, 40 records, 2 fallbacks, 1 guards, 305.7 s
+Command exited with non-zero status 1
+	Command being timed: "python -m pair_a_prep.label_run --out pair_c/runs/labels-01/task-7 --games 24 --seed 12001 --evaluator material --time-budget-ms 5000 --max-plies 200 --max-states 96000 --sample-size 16 --commit 30b5753"
+	User time (seconds): 10651.01
+	System time (seconds): 32.92
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:58:41
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 4145796
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 32193103
+	Voluntary context switches: 1229
+	Involuntary context switches: 11709
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 51416
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 1
+[2026-11-04T09:47:16+0800] labels labels-01 task 7 exit=1
+      ======================================================================================
+     Resource Usage on 2026-11-04 09:47:16.223938:
+     JobId: 1032509[7].venus01  				 Project: _pbs_project_default 
+     Submission Host: atlas8-c01 
+     Exit Status: 1
+     NCPUs Requested: 1 				 NCPUs Used: 1
+     Memory Requested: 15gb 				 Memory Used: 4141028kb 
+     Vmem Used: 4743612kb
+     CPU Time Used: 02:57:06 
+     Walltime requested: 72:00:00 			 Walltime Used: 02:59:03
+     Submit Time:  Wed Nov  4 03:39:22 2026 		 Start Time: Wed Nov  4 06:48:13 2026 
+     End Time: Wed Nov  4 09:47:16 2026 
+     Execution Nodes Used: (cnode-33-43-49:ncpus=1:mem=15728640kb)
+     ======================================================================================

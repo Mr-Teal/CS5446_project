@@ -1,0 +1,47 @@
+[2026-11-06T02:13:00+0800] fe-s256 task 22 on cnode-33-43-49 code=repo-mech@cca2fe2
+model name	: AMD EPYC 7R13 Processor
+blended gadget control available: True
+Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+Players: A=Pair A subgame PCFR+ (exact belief, sample 256 top-up, full effort) | B=Material OnePlyBot (particle tracker) | colors=alternating
+Game 1/2 starting | A (white) vs B (black) | seed=1043
+Command terminated by signal 9
+	Command being timed: "python -m pair_c.run_evaluation /hpctmp/tommy.21.31/fow/experiment/fe-s256-c22.ini"
+	User time (seconds): 5661.76
+	System time (seconds): 62.59
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:35:27
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 15745364
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 69758908
+	Voluntary context switches: 1010
+	Involuntary context switches: 2259
+	Swaps: 0
+	File system inputs: 8
+	File system outputs: 424
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+[2026-11-06T03:48:34+0800] fe-s256 task 22 exit=9
+      ======================================================================================
+     Resource Usage on 2026-11-06 03:48:34.410701:
+     JobId: 1034481[22].venus01  				 Project: _pbs_project_default 
+     Submission Host: atlas8-c01 
+     Exit Status: 9
+     NCPUs Requested: 1 				 NCPUs Used: 1
+     Memory Requested: 15gb 				 Memory Used: 15073524kb 
+     Vmem Used: 15914220kb
+     CPU Time Used: 01:34:32 
+     Walltime requested: 72:00:00 			 Walltime Used: 01:35:38
+     Submit Time:  Fri Nov  6 01:50:24 2026 		 Start Time: Fri Nov  6 02:12:56 2026 
+     End Time: Fri Nov  6 03:48:34 2026 
+     Execution Nodes Used: (cnode-33-43-49:ncpus=1:mem=15728640kb)
+     ======================================================================================
+Cgroup mem limit exceeded: Task in /pbs_jobs.service/jobid/1034481[22].venus01 killed as a result of limit of /pbs_jobs.service/jobid/1034481[22].venus01
+

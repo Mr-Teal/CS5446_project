@@ -1,0 +1,5 @@
+Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+Players: A=Pair A subgame PCFR+ (exact belief, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+Game 1/2 starting | A (white) vs B (black) | seed=1087
+Game 1/2 finished | draw | A (white): 65 moves | B (black): 65 moves | reason=threefold_repetition | seed=1087
+Game 2/2 starting | A (black) vs B (white) | seed=1088

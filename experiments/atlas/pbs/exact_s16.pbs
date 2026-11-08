@@ -1,0 +1,55 @@
+#!/bin/bash
+#PBS -N fow-exact-s16
+#PBS -q serial
+#PBS -l select=1:ncpus=1:mem=15gb
+#PBS -l walltime=24:00:00
+#PBS -j oe
+#PBS -o /hpctmp/tommy.21.31/fow/logs/
+#PBS -J 1-50
+
+# Re-run the exact-s16 arm with memory that is not the binding constraint.
+#
+# On the homelab this arm completed 37 of 100 games; the other 63 died with their
+# chunk at a 4.5 GiB container cap. That is not a random 37 percent -- the control
+# scores 0.403 on the seeds it survived against 0.533 on the seeds it lost -- so
+# every paired number computed against it is measured on seeds selected for being
+# cheap to track. Atlas's serial queue allows 15 GiB for one core, and the turn
+# that killed those chunks holds about 2.2 million positions at roughly 2.4 KB
+# each, so 15 GiB should clear it.
+#
+# Why this arm and not the clock arms. exact-s16 sets no search-budget keys, so it
+# takes SearchFactory's defaults including stop_on_time = false: the agent never
+# reads the wall clock and its decisions do not depend on how fast the node is.
+# That makes it reproducible across platforms, which is exactly what lets an Atlas
+# result be compared with a homelab one. The clock arms are timing-dependent by
+# construction and stay on the single machine they started on.
+#
+# Chunk size stays at two games, matching the homelab configs byte for byte apart
+# from nothing: alternating_colors with seed_for_game = seed + game_index means
+# index 0 plays Pair A as white and index 1 as black, so splitting a chunk into
+# two single-game jobs would silently change the colour assignment and break the
+# pairing. 50 tasks at 40 concurrent is two waves.
+set -u
+
+ROOT=/hpctmp/$USER/fow
+cd "$ROOT/repo"
+source "$ROOT/env.sh"
+
+CONFIG="$ROOT/experiment/exact-s16-c${PBS_ARRAY_INDEX}.ini"
+echo "[$(date -Is)] task ${PBS_ARRAY_INDEX} on $(hostname)"
+grep -m1 "model name" /proc/cpuinfo
+python3 -c "import pair_a_prep.belief_tracker as t; print('tracker backend available:', t.BeliefTracker().backend)"
+
+# The runner refuses to write into an existing output directory, so a task that is
+# resubmitted after a walltime kill would fail instantly. Set the old one aside
+# rather than deleting it: a chunk that died during its second game still has its
+# first game recorded, and the "partial-" prefix keeps it out of the analysis glob.
+OUT="$ROOT/repo/pair_c/runs/strength-exact-s16-c${PBS_ARRAY_INDEX}"
+if [ -d "$OUT" ]; then
+    mv "$OUT" "${OUT/strength-/partial-}-$(date +%m%d-%H%M)"
+fi
+
+/usr/bin/time -v python -m pair_c.run_evaluation "$CONFIG"
+status=$?
+echo "[$(date -Is)] task ${PBS_ARRAY_INDEX} exit=$status"
+exit $status

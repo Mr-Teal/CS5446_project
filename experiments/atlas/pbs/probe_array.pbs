@@ -1,0 +1,33 @@
+#!/bin/bash
+#PBS -N fow-probe
+#PBS -q serial
+#PBS -l select=1:ncpus=1:mem=15gb
+#PBS -l walltime=00:05:00
+#PBS -j oe
+#PBS -o /hpctmp/tommy.21.31/fow/logs/
+#PBS -J 0-3
+
+# Does this PBS complex accept job arrays, and what does a serial-queue node
+# actually look like? The answer decides whether the 100 games go up as one
+# array or as 100 qsubs, and the CPU model decides whether Atlas timings can be
+# compared with the homelab's at all (the clock arms are wall-clock bound).
+set -u
+cd /hpctmp/$USER/fow
+source /hpctmp/$USER/fow/env.sh
+
+echo "index=${PBS_ARRAY_INDEX:-none} host=$(hostname)"
+grep -m1 "model name" /proc/cpuinfo
+echo "cores_visible=$(nproc) mem_limit=$(cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2>/dev/null || echo unknown)"
+python3 -V
+python3 -c "import chess, numpy; print('chess', chess.__version__, 'numpy', numpy.__version__)"
+python3 - <<'PY'
+# A fixed amount of the work this project actually does, so the two platforms
+# can be compared on move generation rather than on a synthetic loop.
+import time, chess
+board = chess.Board()
+start = time.perf_counter()
+total = 0
+for _ in range(20000):
+    total += len(list(board.legal_moves))
+print("legal_moves 20k calls: %.2f s, %d moves" % (time.perf_counter() - start, total))
+PY

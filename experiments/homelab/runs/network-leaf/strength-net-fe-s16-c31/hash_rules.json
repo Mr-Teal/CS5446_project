@@ -1,0 +1,15 @@
+{
+  "version": "crlf-to-lf-v1",
+  "text_extensions": [
+    ".bat", ".c", ".cfg", ".cpp", ".css", ".csv", ".h", ".hpp",
+    ".html", ".ini", ".js", ".json", ".jsonl", ".lock", ".log",
+    ".md", ".mjs", ".patch", ".ps1", ".py", ".sh", ".svg",
+    ".toml", ".tsv", ".txt", ".xml", ".yaml", ".yml"
+  ],
+  "text_filenames": [".gitattributes", ".gitignore"],
+  "binary_extensions": [
+    ".bin", ".dll", ".exe", ".gz", ".jpeg", ".jpg", ".nnue", ".npz", ".pdf",
+    ".png", ".pt", ".pth", ".zip"
+  ],
+  "default": "binary"
+}

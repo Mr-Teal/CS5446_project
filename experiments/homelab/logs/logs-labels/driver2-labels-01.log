@@ -1,0 +1,4 @@
+[2026-11-04T03:42:54+00:00] labels labels-01 (resume, fixed runner): games=120 seed=5001 mem=4500m max_states=96000 budget_ms=5000 eval=material sample=16 commit=87b3089 out=/home/dev/cs5446-review/wt-labels/pair_c/runs/labels-01
+[2026-11-04T07:19:43+00:00] labels labels-01: exit=137 (log /home/dev/cs5446-review/experiment/logs-labels/labels-01.log; progress /home/dev/cs5446-review/wt-labels/pair_c/runs/labels-01/progress.jsonl)
+[2026-11-04T07:58:19+00:00] labels labels-01 (resume, fixed runner): games=120 seed=5001 mem=4500m max_states=96000 budget_ms=5000 eval=material sample=16 commit=87b3089 out=/home/dev/cs5446-review/wt-labels/pair_c/runs/labels-01
+[2026-11-04T20:58:51+00:00] labels labels-01: exit=137 (log /home/dev/cs5446-review/experiment/logs-labels/labels-01.log; progress /home/dev/cs5446-review/wt-labels/pair_c/runs/labels-01/progress.jsonl)

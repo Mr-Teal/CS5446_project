@@ -1,0 +1,34 @@
+[2026-11-05T18:04:09+00:00] train belief-solver-v1
+beliefs: {'train': {'beliefs': 15609, 'boards': 240693}, 'val': {'beliefs': 2196, 'boards': 33758}, 'test_held_out': {'beliefs': 1944}}  device: cuda
+quick Stockfish on validation: None
+{"epoch": 1, "train_mse": 0.140548, "val": {"board_mae": 0.142186, "board_mse": 0.052351, "root_mae": 0.135022, "beliefs": 2196, "boards": 32927}, "seconds": 24.3}
+{"epoch": 2, "train_mse": 0.052237, "val": {"board_mae": 0.340887, "board_mse": 0.202054, "root_mae": 0.330653, "beliefs": 2196, "boards": 32927}, "seconds": 27.0}
+{"epoch": 3, "train_mse": 0.042545, "val": {"board_mae": 0.09588, "board_mse": 0.028339, "root_mae": 0.089526, "beliefs": 2196, "boards": 32927}, "seconds": 29.7}
+{"epoch": 4, "train_mse": 0.035343, "val": {"board_mae": 0.167571, "board_mse": 0.06249, "root_mae": 0.160317, "beliefs": 2196, "boards": 32927}, "seconds": 32.5}
+{"epoch": 5, "train_mse": 0.030547, "val": {"board_mae": 0.104776, "board_mse": 0.030962, "root_mae": 0.099111, "beliefs": 2196, "boards": 32927}, "seconds": 35.2}
+{"epoch": 6, "train_mse": 0.02916, "val": {"board_mae": 0.10408, "board_mse": 0.026562, "root_mae": 0.097723, "beliefs": 2196, "boards": 32927}, "seconds": 37.9}
+{"epoch": 7, "train_mse": 0.027162, "val": {"board_mae": 0.090706, "board_mse": 0.023372, "root_mae": 0.08438, "beliefs": 2196, "boards": 32927}, "seconds": 40.6}
+{"epoch": 8, "train_mse": 0.025312, "val": {"board_mae": 0.089738, "board_mse": 0.023543, "root_mae": 0.082974, "beliefs": 2196, "boards": 32927}, "seconds": 43.3}
+{"epoch": 9, "train_mse": 0.024702, "val": {"board_mae": 0.09424, "board_mse": 0.025274, "root_mae": 0.08802, "beliefs": 2196, "boards": 32927}, "seconds": 46.1}
+{"epoch": 10, "train_mse": 0.020478, "val": {"board_mae": 0.130389, "board_mse": 0.039039, "root_mae": 0.12431, "beliefs": 2196, "boards": 32927}, "seconds": 48.8}
+{"epoch": 11, "train_mse": 0.019491, "val": {"board_mae": 0.107914, "board_mse": 0.027582, "root_mae": 0.100129, "beliefs": 2196, "boards": 32927}, "seconds": 51.5}
+{"epoch": 12, "train_mse": 0.019532, "val": {"board_mae": 0.096949, "board_mse": 0.027249, "root_mae": 0.091054, "beliefs": 2196, "boards": 32927}, "seconds": 54.2}
+best epoch 7: validation board MAE 0.090706 (quick Stockfish n/a); 561,681 parameters -> /labels/runs/belief-solver-v1
+[2026-11-05T18:05:16+00:00] exit=0
+[2026-11-05T18:05:16+00:00] train belief-solver-v1-noctx
+beliefs: {'train': {'beliefs': 15609, 'boards': 240693}, 'val': {'beliefs': 2196, 'boards': 33758}, 'test_held_out': {'beliefs': 1944}}  device: cuda
+quick Stockfish on validation: None
+{"epoch": 1, "train_mse": 0.139729, "val": {"board_mae": 0.178073, "board_mse": 0.077435, "root_mae": 0.166255, "beliefs": 2196, "boards": 32927}, "seconds": 6.1}
+{"epoch": 2, "train_mse": 0.04982, "val": {"board_mae": 0.123599, "board_mse": 0.03725, "root_mae": 0.11314, "beliefs": 2196, "boards": 32927}, "seconds": 8.8}
+{"epoch": 3, "train_mse": 0.041013, "val": {"board_mae": 0.122784, "board_mse": 0.039195, "root_mae": 0.113092, "beliefs": 2196, "boards": 32927}, "seconds": 11.5}
+{"epoch": 4, "train_mse": 0.03215, "val": {"board_mae": 0.16284, "board_mse": 0.059684, "root_mae": 0.153297, "beliefs": 2196, "boards": 32927}, "seconds": 14.2}
+{"epoch": 5, "train_mse": 0.028042, "val": {"board_mae": 0.102518, "board_mse": 0.027968, "root_mae": 0.093454, "beliefs": 2196, "boards": 32927}, "seconds": 17.0}
+{"epoch": 6, "train_mse": 0.029028, "val": {"board_mae": 0.093799, "board_mse": 0.0232, "root_mae": 0.085754, "beliefs": 2196, "boards": 32927}, "seconds": 19.7}
+{"epoch": 7, "train_mse": 0.027254, "val": {"board_mae": 0.088343, "board_mse": 0.021895, "root_mae": 0.080053, "beliefs": 2196, "boards": 32927}, "seconds": 22.4}
+{"epoch": 8, "train_mse": 0.024042, "val": {"board_mae": 0.088207, "board_mse": 0.023033, "root_mae": 0.079493, "beliefs": 2196, "boards": 32927}, "seconds": 25.1}
+{"epoch": 9, "train_mse": 0.023565, "val": {"board_mae": 0.090964, "board_mse": 0.023604, "root_mae": 0.083288, "beliefs": 2196, "boards": 32927}, "seconds": 27.8}
+{"epoch": 10, "train_mse": 0.02042, "val": {"board_mae": 0.110236, "board_mse": 0.030497, "root_mae": 0.10279, "beliefs": 2196, "boards": 32927}, "seconds": 30.5}
+{"epoch": 11, "train_mse": 0.019371, "val": {"board_mae": 0.134232, "board_mse": 0.037216, "root_mae": 0.125716, "beliefs": 2196, "boards": 32927}, "seconds": 33.2}
+{"epoch": 12, "train_mse": 0.019627, "val": {"board_mae": 0.093918, "board_mse": 0.025806, "root_mae": 0.08526, "beliefs": 2196, "boards": 32927}, "seconds": 36.0}
+best epoch 7: validation board MAE 0.088343 (quick Stockfish n/a); 545,297 parameters -> /labels/runs/belief-solver-v1-noctx
+[2026-11-05T18:05:57+00:00] exit=0

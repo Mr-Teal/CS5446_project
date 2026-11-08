@@ -1,0 +1,43 @@
+#!/bin/bash
+#PBS -N fow-labels2
+#PBS -q serial
+#PBS -l select=1:ncpus=1:mem=15gb
+#PBS -l walltime=72:00:00
+#PBS -j oe
+#PBS -o /hpctmp/tommy.21.31/fow/logs/
+
+# Resubmission of a dead label task (verification-log items 47-49). Same protocol
+# as label_arm.pbs; code is repo-labels2 = pair-a/solver-labels 87b3089, where a
+# game whose guarded belief dies is written as far as it got and the run goes on.
+#
+# Submit one task:  qsub -v TAG=labels-01,GAMES=24,BUDGET_MS=5000,MAX_STATES=96000,N=3 label_arm2.pbs
+#
+# OUT is the original task folder under repo-labels, so finished parts are
+# skipped (resume) and all labels-01 data stays in one place.
+set -u
+
+: "${TAG:?submit with -v TAG=labels-01,GAMES=24,...,N=<task>}"
+GAMES=${GAMES:-12}
+BUDGET_MS=${BUDGET_MS:-1000}
+SEED_BASE=${SEED_BASE:-5001}
+MAX_STATES=${MAX_STATES:-300000}
+SAMPLE=${SAMPLE:-16}
+TASK=${PBS_ARRAY_INDEX:-${N:?submit with -v ...,N=<task index>}}
+
+ROOT=/hpctmp/$USER/fow
+cd "$ROOT/repo-labels2"
+source "$ROOT/env.sh"
+export PYTHONPATH=$ROOT/repo-labels2/pair_b/src:$ROOT/experiment
+
+SEED=$((SEED_BASE + 1000 * TASK))
+OUT="$ROOT/repo-labels/pair_c/runs/${TAG}/task-${TASK}"
+echo "[$(date -Is)] labels ${TAG} task ${TASK} on $(hostname) code=repo-labels2@87b3089 games=$GAMES seed=$SEED budget_ms=$BUDGET_MS max_states=$MAX_STATES out=$OUT"
+grep -m1 "model name" /proc/cpuinfo
+python -c "import pair_a_prep.label_run, pair_a_prep.tail_guard; print(\"label runner importable\")"
+
+/usr/bin/time -v python -m pair_a_prep.label_run --out "$OUT" --games "$GAMES" --seed "$SEED" \
+    --evaluator material --time-budget-ms "$BUDGET_MS" --max-plies 200 \
+    --max-states "$MAX_STATES" --sample-size "$SAMPLE" --commit 87b3089
+status=$?
+echo "[$(date -Is)] labels ${TAG} task ${TASK} exit=$status"
+exit $status

@@ -1,0 +1,53 @@
+{
+  "player_a": "Pair A subgame PCFR+ (exact belief, sample 16, full effort, mechanisms branch)",
+  "player_b": "Material OnePlyBot (particle tracker)",
+  "player_a_factory": "pair_a_prep.evaluation_factories:SearchFactory",
+  "player_b_factory": "pair_c.agent_factories:Factory",
+  "player_a_tracker_factory": "pair_a_prep.evaluation_factories:HistoryTrackerFactory",
+  "player_b_tracker_factory": "pair_c.tracker_factories:Factory",
+  "games_requested": 2,
+  "games_completed": 2,
+  "games_scored": 2,
+  "games_capped": 0,
+  "games_failed": 0,
+  "ply_limit_policy": "exclude_from_outcome_rates",
+  "player_a_wins": 2,
+  "draws": 0,
+  "player_a_losses": 0,
+  "player_a_win_rate": 1.0,
+  "player_a_score_rate": 1.0,
+  "player_b_score_rate": 0.0,
+  "color_assignment": "Player A is White in odd-numbered games and Black in even-numbered games",
+  "timing": {
+    "player_a": {
+      "moves": 68,
+      "mean_ms_per_move": 4375.581974656705,
+      "max_ms_per_move": 4636.674955487251,
+      "over_budget_moves": 0
+    },
+    "player_b": {
+      "moves": 67,
+      "mean_ms_per_move": 13.00272951597598,
+      "max_ms_per_move": 51.04384571313858,
+      "over_budget_moves": 0
+    }
+  },
+  "tracking": {
+    "scope": "tracker.update including all resumes; includes initial, terminal and failed attempts",
+    "player_a": {
+      "updates": 137,
+      "total_ms": 16135.179407894611
+    },
+    "player_b": {
+      "updates": 137,
+      "total_ms": 68602.19155997038
+    },
+    "failed_updates": 0,
+    "all_recorded_agent_and_tracker_ms": 383148.1281220913,
+    "agent_timing_scope": "successful attempts only; failed attempts can omit partial agent records",
+    "budget_scope": "agent over_budget flags exclude tracking; tracker budgets are independent and cooperative"
+  },
+  "runner_forcibly_interrupts_agents": false,
+  "current_one_ply_agent_uses_time_budget": false,
+  "failed_games": []
+}

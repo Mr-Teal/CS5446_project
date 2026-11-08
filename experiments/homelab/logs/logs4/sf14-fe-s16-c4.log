@@ -1,0 +1,53 @@
+Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+Players: A=Pair A subgame PCFR+ (exact belief, sample 16, full effort, Stockfish 14.1 d1) | B=Material OnePlyBot (particle tracker) | colors=alternating
+Game 1/2 starting | A (white) vs B (black) | seed=1007
+Game 1/2 finished | Pair A subgame PCFR+ (exact belief, sample 16, full effort, Stockfish 14.1 d1) (white) won | A (white): 13 moves | B (black): 12 moves | reason=king_capture | seed=1007
+Game 2/2 starting | A (black) vs B (white) | seed=1008
+Exception parsing pv from info: 'depth 1 seldepth 1 multipv 1 score cp -668 nodes 11 nps 11000 tbhits 0 time 1 pv h5g6 f7g6 b1b7', position at root: r2qr1k1/1p3p2/p1n4p/6pP/2p1P1n1/P1P3P1/3PPK2/1RBQ1BN1 w - - 0 18
+UciAnalysisCommand failed after returning preliminary result (<Future finished result=<chess.engine...x7f4d1dd10a70>>)
+protocol: <UciProtocol (pid=30)>
+transport: <_UnixSubprocessTransport pid=30 running stdin=<_UnixWritePipeTransport fd=7 idle bufsize=0> stdout=<_UnixReadPipeTransport fd=8 polling> stderr=<_UnixReadPipeTransport fd=10 polling>>
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/site-packages/chess/engine.py", line 1900, in _parse_uci_bestmove
+    move = board.push_uci(tokens[0].lower())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/chess/__init__.py", line 3284, in push_uci
+    move = self.parse_uci(uci)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/chess/__init__.py", line 3267, in parse_uci
+    raise IllegalMoveError(f"illegal uci: {uci!r} in {self.fen()}")
+chess.IllegalMoveError: illegal uci: 'h5g6' in r2qr1k1/1p3p2/p1n4p/6pP/2p1P1n1/P1P3P1/3PPK2/1RBQ1BN1 w - - 0 18
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/site-packages/chess/engine.py", line 1294, in _line_received
+    self.line_received(line)
+  File "/usr/local/lib/python3.12/site-packages/chess/engine.py", line 1738, in line_received
+    self._bestmove(remaining)
+  File "/usr/local/lib/python3.12/site-packages/chess/engine.py", line 1761, in _bestmove
+    best = _parse_uci_bestmove(self.engine.board, arg)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/chess/engine.py", line 1902, in _parse_uci_bestmove
+    raise EngineError(err)
+chess.engine.EngineError: illegal uci: 'h5g6' in r2qr1k1/1p3p2/p1n4p/6pP/2p1P1n1/P1P3P1/3PPK2/1RBQ1BN1 w - - 0 18
+Game 2/2 finished | ERROR: TimeoutError: no answer from the engine at depth 1 within 2 s (call_timeout_s); the engine was closed | A (black): 0 moves | B (white): 0 moves | reason=aborted by error | seed=1008
+Evaluation finished with 1 failed game(s). Logs and summary saved to /repo/pair_c/runs/strength-sf14-fe-s16-c4.
+
+Results after 1 successful game attempts:
+  Terminal games scored: 1
+  Ply-capped attempts (unscored): 0
+  Failed games: 1
+  Player A: Pair A subgame PCFR+ (exact belief, sample 16, full effort, Stockfish 14.1 d1)
+    Wins: 1
+    Draws: 0
+    Losses: 0
+    Win rate: 100.0%
+    Score rate: 100.0%
+  Player B: Material OnePlyBot (particle tracker)
+    Wins: 0
+    Draws: 0
+    Losses: 1
+    Win rate: 0.0%
+    Score rate: 0.0%
+Results: /repo/pair_c/runs/strength-sf14-fe-s16-c4

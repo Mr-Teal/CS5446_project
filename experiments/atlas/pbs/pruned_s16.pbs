@@ -1,0 +1,49 @@
+#!/bin/bash
+#PBS -N fow-pruned-s16
+#PBS -q serial
+#PBS -l select=1:ncpus=1:mem=15gb
+#PBS -l walltime=24:00:00
+#PBS -j oe
+#PBS -o /hpctmp/tommy.21.31/fow/logs/
+#PBS -J 1-50
+
+# The control arm, on the same platform as the exact arm.
+#
+# This is no longer optional. The two platforms do not produce the same games:
+# comparing homelab and Atlas records of exact-s16 seed 1002 shows identical moves
+# for 57 plies, then a different move and a different result (70 plies against
+# 124). The cause is in the solver, not the belief -- all 142 tracker updates of
+# seed 1001 agree bit for bit on their non-timing fields, while PCFR+ regrets
+# differ in the last place of a double and regret matching's positive part turns
+# a difference of 1e-16 around zero into a visibly different policy. By ply 55 the
+# search had taken a different number of expansions (2 against 1, 935 nodes
+# against 909) and two plies later it played a different move.
+#
+# So a homelab pruned-s16 number cannot be paired against an Atlas exact-s16
+# number. Both arms have to be measured here.
+#
+# Memory is requested at the queue maximum even though this arm has never needed
+# it: round 1 recorded peak beliefs of 15,838 states against the exact arm's
+# 345,659, because the 10,000-history cap binds. Asking for 15gb costs nothing
+# the scheduler would otherwise give away and removes memory as an explanation
+# for any difference that shows up.
+set -u
+
+ROOT=/hpctmp/$USER/fow
+cd "$ROOT/repo"
+source "$ROOT/env.sh"
+
+CONFIG="$ROOT/experiment/pruned-s16-c${PBS_ARRAY_INDEX}.ini"
+echo "[$(date -Is)] task ${PBS_ARRAY_INDEX} on $(hostname)"
+grep -m1 "model name" /proc/cpuinfo
+python3 -c "import pair_a_prep.belief_tracker as t; print('tracker backend available:', t.BeliefTracker().backend)"
+
+OUT="$ROOT/repo/pair_c/runs/strength-pruned-s16-c${PBS_ARRAY_INDEX}"
+if [ -d "$OUT" ]; then
+    mv "$OUT" "${OUT/strength-/partial-}-$(date +%m%d-%H%M)"
+fi
+
+/usr/bin/time -v python -m pair_c.run_evaluation "$CONFIG"
+status=$?
+echo "[$(date -Is)] task ${PBS_ARRAY_INDEX} exit=$status"
+exit $status

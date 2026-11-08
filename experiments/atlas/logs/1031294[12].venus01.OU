@@ -1,0 +1,65 @@
+[2026-11-03T04:35:55+0800] task 12 on cnode-33-43-49
+model name	: AMD EPYC 7R13 Processor
+tracker backend available: native
+Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+Players: A=Pair A subgame PCFR+ (belief pruned to 10k histories, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+Game 1/2 starting | A (white) vs B (black) | seed=1023
+Game 1/2 finished | Material OnePlyBot (particle tracker) (black) won | A (white): 51 moves | B (black): 51 moves | reason=king_capture | seed=1023
+Game 2/2 starting | A (black) vs B (white) | seed=1024
+Game 2/2 finished | Material OnePlyBot (particle tracker) (white) won | A (black): 42 moves | B (white): 43 moves | reason=king_capture | seed=1024
+
+Results after 2 successful game attempts:
+  Terminal games scored: 2
+  Ply-capped attempts (unscored): 0
+  Failed games: 0
+  Player A: Pair A subgame PCFR+ (belief pruned to 10k histories, sample_size 16)
+    Wins: 0
+    Draws: 0
+    Losses: 2
+    Win rate: 0.0%
+    Score rate: 0.0%
+  Player B: Material OnePlyBot (particle tracker)
+    Wins: 2
+    Draws: 0
+    Losses: 0
+    Win rate: 100.0%
+    Score rate: 100.0%
+Results: /hpctmp/tommy.21.31/fow/repo/pair_c/runs/strength-pruned-s16-c12
+	Command being timed: "python -m pair_c.run_evaluation /hpctmp/tommy.21.31/fow/experiment/pruned-s16-c12.ini"
+	User time (seconds): 443.45
+	System time (seconds): 0.99
+	Percent of CPU this job got: 98%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 7:29.54
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 320680
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 609278
+	Voluntary context switches: 1933
+	Involuntary context switches: 404
+	Swaps: 0
+	File system inputs: 8
+	File system outputs: 1416
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+[2026-11-03T04:43:26+0800] task 12 exit=0
+      ======================================================================================
+     Resource Usage on 2026-11-03 04:43:26.857717:
+     JobId: 1031294[12].venus01  				 Project: _pbs_project_default 
+     Submission Host: atlas8-c01 
+     Exit Status: 0
+     NCPUs Requested: 1 				 NCPUs Used: 1
+     Memory Requested: 15gb 				 Memory Used: 207612kb 
+     Vmem Used: 873620kb
+     CPU Time Used: 00:06:02 
+     Walltime requested: 24:00:00 			 Walltime Used: 00:07:34
+     Submit Time:  Mon Nov  2 21:02:12 2026 		 Start Time: Tue Nov  3 04:35:52 2026 
+     End Time: Tue Nov  3 04:43:26 2026 
+     Execution Nodes Used: (cnode-33-43-49:ncpus=1:mem=15728640kb)
+     ======================================================================================

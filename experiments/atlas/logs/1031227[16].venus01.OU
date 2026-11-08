@@ -1,0 +1,17 @@
+[2026-11-02T19:20:13+0800] task 16 on cnode-33-43-49
+model name	: AMD EPYC 7R13 Processor
+tracker backend available: native
+      ======================================================================================
+     Resource Usage on 2026-11-02 19:20:14.967492:
+     JobId: 1031227[16].venus01  				 Project: _pbs_project_default 
+     Submission Host: atlas8-c01 
+     Exit Status: 271
+     NCPUs Requested: 1 				 NCPUs Used: 1
+     Memory Requested: 15gb 				 Memory Used: 0b 
+     Vmem Used: 0kb
+     CPU Time Used: 00:00:00 
+     Walltime requested: 24:00:00 			 Walltime Used: 00:00:03
+     Submit Time:  Mon Nov  2 19:17:02 2026 		 Start Time: Mon Nov  2 19:20:13 2026 
+     End Time: Mon Nov  2 19:20:14 2026 
+     Execution Nodes Used: (cnode-33-43-49:ncpus=1:mem=15728640kb)
+     ======================================================================================

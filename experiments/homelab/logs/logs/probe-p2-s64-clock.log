@@ -1,0 +1,23 @@
+Starting evaluation: 1 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=40
+Players: A=probe p2-s64-clock | B=Material OnePlyBot (particle tracker) | colors=alternating
+Game 1/1 starting | A (white) vs B (black) | seed=1001
+Game 1/1 finished | probe p2-s64-clock (white) won | A (white): 15 moves | B (black): 14 moves | reason=king_capture | seed=1001
+
+Results after 1 successful game attempts:
+  Terminal games scored: 1
+  Ply-capped attempts (unscored): 0
+  Failed games: 0
+  Player A: probe p2-s64-clock
+    Wins: 1
+    Draws: 0
+    Losses: 0
+    Win rate: 100.0%
+    Score rate: 100.0%
+  Player B: Material OnePlyBot (particle tracker)
+    Wins: 0
+    Draws: 0
+    Losses: 1
+    Win rate: 0.0%
+    Score rate: 0.0%
+Results: /repo/pair_c/runs/probe-p2-s64-clock
+    wall=37.83s maxrss=29864kB

@@ -1,0 +1,50 @@
+#!/bin/bash
+#PBS -N fow-guard-s16
+#PBS -q serial
+#PBS -l select=1:ncpus=1:mem=15gb
+#PBS -l walltime=72:00:00
+#PBS -j oe
+#PBS -o /hpctmp/tommy.21.31/fow/logs/
+#PBS -J 1-50
+
+# The arm that tests this project's own recommendation.
+#
+# Round one established the dilemma: exact belief scores 0.635 but loses 63 games
+# in 100 to the memory cap, and pruning to 10,000 histories completes every game
+# but scores 0.481, a paired difference of 0.210 with a 95 percent interval of
+# [0.048, 0.387]. The measured belief distribution says the dilemma is false. Per
+# turn the tracker holds a median of 188 states and a 99th percentile of 451,806;
+# the cost that kills games is concentrated in well under one turn in a hundred.
+# A cap keyed on histories cannot see that, because history counts pass 10,000 in
+# the opening and reach 1e21 by ply 100, so the existing pruned arm pays for
+# drift on every turn to buy safety on a few.
+#
+# guard-s16 keys on the state count instead and sets the threshold at 1,000,000,
+# above the 99th percentile and at the bound Obscuro states for its own possible
+# sets. Below it the belief is the exact one, untouched. The prediction being
+# tested is that this arm scores with exact-s16 and completes with pruned-s16.
+#
+# Walltime is 72 h rather than 24 h because a prune at this threshold replays a
+# million sampled histories move by move to rebuild the DAG, which is minutes,
+# and because the games that reach the threshold at all are the long ones whose
+# belief updates already cost minutes each.
+set -u
+
+ROOT=/hpctmp/$USER/fow
+cd "$ROOT/repo"
+source "$ROOT/env.sh"
+
+CONFIG="$ROOT/experiment/guard-s16-c${PBS_ARRAY_INDEX}.ini"
+echo "[$(date -Is)] task ${PBS_ARRAY_INDEX} on $(hostname)"
+grep -m1 "model name" /proc/cpuinfo
+python3 -c "import pair_a_prep.belief_tracker as t; print('tracker backend available:', t.BeliefTracker().backend)"
+
+OUT="$ROOT/repo/pair_c/runs/strength-guard-s16-c${PBS_ARRAY_INDEX}"
+if [ -d "$OUT" ]; then
+    mv "$OUT" "${OUT/strength-/partial-}-$(date +%m%d-%H%M)"
+fi
+
+/usr/bin/time -v python -m pair_c.run_evaluation "$CONFIG"
+status=$?
+echo "[$(date -Is)] task ${PBS_ARRAY_INDEX} exit=$status"
+exit $status

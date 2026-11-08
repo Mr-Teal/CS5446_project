@@ -1,0 +1,67 @@
+[2026-11-03T08:53:05+0800] task 23 on cnode-33-43-49
+model name	: AMD EPYC 7R13 Processor
+tracker backend available: native
+Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+Players: A=Pair A subgame PCFR+ (belief tail-guarded at 300,000 states, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+Game 1/2 starting | A (white) vs B (black) | seed=1045
+Game 1/2 finished | ERROR: TrackerLost: no position fits black's view at ply 14 | A (white): 0 moves | B (black): 0 moves | reason=aborted by error | seed=1045
+Game 2/2 starting | A (black) vs B (white) | seed=1046
+Game 2/2 finished | Pair A subgame PCFR+ (belief tail-guarded at 300,000 states, sample_size 16) (black) won | A (black): 17 moves | B (white): 17 moves | reason=king_capture | seed=1046
+
+Results after 1 successful game attempts:
+  Terminal games scored: 1
+  Ply-capped attempts (unscored): 0
+  Failed games: 1
+  Player A: Pair A subgame PCFR+ (belief tail-guarded at 300,000 states, sample_size 16)
+    Wins: 1
+    Draws: 0
+    Losses: 0
+    Win rate: 100.0%
+    Score rate: 100.0%
+  Player B: Material OnePlyBot (particle tracker)
+    Wins: 0
+    Draws: 0
+    Losses: 1
+    Win rate: 0.0%
+    Score rate: 0.0%
+Results: /hpctmp/tommy.21.31/fow/repo/pair_c/runs/strength-guard-s16-c23
+Evaluation finished with 1 failed game(s). Logs and summary saved to /hpctmp/tommy.21.31/fow/repo/pair_c/runs/strength-guard-s16-c23.
+Command exited with non-zero status 1
+	Command being timed: "python -m pair_c.run_evaluation /hpctmp/tommy.21.31/fow/experiment/guard-s16-c23.ini"
+	User time (seconds): 271.95
+	System time (seconds): 3.09
+	Percent of CPU this job got: 97%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 4:40.98
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2642488
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 1682272
+	Voluntary context switches: 1998
+	Involuntary context switches: 510
+	Swaps: 0
+	File system inputs: 8
+	File system outputs: 384
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 1
+[2026-11-03T08:57:47+0800] task 23 exit=1
+      ======================================================================================
+     Resource Usage on 2026-11-03 08:57:48.283659:
+     JobId: 1031302[23].venus01  				 Project: _pbs_project_default 
+     Submission Host: atlas8-c01 
+     Exit Status: 1
+     NCPUs Requested: 1 				 NCPUs Used: 1
+     Memory Requested: 15gb 				 Memory Used: 2495620kb 
+     Vmem Used: 3101956kb
+     CPU Time Used: 00:03:19 
+     Walltime requested: 72:00:00 			 Walltime Used: 00:04:45
+     Submit Time:  Mon Nov  2 21:14:19 2026 		 Start Time: Tue Nov  3 08:53:02 2026 
+     End Time: Tue Nov  3 08:57:48 2026 
+     Execution Nodes Used: (cnode-33-43-49:ncpus=1:mem=15728640kb)
+     ======================================================================================

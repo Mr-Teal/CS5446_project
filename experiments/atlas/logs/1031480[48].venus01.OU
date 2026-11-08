@@ -1,0 +1,65 @@
+[2026-11-05T17:17:57+0800] guard-fe-s16 task 48 on cnode-33-43-49 code=repo-mech@cca2fe2
+model name	: AMD EPYC 7R13 Processor
+blended gadget control available: True
+Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+Players: A=Pair A subgame PCFR+ (tail-guarded belief 300000 states, sample 16, full effort) | B=Material OnePlyBot (particle tracker) | colors=alternating
+Game 1/2 starting | A (white) vs B (black) | seed=1095
+Game 1/2 finished | Material OnePlyBot (particle tracker) (black) won | A (white): 59 moves | B (black): 59 moves | reason=king_capture | seed=1095
+Game 2/2 starting | A (black) vs B (white) | seed=1096
+Game 2/2 finished | Material OnePlyBot (particle tracker) (white) won | A (black): 56 moves | B (white): 57 moves | reason=king_capture | seed=1096
+
+Results after 2 successful game attempts:
+  Terminal games scored: 2
+  Ply-capped attempts (unscored): 0
+  Failed games: 0
+  Player A: Pair A subgame PCFR+ (tail-guarded belief 300000 states, sample 16, full effort)
+    Wins: 0
+    Draws: 0
+    Losses: 2
+    Win rate: 0.0%
+    Score rate: 0.0%
+  Player B: Material OnePlyBot (particle tracker)
+    Wins: 2
+    Draws: 0
+    Losses: 0
+    Win rate: 100.0%
+    Score rate: 100.0%
+Results: /hpctmp/tommy.21.31/fow/repo-mech/pair_c/runs/strength-guard-fe-s16-c48
+	Command being timed: "python -m pair_c.run_evaluation /hpctmp/tommy.21.31/fow/experiment/guard-fe-s16-c48.ini"
+	User time (seconds): 23518.16
+	System time (seconds): 275.51
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 6:36:54
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 8151252
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 293257659
+	Voluntary context switches: 1623
+	Involuntary context switches: 12274
+	Swaps: 0
+	File system inputs: 8
+	File system outputs: 2120
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+[2026-11-05T23:54:56+0800] guard-fe-s16 task 48 exit=0
+      ======================================================================================
+     Resource Usage on 2026-11-05 23:54:56.997251:
+     JobId: 1031480[48].venus01  				 Project: _pbs_project_default 
+     Submission Host: atlas8-c01 
+     Exit Status: 0
+     NCPUs Requested: 1 				 NCPUs Used: 1
+     Memory Requested: 15gb 				 Memory Used: 8134692kb 
+     Vmem Used: 8729700kb
+     CPU Time Used: 06:34:43 
+     Walltime requested: 72:00:00 			 Walltime Used: 06:37:03
+     Submit Time:  Tue Nov  3 02:40:50 2026 		 Start Time: Thu Nov  5 17:17:53 2026 
+     End Time: Thu Nov  5 23:54:56 2026 
+     Execution Nodes Used: (cnode-33-43-49:ncpus=1:mem=15728640kb)
+     ======================================================================================

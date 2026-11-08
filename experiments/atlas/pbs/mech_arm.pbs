@@ -1,0 +1,47 @@
+#!/bin/bash
+#PBS -N fow-mech
+#PBS -q serial
+#PBS -l select=1:ncpus=1:mem=15gb
+#PBS -l walltime=72:00:00
+#PBS -j oe
+#PBS -o /hpctmp/tommy.21.31/fow/logs/
+#PBS -J 1-50
+
+# Mechanism arms on the second platform: a replication, not extra games.
+#
+# Submit once per arm:  qsub -v ARM=fe-s16 mech_arm.pbs
+#                       qsub -v ARM=guard-fe-s16 mech_arm.pbs
+#
+# Code is repo-mech, a copy of pair-a/obscuro-mechanisms at cca2fe2 (blended
+# Resolve/Maxmargin gadget, anytime fallback, position-distinct fresh roots,
+# linear Nash gap). The running three-way reads repo/ live, so this copy leaves
+# it untouched. Atlas results pair only with Atlas results: identical seeds
+# diverge across platforms (verification log item 17), so these arms replicate
+# the homelab mechanism arms rather than adding games to them.
+#
+# guard-fe-s16 here uses max_states 300000, sized for this 15 GiB cgroup the way
+# 96000 is sized for the homelab 4500m container (item 20). fe-s16 carries the
+# exact belief and will be killed on the long games, as the exact-s16 baseline was.
+set -u
+
+: "${ARM:?submit with -v ARM=fe-s16 or -v ARM=guard-fe-s16}"
+
+ROOT=/hpctmp/$USER/fow
+cd "$ROOT/repo-mech"
+source "$ROOT/env.sh"
+export PYTHONPATH=$ROOT/repo-mech/pair_b/src:$ROOT/experiment
+
+CONFIG="$ROOT/experiment/${ARM}-c${PBS_ARRAY_INDEX}.ini"
+echo "[$(date -Is)] ${ARM} task ${PBS_ARRAY_INDEX} on $(hostname) code=repo-mech@cca2fe2"
+grep -m1 "model name" /proc/cpuinfo
+python -c "import pair_a_prep.subgame_boundaries as b; print(\"blended gadget control available:\", hasattr(b, \"BlendedGadgetControl\"))"
+
+OUT="$ROOT/repo-mech/pair_c/runs/strength-${ARM}-c${PBS_ARRAY_INDEX}"
+if [ -d "$OUT" ]; then
+    mv "$OUT" "${OUT/strength-/partial-}-$(date +%m%d-%H%M)"
+fi
+
+/usr/bin/time -v python -m pair_c.run_evaluation "$CONFIG"
+status=$?
+echo "[$(date -Is)] ${ARM} task ${PBS_ARRAY_INDEX} exit=$status"
+exit $status

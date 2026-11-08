@@ -1,0 +1,19 @@
+[2026-11-04T07:16:49+0800] label runner tests on cnode-33-43-49 code=repo-labels2 (30b5753 + dead-game guard + value clamp)
+files: pair_a_prep/tests/test_label_run.py pair_a_prep/tests/test_chess_subgame_agent.py 
+.....................                                                    [100%]
+21 passed in 20.49s
+[2026-11-04T07:17:18+0800] tests exit=0
+      ======================================================================================
+     Resource Usage on 2026-11-04 07:17:18.315853:
+     JobId: 1032521.venus01  				 Project: _pbs_project_default 
+     Submission Host: atlas8-c01 
+     Exit Status: 0
+     NCPUs Requested: 1 				 NCPUs Used: 1
+     Memory Requested: 6gb 				 Memory Used: 0b 
+     Vmem Used: 734292kb
+     CPU Time Used: 00:00:00 
+     Walltime requested: 01:00:00 			 Walltime Used: 00:00:40
+     Submit Time:  Wed Nov  4 07:05:51 2026 		 Start Time: Wed Nov  4 07:16:38 2026 
+     End Time: Wed Nov  4 07:17:18 2026 
+     Execution Nodes Used: (cnode-33-43-49:ncpus=1:mem=6291456kb)
+     ======================================================================================

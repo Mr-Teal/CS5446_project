@@ -1,0 +1,56 @@
+#!/bin/bash
+#PBS -N fow-clock
+#PBS -q serial
+#PBS -l select=1:ncpus=1:mem=15gb
+#PBS -l walltime=72:00:00
+#PBS -j oe
+#PBS -o /hpctmp/tommy.21.31/fow/logs/
+#PBS -J 1-50
+
+# A clock arm, run without the truncation that compromises the homelab series.
+#
+# Submit once per arm:  qsub -v ARM=clock-s16 clock_arm.pbs
+#                       qsub -v ARM=clock-s64 clock_arm.pbs
+#
+# Why re-run these here at all. The homelab driver cuts a chunk off at 1,800 s,
+# because one seed there (clock-s16-c8, seed 1015) ran 4 h 38 m without finishing
+# a game and stalled the whole sequential run. That cut-off removes long games
+# preferentially, and long games are exactly where the clock arm is supposed to
+# differ from the baseline -- a search that plays better survives longer, and the
+# tracker's cost per update rises steeply with the ply (one ply-102 update
+# measured 1,847 s). So the homelab figures can only be read as a lower bound on
+# game length. Here each chunk gets its own task with a 72 h walltime and nothing
+# truncates it.
+#
+# The baseline is the Atlas exact-s16 arm, not the homelab one. Those two are not
+# the same games: identical seeds diverge across platforms once PCFR+'s last-place
+# floating-point differences meet regret matching's positive part, which on seed
+# 1002 changed the search shape at ply 55 and the move played at ply 57. Pairing
+# only means anything within a platform.
+#
+# Memory is the queue maximum and is still expected to bind: this arm carries the
+# same exact belief as the baseline, and four of the first seven baseline chunks
+# were killed at 15 GiB. Both arms meeting the same wall is what keeps the paired
+# comparison honest on the seeds that do survive.
+set -u
+
+: "${ARM:?submit with -v ARM=clock-s16 or -v ARM=clock-s64}"
+
+ROOT=/hpctmp/$USER/fow
+cd "$ROOT/repo"
+source "$ROOT/env.sh"
+
+CONFIG="$ROOT/experiment/${ARM}-c${PBS_ARRAY_INDEX}.ini"
+echo "[$(date -Is)] ${ARM} task ${PBS_ARRAY_INDEX} on $(hostname)"
+grep -m1 "model name" /proc/cpuinfo
+python3 -c "import pair_a_prep.belief_tracker as t; print('tracker backend available:', t.BeliefTracker().backend)"
+
+OUT="$ROOT/repo/pair_c/runs/strength-${ARM}-c${PBS_ARRAY_INDEX}"
+if [ -d "$OUT" ]; then
+    mv "$OUT" "${OUT/strength-/partial-}-$(date +%m%d-%H%M)"
+fi
+
+/usr/bin/time -v python -m pair_c.run_evaluation "$CONFIG"
+status=$?
+echo "[$(date -Is)] ${ARM} task ${PBS_ARRAY_INDEX} exit=$status"
+exit $status

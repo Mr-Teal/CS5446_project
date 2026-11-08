@@ -1,0 +1,66 @@
+[2026-11-05T10:18:12+0800] labels labels-01 task 10 on cnode-33-43-49 code=repo-labels2@87b3089 games=24 seed=15001 budget_ms=5000 max_states=96000 out=/hpctmp/tommy.21.31/fow/repo-labels/pair_c/runs/labels-01/task-10
+model name	: AMD EPYC 7R13 Processor
+label runner importable
+game 0: part-0000.jsonl exists, skipping
+game 1: part-0001.jsonl exists, skipping
+game 2: part-0002.jsonl exists, skipping
+game 3: part-0003.jsonl exists, skipping
+game 4: part-0004.jsonl exists, skipping
+game 5: part-0005.jsonl exists, skipping
+game 6: part-0006.jsonl exists, skipping
+game 7: part-0007.jsonl exists, skipping
+game 8: part-0008.jsonl exists, skipping
+game 9: part-0009.jsonl exists, skipping
+game 10: seed 15021, 46 plies, 43 records, 0 fallbacks, 0 guards, 192.0 s
+game 11: seed 15023, 51 plies, 47 records, 1 fallbacks, 0 guards, 228.0 s
+game 12: seed 15025, 62 plies, 55 records, 1 fallbacks, 4 guards, 872.2 s
+game 13: seed 15027, 13 plies, 8 records, 0 fallbacks, 0 guards, 54.0 s
+game 14: seed 15029, 82 plies, 76 records, 1 fallbacks, 1 guards, 506.1 s
+game 15: seed 15031, 66 plies, 63 records, 1 fallbacks, 2 guards, 813.9 s
+game 16: seed 15033, 59 plies, 52 records, 4 fallbacks, 17 guards, 2643.7 s; FAILED BeliefBudgetError: no_candidate: stopped by None; no descendants of retained support; rebuild from the private stream
+game 17: seed 15035, 44 plies, 40 records, 0 fallbacks, 0 guards, 177.7 s
+game 18: seed 15037, 47 plies, 40 records, 0 fallbacks, 5 guards, 978.5 s
+game 19: seed 15039, 42 plies, 36 records, 1 fallbacks, 0 guards, 169.0 s
+game 20: seed 15041, 62 plies, 54 records, 0 fallbacks, 0 guards, 241.2 s
+game 21: seed 15043, 58 plies, 48 records, 3 fallbacks, 4 guards, 1004.5 s
+game 22: seed 15045, 52 plies, 44 records, 0 fallbacks, 1 guards, 429.5 s
+game 23: seed 15047, 107 plies, 103 records, 2 fallbacks, 7 guards, 1719.1 s
+24 games (1 failed), 1210 records, 22 fallbacks, 69 guards; validation errors: 0
+	Command being timed: "python -m pair_a_prep.label_run --out /hpctmp/tommy.21.31/fow/repo-labels/pair_c/runs/labels-01/task-10 --games 24 --seed 15001 --evaluator material --time-budget-ms 5000 --max-plies 200 --max-states 96000 --sample-size 16 --commit 87b3089"
+	User time (seconds): 9992.85
+	System time (seconds): 31.65
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:47:35
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3390316
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 27160027
+	Voluntary context switches: 2067
+	Involuntary context switches: 6287
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 61216
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+[2026-11-05T13:05:57+0800] labels labels-01 task 10 exit=0
+      ======================================================================================
+     Resource Usage on 2026-11-05 13:05:57.994112:
+     JobId: 1032737.venus01  				 Project: _pbs_project_default 
+     Submission Host: atlas8-c01 
+     Exit Status: 0
+     NCPUs Requested: 1 				 NCPUs Used: 1
+     Memory Requested: 15gb 				 Memory Used: 3403580kb 
+     Vmem Used: 3985492kb
+     CPU Time Used: 02:46:25 
+     Walltime requested: 72:00:00 			 Walltime Used: 02:48:00
+     Submit Time:  Wed Nov  4 11:03:48 2026 		 Start Time: Thu Nov  5 10:17:57 2026 
+     End Time: Thu Nov  5 13:05:57 2026 
+     Execution Nodes Used: (cnode-33-43-49:ncpus=1:mem=15728640kb)
+     ======================================================================================

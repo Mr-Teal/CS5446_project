@@ -1,0 +1,44 @@
+[2026-11-02T19:25:40+0800] task 30 on cnode-33-43-49
+model name	: AMD EPYC 7R13 Processor
+tracker backend available: native
+Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+Evaluation failed: ModuleNotFoundError: No module named 'scipy'
+Command exited with non-zero status 1
+	Command being timed: "python -m pair_c.run_evaluation /hpctmp/tommy.21.31/fow/experiment/exact-s16-c30.ini"
+	User time (seconds): 0.20
+	System time (seconds): 0.05
+	Percent of CPU this job got: 19%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:01.35
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 31580
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 8171
+	Voluntary context switches: 347
+	Involuntary context switches: 0
+	Swaps: 0
+	File system inputs: 8
+	File system outputs: 16
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 1
+[2026-11-02T19:25:43+0800] task 30 exit=1
+      ======================================================================================
+     Resource Usage on 2026-11-02 19:25:43.757056:
+     JobId: 1031230[30].venus01  				 Project: _pbs_project_default 
+     Submission Host: atlas8-c01 
+     Exit Status: 1
+     NCPUs Requested: 1 				 NCPUs Used: 1
+     Memory Requested: 15gb 				 Memory Used: 0b 
+     Vmem Used: 0kb
+     CPU Time Used: 00:00:00 
+     Walltime requested: 24:00:00 			 Walltime Used: 00:00:05
+     Submit Time:  Mon Nov  2 19:19:58 2026 		 Start Time: Mon Nov  2 19:25:38 2026 
+     End Time: Mon Nov  2 19:25:43 2026 
+     Execution Nodes Used: (cnode-33-43-49:ncpus=1:mem=15728640kb)
+     ======================================================================================

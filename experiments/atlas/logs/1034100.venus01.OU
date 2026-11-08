@@ -1,0 +1,66 @@
+[2026-11-05T14:29:58+0800] labels labels-01 task 5 on cnode-33-43-49 code=repo-labels2@87b3089 games=24 seed=10001 budget_ms=5000 max_states=96000 out=/hpctmp/tommy.21.31/fow/repo-labels/pair_c/runs/labels-01/task-5
+model name	: AMD EPYC 7R13 Processor
+label runner importable
+game 0: part-0000.jsonl exists, skipping
+game 1: part-0001.jsonl exists, skipping
+game 2: part-0002.jsonl exists, skipping
+game 3: part-0003.jsonl exists, skipping
+game 4: part-0004.jsonl exists, skipping
+game 5: part-0005.jsonl exists, skipping
+game 6: part-0006.jsonl exists, skipping
+game 7: part-0007.jsonl exists, skipping
+game 8: part-0008.jsonl exists, skipping
+game 9: part-0009.jsonl exists, skipping
+game 10: part-0010.jsonl exists, skipping
+game 11: part-0011.jsonl exists, skipping
+game 12: part-0012.jsonl exists, skipping
+game 13: part-0013.jsonl exists, skipping
+game 14: part-0014.jsonl exists, skipping
+game 15: part-0015.jsonl exists, skipping
+game 16: part-0016.jsonl exists, skipping
+game 17: part-0017.jsonl exists, skipping
+game 18: part-0018.jsonl exists, skipping
+game 19: part-0019.jsonl exists, skipping
+game 20: part-0020.jsonl exists, skipping
+game 21: part-0021.jsonl exists, skipping
+game 22: seed 10045, 121 plies, 111 records, 6 fallbacks, 19 guards, 3890.0 s
+game 23: seed 10047, 100 plies, 93 records, 2 fallbacks, 15 guards, 3036.4 s
+24 games (0 failed), 1820 records, 40 fallbacks, 218 guards; validation errors: 0
+	Command being timed: "python -m pair_a_prep.label_run --out /hpctmp/tommy.21.31/fow/repo-labels/pair_c/runs/labels-01/task-5 --games 24 --seed 10001 --evaluator material --time-budget-ms 5000 --max-plies 200 --max-states 96000 --sample-size 16 --commit 87b3089"
+	User time (seconds): 6912.39
+	System time (seconds): 25.51
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:55:53
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2378016
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 27670236
+	Voluntary context switches: 1494
+	Involuntary context switches: 1828
+	Swaps: 0
+	File system inputs: 183848
+	File system outputs: 25952
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+[2026-11-05T16:26:41+0800] labels labels-01 task 5 exit=0
+      ======================================================================================
+     Resource Usage on 2026-11-05 16:26:41.677627:
+     JobId: 1034100.venus01  				 Project: _pbs_project_default 
+     Submission Host: atlas8-c01 
+     Exit Status: 0
+     NCPUs Requested: 1 				 NCPUs Used: 1
+     Memory Requested: 15gb 				 Memory Used: 2365712kb 
+     Vmem Used: 2777852kb
+     CPU Time Used: 01:53:59 
+     Walltime requested: 72:00:00 			 Walltime Used: 01:56:59
+     Submit Time:  Thu Nov  5 14:29:32 2026 		 Start Time: Thu Nov  5 14:29:42 2026 
+     End Time: Thu Nov  5 16:26:41 2026 
+     Execution Nodes Used: (cnode-33-43-49:ncpus=1:mem=15728640kb)
+     ======================================================================================

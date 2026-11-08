@@ -1,0 +1,25 @@
+Starting evaluation: 2 games | rules=teal-rules-adapter | time budget=5000 ms per move | max plies=200
+Players: A=Pair A subgame PCFR+ (belief pruned to 10k histories, sample_size 16) | B=Material OnePlyBot (particle tracker) | colors=alternating
+Game 1/2 starting | A (white) vs B (black) | seed=1089
+Game 1/2 finished | ERROR: BeliefBudgetError: no_candidate: stopped by None; no descendants of retained support; rebuild from the private stream | A (white): 0 moves | B (black): 0 moves | reason=aborted by error | seed=1089
+Game 2/2 starting | A (black) vs B (white) | seed=1090
+Game 2/2 finished | Pair A subgame PCFR+ (belief pruned to 10k histories, sample_size 16) (black) won | A (black): 45 moves | B (white): 45 moves | reason=king_capture | seed=1090
+Evaluation finished with 1 failed game(s). Logs and summary saved to /repo/pair_c/runs/strength-pruned-s16-c45.
+
+Results after 1 successful game attempts:
+  Terminal games scored: 1
+  Ply-capped attempts (unscored): 0
+  Failed games: 1
+  Player A: Pair A subgame PCFR+ (belief pruned to 10k histories, sample_size 16)
+    Wins: 1
+    Draws: 0
+    Losses: 0
+    Win rate: 100.0%
+    Score rate: 100.0%
+  Player B: Material OnePlyBot (particle tracker)
+    Wins: 0
+    Draws: 0
+    Losses: 1
+    Win rate: 0.0%
+    Score rate: 0.0%
+Results: /repo/pair_c/runs/strength-pruned-s16-c45
