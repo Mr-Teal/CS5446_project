@@ -13,7 +13,9 @@ Implements pair_b/docs/label_definitions.md with the sampled subgame agent:
 One part file per game (part-NNNN.jsonl) so a killed run keeps its finished
 games, progress.jsonl as it goes, manifest.json at the end, then Pair B's own
 validator over the folder. Running again with the same output skips games whose
-part file exists.
+part file exists. A game that dies (the guarded tracker finding no candidate
+after a prune, a contract violation) is written as far as it got, logged with
+its error in progress.jsonl, and the run continues.
 
 The agent's clock is the move budget as in play; tracking is outside it, as in
 the paper. A clocked run is therefore not bit-reproducible; --no-clock fixes the
@@ -134,22 +136,35 @@ def collect(out, *, games, seed, evaluator, config, time_budget_ms, max_states, 
         if hasattr(evaluator, "new_game"):
             evaluator.new_game()
         started = perf_counter()
-        result = play_game(RulesReferee(initial_fen), agents, trackers,
-                           MatchConfig(time_budget_ms, max_plies, game_seed, RULES_ID,
-                                       evaluator.name, getattr(evaluator, "depth", 0)))
+        result, error = None, None
+        try:
+            result = play_game(RulesReferee(initial_fen), agents, trackers,
+                               MatchConfig(time_budget_ms, max_plies, game_seed, RULES_ID,
+                                           evaluator.name, getattr(evaluator, "depth", 0)))
+        except Exception as exc:
+            # One dead game must not end the run. The tail guard can prune the
+            # true history, after which an observation may match no retained
+            # hypothesis (BeliefBudgetError from the tracker); whatever the cause,
+            # the decisions labelled before it are labels, the part file is still
+            # written so a resume skips this game, and the error goes to progress.
+            error = f"{type(exc).__name__}: {exc}"
         write_records(part, records)
+        # Every ply is exactly one opening move, one label or one fallback.
+        plies = (len(result.plies) if result is not None else
+                 sum(agent.opening_moves + agent.fallbacks for agent in agents.values()) + len(records))
         summary = dict(index=index, game_id=game_id, seed=game_seed, opening_plies=opening,
-                       plies=len(result.plies), records=len(records),
+                       plies=plies, records=len(records),
                        fallbacks=sum(agent.fallbacks for agent in agents.values()),
                        guards=sum(tracker.guards for tracker in trackers.values()),
-                       winner=None if result.stopped_at_ply_limit else result.winner,
-                       stopped_at_ply_limit=result.stopped_at_ply_limit,
-                       wall_s=round(perf_counter()-started, 1), part=part.name)
+                       winner=None if result is None or result.stopped_at_ply_limit else result.winner,
+                       stopped_at_ply_limit=result is not None and result.stopped_at_ply_limit,
+                       wall_s=round(perf_counter()-started, 1), part=part.name, error=error)
         summaries.append(summary)
         with (out / "progress.jsonl").open("a", encoding="utf-8") as stream:
             stream.write(json.dumps(summary) + "\n")
         log(f"game {index}: seed {game_seed}, {summary['plies']} plies, {summary['records']} records, "
-            f"{summary['fallbacks']} fallbacks, {summary['guards']} guards, {summary['wall_s']} s")
+            f"{summary['fallbacks']} fallbacks, {summary['guards']} guards, {summary['wall_s']} s"
+            + (f"; FAILED {error}" if error else ""))
     return identity, proto, summaries
 
 
@@ -206,12 +221,13 @@ def main(argv=None):
                     games=len(progress), records=sum(row["records"] for row in progress),
                     fallbacks=sum(row["fallbacks"] for row in progress),
                     guards=sum(row["guards"] for row in progress),
+                    failed=sum(1 for row in progress if row.get("error")),
                     validation=dict(files=report.files, errors=len(report.errors),
                                     warnings=len(getattr(report, "warnings", []))),
                     **git_metadata(Path(__file__).resolve().parents[1]))
     (args.out / "manifest.json").write_text(json.dumps(manifest, indent=2, default=str) + "\n", encoding="utf-8")
-    print(f"{manifest['games']} games, {manifest['records']} records, {manifest['fallbacks']} fallbacks, "
-          f"{manifest['guards']} guards; validation errors: {len(report.errors)}")
+    print(f"{manifest['games']} games ({manifest['failed']} failed), {manifest['records']} records, "
+          f"{manifest['fallbacks']} fallbacks, {manifest['guards']} guards; validation errors: {len(report.errors)}")
     for error in report.errors[:10]:
         print("  error:", error)
     return 1 if report.errors else 0
