@@ -1,9 +1,13 @@
 """The handoff must preserve public-start/rule boundaries and independent state."""
 
+import hashlib
+from math import isfinite
+
+import chess
 import pytest
 
 from pairb.rules import pick_rules
-from pair_a_prep.evaluation_factories import SearchFactory, HistoryTrackerFactory
+from pair_a_prep.evaluation_factories import SearchFactory, HistoryTrackerFactory, _load_leaf
 from pair_a_prep.tests.test_chess_search import KINGS, turn_after
 
 
@@ -72,3 +76,32 @@ def test_retained_factory_reuses_and_restores_initial_depth_on_later_turn():
         assert min(len(path)-1 for path in agent.last_tree.frontiers) >= 3
     finally:
         agent.close()
+
+
+@pytest.mark.parametrize("settings, error", [
+    ({"leaf_evaluator": "belief_network"}, ValueError),
+    ({"leaf_evaluator": "belief_network", "checkpoint_path": "/no/such/best.pt"}, FileNotFoundError),
+    ({"leaf_evaluator": "belief_network", "checkpoint_path": "/no/such/best.pt", "leaf_depth": "1"}, ValueError)])
+def test_belief_network_leaf_rejects_bad_settings_before_loading(settings, error):
+    with pytest.raises(error):
+        _load_leaf(settings)
+
+
+def test_belief_network_leaf_loads_checkpoint_and_records_its_identity(tmp_path):
+    torch = pytest.importorskip("torch")
+    from pairb.belief_data import ENCODING
+    from pairb.belief_net import BeliefNetwork
+    net = BeliefNetwork(blocks=1, channels=8, embed=16, use_d1=False)
+    path = tmp_path / "belief-test" / "best.pt"
+    path.parent.mkdir()
+    torch.save({"state_dict": net.state_dict(), "config": net.config, "encoding": ENCODING}, path)
+    leaf = _load_leaf({"leaf_evaluator": "belief_network", "checkpoint_path": str(path), "device": "cpu"})
+    try:
+        board = chess.Board()
+        values = leaf.evaluate_children(board.fen())
+        assert set(values) == {move.uci() for move in board.legal_moves} and len(values) == 20
+        assert all(isinstance(v, float) and isfinite(v) for v in values.values())
+        assert leaf.handoff_identity["kind"] == "belief_network"
+        assert leaf.handoff_identity["checkpoint_sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
+    finally:
+        leaf.close()

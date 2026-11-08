@@ -93,8 +93,33 @@ def _load_leaf(settings):
             raise ValueError("the Material handoff requires leaf_depth=0; search depth is separate")
         from pairb.material import MaterialEvaluator
         return MaterialEvaluator()
+    if kind == "belief_network":
+        if int(settings.get("leaf_depth", "0")) != 0:
+            raise ValueError("the belief network handoff requires leaf_depth=0; search depth is separate")
+        setting = settings.get("checkpoint_path", "").strip()
+        if not setting:
+            raise ValueError("leaf_evaluator=belief_network requires checkpoint_path")
+        path = Path(setting).expanduser()
+        if not path.is_file():
+            raise FileNotFoundError("belief network checkpoint not found: "+setting)
+        hasher = sha256()
+        with path.open("rb") as stream:
+            for chunk in iter(lambda: stream.read(1024*1024), b""):
+                hasher.update(chunk)
+        digest = hasher.hexdigest()
+        from pairb.belief_evaluator import BeliefNetworkEvaluator
+        leaf = BeliefNetworkEvaluator.from_checkpoint(path, device=settings.get("device", "cpu").strip(),
+            stockfish_path=settings.get("stockfish_path", "stockfish").strip())
+        try:
+            leaf.provenance_checkpoint_path = str(path)
+            leaf.handoff_identity = dict(kind="belief_network", checkpoint_sha256=digest,
+                device=str(leaf.device), use_d1=bool(leaf.net.use_d1), name=leaf.name)
+            return leaf
+        except Exception:
+            leaf.close()
+            raise
     if kind != "stockfish":
-        raise ValueError("leaf_evaluator must be material or stockfish")
+        raise ValueError("leaf_evaluator must be material, stockfish or belief_network")
     depth = _positive(settings, "leaf_depth", 1)
     hash_mb = _positive(settings, "stockfish_hash_mb", 16)
     per_call = _boolean(settings, "stockfish_new_game_each_call", True)
