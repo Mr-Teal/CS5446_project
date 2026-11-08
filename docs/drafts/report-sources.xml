@@ -1,8 +1,9 @@
-<?xml version='1.0' encoding='utf-8'?>
-<b:Sources xmlns:b="http://schemas.microsoft.com/office/word/2004/10/bibliography">
+<?xml version='1.0' encoding='UTF-8'?>
+<b:Sources xmlns:b="http://schemas.openxmlformats.org/officeDocument/2006/bibliography" SelectedStyle="/Vancouver.XSL" StyleName="Vancouver">
   <b:Source>
-    <b:Tag>CS5446_d9d6c3bcfcf6</b:Tag>
+    <b:Tag>zs21</b:Tag>
     <b:SourceType>Report</b:SourceType>
+    <b:Guid>{27EA1F72-1067-5C89-B57E-5B07326950C1}</b:Guid>
     <b:Author>
       <b:Author>
         <b:NameList>
@@ -20,11 +21,12 @@
     <b:Title>Subgame solving without common knowledge</b:Title>
     <b:Year>2021</b:Year>
     <b:URL>https://arxiv.org/abs/2106.06068v2</b:URL>
-    <b:Comments>Report reference 1. Original citation (including all provenance URLs): Zhang BH, Sandholm T. Subgame solving without common knowledge [Internet]. arXiv:2106.06068v2; 2021 Dec 3 [cited 2026 Oct 26]. Available from: [https://arxiv.org/abs/2106.06068v2](https://arxiv.org/abs/2106.06068v2).. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
+    <b:Comments>1. Zhang BH, Sandholm T. Subgame solving without common knowledge. arXiv:2106.06068v2 [Internet]. 2021 Dec 3 [cited 2026 Nov 8]. Available from: https://arxiv.org/abs/2106.06068v2.</b:Comments>
   </b:Source>
   <b:Source>
-    <b:Tag>CS5446_627b3256f446</b:Tag>
+    <b:Tag>obscuro</b:Tag>
     <b:SourceType>Report</b:SourceType>
+    <b:Guid>{6C95CFB2-A22B-5066-9568-29C8908A3E84}</b:Guid>
     <b:Author>
       <b:Author>
         <b:NameList>
@@ -42,76 +44,77 @@
     <b:Title>General search techniques without common knowledge for imperfect-information games, and application to superhuman Fog of War chess</b:Title>
     <b:Year>2026</b:Year>
     <b:URL>https://arxiv.org/abs/2506.01242v2</b:URL>
-    <b:Comments>Report reference 2. Original citation (including all provenance URLs): Zhang BH, Sandholm T. General search techniques without common knowledge for imperfect-information games, and application to superhuman Fog of War chess [Internet]. arXiv:2506.01242v2; 2026 Mar 3 [cited 2026 Oct 26]. Available from: [https://arxiv.org/abs/2506.01242v2](https://arxiv.org/abs/2506.01242v2).. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
+    <b:Comments>2. Zhang BH, Sandholm T. General search techniques without common knowledge for imperfect-information games, and application to superhuman Fog of War chess. arXiv:2506.01242v2 [Internet]. 2026 Feb 28 [cited 2026 Nov 8]. Available from: https://arxiv.org/abs/2506.01242v2.</b:Comments>
   </b:Source>
   <b:Source>
-    <b:Tag>CS5446_3d61de2a62be</b:Tag>
+    <b:Tag>course-game</b:Tag>
     <b:SourceType>Report</b:SourceType>
+    <b:Guid>{9A0EEBEE-568B-58F7-BD06-9267255EAC80}</b:Guid>
     <b:Author>
       <b:Author>
-        <b:Corporate>CS5446_project contributors</b:Corporate>
+        <b:Corporate>National University of Singapore School of Computing</b:Corporate>
       </b:Author>
     </b:Author>
-    <b:Title>Shared code and integration contract</b:Title>
+    <b:Title>Game theory</b:Title>
     <b:Year>2026</b:Year>
-    <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d/README.md</b:URL>
-    <b:Comments>Report reference 3. Original citation (including all provenance URLs): CS5446_project contributors. Shared code and integration contract [Internet]. 2026 [cited 2026 Oct 26]. Revision 2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d. Available from: [pinned repository README](https://github.com/Mr-Teal/CS5446_project/blob/2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d/README.md).. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
+    <b:Comments>3. National University of Singapore School of Computing. Game theory. CS4246/CS5446 course slides. Version 4.0. Semester 1, AY2026/27.</b:Comments>
   </b:Source>
   <b:Source>
-    <b:Tag>CS5446_e7133a771061</b:Tag>
-    <b:SourceType>Report</b:SourceType>
-    <b:Author>
-      <b:Author>
-        <b:Corporate>CS5446_project contributors</b:Corporate>
-      </b:Author>
-    </b:Author>
-    <b:Title>Pair A search implementation, specifications and reproduction differences</b:Title>
-    <b:Year>2026</b:Year>
-    <b:URL>https://github.com/Mr-Teal/CS5446_project/tree/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep</b:URL>
-    <b:Comments>Report reference 4. Original citation (including all provenance URLs): CS5446_project contributors. Pair A search implementation, specifications and reproduction differences [Internet]. 2026 [cited 2026 Oct 26]. Revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed. Available from: [pinned Pair A source](https://github.com/Mr-Teal/CS5446_project/tree/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep); [detailed mechanism checklist](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep/docs/obscuro_status.md).. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
-  </b:Source>
-  <b:Source>
-    <b:Tag>CS5446_2ef3288a8e2e</b:Tag>
-    <b:SourceType>Report</b:SourceType>
-    <b:Author>
-      <b:Author>
-        <b:Corporate>CS5446_project contributors, Mr-Teal, bryankuah</b:Corporate>
-      </b:Author>
-    </b:Author>
-    <b:Title>Integration status and scoped search reviews</b:Title>
-    <b:Year>2026</b:Year>
-    <b:URL>https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6593444508</b:URL>
-    <b:Comments>Report reference 5. Original citation (including all provenance URLs): CS5446_project contributors, Mr-Teal, bryankuah. Integration status and scoped search reviews [Internet]. 2026 Nov 3 [cited 2026 Nov 3]. PR59 revision 78f687b860a3fb95160b80be472d7fc8621a144b, unmerged into main 02bb0410ce3a17ce308d900a26b0ad453bfe20f5. Available from: [Teal's reported locked/native validation and separate Pair C run](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6593444508); [Bryan's complementary validation and evidence handoff](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6595644283); [sanitized 48-test, runtime-doctor and smoke artifacts](https://github.com/user-attachments/files/34303279/pr59-78f687b-native-lp-handoff.zip); [earlier 176-pass/16-skip check](https://github.com/Mr-Teal/CS5446_project/pull/59#issuecomment-6571745962); [pilot limits](https://github.com/Mr-Teal/CS5446_project/pull/62#pullrequestreview-5731608636); [pinned main](https://github.com/Mr-Teal/CS5446_project/tree/02bb0410ce3a17ce308d900a26b0ad453bfe20f5). Pair A owns the [open documentation follow-up, PR63](https://github.com/Mr-Teal/CS5446_project/pull/63), revision ba268d0fa05a6ed587bc183eaff14eb1aba849f1; it adds no runtime results. Teal's detailed outputs remain local; his comment is the available source. Runs overlap and must not be added as independent coverage.. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
-  </b:Source>
-  <b:Source>
-    <b:Tag>CS5446_e3dbe21b543f</b:Tag>
-    <b:SourceType>Report</b:SourceType>
-    <b:Author>
-      <b:Author>
-        <b:Corporate>emalcolin, CS5446_project contributors</b:Corporate>
-      </b:Author>
-    </b:Author>
-    <b:Title>Pair B: leaf evaluators, Network 1 and its practice data</b:Title>
-    <b:Year>2026</b:Year>
-    <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/README.md</b:URL>
-    <b:Comments>Report reference 6. Original citation (including all provenance URLs): emalcolin, CS5446_project contributors. Pair B: leaf evaluators, Network 1 and its practice data [Internet]. 2026 [cited 2026 Oct 26]. Revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed; contains links to the underlying checkpoint results and manifests. Available from: [pinned evaluator documentation](https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/README.md).. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
-  </b:Source>
-  <b:Source>
-    <b:Tag>CS5446_dc153cce0168</b:Tag>
-    <b:SourceType>Report</b:SourceType>
-    <b:Author>
-      <b:Author>
-        <b:Corporate>CS5446_project contributors</b:Corporate>
-      </b:Author>
-    </b:Author>
-    <b:Title>Match protocol</b:Title>
-    <b:Year>2026</b:Year>
-    <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d/pair_b/docs/match_protocol.md</b:URL>
-    <b:Comments>Report reference 7. Original citation (including all provenance URLs): CS5446_project contributors. Match protocol [Internet]. 2026 [cited 2026 Oct 26]. Revision 2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d. Available from: [pinned protocol](https://github.com/Mr-Teal/CS5446_project/blob/2af8f1f731a978cd5a5bb1f5d5131b40ae01c72d/pair_b/docs/match_protocol.md); [protocol discussion, issue 17](https://github.com/Mr-Teal/CS5446_project/issues/17).. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
-  </b:Source>
-  <b:Source>
-    <b:Tag>CS5446_841c0c8b8e1f</b:Tag>
+    <b:Tag>frank-basin</b:Tag>
     <b:SourceType>JournalArticle</b:SourceType>
+    <b:Guid>{54A4B26D-2ADB-5E8C-97A3-746BC25E7D9C}</b:Guid>
+    <b:Author>
+      <b:Author>
+        <b:NameList>
+          <b:Person>
+            <b:Last>Frank</b:Last>
+            <b:First>I</b:First>
+          </b:Person>
+          <b:Person>
+            <b:Last>Basin</b:Last>
+            <b:First>D</b:First>
+          </b:Person>
+        </b:NameList>
+      </b:Author>
+    </b:Author>
+    <b:Title>Search in games with incomplete information: a case study using Bridge card play</b:Title>
+    <b:Year>1998</b:Year>
+    <b:Comments>4. Frank I, Basin D. Search in games with incomplete information: a case study using Bridge card play. Artif Intell. 1998;100(1-2):87-123.</b:Comments>
+    <b:JournalName>Artificial Intelligence</b:JournalName>
+    <b:Volume>100</b:Volume>
+    <b:Issue>1-2</b:Issue>
+    <b:Pages>87-123</b:Pages>
+  </b:Source>
+  <b:Source>
+    <b:Tag>course-sdm</b:Tag>
+    <b:SourceType>Report</b:SourceType>
+    <b:Guid>{F73F61B1-B0A9-5108-979C-9363DE446528}</b:Guid>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>National University of Singapore School of Computing</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Sequential decision making under uncertainty</b:Title>
+    <b:Year>2026</b:Year>
+    <b:Comments>5. National University of Singapore School of Computing. Sequential decision making under uncertainty. CS4246/CS5446 course slides. Version 1.0. Semester 1, AY2026/27.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>course-guided</b:Tag>
+    <b:SourceType>Report</b:SourceType>
+    <b:Guid>{473E1145-0468-58F3-AD16-C0E35033178F}</b:Guid>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>National University of Singapore School of Computing</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Guided sequential decision making: decision-time and demonstration-based planning</b:Title>
+    <b:Year>2026</b:Year>
+    <b:Comments>6. National University of Singapore School of Computing. Guided sequential decision making: decision-time and demonstration-based planning. CS4246/CS5446 course slides. Version 1.0. Semester 1, AY2026/27.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>deepstack</b:Tag>
+    <b:SourceType>JournalArticle</b:SourceType>
+    <b:Guid>{D497E2F7-45E5-5B86-AC98-389F7FE8770A}</b:Guid>
     <b:Author>
       <b:Author>
         <b:NameList>
@@ -139,20 +142,38 @@
             <b:Last>Bard</b:Last>
             <b:First>N</b:First>
           </b:Person>
+          <b:Person>
+            <b:Last>Davis</b:Last>
+            <b:First>T</b:First>
+          </b:Person>
+          <b:Person>
+            <b:Last>Waugh</b:Last>
+            <b:First>K</b:First>
+          </b:Person>
+          <b:Person>
+            <b:Last>Johanson</b:Last>
+            <b:First>M</b:First>
+          </b:Person>
+          <b:Person>
+            <b:Last>Bowling</b:Last>
+            <b:First>M</b:First>
+          </b:Person>
         </b:NameList>
       </b:Author>
     </b:Author>
     <b:Title>DeepStack: expert-level artificial intelligence in heads-up no-limit poker</b:Title>
     <b:Year>2017</b:Year>
+    <b:URL>https://doi.org/10.1126/science.aam6960</b:URL>
+    <b:Comments>7. Moravčík M, Schmid M, Burch N, Lisý V, Morrill D, Bard N, et al. DeepStack: expert-level artificial intelligence in heads-up no-limit poker. Science. 2017;356(6337):508-13. Available from: doi:10.1126/science.aam6960.</b:Comments>
     <b:JournalName>Science</b:JournalName>
     <b:Volume>356</b:Volume>
     <b:Issue>6337</b:Issue>
-    <b:Pages>508-13</b:Pages>
-    <b:Comments>Report reference 8. Original citation (including all provenance URLs): Moravčík M, Schmid M, Burch N, Lisý V, Morrill D, Bard N, et al. DeepStack: expert-level artificial intelligence in heads-up no-limit poker. Science. 2017;356(6337):508-13.. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
+    <b:Pages>508-513</b:Pages>
   </b:Source>
   <b:Source>
-    <b:Tag>CS5446_422a0a1735fb</b:Tag>
-    <b:SourceType>Report</b:SourceType>
+    <b:Tag>rebel</b:Tag>
+    <b:SourceType>ConferenceProceedings</b:SourceType>
+    <b:Guid>{4D5AB43B-7D7B-54AC-BB4E-E2544D9C7A7C}</b:Guid>
     <b:Author>
       <b:Author>
         <b:NameList>
@@ -177,73 +198,96 @@
     </b:Author>
     <b:Title>Combining deep reinforcement learning and search for imperfect-information games</b:Title>
     <b:Year>2020</b:Year>
-    <b:Comments>Report reference 9. Original citation (including all provenance URLs): Brown N, Bakhtin A, Lerer A, Gong Q. Combining deep reinforcement learning and search for imperfect-information games. In: Advances in Neural Information Processing Systems 33 (NeurIPS 2020); 2020.. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
+    <b:URL>https://arxiv.org/abs/2007.13544</b:URL>
+    <b:Comments>8. Brown N, Bakhtin A, Lerer A, Gong Q. Combining deep reinforcement learning and search for imperfect-information games. In: Advances in Neural Information Processing Systems 33; 2020. Available from: https://arxiv.org/abs/2007.13544.</b:Comments>
   </b:Source>
   <b:Source>
-    <b:Tag>CS5446_56f0072ccc01</b:Tag>
+    <b:Tag>course-mf</b:Tag>
     <b:SourceType>Report</b:SourceType>
+    <b:Guid>{08448B59-1CED-56E4-B9D1-D7F90C7E71DC}</b:Guid>
     <b:Author>
       <b:Author>
-        <b:Corporate>bryankuah</b:Corporate>
+        <b:Corporate>National University of Singapore School of Computing</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Reinforcement learning model-free techniques</b:Title>
+    <b:Year>2026</b:Year>
+    <b:Comments>9. National University of Singapore School of Computing. Reinforcement learning model-free techniques. CS4246/CS5446 course slides. Version 4.1. Semester 1, AY2026/27.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>system</b:Tag>
+    <b:SourceType>Report</b:SourceType>
+    <b:Guid>{0C46F016-834B-5C69-8526-16D8E7465660}</b:Guid>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>CS5446_project contributors</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Shared interfaces and sampled search implementation</b:Title>
+    <b:Year>2026</b:Year>
+    <b:URL>https://github.com/Mr-Teal/CS5446_project/tree/3335723852ad59ccbe5e999dbe0ce2773f7e56d0</b:URL>
+    <b:Comments>10. CS5446_project contributors. Shared interfaces and sampled search implementation. [software and documentation on the Internet]. 2026 [cited 2026 Nov 8]. Integrated snapshot 3335723. Available from: https://github.com/Mr-Teal/CS5446_project/tree/3335723852ad59ccbe5e999dbe0ce2773f7e56d0.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>methods</b:Tag>
+    <b:SourceType>Report</b:SourceType>
+    <b:Guid>{05B0129D-46FA-5BDD-9CD3-88B74EFC754E}</b:Guid>
+    <b:Author>
+      <b:Author>
+        <b:NameList>
+          <b:Person>
+            <b:Last>Kuah</b:Last>
+            <b:First>JHB</b:First>
+          </b:Person>
+        </b:NameList>
       </b:Author>
     </b:Author>
     <b:Title>Evaluation methods and batch validation</b:Title>
     <b:Year>2026</b:Year>
     <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md</b:URL>
-    <b:Comments>Report reference 10. Original citation (including all provenance URLs): bryankuah. Evaluation methods and batch validation [Internet]. 2026 Nov 2 [cited 2026 Nov 2]. Merged PR50, revision 7c292af5881b8c81e4ffccb7300de21650c9c0ad. Available from: [pinned updated methods](https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md).. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
+    <b:Comments>11. Kuah JHB, CS5446_project contributors. Evaluation methods and batch validation. [Internet]. 2026 Oct 28 [cited 2026 Nov 8]. Revision 7c292af. Archive recomputation and historical rule boundaries. Available from: https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md.</b:Comments>
   </b:Source>
   <b:Source>
-    <b:Tag>CS5446_21dbf4c2258b</b:Tag>
-    <b:SourceType>JournalArticle</b:SourceType>
-    <b:Author>
-      <b:Author>
-        <b:NameList>
-          <b:Person>
-            <b:Last>Frank</b:Last>
-            <b:First>I</b:First>
-          </b:Person>
-          <b:Person>
-            <b:Last>Basin</b:Last>
-            <b:First>D</b:First>
-          </b:Person>
-        </b:NameList>
-      </b:Author>
-    </b:Author>
-    <b:Title>Search in games with incomplete information: a case study using Bridge card play</b:Title>
-    <b:Year>1998</b:Year>
-    <b:JournalName>Artificial Intelligence</b:JournalName>
-    <b:Volume>100</b:Volume>
-    <b:Issue>1-2</b:Issue>
-    <b:Pages>87-123</b:Pages>
-    <b:Comments>Report reference 11. Original citation (including all provenance URLs): Frank I, Basin D. Search in games with incomplete information: a case study using Bridge card play. Artificial Intelligence. 1998;100(1-2):87-123.. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
-  </b:Source>
-  <b:Source>
-    <b:Tag>CS5446_00909668df88</b:Tag>
-    <b:SourceType>Book</b:SourceType>
-    <b:Author>
-      <b:Author>
-        <b:NameList>
-          <b:Person>
-            <b:Last>Sutton</b:Last>
-            <b:First>RS</b:First>
-          </b:Person>
-          <b:Person>
-            <b:Last>Barto</b:Last>
-            <b:First>AG</b:First>
-          </b:Person>
-        </b:NameList>
-      </b:Author>
-    </b:Author>
-    <b:Title>Reinforcement learning: an introduction</b:Title>
-    <b:Year>2018</b:Year>
-    <b:Publisher>MIT Press</b:Publisher>
-    <b:City>Cambridge (MA)</b:City>
-    <b:Edition>2</b:Edition>
-    <b:Comments>Report reference 12. Original citation (including all provenance URLs): Sutton RS, Barto AG. Reinforcement learning: an introduction. 2nd ed. Cambridge (MA): MIT Press; 2018.. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
-  </b:Source>
-  <b:Source>
-    <b:Tag>CS5446_dee86cd7322d</b:Tag>
+    <b:Tag>verification</b:Tag>
     <b:SourceType>Report</b:SourceType>
+    <b:Guid>{5E031885-2D52-51FE-BF4D-B03EE1710DE2}</b:Guid>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>CS5446_project contributors</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Search verification and integration evidence</b:Title>
+    <b:Year>2026</b:Year>
+    <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/bryankuah/report-presentation-drafts/docs/drafts/report-evidence-notes.md</b:URL>
+    <b:Comments>12. CS5446_project contributors. Search verification and integration evidence. [Internet]. 2026 [cited 2026 Nov 8]. Historical source identities and pilot limitations. Available from: https://github.com/Mr-Teal/CS5446_project/blob/bryankuah/report-presentation-drafts/docs/drafts/report-evidence-notes.md.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>evaluators</b:Tag>
+    <b:SourceType>Report</b:SourceType>
+    <b:Guid>{7EA8DC58-8824-5236-BD55-88F5FCFCD7FB}</b:Guid>
+    <b:Author>
+      <b:Author>
+        <b:NameList>
+          <b:Person>
+            <b:Last>Quek</b:Last>
+            <b:First>HC</b:First>
+          </b:Person>
+          <b:Person>
+            <b:Last>Kuah</b:Last>
+            <b:First>JHB</b:First>
+          </b:Person>
+        </b:NameList>
+      </b:Author>
+    </b:Author>
+    <b:Title>Leaf evaluators and practice-data results</b:Title>
+    <b:Year>2026</b:Year>
+    <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/3335723852ad59ccbe5e999dbe0ce2773f7e56d0/pair_b/README.md</b:URL>
+    <b:Comments>13. Quek HC, Kuah JHB, CS5446_project contributors. Leaf evaluators and practice-data results. [Internet]. 2026 [cited 2026 Nov 8]. Snapshot 3335723; linked data manifests, checkpoints and ablations. Available from: https://github.com/Mr-Teal/CS5446_project/blob/3335723852ad59ccbe5e999dbe0ce2773f7e56d0/pair_b/README.md.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>mc-td</b:Tag>
+    <b:SourceType>Report</b:SourceType>
+    <b:Guid>{DF02272B-DA9D-593C-9E49-5BF6B55D4492}</b:Guid>
     <b:Author>
       <b:Author>
         <b:Corporate>CS5446_project contributors</b:Corporate>
@@ -252,125 +296,39 @@
     <b:Title>Monte Carlo and temporal-difference target comparison</b:Title>
     <b:Year>2026</b:Year>
     <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md</b:URL>
-    <b:Comments>Report reference 13. Original citation (including all provenance URLs): CS5446_project contributors. Monte Carlo and temporal-difference target comparison [Internet]. 2026 [cited 2026 Nov 2]. Revision 1db35d68638d52353381d13de20addfea58a4d99. Available from: [pinned experimental setup and exclusions](https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md); [results and sample counts](https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/results.json).. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
+    <b:Comments>14. CS5446_project contributors. Monte Carlo and temporal-difference target comparison. [Internet]. 2026 [cited 2026 Nov 8]. Revision 1db35d6. Available from: https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md.</b:Comments>
   </b:Source>
   <b:Source>
-    <b:Tag>CS5446_2048ec8b4e36</b:Tag>
-    <b:SourceType>JournalArticle</b:SourceType>
+    <b:Tag>batch</b:Tag>
+    <b:SourceType>Report</b:SourceType>
+    <b:Guid>{30005BE0-8FC0-555E-B34F-28594D968865}</b:Guid>
     <b:Author>
       <b:Author>
         <b:NameList>
           <b:Person>
-            <b:Last>Silver</b:Last>
-            <b:First>D</b:First>
-          </b:Person>
-          <b:Person>
-            <b:Last>Hubert</b:Last>
-            <b:First>T</b:First>
-          </b:Person>
-          <b:Person>
-            <b:Last>Schrittwieser</b:Last>
-            <b:First>J</b:First>
-          </b:Person>
-          <b:Person>
-            <b:Last>Antonoglou</b:Last>
-            <b:First>I</b:First>
-          </b:Person>
-          <b:Person>
-            <b:Last>Lai</b:Last>
-            <b:First>M</b:First>
-          </b:Person>
-          <b:Person>
-            <b:Last>Guez</b:Last>
-            <b:First>A</b:First>
+            <b:Last>Quek</b:Last>
+            <b:First>HC</b:First>
           </b:Person>
         </b:NameList>
-      </b:Author>
-    </b:Author>
-    <b:Title>A general reinforcement learning algorithm that masters chess, shogi, and Go through self-play</b:Title>
-    <b:Year>2018</b:Year>
-    <b:JournalName>Science</b:JournalName>
-    <b:Volume>362</b:Volume>
-    <b:Issue>6419</b:Issue>
-    <b:Pages>1140-4</b:Pages>
-    <b:Comments>Report reference 14. Original citation (including all provenance URLs): Silver D, Hubert T, Schrittwieser J, Antonoglou I, Lai M, Guez A, et al. A general reinforcement learning algorithm that masters chess, shogi, and Go through self-play. Science. 2018;362(6419):1140-4.. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
-  </b:Source>
-  <b:Source>
-    <b:Tag>CS5446_1a0e9724c579</b:Tag>
-    <b:SourceType>Report</b:SourceType>
-    <b:Author>
-      <b:Author>
-        <b:Corporate>emalcolin</b:Corporate>
       </b:Author>
     </b:Author>
     <b:Title>Seven-row match batch</b:Title>
     <b:Year>2026</b:Year>
     <b:URL>https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27</b:URL>
-    <b:Comments>Report reference 15. Original citation (including all provenance URLs): emalcolin. Seven-row match batch [Internet]. 2026 Oct 27 [cited 2026 Oct 27]. PR38, reviewed revision 5e9393ab8537088e8ea6542ce21e11f42218ee15; execution source a5c5fb6. Available from: [pinned records, checksums and tables](https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27).. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
+    <b:Comments>15. Quek HC, CS5446_project contributors. Seven-row match batch. [dataset on the Internet]. 2026 Oct 27 [cited 2026 Nov 8]. Execution a5c5fb6; reviewed archive 5e9393a. Available from: https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27.</b:Comments>
   </b:Source>
   <b:Source>
-    <b:Tag>CS5446_371a92d4f82b</b:Tag>
+    <b:Tag>contributions</b:Tag>
     <b:SourceType>Report</b:SourceType>
+    <b:Guid>{B1DAB81D-1E26-50F4-A55C-EB50B0601D2B}</b:Guid>
     <b:Author>
       <b:Author>
-        <b:Corporate>emalcolin</b:Corporate>
+        <b:Corporate>CS5446_project team</b:Corporate>
       </b:Author>
     </b:Author>
-    <b:Title>How information changes a decision</b:Title>
+    <b:Title>Project contribution records</b:Title>
     <b:Year>2026</b:Year>
-    <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/a5c105632e1d990450445b204612d41b5fbc8293/pair_b/experiments/small_games/information_example.md</b:URL>
-    <b:Comments>Report reference 16. Original citation (including all provenance URLs): emalcolin. How information changes a decision [Internet]. 2026 [cited 2026 Oct 26]. Revision a5c105632e1d990450445b204612d41b5fbc8293. Available from: [pinned worked examples and reference-data links](https://github.com/Mr-Teal/CS5446_project/blob/a5c105632e1d990450445b204612d41b5fbc8293/pair_b/experiments/small_games/information_example.md).. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
-  </b:Source>
-  <b:Source>
-    <b:Tag>CS5446_dc301ba0e70e</b:Tag>
-    <b:SourceType>Report</b:SourceType>
-    <b:Author>
-      <b:Author>
-        <b:Corporate>bryankuah</b:Corporate>
-      </b:Author>
-    </b:Author>
-    <b:Title>Independent D1-versus-material historical cross-check</b:Title>
-    <b:Year>2026</b:Year>
-    <b:URL>https://github.com/Mr-Teal/CS5446_project/tree/8735be4cc7e06928db6d12ee2487a08bb86e5ba7/pair_b/experiments/matches/crosscheck-bryan-d1-vs-material-standard-start</b:URL>
-    <b:Comments>Report reference 17. Original citation (including all provenance URLs): bryankuah. Independent D1-versus-material historical cross-check [Internet]. 2026 [cited 2026 Oct 26]. Publication revision 8735be4cc7e06928db6d12ee2487a08bb86e5ba7; historical run source differs as stated in the text. Available from: [pinned raw artifacts and audit](https://github.com/Mr-Teal/CS5446_project/tree/8735be4cc7e06928db6d12ee2487a08bb86e5ba7/pair_b/experiments/matches/crosscheck-bryan-d1-vs-material-standard-start).. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
-  </b:Source>
-  <b:Source>
-    <b:Tag>CS5446_764036f7409a</b:Tag>
-    <b:SourceType>Report</b:SourceType>
-    <b:Author>
-      <b:Author>
-        <b:Corporate>bryankuah</b:Corporate>
-      </b:Author>
-    </b:Author>
-    <b:Title>PR27 supplemental expansion review</b:Title>
-    <b:Year>2026</b:Year>
-    <b:URL>https://github.com/Mr-Teal/CS5446_project/pull/27#issuecomment-6406920434</b:URL>
-    <b:Comments>Report reference 18. Original citation (including all provenance URLs): bryankuah. PR27 supplemental expansion review [Internet]. 2026 Oct 26 [cited 2026 Oct 26]. Reviewed revision 7b14bbbebb80ba410f0e23127e37263b975c167a. Available from: [review](https://github.com/Mr-Teal/CS5446_project/pull/27#issuecomment-6406920434); [rerunnable evidence, v2](https://github.com/user-attachments/files/33944209/pr27-7b14bbb-review-evidence-v2.zip).. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
-  </b:Source>
-  <b:Source>
-    <b:Tag>CS5446_4d06d3dc0adf</b:Tag>
-    <b:SourceType>Report</b:SourceType>
-    <b:Author>
-      <b:Author>
-        <b:Corporate>bryankuah</b:Corporate>
-      </b:Author>
-    </b:Author>
-    <b:Title>PR30 supplemental budget and fallback review</b:Title>
-    <b:Year>2026</b:Year>
-    <b:URL>https://github.com/Mr-Teal/CS5446_project/pull/30#issuecomment-6407182994</b:URL>
-    <b:Comments>Report reference 19. Original citation (including all provenance URLs): bryankuah. PR30 supplemental budget and fallback review [Internet]. 2026 Oct 26 [cited 2026 Oct 26]. Reviewed revision 5f334b1e26de31e5c90d444d3a4222352e5fb3ed. Available from: [review](https://github.com/Mr-Teal/CS5446_project/pull/30#issuecomment-6407182994); [rerunnable evidence and raw results](https://github.com/user-attachments/files/33944559/pr30-5f334b1-review-evidence.zip).. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
-  </b:Source>
-  <b:Source>
-    <b:Tag>CS5446_50be5c073b5c</b:Tag>
-    <b:SourceType>Report</b:SourceType>
-    <b:Author>
-      <b:Author>
-        <b:Corporate>Mr-Teal</b:Corporate>
-      </b:Author>
-    </b:Author>
-    <b:Title>Unify no-move terminal draws across rules and search</b:Title>
-    <b:Year>2026</b:Year>
-    <b:URL>https://github.com/Mr-Teal/CS5446_project/pull/28</b:URL>
-    <b:Comments>Report reference 20. Original citation (including all provenance URLs): Mr-Teal. Unify no-move terminal draws across rules and search [Internet]. PR28; 2026 [cited 2026 Oct 26]. Reviewed revision 21da153c8efdc1ae78dd1fac053c2402e1c7b3c7; not a statement that the formal batch uses this revision. Available from: [rule-update pull request](https://github.com/Mr-Teal/CS5446_project/pull/28).. Author lists containing et al remain abbreviated pending metadata review.</b:Comments>
+    <b:URL>https://github.com/Mr-Teal/CS5446_project/pull/33</b:URL>
+    <b:Comments>16. CS5446_project team. Project contribution records. [Internet]. 2026 [cited 2026 Nov 8]. Contribution statements and proposal work allocation; see report evidence notes. Available from: https://github.com/Mr-Teal/CS5446_project/pull/33.</b:Comments>
   </b:Source>
 </b:Sources>
