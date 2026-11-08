@@ -1,4 +1,15 @@
 {
+  "rook-example": {
+    "title": "Replay-checked hidden-rook example",
+    "author": "CS5446_project contributors",
+    "year": "2026",
+    "details": "[Internet]. 2026 [cited 2026 Nov 8]. Three observation-identical histories and 24 checked move/state consequences.",
+    "url": "https://github.com/Mr-Teal/CS5446_project/blob/03a01e8d97317b36e63f77a5c67359c9c5b3742f/docs/drafts/presentation-assets/hidden-rook-example.json",
+    "label": "Hidden-rook example",
+    "kind": "Report",
+    "number": 1,
+    "display_url": "https://github.com/Mr-Teal/CS5446_project/blob/03a01e8d97317b36e63f77a5c67359c9c5b3742f/docs/drafts/presentation-assets/hidden-rook-example.json"
+  },
   "zs21": {
     "title": "Subgame solving without common knowledge",
     "author": "Zhang BH, Sandholm T",
@@ -7,7 +18,7 @@
     "url": "https://arxiv.org/abs/2106.06068v2",
     "label": "arXiv:2106.06068v2",
     "kind": "Report",
-    "number": 1,
+    "number": 2,
     "display_url": "https://arxiv.org/abs/2106.06068v2"
   },
   "obscuro": {
@@ -18,7 +29,7 @@
     "url": "https://arxiv.org/abs/2506.01242v2",
     "label": "arXiv:2506.01242v2",
     "kind": "Report",
-    "number": 2,
+    "number": 3,
     "display_url": "https://arxiv.org/abs/2506.01242v2"
   },
   "course-game": {
@@ -29,7 +40,7 @@
     "url": "",
     "label": "Source",
     "kind": "Report",
-    "number": 3,
+    "number": 4,
     "display_url": ""
   },
   "frank-basin": {
@@ -40,7 +51,7 @@
     "url": "",
     "label": "Source",
     "kind": "JournalArticle",
-    "number": 4,
+    "number": 5,
     "display_url": ""
   },
   "course-sdm": {
@@ -51,7 +62,7 @@
     "url": "",
     "label": "Source",
     "kind": "Report",
-    "number": 5,
+    "number": 6,
     "display_url": ""
   },
   "course-guided": {
@@ -62,7 +73,7 @@
     "url": "",
     "label": "Source",
     "kind": "Report",
-    "number": 6,
+    "number": 7,
     "display_url": ""
   },
   "deepstack": {
@@ -73,7 +84,7 @@
     "url": "https://doi.org/10.1126/science.aam6960",
     "label": "doi:10.1126/science.aam6960",
     "kind": "JournalArticle",
-    "number": 7,
+    "number": 8,
     "display_url": "doi:10.1126/science.aam6960"
   },
   "rebel": {
@@ -84,7 +95,7 @@
     "url": "https://arxiv.org/abs/2007.13544",
     "label": "arXiv:2007.13544",
     "kind": "ConferenceProceedings",
-    "number": 8,
+    "number": 9,
     "display_url": "https://arxiv.org/abs/2007.13544"
   },
   "course-mf": {
@@ -95,7 +106,7 @@
     "url": "",
     "label": "Source",
     "kind": "Report",
-    "number": 9,
+    "number": 10,
     "display_url": ""
   },
   "system": {
@@ -106,7 +117,7 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/tree/3335723852ad59ccbe5e999dbe0ce2773f7e56d0",
     "label": "Pinned repository and implementation documentation",
     "kind": "Report",
-    "number": 10,
+    "number": 11,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/tree/3335723852ad59ccbe5e999dbe0ce2773f7e56d0"
   },
   "methods": {
@@ -117,7 +128,7 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md",
     "label": "Pinned methods and archive audit",
     "kind": "Report",
-    "number": 11,
+    "number": 13,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md"
   },
   "verification": {
@@ -128,7 +139,7 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/blob/bryankuah/report-presentation-drafts/docs/drafts/report-evidence-notes.md",
     "label": "Report evidence notes and linked original records",
     "kind": "Report",
-    "number": 12,
+    "number": 14,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/blob/bryankuah/report-presentation-drafts/docs/drafts/report-evidence-notes.md"
   },
   "evaluators": {
@@ -139,7 +150,7 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/blob/3335723852ad59ccbe5e999dbe0ce2773f7e56d0/pair_b/README.md",
     "label": "Pinned evaluator documentation and artifacts",
     "kind": "Report",
-    "number": 13,
+    "number": 12,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/blob/3335723852ad59ccbe5e999dbe0ce2773f7e56d0/pair_b/README.md"
   },
   "mc-td": {
@@ -150,7 +161,7 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md",
     "label": "Pinned setup results and exclusions",
     "kind": "Report",
-    "number": 14,
+    "number": 15,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md"
   },
   "batch": {
@@ -161,7 +172,7 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27",
     "label": "Pinned records manifests and aggregate tables",
     "kind": "Report",
-    "number": 15,
+    "number": 16,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27"
   },
   "contributions": {
@@ -172,7 +183,7 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/pull/33",
     "label": "Report discussion and contribution statements",
     "kind": "Report",
-    "number": 16,
+    "number": 17,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/pull/33"
   }
 }

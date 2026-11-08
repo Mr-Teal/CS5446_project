@@ -1,4 +1,13 @@
 TY  - RPRT
+ID  - rook-example
+TI  - Replay-checked hidden-rook example
+PY  - 2026
+AU  - CS5446_project contributors,
+N1  - [Internet]. 2026 [cited 2026 Nov 8]. Three observation-identical histories and 24 checked move/state consequences.
+UR  - https://github.com/Mr-Teal/CS5446_project/blob/03a01e8d97317b36e63f77a5c67359c9c5b3742f/docs/drafts/presentation-assets/hidden-rook-example.json
+ER  - 
+
+TY  - RPRT
 ID  - zs21
 TI  - Subgame solving without common knowledge
 PY  - 2021
@@ -111,6 +120,17 @@ UR  - https://github.com/Mr-Teal/CS5446_project/tree/3335723852ad59ccbe5e999dbe0
 ER  - 
 
 TY  - RPRT
+ID  - evaluators
+TI  - Leaf evaluators and practice-data results
+PY  - 2026
+AU  - Quek, HC
+AU  - Kuah, JHB
+AU  - CS5446_project contributors,
+N1  - [Internet]. 2026 [cited 2026 Nov 8]. Snapshot 3335723; linked data manifests, checkpoints and ablations.
+UR  - https://github.com/Mr-Teal/CS5446_project/blob/3335723852ad59ccbe5e999dbe0ce2773f7e56d0/pair_b/README.md
+ER  - 
+
+TY  - RPRT
 ID  - methods
 TI  - Evaluation methods and batch validation
 PY  - 2026
@@ -127,17 +147,6 @@ PY  - 2026
 AU  - CS5446_project contributors,
 N1  - [Internet]. 2026 [cited 2026 Nov 8]. Historical source identities and pilot limitations.
 UR  - https://github.com/Mr-Teal/CS5446_project/blob/bryankuah/report-presentation-drafts/docs/drafts/report-evidence-notes.md
-ER  - 
-
-TY  - RPRT
-ID  - evaluators
-TI  - Leaf evaluators and practice-data results
-PY  - 2026
-AU  - Quek, HC
-AU  - Kuah, JHB
-AU  - CS5446_project contributors,
-N1  - [Internet]. 2026 [cited 2026 Nov 8]. Snapshot 3335723; linked data manifests, checkpoints and ablations.
-UR  - https://github.com/Mr-Teal/CS5446_project/blob/3335723852ad59ccbe5e999dbe0ce2773f7e56d0/pair_b/README.md
 ER  - 
 
 TY  - RPRT

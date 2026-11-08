@@ -2,6 +2,12 @@
 
 Supporting provenance for the 8 November 2026 report revision. These notes keep implementation history outside the academic argument. They are not additional experimental results or part of the main report.
 
+## Explanatory visuals
+
+The visual revision adds two diagrams and an opening worked example. Figure 1 uses the existing replay-checked [hidden-rook example](https://github.com/Mr-Teal/CS5446_project/blob/03a01e8d97317b36e63f77a5c67359c9c5b3742f/docs/drafts/presentation-assets/hidden-rook-example.json): the same White observation and eight legal king moves under three selected hidden rook histories. The crop includes files c-e and ranks 3-6; Black's king at a8 is omitted from all panels. Red rings reproduce the recorded immediate-capture destinations. They are hypothetical possibilities, without assigned probabilities or a complete-posterior claim. No new strength result is introduced.
+
+Figure 2 explains the existing referee/observation, tracker, decision-procedure and evaluator boundary. It does not equate the one-ply comparator with the deeper search or imply that leaf swaps equalise computation. Both new figures have editable SVG sources, corresponding 300-dpi PNGs and labels of at least 12 points at their report size. Piece artwork is reused from the existing presentation. The original error-band chart is retained as Figure 3 with unchanged bytes and data. All three measured tables remain unchanged. The new example reference is included in the numbered bibliography and source libraries.
+
 ## Scope and source identities
 
 - The report analyses completed evaluator studies and the archived seven-row one-ply match batch. Its tables retain the established data, populations and numerical results. No new training, formal matches or sealed-test evaluation was performed for this revision.

@@ -1,6 +1,20 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <b:Sources xmlns:b="http://schemas.openxmlformats.org/officeDocument/2006/bibliography" SelectedStyle="/Vancouver.XSL" StyleName="Vancouver">
   <b:Source>
+    <b:Tag>rook-example</b:Tag>
+    <b:SourceType>Report</b:SourceType>
+    <b:Guid>{63DE15CD-A40B-53B8-B79B-2D4AD1454C33}</b:Guid>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>CS5446_project contributors</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Replay-checked hidden-rook example</b:Title>
+    <b:Year>2026</b:Year>
+    <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/03a01e8d97317b36e63f77a5c67359c9c5b3742f/docs/drafts/presentation-assets/hidden-rook-example.json</b:URL>
+    <b:Comments>1. CS5446_project contributors. Replay-checked hidden-rook example. [Internet]. 2026 [cited 2026 Nov 8]. Three observation-identical histories and 24 checked move/state consequences. Available from: https://github.com/Mr-Teal/CS5446_project/blob/03a01e8d97317b36e63f77a5c67359c9c5b3742f/docs/drafts/presentation-assets/hidden-rook-example.json.</b:Comments>
+  </b:Source>
+  <b:Source>
     <b:Tag>zs21</b:Tag>
     <b:SourceType>Report</b:SourceType>
     <b:Guid>{27EA1F72-1067-5C89-B57E-5B07326950C1}</b:Guid>
@@ -21,7 +35,7 @@
     <b:Title>Subgame solving without common knowledge</b:Title>
     <b:Year>2021</b:Year>
     <b:URL>https://arxiv.org/abs/2106.06068v2</b:URL>
-    <b:Comments>1. Zhang BH, Sandholm T. Subgame solving without common knowledge. arXiv:2106.06068v2 [Internet]. 2021 Dec 3 [cited 2026 Nov 8]. Available from: https://arxiv.org/abs/2106.06068v2.</b:Comments>
+    <b:Comments>2. Zhang BH, Sandholm T. Subgame solving without common knowledge. arXiv:2106.06068v2 [Internet]. 2021 Dec 3 [cited 2026 Nov 8]. Available from: https://arxiv.org/abs/2106.06068v2.</b:Comments>
   </b:Source>
   <b:Source>
     <b:Tag>obscuro</b:Tag>
@@ -44,7 +58,7 @@
     <b:Title>General search techniques without common knowledge for imperfect-information games, and application to superhuman Fog of War chess</b:Title>
     <b:Year>2026</b:Year>
     <b:URL>https://arxiv.org/abs/2506.01242v2</b:URL>
-    <b:Comments>2. Zhang BH, Sandholm T. General search techniques without common knowledge for imperfect-information games, and application to superhuman Fog of War chess. arXiv:2506.01242v2 [Internet]. 2026 Feb 28 [cited 2026 Nov 8]. Available from: https://arxiv.org/abs/2506.01242v2.</b:Comments>
+    <b:Comments>3. Zhang BH, Sandholm T. General search techniques without common knowledge for imperfect-information games, and application to superhuman Fog of War chess. arXiv:2506.01242v2 [Internet]. 2026 Feb 28 [cited 2026 Nov 8]. Available from: https://arxiv.org/abs/2506.01242v2.</b:Comments>
   </b:Source>
   <b:Source>
     <b:Tag>course-game</b:Tag>
@@ -57,7 +71,7 @@
     </b:Author>
     <b:Title>Game theory</b:Title>
     <b:Year>2026</b:Year>
-    <b:Comments>3. National University of Singapore School of Computing. Game theory. CS4246/CS5446 course slides. Version 4.0. Semester 1, AY2026/27.</b:Comments>
+    <b:Comments>4. National University of Singapore School of Computing. Game theory. CS4246/CS5446 course slides. Version 4.0. Semester 1, AY2026/27.</b:Comments>
   </b:Source>
   <b:Source>
     <b:Tag>frank-basin</b:Tag>
@@ -79,7 +93,7 @@
     </b:Author>
     <b:Title>Search in games with incomplete information: a case study using Bridge card play</b:Title>
     <b:Year>1998</b:Year>
-    <b:Comments>4. Frank I, Basin D. Search in games with incomplete information: a case study using Bridge card play. Artif Intell. 1998;100(1-2):87-123.</b:Comments>
+    <b:Comments>5. Frank I, Basin D. Search in games with incomplete information: a case study using Bridge card play. Artif Intell. 1998;100(1-2):87-123.</b:Comments>
     <b:JournalName>Artificial Intelligence</b:JournalName>
     <b:Volume>100</b:Volume>
     <b:Issue>1-2</b:Issue>
@@ -96,7 +110,7 @@
     </b:Author>
     <b:Title>Sequential decision making under uncertainty</b:Title>
     <b:Year>2026</b:Year>
-    <b:Comments>5. National University of Singapore School of Computing. Sequential decision making under uncertainty. CS4246/CS5446 course slides. Version 1.0. Semester 1, AY2026/27.</b:Comments>
+    <b:Comments>6. National University of Singapore School of Computing. Sequential decision making under uncertainty. CS4246/CS5446 course slides. Version 1.0. Semester 1, AY2026/27.</b:Comments>
   </b:Source>
   <b:Source>
     <b:Tag>course-guided</b:Tag>
@@ -109,7 +123,7 @@
     </b:Author>
     <b:Title>Guided sequential decision making: decision-time and demonstration-based planning</b:Title>
     <b:Year>2026</b:Year>
-    <b:Comments>6. National University of Singapore School of Computing. Guided sequential decision making: decision-time and demonstration-based planning. CS4246/CS5446 course slides. Version 1.0. Semester 1, AY2026/27.</b:Comments>
+    <b:Comments>7. National University of Singapore School of Computing. Guided sequential decision making: decision-time and demonstration-based planning. CS4246/CS5446 course slides. Version 1.0. Semester 1, AY2026/27.</b:Comments>
   </b:Source>
   <b:Source>
     <b:Tag>deepstack</b:Tag>
@@ -164,7 +178,7 @@
     <b:Title>DeepStack: expert-level artificial intelligence in heads-up no-limit poker</b:Title>
     <b:Year>2017</b:Year>
     <b:URL>https://doi.org/10.1126/science.aam6960</b:URL>
-    <b:Comments>7. Moravčík M, Schmid M, Burch N, Lisý V, Morrill D, Bard N, et al. DeepStack: expert-level artificial intelligence in heads-up no-limit poker. Science. 2017;356(6337):508-13. Available from: doi:10.1126/science.aam6960.</b:Comments>
+    <b:Comments>8. Moravčík M, Schmid M, Burch N, Lisý V, Morrill D, Bard N, et al. DeepStack: expert-level artificial intelligence in heads-up no-limit poker. Science. 2017;356(6337):508-13. Available from: doi:10.1126/science.aam6960.</b:Comments>
     <b:JournalName>Science</b:JournalName>
     <b:Volume>356</b:Volume>
     <b:Issue>6337</b:Issue>
@@ -199,7 +213,7 @@
     <b:Title>Combining deep reinforcement learning and search for imperfect-information games</b:Title>
     <b:Year>2020</b:Year>
     <b:URL>https://arxiv.org/abs/2007.13544</b:URL>
-    <b:Comments>8. Brown N, Bakhtin A, Lerer A, Gong Q. Combining deep reinforcement learning and search for imperfect-information games. In: Advances in Neural Information Processing Systems 33; 2020. Available from: https://arxiv.org/abs/2007.13544.</b:Comments>
+    <b:Comments>9. Brown N, Bakhtin A, Lerer A, Gong Q. Combining deep reinforcement learning and search for imperfect-information games. In: Advances in Neural Information Processing Systems 33; 2020. Available from: https://arxiv.org/abs/2007.13544.</b:Comments>
   </b:Source>
   <b:Source>
     <b:Tag>course-mf</b:Tag>
@@ -212,7 +226,7 @@
     </b:Author>
     <b:Title>Reinforcement learning model-free techniques</b:Title>
     <b:Year>2026</b:Year>
-    <b:Comments>9. National University of Singapore School of Computing. Reinforcement learning model-free techniques. CS4246/CS5446 course slides. Version 4.1. Semester 1, AY2026/27.</b:Comments>
+    <b:Comments>10. National University of Singapore School of Computing. Reinforcement learning model-free techniques. CS4246/CS5446 course slides. Version 4.1. Semester 1, AY2026/27.</b:Comments>
   </b:Source>
   <b:Source>
     <b:Tag>system</b:Tag>
@@ -226,40 +240,7 @@
     <b:Title>Shared interfaces and sampled search implementation</b:Title>
     <b:Year>2026</b:Year>
     <b:URL>https://github.com/Mr-Teal/CS5446_project/tree/3335723852ad59ccbe5e999dbe0ce2773f7e56d0</b:URL>
-    <b:Comments>10. CS5446_project contributors. Shared interfaces and sampled search implementation. [software and documentation on the Internet]. 2026 [cited 2026 Nov 8]. Integrated snapshot 3335723. Available from: https://github.com/Mr-Teal/CS5446_project/tree/3335723852ad59ccbe5e999dbe0ce2773f7e56d0.</b:Comments>
-  </b:Source>
-  <b:Source>
-    <b:Tag>methods</b:Tag>
-    <b:SourceType>Report</b:SourceType>
-    <b:Guid>{05B0129D-46FA-5BDD-9CD3-88B74EFC754E}</b:Guid>
-    <b:Author>
-      <b:Author>
-        <b:NameList>
-          <b:Person>
-            <b:Last>Kuah</b:Last>
-            <b:First>JHB</b:First>
-          </b:Person>
-        </b:NameList>
-      </b:Author>
-    </b:Author>
-    <b:Title>Evaluation methods and batch validation</b:Title>
-    <b:Year>2026</b:Year>
-    <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md</b:URL>
-    <b:Comments>11. Kuah JHB, CS5446_project contributors. Evaluation methods and batch validation. [Internet]. 2026 Oct 28 [cited 2026 Nov 8]. Revision 7c292af. Archive recomputation and historical rule boundaries. Available from: https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md.</b:Comments>
-  </b:Source>
-  <b:Source>
-    <b:Tag>verification</b:Tag>
-    <b:SourceType>Report</b:SourceType>
-    <b:Guid>{5E031885-2D52-51FE-BF4D-B03EE1710DE2}</b:Guid>
-    <b:Author>
-      <b:Author>
-        <b:Corporate>CS5446_project contributors</b:Corporate>
-      </b:Author>
-    </b:Author>
-    <b:Title>Search verification and integration evidence</b:Title>
-    <b:Year>2026</b:Year>
-    <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/bryankuah/report-presentation-drafts/docs/drafts/report-evidence-notes.md</b:URL>
-    <b:Comments>12. CS5446_project contributors. Search verification and integration evidence. [Internet]. 2026 [cited 2026 Nov 8]. Historical source identities and pilot limitations. Available from: https://github.com/Mr-Teal/CS5446_project/blob/bryankuah/report-presentation-drafts/docs/drafts/report-evidence-notes.md.</b:Comments>
+    <b:Comments>11. CS5446_project contributors. Shared interfaces and sampled search implementation. [software and documentation on the Internet]. 2026 [cited 2026 Nov 8]. Integrated snapshot 3335723. Available from: https://github.com/Mr-Teal/CS5446_project/tree/3335723852ad59ccbe5e999dbe0ce2773f7e56d0.</b:Comments>
   </b:Source>
   <b:Source>
     <b:Tag>evaluators</b:Tag>
@@ -282,7 +263,40 @@
     <b:Title>Leaf evaluators and practice-data results</b:Title>
     <b:Year>2026</b:Year>
     <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/3335723852ad59ccbe5e999dbe0ce2773f7e56d0/pair_b/README.md</b:URL>
-    <b:Comments>13. Quek HC, Kuah JHB, CS5446_project contributors. Leaf evaluators and practice-data results. [Internet]. 2026 [cited 2026 Nov 8]. Snapshot 3335723; linked data manifests, checkpoints and ablations. Available from: https://github.com/Mr-Teal/CS5446_project/blob/3335723852ad59ccbe5e999dbe0ce2773f7e56d0/pair_b/README.md.</b:Comments>
+    <b:Comments>12. Quek HC, Kuah JHB, CS5446_project contributors. Leaf evaluators and practice-data results. [Internet]. 2026 [cited 2026 Nov 8]. Snapshot 3335723; linked data manifests, checkpoints and ablations. Available from: https://github.com/Mr-Teal/CS5446_project/blob/3335723852ad59ccbe5e999dbe0ce2773f7e56d0/pair_b/README.md.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>methods</b:Tag>
+    <b:SourceType>Report</b:SourceType>
+    <b:Guid>{05B0129D-46FA-5BDD-9CD3-88B74EFC754E}</b:Guid>
+    <b:Author>
+      <b:Author>
+        <b:NameList>
+          <b:Person>
+            <b:Last>Kuah</b:Last>
+            <b:First>JHB</b:First>
+          </b:Person>
+        </b:NameList>
+      </b:Author>
+    </b:Author>
+    <b:Title>Evaluation methods and batch validation</b:Title>
+    <b:Year>2026</b:Year>
+    <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md</b:URL>
+    <b:Comments>13. Kuah JHB, CS5446_project contributors. Evaluation methods and batch validation. [Internet]. 2026 Oct 28 [cited 2026 Nov 8]. Revision 7c292af. Archive recomputation and historical rule boundaries. Available from: https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>verification</b:Tag>
+    <b:SourceType>Report</b:SourceType>
+    <b:Guid>{5E031885-2D52-51FE-BF4D-B03EE1710DE2}</b:Guid>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>CS5446_project contributors</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Search verification and integration evidence</b:Title>
+    <b:Year>2026</b:Year>
+    <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/bryankuah/report-presentation-drafts/docs/drafts/report-evidence-notes.md</b:URL>
+    <b:Comments>14. CS5446_project contributors. Search verification and integration evidence. [Internet]. 2026 [cited 2026 Nov 8]. Historical source identities and pilot limitations. Available from: https://github.com/Mr-Teal/CS5446_project/blob/bryankuah/report-presentation-drafts/docs/drafts/report-evidence-notes.md.</b:Comments>
   </b:Source>
   <b:Source>
     <b:Tag>mc-td</b:Tag>
@@ -296,7 +310,7 @@
     <b:Title>Monte Carlo and temporal-difference target comparison</b:Title>
     <b:Year>2026</b:Year>
     <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md</b:URL>
-    <b:Comments>14. CS5446_project contributors. Monte Carlo and temporal-difference target comparison. [Internet]. 2026 [cited 2026 Nov 8]. Revision 1db35d6. Available from: https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md.</b:Comments>
+    <b:Comments>15. CS5446_project contributors. Monte Carlo and temporal-difference target comparison. [Internet]. 2026 [cited 2026 Nov 8]. Revision 1db35d6. Available from: https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md.</b:Comments>
   </b:Source>
   <b:Source>
     <b:Tag>batch</b:Tag>
@@ -315,7 +329,7 @@
     <b:Title>Seven-row match batch</b:Title>
     <b:Year>2026</b:Year>
     <b:URL>https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27</b:URL>
-    <b:Comments>15. Quek HC, CS5446_project contributors. Seven-row match batch. [dataset on the Internet]. 2026 Oct 27 [cited 2026 Nov 8]. Execution a5c5fb6; reviewed archive 5e9393a. Available from: https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27.</b:Comments>
+    <b:Comments>16. Quek HC, CS5446_project contributors. Seven-row match batch. [dataset on the Internet]. 2026 Oct 27 [cited 2026 Nov 8]. Execution a5c5fb6; reviewed archive 5e9393a. Available from: https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27.</b:Comments>
   </b:Source>
   <b:Source>
     <b:Tag>contributions</b:Tag>
@@ -329,6 +343,6 @@
     <b:Title>Project contribution records</b:Title>
     <b:Year>2026</b:Year>
     <b:URL>https://github.com/Mr-Teal/CS5446_project/pull/33</b:URL>
-    <b:Comments>16. CS5446_project team. Project contribution records. [Internet]. 2026 [cited 2026 Nov 8]. Contribution statements and proposal work allocation; see report evidence notes. Available from: https://github.com/Mr-Teal/CS5446_project/pull/33.</b:Comments>
+    <b:Comments>17. CS5446_project team. Project contribution records. [Internet]. 2026 [cited 2026 Nov 8]. Contribution statements and proposal work allocation; see report evidence notes. Available from: https://github.com/Mr-Teal/CS5446_project/pull/33.</b:Comments>
   </b:Source>
 </b:Sources>
