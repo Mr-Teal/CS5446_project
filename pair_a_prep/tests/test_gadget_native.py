@@ -102,9 +102,14 @@ def _games(count, turns):
 TIMING = ("elapsed_ms", "over_budget")
 
 
-def _replay(monkeypatch, backend, fast, player, turns, check_values=False):
+def _replay(backend, fast, player, turns, check_values=False):
     """One ChessSubgameAgent over the turns (material leaf, round budgets, no clock). Returns per turn the decision,
     its non-timing diagnostics, the raw root profile and the controller's trace of every round."""
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        return _replay_patched(monkeypatch, backend, fast, player, turns, check_values)
+
+
+def _replay_patched(monkeypatch, backend, fast, player, turns, check_values):
     from pair_a_prep.anytime_agent import AnytimeConfig
     from pair_a_prep.chess_subgame_agent import ChessSubgameAgent
     from pairb.material import MaterialEvaluator
@@ -130,6 +135,31 @@ def _replay(monkeypatch, backend, fast, player, turns, check_values=False):
             return values
 
         monkeypatch.setattr(Gadget, "solver_values", checked)
+        from pair_a_prep.chess_gadgets import ChessGadget
+        expand = ChessGadget.expand
+
+        def compared(self, solver, *args, **kwargs):
+            """The fast expansion's bridge equals the one the reference builds from the same grown chess tree."""
+            bridge = expand(self, solver, *args, **kwargs)
+            if bridge is self:
+                return bridge
+            reference = bridge.roots.build(self.gadget.alternate_player0, reach_mass=self.reach_mass,
+                                           mode="blended", group_prior=self.group_prior)
+            assert bridge == reference.__class__(reference.roots, bridge.gadget, reference.reach_mass,
+                                                 reference.group_prior)
+            got, want = bridge.gadget, reference.gadget
+            assert (got.mode, got.roots, got.alternate_player0) == (want.mode, want.roots, want.alternate_player0)
+            assert repr(got.root_prior) == repr(want.root_prior)
+            assert list(got.continuations) == list(want.continuations)
+            for root_id, continuation in want.continuations.items():
+                assert got.continuations[root_id] == continuation
+                assert solver.root.children[root_id] == continuation  # the solver's graft has the same structure
+            raw = bridge.raw_solver
+            assert raw.root is bridge.roots.chess_tree.root
+            assert raw.sets == PCFRPlus(raw.root, backend="python").sets
+            return bridge
+
+        monkeypatch.setattr(ChessGadget, "expand", compared)
     config = AnytimeConfig(growth="one_sided", rounds=48, max_nodes=16384, max_evaluator_calls=4096,
                            stop_on_time=False, initial_depth=1, max_depth=2, rounds_per_stage=2, final_rounds=2,
                            schedule="alternating")
@@ -155,13 +185,13 @@ def _replay(monkeypatch, backend, fast, player, turns, check_values=False):
 
 @native_only
 @records_only
-def test_recorded_games_replay_identically_through_the_gadget(monkeypatch):
+def test_recorded_games_replay_identically_through_the_gadget():
     games = _games(3, 7)
     assert len(games) == 3
     gadget_turns = 0
     for (game_id, player), turns in games:
-        reference = _replay(monkeypatch, "python", False, player, turns)
-        fast = _replay(monkeypatch, "native", True, player, turns, check_values=True)
+        reference = _replay("python", False, player, turns)
+        fast = _replay("native", True, player, turns, check_values=True)
         for index, (a, b) in enumerate(zip(reference, fast)):
             for field in a:
                 assert a[field] == b[field], (game_id, index, field)

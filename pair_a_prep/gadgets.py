@@ -108,6 +108,17 @@ def _distribution(values, name):
     return dict(values)
 
 
+def _clone(node, group, offset=0.0):
+    if node.payoff is not None:
+        return Node(payoff=node.payoff - offset, cutoff=node.cutoff)
+    # Opponent remembers J and its gadget action. Player 0 is NOT told J
+    # or root identity: preserve all its original cross-root infoset keys.
+    key = (_key("continuation", group, node.infoset) if node.player == 1 else node.infoset)
+    return Node(player=node.player, infoset=key,
+                children={a: _clone(child, group, offset) for a, child in node.children.items()},
+                probabilities=dict(node.probabilities))
+
+
 def build_gadget(roots: Sequence[SubgameRoot], alternate_player0: Mapping[str, float],
                  mode: str = "resolve", group_prior: Optional[Mapping[str, float]] = None) -> Gadget:
     """Player 0 resolves; player 1 is the opponent and minimizes player-0 payoff.
@@ -154,16 +165,7 @@ def build_gadget(roots: Sequence[SubgameRoot], alternate_player0: Mapping[str, f
     prior = _distribution(group_prior, "group prior") if group_prior is not None else {
         j: m / total for j, m in masses.items()}
 
-    def clone(node, group, offset=0.0):
-        if node.payoff is not None:
-            return Node(payoff=node.payoff - offset, cutoff=node.cutoff)
-        # Opponent remembers J and its gadget action. Player 0 is NOT told J
-        # or root identity: preserve all its original cross-root infoset keys.
-        key = (_key("continuation", group, node.infoset) if node.player == 1 else node.infoset)
-        return Node(player=node.player, infoset=key,
-                    children={a: clone(child, group, offset) for a, child in node.children.items()},
-                    probabilities=dict(node.probabilities))
-
+    clone = _clone
     continuations = {r.root_id: clone(r.continuation, r.opponent_infoset) for r in roots}
     conditional = {r.root_id: r.reach_mass / masses[r.opponent_infoset] for r in roots}
     if mode == "resolve":
@@ -191,6 +193,43 @@ def build_gadget(roots: Sequence[SubgameRoot], alternate_player0: Mapping[str, f
     from .pcfr import PCFRPlus
     PCFRPlus(tree)
     return Gadget(tree, mode, roots, continuations, dict(alternate_player0), root_prior)
+
+
+def regrow_blended(gadget: Gadget, roots: Sequence[SubgameRoot], changed, group_prior: Mapping[str, float],
+                   tree: Node) -> Gadget:
+    """build_gadget(roots, gadget.alternate_player0, "blended", group_prior) with `tree` as its tree, for roots
+    that differ from gadget.roots only in the continuations of the root IDs in `changed` (grown by grafts).
+
+    Used by ChessGadget.expand on its fast path. Root IDs, groups, reach masses, alternates and the prior are those
+    the gadget was built and validated with, so only the changed continuations are checked for the reserved
+    namespace and cloned; the others are the gadget's clones, which equal what cloning them again gives. The
+    whole-tree solver validation of build_gadget is not repeated: the caller validated the raw graft (action
+    order, perfect recall) on the whole raw tree, which implies it for the gadget tree (player 0's keys and
+    histories are the raw ones; player 1's keys are the raw ones refined by group), and the trained solver's
+    expand() checks the gadget graft again. root_prior is computed as build_gadget computes it.
+    """
+    if gadget.mode != "blended":
+        raise ValueError("regrow_blended needs a blended gadget")
+    roots = tuple(roots)
+    if tuple((r.root_id, r.opponent_infoset, r.reach_mass) for r in roots) != tuple(
+            (r.root_id, r.opponent_infoset, r.reach_mass) for r in gadget.roots):
+        raise ValueError("regrow_blended keeps the gadget's roots, groups and reach masses")
+    continuations = dict(gadget.continuations)
+    for r in roots:
+        if r.root_id in changed:
+            for sets in information_sets(r.continuation):
+                if any(key.startswith(PREFIX) for key in sets):
+                    raise ValueError("continuation uses reserved gadget namespace")
+            continuations[r.root_id] = _clone(r.continuation, r.opponent_infoset)
+    groups = {}
+    for r in roots:
+        groups.setdefault(r.opponent_infoset, []).append(r)
+    masses = {j: fsum(r.reach_mass for r in group) for j, group in groups.items()}
+    prior = _distribution(group_prior, "group prior")
+    conditional = {r.root_id: r.reach_mass / masses[r.opponent_infoset] for r in roots}
+    root_prior = {r.root_id: prior[r.opponent_infoset] * conditional[r.root_id] for r in roots}
+    root_prior.update({"exit:" + j: 0.0 for j in groups})
+    return Gadget(tree, "blended", roots, continuations, dict(gadget.alternate_player0), root_prior)
 
 
 def main() -> None:

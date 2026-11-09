@@ -7,7 +7,7 @@ root replenishment or a KLUSS knowledge closure.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from hashlib import sha256
 import json
 from math import fsum
@@ -18,7 +18,7 @@ from typing import Mapping, Optional
 from fow_shared.contracts import AgentInput, Decision, TrainingRecord
 from fow_shared.interfaces import LeafEvaluator
 from .chess_search import ChessTree, build_chess_tree, expand_chess_tree, SearchBudgetError
-from .gadgets import Gadget, SubgameRoot, build_gadget
+from .gadgets import Gadget, SubgameRoot, build_gadget, regrow_blended
 from .pcfr import PCFRPlus
 from .toy_games import behavioral_value
 
@@ -111,6 +111,9 @@ class ChessGadget:
     gadget: Gadget
     reach_mass: dict
     group_prior: Optional[dict]
+    # Fast path (Gadget.FAST, blended gadgets): the structural solver on the raw chess tree, kept from the previous
+    # expansion while its root is this bridge's raw root. Not part of the bridge's value.
+    raw_solver: Optional[PCFRPlus] = field(default=None, compare=False, repr=False)
 
     def expand(self, solver: PCFRPlus, evaluator: LeafEvaluator, *,
                additional_depth: int = 1, max_nodes: int = 5000,
@@ -135,8 +138,14 @@ class ChessGadget:
             return self
         # This temporary solver validates the raw graft; it has no trained state.
         # The caller's trained gadget solver is untouched until all preparation
-        # and cloning succeed. A future builder can remove this extra workspace.
-        raw_solver = PCFRPlus(self.roots.chess_tree.root, schedule=solver.schedule)
+        # and cloning succeed. On the fast path a blended bridge reuses the one
+        # its previous expansion grew (expand() then indexes only the graft),
+        # and rebuilds only the grown continuations of the gadget.
+        fast = Gadget.FAST and self.gadget.mode == "blended" and self.group_prior is not None
+        raw_solver = self.raw_solver
+        if not (fast and raw_solver is not None and raw_solver.root is self.roots.chess_tree.root
+                and raw_solver.schedule == solver.schedule):
+            raw_solver = PCFRPlus(self.roots.chess_tree.root, schedule=solver.schedule)
         grown = expand_chess_tree(self.roots.chess_tree, raw_solver, evaluator,
                                   additional_depth=additional_depth, max_nodes=max_nodes,
                                   max_evaluator_calls=max_evaluator_calls, deadline=deadline,
@@ -151,8 +160,20 @@ class ChessGadget:
                                           additional_depth=additional_depth,
                                           max_nodes=max_nodes)]}
         roots = replace(self.roots, chess_tree=grown, settings=settings)
-        candidate = roots.build(self.gadget.alternate_player0, reach_mass=self.reach_mass,
-                                mode=self.gadget.mode, group_prior=self.group_prior)
+        if fast:
+            # = roots.build(...) for the same alternates, reach masses and group prior; only the tree differs.
+            if set(self.reach_mass) != set(roots.root_ids):
+                raise ValueError("reach_mass must cover exactly the sampled root IDs")
+            changed = {self.roots.root_ids[int(path[0])] for path in paths}
+            subgame_roots = tuple(SubgameRoot(root_id, key, continuation, self.reach_mass[root_id])
+                                  for root_id, key, continuation in zip(
+                                      roots.root_ids, roots.opponent_infosets, grown.continuations))
+            candidate = ChessGadget(roots, regrow_blended(self.gadget, subgame_roots, changed, self.group_prior,
+                                                          None),
+                                    dict(self.reach_mass), dict(self.group_prior), raw_solver)
+        else:
+            candidate = roots.build(self.gadget.alternate_player0, reach_mass=self.reach_mass,
+                                    mode=self.gadget.mode, group_prior=self.group_prior)
         replacements = {}
         for path in paths:
             index = int(path[0])
@@ -163,9 +184,14 @@ class ChessGadget:
                 gadget_path = (root_id,) + path[1:]
             else:
                 gadget_path = (self.roots.opponent_infosets[index], root_id) + path[1:]
-            node = candidate.gadget.tree
-            for action in gadget_path:
-                node = node.children[action]
+            if fast:
+                node = candidate.gadget.continuations[root_id]
+                for action in path[1:]:
+                    node = node.children[action]
+            else:
+                node = candidate.gadget.tree
+                for action in gadget_path:
+                    node = node.children[action]
             replacements[gadget_path] = node
         if deadline is not None and perf_counter() >= deadline:
             raise SearchBudgetError("budget exhausted before gadget expansion commit")
