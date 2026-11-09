@@ -16,10 +16,12 @@ from pathlib import Path
 import numpy as np
 import torch
 
+from pairb.belief_ablation import collapse
 from pairb.belief_data import ENCODING, load_arrays
 from pairb.belief_eval import baseline_pred, errors, paired_difference, predict
 from pairb.belief_net import BeliefNetwork
 from pairb.data import split_of
+from pairb.policy_eval import policy_metrics
 from pairb.provenance import data_source, git_commit, runtime, sha256_of
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -51,7 +53,8 @@ def main():
     net.to(device)
 
     source = data_source(args.data, args.pattern)  # the bytes read below
-    arrays = load_arrays(args.data, args.cache_dir, args.workers, args.pattern)
+    mode = ckpt.get("input", "full")  # the state-representation ablation the checkpoint was trained with
+    arrays = collapse(load_arrays(args.data, args.cache_dir, args.workers, args.pattern), mode)
     beliefs = np.flatnonzero(np.array([split_of(g) for g in arrays["game_id"]]) == args.split)
     if not len(beliefs):
         sys.exit(f"no {args.split} beliefs in {args.data}")
@@ -59,7 +62,8 @@ def main():
         network, net_err = errors(predict(net, arrays, beliefs, device, args.max_boards), arrays, beliefs)
     except ValueError as exc:  # e.g. a d1-reading network on records without quick-Stockfish values
         sys.exit(str(exc))
-    report = {"run": run.name, "data": Path(args.data).name, "split": args.split, "network": network,
+    report = {"run": run.name, "data": Path(args.data).name, "split": args.split, "input": mode, "network": network,
+              "policy": policy_metrics(net, arrays, beliefs, device, args.max_boards),  # {} without a policy head
               "created": datetime.datetime.now().astimezone().isoformat(timespec="seconds")}
     d1 = baseline_pred(arrays, beliefs)
     if d1 is not None:

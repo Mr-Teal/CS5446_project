@@ -20,10 +20,12 @@ from pathlib import Path
 import numpy as np
 import torch
 
+from pairb.belief_ablation import MODES, collapse
 from pairb.belief_data import ENCODING, belief_batches, load_arrays, rows_of
 from pairb.belief_eval import baseline_pred, errors, predict, require_d1
 from pairb.belief_net import BeliefNetwork
 from pairb.data import split_of
+from pairb.policy_eval import policy_metrics
 from pairb.provenance import data_source, git_commit, runtime, sha256_of
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -69,6 +71,13 @@ def main():
     ap.add_argument("--embed", type=int, default=128)
     ap.add_argument("--use-d1", action="store_true", help="also read quick Stockfish's value of each board")
     ap.add_argument("--no-context", action="store_true", help="ablation: ignore the rest of the belief")
+    ap.add_argument("--input", choices=MODES, default="full",
+                    help="ablation of the state representation: full = every sampled hypothesis board; marginals = "
+                         "one pseudo-board per belief with the observation and the belief marginals, no sampling; "
+                         "observation = one pseudo-board with the fogged observation only (see pairb.belief_ablation)")
+    ap.add_argument("--policy-weight", type=float, default=0.0,
+                    help="also train a policy head on the solver's raw root policy (pairb.moves slots), with this "
+                         "weight on its cross-entropy next to the value loss; 0 = no policy head")
     ap.add_argument("--epochs", type=int, default=30)
     ap.add_argument("--patience", type=int, default=5, help="stop after this many epochs without a better validation score")
     ap.add_argument("--batch", type=int, default=64, help="at most this many beliefs per step")
@@ -91,7 +100,7 @@ def main():
     started = time.time()
 
     source = data_source(args.data, args.pattern)  # the bytes read below
-    arrays = load_arrays(args.data, args.cache_dir, args.workers, args.pattern)
+    arrays = collapse(load_arrays(args.data, args.cache_dir, args.workers, args.pattern), args.input)
     split = np.array([split_of(g) for g in arrays["game_id"]])
     ids = {name: np.flatnonzero(split == name) for name in ("train", "val", "test")}
     n = {name: {"beliefs": int(len(ids[name])), "boards": int(len(rows_of(arrays, ids[name])[0]))}
@@ -113,7 +122,7 @@ def main():
     print(f"quick Stockfish on validation: {baseline}", flush=True)
 
     net = BeliefNetwork(args.blocks, args.channels, args.embed, use_d1=args.use_d1,
-                        use_context=not args.no_context).to(device)
+                        use_context=not args.no_context, policy_head=args.policy_weight > 0).to(device)
     params = sum(p.numel() for p in net.parameters())
     opt = torch.optim.AdamW(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     rng = np.random.default_rng(args.seed)
@@ -131,36 +140,58 @@ def main():
     y_all, w_all = torch.from_numpy(arrays["y"]).to(device), torch.from_numpy(arrays["weight"]).to(device)
     keep_all = torch.from_numpy(~arrays["rule"]).to(device).float()
     d1_all = torch.from_numpy(np.nan_to_num(arrays["d1"])).to(device)
+    use_policy = args.policy_weight > 0
+    if use_policy and "policy" not in arrays:
+        raise SystemExit("--policy-weight needs the policy arrays: a cache from CACHE_VERSION 3 and an input mode that keeps them")
+    pol_all = torch.from_numpy(arrays["policy"].astype(np.float32)).to(device) if use_policy else None
+    legal_all = torch.from_numpy(arrays["legal"]).to(device) if use_policy else None
 
     best, best_epoch, waited, epoch = None, 0, 0, 0
     with open(out / "metrics.jsonl", "w") as log:
         for epoch in range(1, args.epochs + 1):
             net.train()
             total, weight_seen = 0.0, 0.0
+            pol_total, pol_weight = 0.0, 0.0
             for chunk in epochs[epoch - 1]:
                 rows, local = rows_of(arrays, chunk)
                 r = torch.from_numpy(rows).to(device)
+                local_t = torch.from_numpy(local).to(device)
                 x = planes[r] if planes is not None else torch.from_numpy(arrays["planes"][rows]).to(device)
-                pred = net(x.float(), w_all[r], torch.from_numpy(local).to(device), len(chunk),
-                           d1_all[r] if args.use_d1 else None)
+                result = net(x.float(), w_all[r], local_t, len(chunk), d1_all[r] if args.use_d1 else None,
+                             return_policy=use_policy)
+                pred, logits = result if use_policy else (result, None)
                 w = w_all[r] * keep_all[r]  # boards the rules decide are not learned
-                loss = (w * (pred - y_all[r]) ** 2).sum() / w.sum().clamp_min(1e-12)
+                loss = value_loss = (w * (pred - y_all[r]) ** 2).sum() / w.sum().clamp_min(1e-12)
+                if use_policy:
+                    chunk_t = torch.from_numpy(chunk).to(device)
+                    target, legal = pol_all[chunk_t][local_t], legal_all[chunk_t][local_t]
+                    logp = torch.log_softmax(logits.masked_fill(~legal, -1e9), dim=1)
+                    ce = -(target * logp).sum(1)  # every board of a belief learns that belief's root policy
+                    policy_loss = (w_all[r] * ce).sum() / w_all[r].sum().clamp_min(1e-12)
+                    loss = value_loss + args.policy_weight * policy_loss
+                    pol_total += policy_loss.item() * float(w_all[r].sum())
+                    pol_weight += float(w_all[r].sum())
                 opt.zero_grad()
                 loss.backward()
                 opt.step()
                 sched.step()
-                total += loss.item() * float(w.sum())
+                total += value_loss.item() * float(w.sum())
                 weight_seen += float(w.sum())
             val = errors(predict(net, arrays, ids["val"], device, args.max_boards, planes), arrays, ids["val"])[0]
+            if use_policy:
+                val["policy"] = policy_metrics(net, arrays, ids["val"], device, args.max_boards, planes)
             row = {"epoch": epoch, "train_mse": round(total / max(weight_seen, 1e-12), 6), "val": val,
                    "seconds": round(time.time() - started, 1)}
+            if use_policy:
+                row["train_policy_ce"] = round(pol_total / max(pol_weight, 1e-12), 6)
             log.write(json.dumps(row) + "\n")
             log.flush()
             print(json.dumps(row), flush=True)
             if best is None or val["board_mse"] < best["board_mse"]:
                 best, best_epoch, waited = val, epoch, 0
                 torch.save({"state_dict": {k: v.cpu() for k, v in net.state_dict().items()}, "config": net.config,
-                            "encoding": ENCODING, "dataset": Path(args.data).name, "epoch": epoch, "val": val},
+                            "encoding": ENCODING, "input": args.input, "dataset": Path(args.data).name,
+                            "epoch": epoch, "val": val},
                            out / "best.pt")
             else:
                 waited += 1
@@ -174,7 +205,7 @@ def main():
     if device.type != "cpu":
         speed["cpu_1_belief"] = ms_per_belief(net, torch.device("cpu"), 1)
     summary = {
-        "dataset": Path(args.data).name, "encoding": ENCODING, "config": ckpt["config"], "params": params,
+        "dataset": Path(args.data).name, "encoding": ENCODING, "input": args.input, "config": ckpt["config"], "params": params,
         "device": device.type, "planes_on": "device" if on_device else "host", "n": n, "baseline": baseline,
         "val": best, "best_epoch": best_epoch,
         "epochs_run": epoch, "ms_per_belief_of_8_boards": speed, "seconds": round(time.time() - started, 1),

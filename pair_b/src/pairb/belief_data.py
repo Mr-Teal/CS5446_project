@@ -19,11 +19,12 @@ import numpy as np
 from fow_shared.features import encode_belief
 from fow_shared.recording import read_records
 
+from .moves import legal_mask, policy_vector
 from .observe import visible_squares
 from .values import rule_value
 
 ENCODING = "fow-shared-features-32+pairb-observe-v1"  # the shared planes, with Pair B's stand-in visibility
-CACHE_VERSION = 2  # bump whenever build_arrays changes what it returns
+CACHE_VERSION = 3  # bump whenever build_arrays changes what it returns (3: policy + legal per belief)
 
 
 def opponent_visible(board: chess.Board) -> list[str]:
@@ -32,12 +33,17 @@ def opponent_visible(board: chess.Board) -> list[str]:
 
 
 def build_arrays(records) -> dict[str, np.ndarray]:
-    planes, weight, belief, y, d1, rule = [], [], [], [], [], []
+    planes, weight, belief, y, d1, rule, policy, legal = [], [], [], [], [], [], [], []
     for b, r in enumerate(records):
         p, w = encode_belief(r.agent_input, opponent_visible)
         n = len(w)
         diagnostics = r.decision.diagnostics
-        to_player = 1.0 if r.agent_input.observation.player == "white" else -1.0
+        player = r.agent_input.observation.player
+        to_player = 1.0 if player == "white" else -1.0
+        # The solver's raw root policy over the observed legal moves, one row per belief, in the mirrored
+        # move frame of pairb.moves: the policy head's target and its legal mask.
+        policy.append(policy_vector(r.decision.root_policy, player).astype(np.float16))
+        legal.append(legal_mask(r.agent_input.observation.legal_moves, player))
         rules = [rule_value(chess.Board(h.fen)) for h in r.agent_input.belief.hypotheses]
         quick = [diagnostics.get(f"d1:{i}", np.nan) for i in range(n)]
         quick = [to_player * rv[1] if rv is not None and np.isnan(q) else q for q, rv in zip(quick, rules)]
@@ -50,7 +56,8 @@ def build_arrays(records) -> dict[str, np.ndarray]:
     return {"planes": np.concatenate(planes), "weight": np.concatenate(weight), "belief": np.concatenate(belief),
             "y": np.concatenate(y), "d1": np.concatenate(d1), "rule": np.concatenate(rule),
             "root": np.array([r.root_value for r in records], dtype=np.float32),
-            "game_id": np.array([r.game_id for r in records])}
+            "game_id": np.array([r.game_id for r in records]),
+            "policy": np.stack(policy), "legal": np.stack(legal)}
 
 
 def _part_arrays(path) -> dict[str, np.ndarray] | None:
