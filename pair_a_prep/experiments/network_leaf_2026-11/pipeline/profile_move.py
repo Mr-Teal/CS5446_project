@@ -26,8 +26,13 @@ def main():
     ap.add_argument("--budget-ms", type=int, default=5000)
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--plies", default="4,30,70", help="target plies to pick records near (one per move)")
+    ap.add_argument("--pcfr-fast", type=int, default=None, choices=(0, 1),
+                    help="force PCFRPlus.FAST_PREPARE (the level-wise prediction walk) on or off")
     args = ap.parse_args()
 
+    if args.pcfr_fast is not None:
+        from pair_a_prep import pcfr
+        pcfr.PCFRPlus.FAST_PREPARE = bool(args.pcfr_fast)
     from pair_a_prep.anytime_agent import AnytimeConfig
     from pair_a_prep.chess_subgame_agent import ChessSubgameAgent
     from pairb.belief_evaluator import BeliefNetworkEvaluator

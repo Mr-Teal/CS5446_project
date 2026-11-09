@@ -2,12 +2,18 @@
 
 Local PRM+ follows Farina, Kroer & Sandholm (AAAI 2021), Algorithm 5,
 using utilities (the negative of their losses). See docs/pcfr.md for scheduling.
+
+The prediction step (_prepare) walks the tree once per own-history depth with memoised finalised subtrees
+instead of once per information set; the result is identical (see _prepare_fast and test_pcfr_fast.py), and
+the per-infoset reference walk is kept as _prepare_reference. FOW_PCFR_FAST=0 in the environment, or
+PCFRPlus(..., fast_prepare=False), selects the reference.
 """
 
 from __future__ import annotations
 
 import argparse
 from copy import deepcopy
+import os
 from dataclasses import replace
 import json
 from pathlib import Path
@@ -70,15 +76,18 @@ class PCFRPlus:
     chess-specific expansion policy is implemented.
     """
 
+    FAST_PREPARE = os.environ.get("FOW_PCFR_FAST", "1") != "0"  # the level-wise prediction walk (see module docstring)
+
     def __init__(self, root: Node, predictive: bool = True, averaging_power: int = 2,
-                 schedule: str = "simultaneous", initial_actions=None):
+                 schedule: str = "simultaneous", initial_actions=None, fast_prepare: bool | None = None):
         if schedule not in ("simultaneous", "alternating"):
             raise ValueError("schedule must be simultaneous or alternating")
         self.schedule = schedule
         if averaging_power not in (0, 1, 2):
             raise ValueError("averaging_power must be 0, 1 or 2")
+        self.fast_prepare = self.FAST_PREPARE if fast_prepare is None else bool(fast_prepare)
         self.root = root
-        self.sets, self._order = self._index_tree(root)
+        self.sets, self._order, self._depth = self._index_tree(root)
         self._previous_opponent = [None, None]
         self.predictive = predictive
         self.averaging_power = averaging_power
@@ -104,7 +113,9 @@ class PCFRPlus:
         self._check_recall(root, ((), ()), histories)
         order = tuple(sorted(player_sets, key=lambda key: len(histories[(p, key)]), reverse=True)
                       for p, player_sets in enumerate(sets))
-        return sets, order
+        # Own-history length of each infoset: the level at which _prepare_fast finalises its strategy.
+        depth = tuple({key: len(histories[(p, key)]) for key in player_sets} for p, player_sets in enumerate(sets))
+        return sets, order, depth
 
     def expand(self, replacements: Mapping[tuple[str, ...], Node], *, initial_actions=None) -> None:
         """Atomically replace cutoff leaves by subtrees at root-relative paths.
@@ -141,7 +152,7 @@ class PCFRPlus:
         root = self.root
         for path, subtree in replacements.items():
             root = graft(root, path, subtree)
-        sets, order = self._index_tree(root)
+        sets, order, depth = self._index_tree(root)
         for player in (0, 1):
             for key, actions in self.sets[player].items():
                 if sets[player].get(key) != actions:
@@ -172,7 +183,7 @@ class PCFRPlus:
                 **previous, **{key: value.copy() for key, value in strategies[1 - player].items()}}
             for player, previous in enumerate(self._previous_opponent)]
 
-        self.root, self.sets, self._order = root, sets, order
+        self.root, self.sets, self._order, self._depth = root, sets, order, depth
         for player in (0, 1):
             self.minimizers[player].update(added[player])
             self._strategy[player].update(strategies[player])
@@ -244,16 +255,75 @@ class PCFRPlus:
         # opponent strategy, then propagate through NEW own descendants.
         # Reusing the old local counterfactual vector misses this dependency.
         previous = self._previous_opponent[player]
+        if previous is None or not self.fast_prepare:
+            self._prepare_reference(player, previous)
+        else:
+            self._prepare_fast(player, previous)
+
+    def _publish(self, player, key, prediction) -> None:
+        """Advance one infoset's minimizer with its prediction and apply a pending initial action."""
+        minimizer = self.minimizers[player][key]
+        self._strategy[player][key] = minimizer.next_strategy(prediction)
+        action = self._initial_actions.pop((player, key), None)
+        if action is not None:
+            self._strategy[player][key][:] = 0
+            self._strategy[player][key][self.sets[player][key].index(action)] = 1
+            minimizer.strategy = self._strategy[player][key].copy()
+
+    def _prepare_reference(self, player, previous) -> None:
+        """One full-tree walk per infoset, deepest first, so each prediction sees the strategies already
+        published for its own descendants. O(infosets x tree) per round; kept as the reference."""
         for key in self._order[player]:
-            minimizer = self.minimizers[player][key]
-            prediction = (np.zeros_like(minimizer.regrets) if previous is None
+            prediction = (np.zeros_like(self.minimizers[player][key].regrets) if previous is None
                           else self._utilities(player, previous)[key])
-            self._strategy[player][key] = minimizer.next_strategy(prediction)
-            action = self._initial_actions.pop((player, key), None)
-            if action is not None:
-                self._strategy[player][key][:] = 0
-                self._strategy[player][key][self.sets[player][key].index(action)] = 1
-                minimizer.strategy = self._strategy[player][key].copy()
+            self._publish(player, key, prediction)
+
+    def _prepare_fast(self, player, previous) -> None:
+        """The same predictions in one walk per own-history depth.
+
+        An infoset's prediction depends on the previous opponent strategy and on the strategies of its OWN
+        descendants, never on its ancestors (own reach is 1 in the counterfactual) or on same-depth infosets
+        (disjoint subtrees). So the levels are processed deepest first, every infoset of a level is published
+        after that level's walk, and the value of an own node whose infoset is already final is memoised, so
+        later walks stop there. Floating-point operations happen in the same order as in the reference.
+        """
+        depth_of = self._depth[player]
+        levels = {}
+        for key in self._order[player]:  # already sorted by depth, deepest first
+            levels.setdefault(depth_of[key], []).append(key)
+        strategies, sets = self._strategy, self.sets[player]
+        memo = {}
+        for depth in sorted(levels, reverse=True):
+            keys = levels[depth]
+            values = {key: np.zeros(len(sets[key])) for key in keys}
+
+            def visit(node, counterfactual_reach):
+                if node.payoff is not None:
+                    return node.payoff if player == 0 else -node.payoff
+                cached = memo.get(id(node))
+                if cached is not None:
+                    return cached
+                if node.player is None:
+                    return sum(prob * visit(node.children[action], counterfactual_reach * prob)
+                               for action, prob in node.probabilities.items())
+                p = node.player
+                if p == player:
+                    strategy = strategies[p][node.infoset]
+                    action_values = np.array([visit(child, counterfactual_reach) for child in node.children.values()])
+                    if node.infoset in values:
+                        values[node.infoset] += counterfactual_reach * action_values
+                    value = float(strategy @ action_values)
+                    if depth_of[node.infoset] > depth:  # published at an earlier level: final for this round
+                        memo[id(node)] = value
+                    return value
+                strategy = previous[node.infoset]
+                action_values = np.array([visit(child, counterfactual_reach * strategy[i])
+                                          for i, child in enumerate(node.children.values())])
+                return float(strategy @ action_values)
+
+            visit(self.root, 1.0)
+            for key in keys:
+                self._publish(player, key, values[key])
 
     def _observe(self, player) -> None:
         utilities = self._utilities(player)
