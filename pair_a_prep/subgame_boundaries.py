@@ -196,6 +196,11 @@ class BlendedGadgetControl:
         """Observe this round's values, advance R_J and the selector, re-blend the root."""
         return self._advance(gadget, gadget.round_values(profile))
 
+    def update_from_solver(self, gadget, solver):
+        """update(gadget, solver.policy()); on the native backend the values come from the kernel without the
+        profile dictionaries (Gadget.solver_values)."""
+        return self._advance(gadget, gadget.solver_values(solver))
+
     def _advance(self, gadget, values):
         alternate = gadget.alternate_player0
         entering = {j: fsum(r.reach_mass * values[r.root_id] for r in rows) / fsum(r.reach_mass for r in rows)

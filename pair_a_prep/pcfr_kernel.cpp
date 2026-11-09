@@ -408,6 +408,34 @@ struct GrowthWalk {
     }
 };
 
+// toy_games.value_walk (behavioral_value without its validation) under the published strategies: a terminal
+// returns its payoff; any other node the CPython sum() over its children, in children order, of probability *
+// child value, the probability being the strategy's for that action or, at a chance node, the probabilities dict
+// entry of that child (looked up: chance_prob is in the dict's order, which may differ from the children's).
+double behavioral_visit(const PcfrSolver& s, int node) {
+    const int8_t kind = s.kind[node];
+    if (kind == TERMINAL) return s.payoff[node];
+    const int begin = s.child_begin[node], n = s.child_begin[node + 1] - begin;
+    Compensated sum;
+    if (kind == CHANCE) {
+        for (int i = 0; i < n; ++i) {
+            const int child = s.child[begin + i];
+            double prob = 0.0;
+            for (int k = s.chance_begin[node]; k < s.chance_begin[node + 1]; ++k)
+                if (s.chance_child[k] == child) {
+                    prob = s.chance_prob[k];
+                    break;
+                }
+            sum.add(prob * behavioral_visit(s, child));
+        }
+        return sum.value();
+    }
+    const PcfrSide& side = s.side[s.player[node]];
+    const double* strategy = side.strategy + side.offset[s.infoset[node]];
+    for (int i = 0; i < n; ++i) sum.add(strategy[i] * behavioral_visit(s, s.child[begin + i]));
+    return sum.value();
+}
+
 }  // namespace
 
 extern "C" {
@@ -507,6 +535,13 @@ int pcfr_growth_utilities(const PcfrSolver* s, double* conditional0, double* con
             }
         }
     }
+    return 0;
+}
+
+// value_walk of the subtrees at nodes[0..n): values[k] = the behavioral value of the subtree at nodes[k] under the
+// published strategies (what toy_games.behavioral_value returns for it with PCFRPlus.policy()).
+int pcfr_behavioral_values(const PcfrSolver* s, int32_t n, const int32_t* nodes, double* values) {
+    for (int k = 0; k < n; ++k) values[k] = behavioral_visit(*s, nodes[k]);
     return 0;
 }
 

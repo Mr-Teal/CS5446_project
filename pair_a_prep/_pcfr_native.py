@@ -68,7 +68,8 @@ def library():
                        ("pcfr_accumulate_average", [solver, C.c_int, C.c_double]),
                        ("pcfr_step", [solver, C.c_int64]),
                        ("pcfr_run", [solver, C.c_int64, C.c_int64, C.POINTER(C.c_int64), C.c_int, C.c_int, _P]),
-                       ("pcfr_growth_utilities", [solver, _P, _P])):
+                       ("pcfr_growth_utilities", [solver, _P, _P]),
+                       ("pcfr_behavioral_values", [solver, C.c_int32, _P, _P])):
         function = getattr(dll, name)
         function.argtypes, function.restype = args, C.c_int
     return dll
@@ -596,6 +597,15 @@ class NativeState:
         self._sync_chance()
         values = tuple(np.zeros(int(self.sides[p]["offset"][-1])) for p in (0, 1))
         _check(self.dll.pcfr_growth_utilities(C.byref(self.struct), _pointer(values[0]), _pointer(values[1])))
+        return values
+
+    def behavioral_values(self, nodes):
+        """toy_games.value_walk of the subtrees at these flat node ids under the published strategies
+        (behavioral_value with policy()), in its floating-point order."""
+        self._sync_chance()
+        nodes = np.ascontiguousarray(nodes, dtype=np.int32)
+        values = np.zeros(len(nodes))
+        _check(self.dll.pcfr_behavioral_values(C.byref(self.struct), len(nodes), _pointer(nodes), _pointer(values)))
         return values
 
     def prepare(self, solver, player):

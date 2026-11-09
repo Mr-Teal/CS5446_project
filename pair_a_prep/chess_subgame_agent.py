@@ -159,7 +159,7 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
                         batch, max(1, ceil((solve_deadline-round_started)/predicted)-1))
             trace = solver.run(batch, record=(0, projection.tree.root_infoset))
             if control:
-                control.update(bridge.gadget, solver.policy())
+                control.update_from_solver(bridge.gadget, solver)
                 if control.mode != mode:
                     mode = control.mode
                     switches += 1

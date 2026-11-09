@@ -8,6 +8,8 @@ from math import fsum, isfinite
 import os
 from typing import Mapping, Optional, Sequence
 
+import numpy as np
+
 from .toy_games import Node, behavioral_value, information_sets, terminal, value_walk
 
 
@@ -67,6 +69,26 @@ class Gadget:
             self._validated = self.FAST
             return values
         return {root_id: value_walk(node, policies) for root_id, node in self.continuations.items()}
+
+    def solver_values(self, solver) -> dict:
+        """round_values(solver.policy()) for the solver that solves this gadget, without the profile dictionaries.
+
+        On the native backend (blended gadget, the solver's root is this gadget's tree, first call done) the kernel
+        walks each continuation where it sits in the solver's flat tree, under the published strategies that
+        policy() returns, in value_walk's floating-point order (pcfr_behavioral_values). In a blended gadget
+        tree.children[root_id] is the continuation: the same object until the first expansion, after it the
+        solver's graft of the same structure. Otherwise, and for the first call, round_values(solver.policy()).
+        """
+        native = getattr(solver, "_native", None)
+        if (native is None or not self.FAST or self.mode != "blended" or solver.root is not self.tree
+                or not self.__dict__.get("_validated")):
+            return self.round_values(solver.policy())
+        positions = self.__dict__.get("_positions")
+        if positions is None:
+            order = {action: i for i, action in enumerate(self.tree.children)}
+            positions = self._positions = np.array([order[root_id] for root_id in self.continuations], dtype=np.int64)
+        nodes = native.child[native.child_begin[0] + positions]
+        return dict(zip(self.continuations, native.behavioral_values(nodes).tolist()))
 
     def belief_value(self, policies, weights: Mapping[str, float]) -> float:
         """Explicit label weights, independent of the gadget's opponent prior."""
