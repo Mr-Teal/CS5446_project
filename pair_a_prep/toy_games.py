@@ -157,14 +157,18 @@ def behavioral_value(root: Node, policies: Sequence[Mapping[str, Mapping[str, fl
             if set(policies[player][key]) != set(actions):
                 raise ValueError("wrong actions at infoset")
             _distribution([policies[player][key][a] for a in actions], len(actions))
+    return value_walk(root, policies)
 
-    def visit(node: Node) -> float:
-        if node.payoff is not None:
-            return node.payoff
-        probs = node.probabilities if node.player is None else policies[node.player][node.infoset]
-        return sum(probs[a] * visit(child) for a, child in node.children.items())
 
-    return visit(root)
+def value_walk(node: Node, policies) -> float:
+    """behavioral_value's walk without its validation: for a tree and profile that have already been validated.
+
+    The same operations in the same order (CPython sum over children in dict order), so the result is identical.
+    """
+    if node.payoff is not None:
+        return node.payoff
+    probs = node.probabilities if node.player is None else policies[node.player][node.infoset]
+    return sum(probs[a] * value_walk(child, policies) for a, child in node.children.items())
 
 
 def behavioral_nash_gap(root: Node, policies: Sequence[Mapping[str, Mapping[str, float]]]) -> float:

@@ -194,7 +194,9 @@ class BlendedGadgetControl:
 
     def update(self, gadget, profile):
         """Observe this round's values, advance R_J and the selector, re-blend the root."""
-        values = gadget.continuation_values(profile)
+        return self._advance(gadget, gadget.round_values(profile))
+
+    def _advance(self, gadget, values):
         alternate = gadget.alternate_player0
         entering = {j: fsum(r.reach_mass * values[r.root_id] for r in rows) / fsum(r.reach_mass for r in rows)
                     for j, rows in self.groups.items()}

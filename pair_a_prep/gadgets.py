@@ -5,9 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 from math import fsum, isfinite
+import os
 from typing import Mapping, Optional, Sequence
 
-from .toy_games import Node, behavioral_value, information_sets, terminal
+from .toy_games import Node, behavioral_value, information_sets, terminal, value_walk
 
 
 PREFIX = "__gadget__:"
@@ -47,6 +48,25 @@ class Gadget:
             local = tuple({key: policies[p][key] for key in sets[p]} for p in (0, 1))
             values[root_id] = behavioral_value(node, local)
         return values
+
+    # The per-round entry below validates once per gadget; FOW_GADGET_FAST=0 makes it continuation_values every call.
+    FAST = os.environ.get("FOW_GADGET_FAST", "1") != "0"
+
+    def round_values(self, policies) -> dict:
+        """continuation_values for the per-round controller (BlendedGadgetControl.update), validated once.
+
+        The first call on this gadget is continuation_values itself, with all its checks and errors. Later calls
+        walk the continuations only (toy_games.value_walk: the operations of behavioral_value in the same order,
+        so the values are identical), without re-deriving their information sets and re-validating the profile:
+        a gadget's trees never change (an expansion returns a new Gadget, which validates again), and the
+        per-round profile is the solver's, whose strategies are distributions by construction. With FAST off
+        every call is continuation_values.
+        """
+        if not self.FAST or not self.__dict__.get("_validated"):
+            values = self.continuation_values(policies)
+            self._validated = self.FAST
+            return values
+        return {root_id: value_walk(node, policies) for root_id, node in self.continuations.items()}
 
     def belief_value(self, policies, weights: Mapping[str, float]) -> float:
         """Explicit label weights, independent of the gadget's opponent prior."""
