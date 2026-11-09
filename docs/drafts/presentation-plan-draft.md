@@ -6,7 +6,7 @@ Presentation plan with a separate three-minute Q&A
 
 ## The argument
 
-Observation history constrains possible hidden boards. Search estimates position values at its depth limit. State representation provides the numerical board input. A short transition then introduces Colin’s section on how position values are learned and tested through predictions and playing decisions.
+Observation history constrains possible hidden boards. Search estimates position values at its depth limit. State representation provides the numerical board input. A direct handoff introduces Colin’s section on how position values are learned and tested through predictions and playing decisions.
 
 The provisional allocations total 13:00, including a 15-second handoff. No unrelated speech or allocations have been shortened. Rehearsal timing remains separate from this transition edit. The confirmed slot is 12 minutes presentation plus three minutes Q&A.
 
@@ -19,13 +19,13 @@ The provisional allocations total 13:00, including a 15-second handoff. No unrel
 | 3 | Possibility A | 0:20 |
 | 4 | Possibility B | 0:20 |
 | 5 | Possibility C | 0:25 |
-| 6 | Fog of War Chess | 0:35 |
-| 7 | A capture reveals a hidden rook | 0:30 |
+| 6 | Hidden state and partial observation | 0:35 |
+| 7 | Inferring the rook’s location | 0:30 |
 | 8 | History filters the possible boards | 0:35 |
 | 9 | Search needs a value function | 0:45 |
 | 10 | State representation: piece locations | 0:30 |
 | 11 | State representation: separate piece layers | 0:25 |
-| 12 | State representation: stacked layers | 0:25 |
+| 12 | State representation: model input | 0:25 |
 | 13 | How do we learn useful position values? | 0:15 |
 | 14 | Three ways to learn position values | 0:20 |
 | 15 | Monte Carlo learns from completed returns | 0:30 |
@@ -95,27 +95,27 @@ The provisional allocations total 13:00, including a 15-second handoff. No unrel
 
 **Purpose:** Hidden information. Planned 25 seconds.
 
-**Say:** The rook could already be attacking our king without us knowing. Moving straight up or down would still leave the king exposed. In this version of chess, those moves are allowed even though Black could capture us next.
+**Say:** The rook could already be attacking our king without us knowing. Moving straight up or down would still leave the king exposed.
 
-**Transition:** So what makes this different from ordinary chess?
+**Transition:** We have to choose a move without knowing which hidden position we’re in.
 
-### Slide 6 Fog of War Chess
+### Slide 6 Hidden state and partial observation
 
 **Presenter:** Bryan
 
 **Purpose:** Game and problem formulation. Planned 35 seconds.
 
-**Say:** In Fog of War Chess, we win by capturing the opponent’s king. We can only see part of the board, and the game doesn’t stop us from moving into danger. Each move changes the position and what we can see. For our agent, this means choosing actions with only partial information.
+**Say:** In Fog of War Chess, the goal is to capture the opponent’s king, but we can only see part of the board. The game has a full underlying state, while our agent receives only this partial observation.
 
 **Transition:** But the current view isn’t all the information we have.
 
-### Slide 7 A capture reveals a hidden rook
+### Slide 7 Inferring the rook’s location
 
 **Presenter:** Bryan
 
 **Purpose:** Historical observations. Planned 30 seconds.
 
-**Say:** Now suppose we also have a knight. Before Black moves, we can see our knight and Black’s king. After Black moves, our knight has been captured. The king was too far away to capture it, so it must have been the rook. That tells us where the rook is now, even though we still can’t see it.
+**Say:** Now suppose we also have a knight. After Black moves, the knight has been captured. Black’s king was too far away, so the rook must have captured it. That tells us the rook’s location, even though it remains hidden.
 
 **Transition:** Would we know that if we kept only the latest view?
 
@@ -127,7 +127,7 @@ The provisional allocations total 13:00, including a 15-second handoff. No unrel
 
 **Say:** If we forget the capture and look only at what we can see now, all three positions fit. Remembering the capture rules out A and B, leaving C. That’s why our agent needs a belief tracker: it keeps track of which hidden boards still fit what has happened so far.
 
-**Transition:** Knowing what could be hidden is only the first part. How do we use those possible boards to choose a move?
+**Transition:** How does the agent use these possible boards to choose a move?
 
 ### Slide 9 Search needs a value function
 
@@ -135,7 +135,7 @@ The provisional allocations total 13:00, including a 15-second handoff. No unrel
 
 **Purpose:** Locate value estimation at the search depth limit. Planned 45 seconds.
 
-**Say:** From each possible board, we search ahead using the game rules. We set a limit on how many moves ahead we look. For positions still in play at that depth, we need an estimate of how favourable they are. Those value estimates help search compare moves. That’s the judgement we want the model to learn.
+**Say:** From each possible board, we search ahead to a depth limit. For positions still in play at that depth, we need an estimate of how favourable they are. Those value estimates help search compare moves. That’s the judgement we want the model to learn.
 
 **Transition:** Here’s how we represent a position for that model.
 
@@ -147,7 +147,7 @@ The provisional allocations total 13:00, including a 15-second handoff. No unrel
 
 **Purpose:** Introduce the numerical state representation through one piece layer. Planned 30 seconds.
 
-**Say:** This is our state representation for the value model. Take the same candidate board from the capture example. In a layer for our king, its location is one and every other cell is zero. We keep the board’s spatial layout, so the numerical input still tells the model where the piece is.
+**Say:** This is our state representation for the value model. In a layer for our king, its location is one and every other cell is zero. We keep the board’s spatial layout, so the numerical input still tells the model where the piece is.
 
 **Transition:** That’s one piece layer. Now we can add the others.
 
@@ -159,19 +159,19 @@ The provisional allocations total 13:00, including a 15-second handoff. No unrel
 
 **Purpose:** Show that different pieces occupy separate layers of the same candidate. Planned 25 seconds.
 
-**Say:** We repeat that idea for each piece type and side. These layers mark our king, the opponent’s rook and the opponent’s king. Every layer describes the same candidate board. Separate layers let the model distinguish which pieces are where.
+**Say:** We use a separate layer for each piece type and side. These are three layers of the same candidate board.
 
 **Transition:** The model receives these layers together.
 
 **Delivery cues (not spoken):** Sweep across the three layers and pause briefly. They are three channels of the same board, not three different hidden-board hypotheses. The full encoder has twelve piece layers, including empty piece types.
 
-### Slide 12 State representation: stacked layers
+### Slide 12 State representation: model input
 
 **Presenter:** Bryan
 
 **Purpose:** Combine piece and turn/rule channels into one model input. Planned 25 seconds.
 
-**Say:** We stack the piece layers with information about whose turn it is and the rules. For this model, that makes nineteen layers, each eight by eight. This is the board input to the value model. The belief tracker determines which boards are possible, and this representation lets the model judge each candidate.
+**Say:** We stack the piece layers with information about whose turn it is and the rules. For this model, that makes nineteen layers, each eight by eight. This is the board input to the value model. We encode each candidate board this way before evaluating it.
 
 **Delivery cues (not spoken):** Indicate the stack, the twelve-plus-seven grouping and then the nineteen-by-eight-by-eight dimensions. Do not enumerate rule channels. The rear sheets are schematic; the front grid shows the king layer. Network 1’s additional engine scalar is covered in the correction study. Advance to the handoff slide after the final sentence.
 
@@ -181,7 +181,7 @@ The provisional allocations total 13:00, including a 15-second handoff. No unrel
 
 **Purpose:** Bridge from state representation to Colin’s learning and evaluation section. Planned 15 seconds.
 
-**Say:** We now have a way to represent each possible board. Next, we need to learn how to judge it. Colin will explain the training methods and what the results tell us.
+**Say:** I’ll hand over to Colin to explain how we learn these values and test whether they improve our moves.
 
 **Delivery cues (not spoken):** Click to this slide after finishing the representation explanation. Address the audience, then turn to Colin at the end. Colin takes over on the next slide. This is the only presenter handoff.
 
@@ -450,4 +450,4 @@ The planned allocations total 13:00; the confirmed speaking slot is 12 minutes, 
 
 ## Delivery and pacing
 
-After finishing the state representation stack on slide 12, click to slide 13. The question on screen introduces the next topic and Colin’s name marks the speaker change. Bryan connects representation to learning, then Colin takes over on slide 14 with the existing introduction. Keep one handoff. All prior spoken sections and experimental qualifications remain intact.
+The opening question and A/B/C examples establish how one observation can hide different action consequences. Keep enough game context to interpret those examples, then use slide 6 to connect hidden state and partial observation to RL. Preserve the capture inference and why it motivates belief tracking. In state representation, explain binary piece locations and spatial layout once, then reveal the separate layers and stacked model input without rereading labels. The single handoff on slide 13 leads directly to Colin’s learning and evaluation section. All numerical evidence and Colin’s speech are unchanged. Provisional allocations are retained for rehearsal.
