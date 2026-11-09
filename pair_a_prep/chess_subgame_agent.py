@@ -134,6 +134,7 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
         growth_stopped = None
         round_s = 0.  # time per round of the last batch
         root_actions = solver.sets[0][projection.tree.root_infoset]
+        view = None  # the gadget's frontier view for growth attempts
         completed = 0
         while completed < self.config.rounds:
             # The rounds up to the next growth check run as one batch (solver.run). With a clock a batch has at most
@@ -182,15 +183,18 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
                 continue
             try:
                 if bridge:
-                    mapping = {}
-                    for path, context in projection.tree.frontiers.items():
-                        i = int(path[0])
-                        mapping[(projection.root_ids[i],)+path[1:]] = path
-                    view = SimpleNamespace(root=solver.root, frontiers=mapping)
+                    # The gadget-path view of the frontiers changes only with an expansion: rebuilt then, not on
+                    # every growth attempt (it covers all frontiers).
+                    if view is None or view.tree is not projection.tree or view.root is not solver.root:
+                        mapping = {}
+                        for path, context in projection.tree.frontiers.items():
+                            i = int(path[0])
+                            mapping[(projection.root_ids[i],)+path[1:]] = path
+                        view = SimpleNamespace(root=solver.root, frontiers=mapping, tree=projection.tree)
                     proposal = sampler.select(view, solver, self.config.max_depth, growth_deadline)
                     if proposal is None:
                         continue
-                    bridge = bridge.expand(solver, leaf, selected_paths=(mapping[proposal[0]],),
+                    bridge = bridge.expand(solver, leaf, selected_paths=(view.frontiers[proposal[0]],),
                         max_nodes=self.config.max_nodes, deadline=growth_deadline, initialize_best=True)
                     projection.tree = bridge.roots.chess_tree
                     self.last_bridge = bridge
