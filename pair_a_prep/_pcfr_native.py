@@ -5,7 +5,9 @@ the tree into arrays (nodes in DFS order) after __init__ and after every expand(
 flat float64 arrays, one block of actions per information set. The solver's Python-visible state
 (minimizers[p][key].regrets / .strategy / .previous_utility / ._pending, _strategy, _sums, _previous_opponent)
 becomes views of those arrays: reads see the kernel's results, in-place writes and assignments write through.
-_initial_actions stays a plain dict and is handed to the kernel around each step.
+_initial_actions stays a plain dict and is handed to the kernel around each step. Chance probabilities are re-read
+from the tree's dicts before every kernel call, because the blended gadget's controller rewrites its root
+distribution in place between rounds.
 
 Instrumentation that replaces PCFRPlus._utilities or a minimizer's observe/next_strategy on an instance (to count
 or spy on calls) sets `instrumented`, and PCFRPlus.step then runs that solver's rounds in Python on the same views.
@@ -17,6 +19,7 @@ import ctypes as C
 from copy import deepcopy
 from functools import lru_cache
 from hashlib import sha256
+from itertools import chain
 import json
 from pathlib import Path
 
@@ -224,7 +227,7 @@ class NativeState:
         self.struct = self._structure(solver)
 
     def _compile_tree(self, root, sets):
-        kind, player, infoset, payoff, children, chance = [], [], [], [], [], []
+        kind, player, infoset, payoff, children, chance, dicts = [], [], [], [], [], [], []
 
         def visit(node):
             i = len(kind)
@@ -237,6 +240,8 @@ class NativeState:
             if node.payoff is not None:
                 payoff[i] = float(node.payoff)
                 return i
+            if node.player is None:
+                dicts.append(node.probabilities)  # in node-id order, like the chance_prob ranges
             ids = {action: visit(child) for action, child in node.children.items()}
             children[i] = tuple(ids.values())
             if node.player is None:
@@ -258,6 +263,13 @@ class NativeState:
         self.chance_begin = np.cumsum([0] + [len(c) for c in chance]).astype(np.int32)
         self.chance_child = np.array([j for c in chance for j, _ in c], dtype=np.int32)
         self.chance_prob = np.array([q for c in chance for _, q in c], dtype=np.float64)
+        self.chance_dicts = dicts
+
+    def _sync_chance(self):
+        """Re-read the chance probabilities from the tree (a blended gadget's controller rewrites its root's)."""
+        if self.chance_dicts:
+            self.chance_prob[:] = np.fromiter(chain.from_iterable(d.values() for d in self.chance_dicts),
+                                              np.float64, len(self.chance_prob))
 
     def _load(self, solver):
         """Copy the solver's current Python-visible state (views of an older state or plain objects) in."""
@@ -321,6 +333,7 @@ class NativeState:
     # The kernel entry points; step() is the one PCFRPlus uses, the others serve the equivalence tests.
     def _run(self, solver, function, *args):
         """Hand solver._initial_actions to the kernel for one call; drop the ones a publish consumed."""
+        self._sync_chance()
         pending = solver._initial_actions
         loaded = []
         for (p, key), action in pending.items():
@@ -355,6 +368,7 @@ class NativeState:
         _check(self.dll.pcfr_accumulate_average(C.byref(self.struct), player, float(weight)))
 
     def utilities(self, player, opponent=None):
+        self._sync_chance()
         values = np.zeros(int(self.sides[player]["offset"][-1]))
         if opponent is not None:
             flat = np.zeros(int(self.sides[1 - player]["offset"][-1]))

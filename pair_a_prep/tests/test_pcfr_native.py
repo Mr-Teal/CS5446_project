@@ -149,6 +149,22 @@ def test_backend_selection(monkeypatch):
     assert PCFRPlus(kuhn_poker()).backend == "python"
 
 
+
+def test_chance_probabilities_rewritten_in_place_reach_the_kernel():
+    """The blended gadget's controller rewrites its root distribution between rounds (BlendedGadgetControl.apply)."""
+    def tree():
+        return Node(children={
+            "A": Node(player=0, infoset="a", children={"x": Node(player=1, infoset="o", children={
+                "l": terminal(1), "r": terminal(-1)}), "y": terminal(0.2)}),
+            "B": Node(player=0, infoset="b", children={"x": Node(player=1, infoset="o", children={
+                "l": terminal(-1), "r": terminal(2)}), "y": terminal(-0.3)})}, probabilities={"A": 0.5, "B": 0.5})
+    python, native = _pair(tree())
+    for weight in (0.5, 0.9, 0.2, 0.7):
+        for solver in (python, native):
+            solver.root.probabilities.update(A=weight, B=1 - weight)
+            solver.run(3)
+        _same(python, native)
+
 RECORDS = os.environ.get("FOW_TEST_RECORDS") or next(
     (p for p in ("/labels/solver-v2-sf8-g237", "/labels/solver-v2-sf8") if os.path.isdir(p)), "")
 
