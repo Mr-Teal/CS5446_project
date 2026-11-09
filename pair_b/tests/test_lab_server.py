@@ -219,7 +219,7 @@ def test_config_lists_rules_and_scorers(lab):
     assert set(config) == {"rules", "scorers", "default_scorer", "bots", "default_bot", "torch", "machine"}
     assert config["rules"] == {"name": "pairb-standin", "label": StandinRules.label}
     assert config["rules"]["name"] in {"pairb-standin", "teal-rules-adapter"}
-    assert [row["id"] for row in config["scorers"]] == list(SCORER_IDS) and len(config["scorers"]) == 5
+    assert [row["id"] for row in config["scorers"]] == list(SCORER_IDS) and len(config["scorers"]) == len(SCORER_IDS)
     assert all(set(row) == {"id", "label", "available", "reason"} for row in config["scorers"])
     infos = available_scorers(lab.scorer_opts)
     assert config["scorers"] == [dataclasses.asdict(info) for info in infos]
