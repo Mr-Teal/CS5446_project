@@ -202,6 +202,9 @@ class ChessGadget:
                 for key, action in heuristic_actions(subtree).items():
                     initial_actions.setdefault(key, action)
         solver.expand(replacements, initial_actions=initial_actions)
+        if fast:  # the regrown gadget is new and ours: set its tree in place, keeping what it has validated
+            candidate.gadget.tree = solver.root
+            return candidate
         return replace(candidate, gadget=replace(candidate.gadget, tree=solver.root))
 
     def evaluate_profile(self, profile) -> ChessGadgetValues:

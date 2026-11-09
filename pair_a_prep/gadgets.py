@@ -44,45 +44,51 @@ class Gadget:
         No opt-out or Maxmargin offset enters these values. Restrict the full
         gadget profile to each continuation's infosets without changing actions.
         """
-        values = {}
-        for root_id, node in self.continuations.items():
-            sets = information_sets(node)
-            local = tuple({key: policies[p][key] for key in sets[p]} for p in (0, 1))
-            values[root_id] = behavioral_value(node, local)
-        return values
+        return {root_id: _continuation_value(node, policies) for root_id, node in self.continuations.items()}
 
-    # The per-round entry below validates once per gadget; FOW_GADGET_FAST=0 makes it continuation_values every call.
+    # The per-round entries below validate each continuation once; FOW_GADGET_FAST=0 makes them continuation_values.
     FAST = os.environ.get("FOW_GADGET_FAST", "1") != "0"
 
     def round_values(self, policies) -> dict:
         """continuation_values for the per-round controller (BlendedGadgetControl.update), validated once.
 
-        The first call on this gadget is continuation_values itself, with all its checks and errors. Later calls
-        walk the continuations only (toy_games.value_walk: the operations of behavioral_value in the same order,
-        so the values are identical), without re-deriving their information sets and re-validating the profile:
-        a gadget's trees never change (an expansion returns a new Gadget, which validates again), and the
-        per-round profile is the solver's, whose strategies are distributions by construction. With FAST off
-        every call is continuation_values.
+        A continuation is validated as continuation_values does it (its information sets, the profile restricted
+        to them, behavioral_value's checks and errors) the first time this gadget evaluates it; the first call on a
+        new gadget is therefore continuation_values itself. Afterwards it is only walked (toy_games.value_walk: the
+        operations of behavioral_value in the same order, so the values are identical): a continuation's tree
+        never changes, and the per-round profile is the solver's, whose strategies are distributions by
+        construction. A gadget regrown by an expansion (regrow_blended) keeps its unchanged continuations
+        validated and validates the grown ones. With FAST off every call is continuation_values.
         """
-        if not self.FAST or not self.__dict__.get("_validated"):
-            values = self.continuation_values(policies)
-            self._validated = self.FAST
-            return values
-        return {root_id: value_walk(node, policies) for root_id, node in self.continuations.items()}
+        if not self.FAST:
+            return self.continuation_values(policies)
+        checked = self.__dict__.get("_checked", frozenset())
+        values = {root_id: value_walk(node, policies) if root_id in checked else _continuation_value(node, policies)
+                  for root_id, node in self.continuations.items()}
+        self._checked = frozenset(self.continuations)
+        return values
 
     def solver_values(self, solver) -> dict:
         """round_values(solver.policy()) for the solver that solves this gadget, without the profile dictionaries.
 
-        On the native backend (blended gadget, the solver's root is this gadget's tree, first call done) the kernel
-        walks each continuation where it sits in the solver's flat tree, under the published strategies that
-        policy() returns, in value_walk's floating-point order (pcfr_behavioral_values). In a blended gadget
-        tree.children[root_id] is the continuation: the same object until the first expansion, after it the
-        solver's graft of the same structure. Otherwise, and for the first call, round_values(solver.policy()).
+        On the native backend (blended gadget whose tree is the solver's root) continuations not yet validated are
+        validated as round_values does, with the solver's profile restricted to their sets (policy()'s entries),
+        and then the kernel walks every continuation where it sits in the solver's flat tree, under the published
+        strategies that policy() returns, in value_walk's floating-point order (pcfr_behavioral_values). In a
+        blended gadget tree.children[root_id] is the continuation: the same object until the first expansion,
+        after it the solver's graft of the same structure. Otherwise round_values(solver.policy()).
         """
         native = getattr(solver, "_native", None)
-        if (native is None or not self.FAST or self.mode != "blended" or solver.root is not self.tree
-                or not self.__dict__.get("_validated")):
+        if native is None or not self.FAST or self.mode != "blended" or solver.root is not self.tree:
             return self.round_values(solver.policy())
+        checked = self.__dict__.get("_checked", frozenset())
+        if len(checked) < len(self.continuations):
+            for root_id, node in self.continuations.items():
+                if root_id not in checked:
+                    sets = information_sets(node)
+                    _continuation_value(node, tuple({key: dict(zip(solver.sets[p][key], map(float, solver._strategy[p][key])))
+                                                     for key in sets[p]} for p in (0, 1)))
+            self._checked = frozenset(self.continuations)
         positions = self.__dict__.get("_positions")
         if positions is None:
             order = {action: i for i, action in enumerate(self.tree.children)}
@@ -97,6 +103,13 @@ class Gadget:
         probabilities = _distribution(weights, "belief weights")
         values = self.continuation_values(policies)
         return fsum(probabilities[key] * values[key] for key in probabilities)
+
+
+def _continuation_value(node, policies):
+    """One entry of Gadget.continuation_values: the profile restricted to the continuation's sets, validated."""
+    sets = information_sets(node)
+    local = tuple({key: policies[p][key] for key in sets[p]} for p in (0, 1))
+    return behavioral_value(node, local)
 
 
 def _distribution(values, name):
@@ -229,7 +242,9 @@ def regrow_blended(gadget: Gadget, roots: Sequence[SubgameRoot], changed, group_
     conditional = {r.root_id: r.reach_mass / masses[r.opponent_infoset] for r in roots}
     root_prior = {r.root_id: prior[r.opponent_infoset] * conditional[r.root_id] for r in roots}
     root_prior.update({"exit:" + j: 0.0 for j in groups})
-    return Gadget(tree, "blended", roots, continuations, dict(gadget.alternate_player0), root_prior)
+    result = Gadget(tree, "blended", roots, continuations, dict(gadget.alternate_player0), root_prior)
+    result._checked = gadget.__dict__.get("_checked", frozenset()) - set(changed)  # see Gadget.round_values
+    return result
 
 
 def main() -> None:

@@ -55,7 +55,7 @@ def test_round_and_solver_values_equal_continuation_values_every_round(schedule)
         assert repr(gadgets[0].tree.probabilities) == repr(gadgets[1].tree.probabilities)
         assert (controls[0].margins, controls[0].p_max) == (controls[1].margins, controls[1].p_max)
         assert solvers[0].policy() == solvers[1].policy()
-    assert gadgets[1].__dict__.get("_validated")
+    assert gadgets[1].__dict__.get("_checked") == set(gadgets[1].continuations)
 
 
 def test_round_values_validate_on_the_first_call_of_each_gadget():
@@ -68,7 +68,7 @@ def test_round_values_validate_on_the_first_call_of_each_gadget():
     with pytest.raises(KeyError):  # what continuation_values raises for a profile without a set
         gadget.round_values(missing)
     gadget.round_values(profile)  # the first valid call validates the gadget
-    assert gadget.__dict__.get("_validated")
+    assert gadget.__dict__.get("_checked") == set(gadget.continuations)
     fresh = dataclasses.replace(gadget, tree=gadget.tree)  # an expansion's new gadget validates again
     with pytest.raises(ValueError):
         fresh.round_values(bad)
@@ -145,9 +145,12 @@ def _replay_patched(monkeypatch, backend, fast, player, turns, check_values):
 
         def compared(self, solver, *args, **kwargs):
             """The fast expansion's bridge equals the one the reference builds from the same grown chess tree."""
+            checked = self.gadget.__dict__.get("_checked", frozenset())
             bridge = expand(self, solver, *args, **kwargs)
             if bridge is self:
                 return bridge
+            grown = {self.roots.root_ids[int(path[0])] for path in kwargs["selected_paths"]}
+            assert bridge.gadget.__dict__.get("_checked") == checked - grown  # grown continuations validate again
             reference = bridge.roots.build(self.gadget.alternate_player0, reach_mass=self.reach_mass,
                                            mode="blended", group_prior=self.group_prior)
             assert bridge == reference.__class__(reference.roots, bridge.gadget, reference.reach_mass,
