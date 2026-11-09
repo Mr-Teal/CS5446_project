@@ -52,6 +52,39 @@ struct PcfrSolver {
     PcfrSide side[2];
 };
 
+// subgame_boundaries.BlendedGadgetControl on a blended gadget whose tree is the solver's (see _pcfr_native.Control).
+// Groups J in control order; roots in gadget.roots order, listed per group by group_begin / group_roots.
+struct GadgetControl {
+    int32_t n_groups;
+    int32_t n_roots;
+    int32_t predictive;
+    int32_t history_width;       // doubles per round in `history` (0: none)
+    double tolerance;
+    const int32_t* root_node;    // n_roots: the continuation's flat node id (the root's child slot)
+    const double* reach_mass;    // n_roots
+    const int32_t* group_begin;  // n_groups + 1, ranges into group_roots
+    const int32_t* group_roots;  // root indices of each group, in gadget.roots order
+    const double* alternate;     // n_groups: alternate_player0[J]
+    const double* alpha;         // n_groups
+    const double* group_mass;    // n_groups: fsum of the group's reach masses (math.fsum, from Python)
+    const int32_t* root_slot;    // n_roots: index of the root's entry in chance_prob (the root's probabilities dict)
+    const int32_t* exit_slot;    // n_groups: index of "exit:J" there
+    double* entry_regrets;       // 2 per group: R_J, the (enter, exit) PRM+
+    double* entry_strategy;
+    double* entry_previous;
+    int8_t* entry_pending;       // n_groups
+    double* selector_regrets;    // n_groups: the selector PRM+ over groups
+    double* selector_strategy;
+    double* selector_previous;
+    int8_t* selector_pending;    // 1
+    double* pi_resolve;          // n_groups
+    double* pi_maxmargin;        // n_groups
+    double* p_max;               // 1
+    double* margins;             // n_groups
+    double* values;              // n_roots: this round's continuation values
+    double* entering;            // n_groups: scratch
+};
+
 }  // extern "C"
 
 namespace {
@@ -542,6 +575,185 @@ int pcfr_growth_utilities(const PcfrSolver* s, double* conditional0, double* con
 // published strategies (what toy_games.behavioral_value returns for it with PCFRPlus.policy()).
 int pcfr_behavioral_values(const PcfrSolver* s, int32_t n, const int32_t* nodes, double* values) {
     for (int k = 0; k < n; ++k) values[k] = behavioral_visit(*s, nodes[k]);
+    return 0;
+}
+
+}  // extern "C"
+
+namespace {
+
+double fsum(const double* items, int n, std::vector<double>& partials) {
+    // CPython 3.12 math.fsum (msum with exact partials, then half-even rounding across partials) for finite items.
+    partials.clear();
+    for (int k = 0; k < n; ++k) {
+        double x = items[k];
+        size_t i = 0;
+        for (size_t j = 0; j < partials.size(); ++j) {
+            double y = partials[j];
+            if (std::fabs(x) < std::fabs(y)) {
+                const double t = x;
+                x = y;
+                y = t;
+            }
+            const double hi = x + y;
+            const double yr = hi - x;
+            const double lo = y - yr;
+            if (lo != 0.0) partials[i++] = lo;
+            x = hi;
+        }
+        partials.resize(i);
+        if (x != 0.0) partials.push_back(x);
+    }
+    double hi = 0.0, lo = 0.0;
+    size_t m = partials.size();
+    if (m > 0) {
+        hi = partials[--m];
+        while (m > 0) {
+            const double x = hi, y = partials[--m];
+            hi = x + y;
+            const double yr = hi - x;
+            lo = y - yr;
+            if (lo != 0.0) break;
+        }
+        if (m > 0 && ((lo < 0.0 && partials[m - 1] < 0.0) || (lo > 0.0 && partials[m - 1] > 0.0))) {
+            const double y = lo * 2.0;
+            const double x = hi + y;
+            const double yr = x - hi;
+            if (y == yr) hi = x;
+        }
+    }
+    return hi;
+}
+
+// PredictiveRMPlus.observe / next_strategy on one minimizer's arrays (np.maximum(x, 0) is x >= 0 ? x : 0 here:
+// regrets and theta never meet -0.0 or NaN, see the D2 notes). Codes: -2 / -1 as in pcfr_step, -3 a non-finite
+// utility, -4 a non-finite prediction.
+int prm_observe(double* regrets, const double* strategy, double* previous, int8_t* pending, const double* u, int n) {
+    if (!*pending) return -2;
+    for (int i = 0; i < n; ++i)
+        if (!std::isfinite(u[i])) return -3;
+    const double baseline = dot(strategy, u, n);
+    for (int i = 0; i < n; ++i) {
+        const double x = regrets[i] + u[i] - baseline;
+        regrets[i] = x >= 0.0 ? x : 0.0;
+        previous[i] = u[i];
+    }
+    *pending = 0;
+    return 0;
+}
+
+int prm_next(const double* regrets, double* strategy, const double* previous, int8_t* pending, int predictive, int n,
+             double* theta, double* zeros) {
+    if (*pending) return -1;
+    for (int i = 0; i < n; ++i)
+        if (!std::isfinite(previous[i])) return -4;
+    const double* prediction = previous;
+    if (!predictive) {
+        for (int i = 0; i < n; ++i) zeros[i] = 0.0;
+        prediction = zeros;
+    }
+    const double baseline = dot(strategy, prediction, n);
+    for (int i = 0; i < n; ++i) {
+        const double x = regrets[i] + prediction[i] - baseline;
+        theta[i] = x >= 0.0 ? x : 0.0;
+    }
+    const double total = pairwise_sum(theta, n);
+    for (int i = 0; i < n; ++i) strategy[i] = total > 0.0 ? theta[i] / total : 1.0 / n;
+    *pending = 1;
+    return 0;
+}
+
+// BlendedGadgetControl.update_from_solver after one round: values, R_J and selector feedback, the blend, and the
+// root's chance probabilities rewritten (BlendedGadgetControl.apply) in the solver's chance_prob array.
+int control_advance(const PcfrSolver& s, const GadgetControl& c, std::vector<double>& scratch,
+                    std::vector<double>& partials) {
+    const int g = c.n_groups;
+    for (int r = 0; r < c.n_roots; ++r) c.values[r] = behavioral_visit(s, c.root_node[r]);
+    scratch.resize(static_cast<size_t>(3 * g) + 8);
+    double* terms = scratch.data();
+    for (int j = 0; j < g; ++j) {
+        int k = 0;
+        for (int q = c.group_begin[j]; q < c.group_begin[j + 1]; ++q, ++k) {
+            const int r = c.group_roots[q];
+            terms[k] = c.reach_mass[r] * c.values[r];
+        }
+        c.entering[j] = fsum(terms, k, partials) / c.group_mass[j];
+        c.margins[j] = c.entering[j] - c.alternate[j];
+    }
+    double u[2], theta[2], zeros[2];
+    int code;
+    for (int j = 0; j < g; ++j) {
+        u[0] = -c.entering[j];
+        u[1] = -c.alternate[j];
+        double* regrets = c.entry_regrets + 2 * j;
+        double* strategy = c.entry_strategy + 2 * j;
+        double* previous = c.entry_previous + 2 * j;
+        if ((code = prm_observe(regrets, strategy, previous, c.entry_pending + j, u, 2))) return code;
+        if ((code = prm_next(regrets, strategy, previous, c.entry_pending + j, c.predictive, 2, theta, zeros)))
+            return code;
+        c.pi_resolve[j] = strategy[0];
+    }
+    double* selector_u = terms;
+    double* selector_theta = terms + g;
+    double* selector_zeros = terms + 2 * g;
+    for (int j = 0; j < g; ++j) selector_u[j] = -c.margins[j];
+    if ((code = prm_observe(c.selector_regrets, c.selector_strategy, c.selector_previous, c.selector_pending,
+                            selector_u, g)))
+        return code;
+    if ((code = prm_next(c.selector_regrets, c.selector_strategy, c.selector_previous, c.selector_pending,
+                         c.predictive, g, selector_theta, selector_zeros)))
+        return code;
+    for (int j = 0; j < g; ++j) c.pi_maxmargin[j] = c.selector_strategy[j];
+    double p_max = c.pi_resolve[0];  // Python max(): the first of the largest
+    for (int j = 1; j < g; ++j)
+        if (c.pi_resolve[j] > p_max) p_max = c.pi_resolve[j];
+    *c.p_max = p_max;
+    double* probabilities = const_cast<double*>(s.chance_prob);
+    for (int j = 0; j < g; ++j) {
+        const double entering = p_max * c.alpha[j] * c.pi_resolve[j] + (1 - p_max) * c.pi_maxmargin[j];
+        for (int q = c.group_begin[j]; q < c.group_begin[j + 1]; ++q) {
+            const int r = c.group_roots[q];
+            probabilities[c.root_slot[r]] = entering * c.reach_mass[r] / c.group_mass[j];
+        }
+        probabilities[c.exit_slot[j]] = p_max * c.alpha[j] * (1 - c.pi_resolve[j]);
+    }
+    return 0;
+}
+
+}  // namespace
+
+extern "C" {
+
+// The subgame agent's gadget rounds: n times pcfr_step (from `rounds` completed) followed by control_advance, with
+// pcfr_run's done / trace, and p_max after each round in p_max_trace[k]. With c->history_width > 0, history row k
+// receives values (n_roots), margins, pi_resolve, pi_maxmargin (n_groups each), p_max and the root's whole
+// chance_prob range after round k (tests).
+int pcfr_run_gadget(const PcfrSolver* s, const GadgetControl* c, int64_t rounds, int64_t n, int64_t* done,
+                    int trace_player, int trace_set, double* trace, double* p_max_trace, double* history) {
+    std::vector<double> scratch, partials;
+    *done = 0;
+    for (int64_t k = 0; k < n; ++k) {
+        int code = pcfr_step(s, rounds + k);
+        if (code) return code;
+        *done = k + 1;
+        if (trace) {
+            const PcfrSide& side = s->side[trace_player];
+            const int offset = side.offset[trace_set], width = side.offset[trace_set + 1] - offset;
+            for (int i = 0; i < width; ++i) trace[k * width + i] = side.strategy[offset + i];
+        }
+        if ((code = control_advance(*s, *c, scratch, partials))) return code;
+        p_max_trace[k] = *c->p_max;
+        if (history && c->history_width > 0) {
+            double* row = history + k * c->history_width;
+            const int g = c->n_groups;
+            for (int r = 0; r < c->n_roots; ++r) *row++ = c->values[r];
+            for (int j = 0; j < g; ++j) *row++ = c->margins[j];
+            for (int j = 0; j < g; ++j) *row++ = c->pi_resolve[j];
+            for (int j = 0; j < g; ++j) *row++ = c->pi_maxmargin[j];
+            *row++ = *c->p_max;
+            for (int q = s->chance_begin[0]; q < s->chance_begin[1]; ++q) *row++ = s->chance_prob[q];
+        }
+    }
     return 0;
 }
 

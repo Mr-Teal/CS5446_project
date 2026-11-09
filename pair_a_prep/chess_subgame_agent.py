@@ -11,7 +11,7 @@ from fow_shared.contracts import Decision, TrainingRecord
 from .anytime_agent import AnytimeConfig
 from .chess_projection import project_chess, SavedChessBlueprint
 from .chess_search import build_chess_tree, expand_chess_tree, SearchBudgetError, TreeCapacityError
-from .gadgets import _key
+from .gadgets import Gadget, _key
 from .one_sided import OneSidedExpansion
 from .pcfr import PCFRPlus
 from .search_agent import FixedDepthPCFRAgent, SearchResult
@@ -140,11 +140,12 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
             # ROUND_BATCH rounds, and with a submission reserve only as many as end before the solve deadline at
             # the last batch's time per round (one round until a round has been timed). The clock is read between
             # batches, so a batch is the granularity of the half-budget mark (and of the deadline without a
-            # reserve). A blended gadget's controller needs the profile after every round: one round per batch.
+            # reserve). A blended gadget's controller runs after every round (BlendedGadgetControl.run, in the kernel
+            # on the native path); with Gadget.FAST off (the reference) a gadget batch is one round, as before D2.
             batch = self.config.rounds-completed
             if not growth_stopped:
                 batch = min(batch, next_growth-completed)
-            if control:
+            if control and not Gadget.FAST:
                 batch = 1
             elif deadline is not None:
                 batch = min(batch, self.ROUND_BATCH)
@@ -157,12 +158,14 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
                 if self.submission_reserve_fraction > 0:  # no batch runs past the solve deadline at that pace
                     batch = 1 if predicted == 0 else min(
                         batch, max(1, ceil((solve_deadline-round_started)/predicted)-1))
-            trace = solver.run(batch, record=(0, projection.tree.root_infoset))
             if control:
-                control.update_from_solver(bridge.gadget, solver)
-                if control.mode != mode:
-                    mode = control.mode
-                    switches += 1
+                trace, modes = control.run(bridge.gadget, solver, batch, record=(0, projection.tree.root_infoset))
+                for after in modes:  # the mode after each round
+                    if after != mode:
+                        mode = after
+                        switches += 1
+            else:
+                trace = solver.run(batch, record=(0, projection.tree.root_infoset))
             round_s = (perf_counter()-round_started)/batch
             after_half = (perf_counter()-started >= turn.time_budget_ms/2000) if deadline else None
             for row in trace:  # the root policy after each round of the batch

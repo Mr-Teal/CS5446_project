@@ -49,6 +49,18 @@ class Solver(C.Structure):
                 ("chance_prob", _P), ("side", Side * 2)]
 
 
+class Control(C.Structure):
+    """GadgetControl in pcfr_kernel.cpp: a BlendedGadgetControl's numbers and state as arrays (see run_gadget)."""
+    _fields_ = [("n_groups", C.c_int32), ("n_roots", C.c_int32), ("predictive", C.c_int32),
+                ("history_width", C.c_int32), ("tolerance", C.c_double),
+                ("root_node", _P), ("reach_mass", _P), ("group_begin", _P), ("group_roots", _P), ("alternate", _P),
+                ("alpha", _P), ("group_mass", _P), ("root_slot", _P), ("exit_slot", _P),
+                ("entry_regrets", _P), ("entry_strategy", _P), ("entry_previous", _P), ("entry_pending", _P),
+                ("selector_regrets", _P), ("selector_strategy", _P), ("selector_previous", _P),
+                ("selector_pending", _P), ("pi_resolve", _P), ("pi_maxmargin", _P), ("p_max", _P), ("margins", _P),
+                ("values", _P), ("entering", _P)]
+
+
 @lru_cache(maxsize=1)
 def library():
     directory = Path(__file__).parent / "_pcfr_build"
@@ -69,13 +81,16 @@ def library():
                        ("pcfr_step", [solver, C.c_int64]),
                        ("pcfr_run", [solver, C.c_int64, C.c_int64, C.POINTER(C.c_int64), C.c_int, C.c_int, _P]),
                        ("pcfr_growth_utilities", [solver, _P, _P]),
-                       ("pcfr_behavioral_values", [solver, C.c_int32, _P, _P])):
+                       ("pcfr_behavioral_values", [solver, C.c_int32, _P, _P]),
+                       ("pcfr_run_gadget", [solver, C.POINTER(Control), C.c_int64, C.c_int64, C.POINTER(C.c_int64),
+                                            C.c_int, C.c_int, _P, _P, _P])):
         function = getattr(dll, name)
         function.argtypes, function.restype = args, C.c_int
     return dll
 
 
-_ERRORS = {-1: "observe the pending strategy first", -2: "request a strategy before observing utilities"}
+_ERRORS = {-1: "observe the pending strategy first", -2: "request a strategy before observing utilities",
+           -3: "need one finite utility per action", -4: "need one finite prediction per action"}
 
 
 def _check(code):
@@ -598,6 +613,24 @@ class NativeState:
         values = tuple(np.zeros(int(self.sides[p]["offset"][-1])) for p in (0, 1))
         _check(self.dll.pcfr_growth_utilities(C.byref(self.struct), _pointer(values[0]), _pointer(values[1])))
         return values
+
+    def run_gadget(self, solver, control, arrays, rounds, record=None, history=None):
+        """`rounds` x (PCFRPlus.run(1, record) + the control's update_from_solver) in one kernel call: returns the
+        recorded rows (as run()) and p_max after each round. `control` is a Control over `arrays` (kept alive by
+        the caller); history, if given, is a (rounds, control.history_width) array the kernel fills."""
+        done, trace, player, index = C.c_int64(0), None, 0, -1
+        if record is not None:
+            player, key = record
+            start, stop = self.slots[player][key]
+            index, trace = self.index[player][key], np.empty((rounds, stop - start))
+        p_max = np.empty(rounds)
+        try:
+            self._run(solver, self.dll.pcfr_run_gadget, C.byref(control), solver.rounds, rounds, C.byref(done),
+                      player, index, None if trace is None else _pointer(trace), _pointer(p_max),
+                      None if history is None else _pointer(history))
+        finally:
+            solver.rounds += done.value
+        return trace, p_max
 
     def behavioral_values(self, nodes):
         """toy_games.value_walk of the subtrees at these flat node ids under the published strategies

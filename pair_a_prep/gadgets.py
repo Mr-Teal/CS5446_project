@@ -78,23 +78,32 @@ class Gadget:
         blended gadget tree.children[root_id] is the continuation: the same object until the first expansion,
         after it the solver's graft of the same structure. Otherwise round_values(solver.policy()).
         """
+        nodes = self.native_nodes(solver)
+        if nodes is None:
+            return self.round_values(solver.policy())
+        return dict(zip(self.continuations, solver._native.behavioral_values(nodes).tolist()))
+
+    def native_nodes(self, solver):
+        """The flat node ids of the continuations (in continuations order) in a native solver of this blended gadget,
+        after validating the continuations not yet validated (as solver_values describes); None when the native
+        path does not apply (FAST off, Python solver, another mode, or the solver is not on this gadget's tree)."""
         native = getattr(solver, "_native", None)
         if native is None or not self.FAST or self.mode != "blended" or solver.root is not self.tree:
-            return self.round_values(solver.policy())
+            return None
         checked = self.__dict__.get("_checked", frozenset())
         if len(checked) < len(self.continuations):
             for root_id, node in self.continuations.items():
                 if root_id not in checked:
                     sets = information_sets(node)
-                    _continuation_value(node, tuple({key: dict(zip(solver.sets[p][key], map(float, solver._strategy[p][key])))
+                    _continuation_value(node, tuple({key: dict(zip(solver.sets[p][key],
+                                                                   map(float, solver._strategy[p][key])))
                                                      for key in sets[p]} for p in (0, 1)))
             self._checked = frozenset(self.continuations)
         positions = self.__dict__.get("_positions")
         if positions is None:
             order = {action: i for i, action in enumerate(self.tree.children)}
             positions = self._positions = np.array([order[root_id] for root_id in self.continuations], dtype=np.int64)
-        nodes = native.child[native.child_begin[0] + positions]
-        return dict(zip(self.continuations, native.behavioral_values(nodes).tolist()))
+        return native.child[native.child_begin[0] + positions]
 
     def belief_value(self, policies, weights: Mapping[str, float]) -> float:
         """Explicit label weights, independent of the gadget's opponent prior."""
@@ -103,6 +112,9 @@ class Gadget:
         probabilities = _distribution(weights, "belief weights")
         values = self.continuation_values(policies)
         return fsum(probabilities[key] * values[key] for key in probabilities)
+
+
+_SOLVER_VALUES = Gadget.solver_values  # BlendedGadgetControl.run goes native only while this is not replaced
 
 
 def _continuation_value(node, policies):

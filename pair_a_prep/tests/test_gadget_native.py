@@ -58,6 +58,53 @@ def test_round_and_solver_values_equal_continuation_values_every_round(schedule)
     assert gadgets[1].__dict__.get("_checked") == set(gadgets[1].continuations)
 
 
+def _state(control):
+    prms = [control.entry[j] for j in control.order] + [control.selector]
+    return repr(([(m.regrets.tolist(), m.strategy.tolist(), m.previous_utility.tolist(), m._pending) for m in prms],
+                 control.pi_resolve, control.pi_maxmargin, control.p_max, control.margins))
+
+
+@native_only
+@pytest.mark.parametrize("schedule", ["alternating", "simultaneous"])
+@pytest.mark.parametrize("predictive", [True, False])
+def test_control_run_in_the_kernel_equals_the_round_loop(monkeypatch, schedule, predictive):
+    """BlendedGadgetControl.run: rounds + controller in one kernel call (native) against solver.run(1) +
+    update_from_solver per round (Python solver, FAST off), in batches of 1, 3, 7 and 0."""
+    histories = ([], [])
+    runs = []
+    for k, (backend, fast) in enumerate((("python", False), ("native", True))):
+        monkeypatch.setattr(Gadget, "FAST", fast)
+        monkeypatch.setattr(BlendedGadgetControl, "history", histories[k])
+        gadget = build_gadget(_toy_roots(), {"A": 0.1, "B": -0.2}, mode="blended", group_prior={"A": .6, "B": .4})
+        solver = PCFRPlus(gadget.tree, schedule=schedule, backend=backend)
+        control = BlendedGadgetControl(gadget, {"A": .6, "B": .4}, predictive=predictive)
+        key = next(iter(solver.sets[0]))
+        rows = []
+        for n in (1, 3, 7, 0, 5):
+            trace, modes = control.run(gadget, solver, n, record=(0, key))
+            rows.append((trace.tolist(), modes, _state(control), repr(gadget.tree.probabilities), solver.rounds))
+        runs.append((rows, repr(solver.policy()), repr(solver.policy(True))))
+    assert runs[0] == runs[1]
+    assert repr(histories[0]) == repr(histories[1]) and len(histories[1]) == 16
+
+
+@native_only
+def test_control_run_falls_back_to_the_round_loop_when_instrumented(monkeypatch):
+    calls = []
+    advance = BlendedGadgetControl._advance
+
+    def counted(self, gadget, values):
+        calls.append(1)
+        return advance(self, gadget, values)
+
+    monkeypatch.setattr(BlendedGadgetControl, "_advance", counted)
+    gadget = build_gadget(_toy_roots(), {"A": 0.1, "B": -0.2}, mode="blended", group_prior={"A": .6, "B": .4})
+    solver = PCFRPlus(gadget.tree, schedule="alternating", backend="native")
+    control = BlendedGadgetControl(gadget, {"A": .6, "B": .4})
+    control.run(gadget, solver, 4)
+    assert len(calls) == 4
+
+
 def test_round_values_validate_on_the_first_call_of_each_gadget():
     gadget = build_gadget(_toy_roots(), {"A": 0.1, "B": -0.2}, mode="blended", group_prior={"A": .6, "B": .4})
     profile = PCFRPlus(gadget.tree, backend="python").policy()
@@ -122,24 +169,8 @@ def _replay_patched(monkeypatch, backend, fast, player, turns, check_values):
         monkeypatch.setattr(RulesAdapter, "observation_key", lambda self, state, player: observation_key(
             self.observe(state, player)))
     trace = []
-    advance = BlendedGadgetControl._advance
-
-    def recorded(self, gadget, values):
-        margins = advance(self, gadget, values)
-        trace.append(repr((values, margins, self.pi_resolve, self.pi_maxmargin, self.p_max, self.mode,
-                           gadget.tree.probabilities)))
-        return margins
-
-    monkeypatch.setattr(BlendedGadgetControl, "_advance", recorded)
+    monkeypatch.setattr(BlendedGadgetControl, "history", trace)  # every round's control numbers, on both paths
     if check_values:
-        solver_values = Gadget.solver_values
-
-        def checked(self, solver):
-            values = solver_values(self, solver)
-            assert repr(values) == repr(self.continuation_values(solver.policy()))
-            return values
-
-        monkeypatch.setattr(Gadget, "solver_values", checked)
         from pair_a_prep.chess_gadgets import ChessGadget
         expand = ChessGadget.expand
 
@@ -189,7 +220,7 @@ def _replay_patched(monkeypatch, backend, fast, player, turns, check_values):
         projection = agent.last_projection
         boundaries = projection.boundaries
         rows.append(dict(move=decision.move, policy=repr(decision.root_policy), diagnostics=repr(diagnostics),
-                         refused=refused, profile=repr(agent.last_solver.policy()), trace=list(trace),
+                         refused=refused, profile=repr(agent.last_solver.policy()), trace=repr(trace),
                          projection=repr((projection.root_ids, projection.groups, projection.current_ids,
                                           projection.aliases, projection.audit, projection.paths,
                                           projection.tree.frontiers.keys(), projection.tree.root_infoset,
@@ -215,5 +246,5 @@ def test_recorded_games_replay_identically_through_the_gadget():
         for index, (a, b) in enumerate(zip(reference, fast)):
             for field in a:
                 assert a[field] == b[field], (game_id, index, field)
-        gadget_turns += sum(bool(row["trace"]) for row in fast)
+        gadget_turns += sum(row["trace"] != "[]" for row in fast)
     assert gadget_turns >= 6  # turns that solved through the blended gadget, not fresh trees

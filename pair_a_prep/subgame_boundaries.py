@@ -10,6 +10,8 @@ from time import perf_counter
 from hashlib import sha256
 import json
 
+import numpy as np
+
 from .gadgets import SubgameRoot, build_gadget
 from .toy_games import behavioral_value, information_sets
 
@@ -168,6 +170,8 @@ class BlendedGadgetControl:
     l.13 comment states the condition the other way round and is not followed.
     """
 
+    history = None  # a list: every round appends (values, margins, pi_resolve, pi_maxmargin, p_max, mode, root distribution)
+
     def __init__(self, gadget, alpha, predictive=True, tolerance=1e-10):
         from .pcfr import PredictiveRMPlus
         if gadget.mode != "blended":
@@ -214,7 +218,119 @@ class BlendedGadgetControl:
         self.pi_maxmargin = dict(zip(self.order, map(float, self.selector.next_strategy())))
         self.p_max = max(self.pi_resolve.values())
         self.apply(gadget)
+        if self.history is not None:
+            self.history.append((dict(values), dict(self.margins), dict(self.pi_resolve), dict(self.pi_maxmargin),
+                                 self.p_max, self.mode, dict(gadget.tree.probabilities)))
         return self.margins
+
+    def run(self, gadget, solver, rounds, record=None):
+        """`rounds` times solver.run(1, record) followed by update_from_solver(gadget, solver), as the subgame agent's
+        gadget rounds. Returns the recorded rows (as solver.run(rounds, record)) and the mode after each round.
+
+        On the native backend (Gadget.FAST, the solver on this blended gadget's tree, no instrumentation) the
+        rounds and the controller run in one kernel call, pcfr_run_gadget: the same values walk, the controller's
+        PRM+ updates with numpy's operation order (BLAS dot, pairwise sum), math.fsum for the group means, and
+        apply()'s probabilities written into the solver's chance array; this object's state and the root's
+        probabilities dict are written back after the call.
+        """
+        nodes = self._native_nodes(gadget, solver)
+        if nodes is None:
+            rows, modes = [], []
+            for _ in range(rounds):
+                trace = solver.run(1, record=record)
+                self.update_from_solver(gadget, solver)
+                if trace is not None:
+                    rows.append(trace[0])
+                modes.append(self.mode)
+            if record is None:
+                return None, modes
+            width = len(solver.sets[record[0]][record[1]])
+            return np.array(rows, dtype=float).reshape(len(rows), width), modes
+        return self._run_native(gadget, solver, rounds, record, nodes)
+
+    def _native_nodes(self, gadget, solver):
+        from .gadgets import Gadget, _SOLVER_VALUES
+        from .pcfr import PCFRPlus, PredictiveRMPlus, _RUN, _STEP
+        native = getattr(solver, "_native", None)
+        if (native is None or native.instrumented or type(solver).step is not _STEP or type(solver).run is not _RUN
+                or any(name in solver.__dict__ for name in ("_utilities", "step", "run"))
+                or type(self)._advance is not _ADVANCE or type(self).update_from_solver is not _UPDATE_FROM_SOLVER
+                or Gadget.solver_values is not _SOLVER_VALUES):
+            return None
+        minimizers = [self.entry[j] for j in self.order] + [self.selector]
+        if any(type(m) is not PredictiveRMPlus or "observe" in vars(m) or "next_strategy" in vars(m)
+               or m.predictive != self.selector.predictive for m in minimizers):
+            return None
+        return gadget.native_nodes(solver)
+
+    def _run_native(self, gadget, solver, rounds, record, nodes):
+        from ._pcfr_native import Control, _pointer
+        native = solver._native
+        ids = list(gadget.continuations)
+        index = {root_id: i for i, root_id in enumerate(ids)}
+        reach = {r.root_id: r.reach_mass for rows in self.groups.values() for r in rows}
+        probabilities = gadget.tree.probabilities
+        slot = {key: i for i, key in enumerate(probabilities)}
+        begin = int(native.chance_begin[0])
+        order, g = self.order, len(self.order)
+        a = dict(
+            root_node=np.ascontiguousarray(nodes, dtype=np.int32),
+            reach_mass=np.array([reach[root_id] for root_id in ids], dtype=float),
+            group_begin=np.cumsum([0] + [len(self.groups[j]) for j in order]).astype(np.int32),
+            group_roots=np.array([index[r.root_id] for j in order for r in self.groups[j]], dtype=np.int32),
+            alternate=np.array([gadget.alternate_player0[j] for j in order], dtype=float),
+            alpha=np.array([self.alpha[j] for j in order], dtype=float),
+            group_mass=np.array([fsum(r.reach_mass for r in self.groups[j]) for j in order], dtype=float),
+            root_slot=np.array([begin + slot[root_id] for root_id in ids], dtype=np.int32),
+            exit_slot=np.array([begin + slot["exit:" + j] for j in order], dtype=np.int32),
+            entry_regrets=np.concatenate([self.entry[j].regrets for j in order]).astype(float),
+            entry_strategy=np.concatenate([self.entry[j].strategy for j in order]).astype(float),
+            entry_previous=np.concatenate([self.entry[j].previous_utility for j in order]).astype(float),
+            entry_pending=np.array([self.entry[j]._pending for j in order], dtype=np.int8),
+            selector_regrets=np.array(self.selector.regrets, dtype=float),
+            selector_strategy=np.array(self.selector.strategy, dtype=float),
+            selector_previous=np.array(self.selector.previous_utility, dtype=float),
+            selector_pending=np.array([self.selector._pending], dtype=np.int8),
+            pi_resolve=np.array([self.pi_resolve[j] for j in order], dtype=float),
+            pi_maxmargin=np.array([self.pi_maxmargin[j] for j in order], dtype=float),
+            p_max=np.array([self.p_max], dtype=float), margins=np.zeros(g), values=np.zeros(len(ids)),
+            entering=np.zeros(g))
+        keys = list(probabilities)
+        width = len(ids) + 3 * g + 1 + len(keys) if self.history is not None else 0
+        control = Control(n_groups=g, n_roots=len(ids), predictive=int(bool(self.selector.predictive)),
+                          history_width=width, tolerance=self.tolerance,
+                          **{name: _pointer(array) for name, array in a.items()})
+        history = np.zeros((rounds, width)) if width else None
+        done = solver.rounds
+        try:
+            trace, p_max = native.run_gadget(solver, control, a, rounds, record, history)
+        finally:
+            done = solver.rounds - done
+            for k, j in enumerate(order):
+                m = self.entry[j]
+                m.regrets, m.strategy = a["entry_regrets"][2 * k:2 * k + 2].copy(), a["entry_strategy"][2 * k:2 * k + 2].copy()
+                m.previous_utility, m._pending = a["entry_previous"][2 * k:2 * k + 2].copy(), bool(a["entry_pending"][k])
+            m = self.selector
+            m.regrets, m.strategy = a["selector_regrets"].copy(), a["selector_strategy"].copy()
+            m.previous_utility, m._pending = a["selector_previous"].copy(), bool(a["selector_pending"][0])
+            if done:
+                self.pi_resolve = dict(zip(order, map(float, a["pi_resolve"])))
+                self.pi_maxmargin = dict(zip(order, map(float, a["pi_maxmargin"])))
+                self.p_max = float(a["p_max"][0])
+                self.margins = dict(zip(order, map(float, a["margins"])))
+                for key in keys:  # apply()'s assignments, in its order of keys (an existing key keeps its place)
+                    probabilities[key] = float(native.chance_prob[begin + slot[key]])
+                if history is not None:
+                    for row in history[:done]:
+                        values = dict(zip(ids, map(float, row[:len(ids)])))
+                        rest = row[len(ids):]
+                        p = float(rest[3 * g])
+                        self.history.append((values, dict(zip(order, map(float, rest[:g]))),
+                                             dict(zip(order, map(float, rest[g:2 * g]))),
+                                             dict(zip(order, map(float, rest[2 * g:3 * g]))), p,
+                                             "maxmargin" if p <= self.tolerance else "resolve",
+                                             dict(zip(keys, map(float, rest[3 * g + 1:])))))
+        return trace, ["maxmargin" if p <= self.tolerance else "resolve" for p in p_max[:done]]
 
     def apply(self, gadget):
         probabilities = gadget.tree.probabilities
@@ -224,6 +340,10 @@ class BlendedGadgetControl:
             for r in rows:
                 probabilities[r.root_id] = entering * r.reach_mass / mass
             probabilities["exit:" + j] = self.p_max * self.alpha[j] * (1 - self.pi_resolve[j])
+
+
+_ADVANCE = BlendedGadgetControl._advance  # run() goes native only while these are not replaced (tests patch them)
+_UPDATE_FROM_SOLVER = BlendedGadgetControl.update_from_solver
 
 
 class BoundarySession:

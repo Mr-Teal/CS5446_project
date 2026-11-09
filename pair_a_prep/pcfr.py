@@ -467,6 +467,7 @@ class PCFRPlus:
 
 
 _STEP = PCFRPlus.step  # run() batches natively only while step() is this one (tests may patch it)
+_RUN = PCFRPlus.run  # BlendedGadgetControl.run fuses rounds natively only while run() is this one
 
 
 def main() -> None:
