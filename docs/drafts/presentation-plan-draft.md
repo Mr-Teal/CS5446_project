@@ -2,13 +2,13 @@
 
 Presentation plan with a separate three-minute Q&A
 
-9 November 2026. Twenty-seven core slides, nine hidden backups. Bryan: slides 1–12 (5:50). Colin: slides 13–27 (7:10). One handoff on slide 12.
+9 November 2026. Twenty-eight core slides, nine hidden backups. Bryan: slides 1–13 (6:25). Colin: slides 14–28 (7:10). One handoff on slide 13.
 
 ## The argument
 
-Observation history constrains possible hidden boards. Search evaluates complete candidate positions reconstructed from that history, while the actor receives only a partial observation. State representation encodes each candidate for the value model. The numerical piece layers stay beside the original board for direct comparison, followed by the stacked model input and a handoff to value learning and evaluation.
+History constrains the possible hidden boards. The belief network receives candidate piece locations together with visibility, belief and context information. Its input has 32 feature layers per candidate, grouped as 12 piece layers, 14 visibility/belief/context layers and six rule-state layers. The later Network 1 correction experiment uses a separate 19-plane board encoder. The presentation distinguishes the two models while asking whether learned values help decisions.
 
-The provisional allocations total 13:00. The combined representation slide retains the former two slides’ combined 55-second guide. No unrelated speech or allocations are shortened. Actual rehearsal pacing remains separate from the confirmed 12-minute presentation and three-minute Q&A.
+The provisional allocations total 13:35. A new 35-second visibility/belief explanation keeps one idea per slide. No unrelated speech or allocations are shortened. Actual pacing remains for rehearsal against the confirmed 12-minute presentation plus three minutes Q&A.
 
 ## Run of show
 
@@ -23,24 +23,25 @@ The provisional allocations total 13:00. The combined representation slide retai
 | 7 | Inferring the rook’s location | 0:30 |
 | 8 | History filters the possible boards | 0:35 |
 | 9 | Search needs a value function | 0:45 |
-| 10 | State representation: piece layers | 0:55 |
-| 11 | State representation: model input | 0:25 |
-| 12 | How do we learn useful position values? | 0:15 |
-| 13 | Three ways to learn position values | 0:20 |
-| 14 | Monte Carlo learns from completed returns | 0:30 |
-| 15 | TD bootstraps from the next estimate | 0:25 |
-| 16 | Distillation best matched the engine teacher | 0:30 |
-| 17 | MC and TD better matched recorded outcomes | 0:30 |
-| 18 | Testing a learned value correction | 0:40 |
-| 19 | Prediction error decreased by about 20% | 0:25 |
-| 20 | The games did not establish a playing gain | 0:40 |
-| 21 | The learned correction took about 3× as long | 0:25 |
-| 22 | The reference slightly prefers Move A | 0:15 |
-| 23 | Large value errors can preserve the choice | 0:20 |
-| 24 | Closer values can still change the choice | 0:30 |
-| 25 | A separate network learns from search | 0:25 |
-| 26 | Does the learned evaluator help? | 0:30 |
-| 27 | Conclusions and next evaluation | 0:45 |
+| 10 | State representation: 12 piece layers | 0:55 |
+| 11 | State representation: visibility and belief | 0:35 |
+| 12 | State representation: belief input | 0:25 |
+| 13 | How do we learn useful position values? | 0:15 |
+| 14 | Three ways to learn position values | 0:20 |
+| 15 | Monte Carlo learns from completed returns | 0:30 |
+| 16 | TD bootstraps from the next estimate | 0:25 |
+| 17 | Distillation best matched the engine teacher | 0:30 |
+| 18 | MC and TD better matched recorded outcomes | 0:30 |
+| 19 | Network 1: learning a value correction | 0:40 |
+| 20 | Prediction error decreased by about 20% | 0:25 |
+| 21 | The games did not establish a playing gain | 0:40 |
+| 22 | The learned correction took about 3× as long | 0:25 |
+| 23 | The reference slightly prefers Move A | 0:15 |
+| 24 | Large value errors can preserve the choice | 0:20 |
+| 25 | Closer values can still change the choice | 0:30 |
+| 26 | A separate network learns from search | 0:25 |
+| 27 | Does the learned evaluator help? | 0:30 |
+| 28 | Conclusions and next evaluation | 0:45 |
 
 ## Slide notes
 
@@ -140,29 +141,41 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 **Delivery cues (not spoken):** Follow the search branches to the depth-limit line and then the teal frontier positions. The tree is schematic: the displayed branch count and drawn depth are not numerical claims about a specific run. Distinguish search depth from the engine evaluator’s own depth. The complete diagrammed board is one hypothesis reconstructed from private observation history. The actor still receives a partial observation; the diagram does not grant access to the true hidden state.
 
-### Slide 10 State representation: piece layers
+### Slide 10 State representation: 12 piece layers
 
 **Presenter:** Bryan
 
 **Purpose:** Compare one candidate board directly with its separate numerical piece layers. Planned 55 seconds.
 
-**Say:** We encode each candidate board as separate numerical layers for each piece type and side. Here, the king’s square is one in its layer, with zeros elsewhere. The rook and opponent’s king appear in their own layers. All the layers keep the same spatial layout and describe this same candidate board.
+**Say:** The belief representation starts with twelve piece-location layers, one for each piece type and side. Here, the king’s square is one in its layer, with zeros elsewhere. The rook and opponent’s king appear in their own layers. All the layers keep the same spatial layout and describe this same candidate board.
 
-**Transition:** The model receives these layers together.
+**Transition:** We also encode what we can see and what our belief tells us.
 
 **Delivery cues (not spoken):** Keep the original board visible while pointing from each piece to its marked cell in the matching layer. All four grids share the same orientation, dimensions and alignment. Blank feature cells mean zero in this candidate, not fog or a probability. The three grids are channels of one board, not different hidden-state hypotheses.
 
-### Slide 11 State representation: model input
+### Slide 11 State representation: visibility and belief
 
 **Presenter:** Bryan
 
-**Purpose:** Combine piece and turn/rule channels into one model input. Planned 25 seconds.
+**Purpose:** Distinguish current visibility from history-informed belief information. Planned 35 seconds.
 
-**Say:** We stack the piece layers with information about whose turn it is and the rules. For this model, that makes nineteen layers, each eight by eight. This is the board input to the value model. We encode each candidate board this way before evaluating it.
+**Say:** The visibility layer marks the squares we can see now. The rook is outside that view, but our capture history tells us its location. That gives it a belief value of one here. If several boards remained possible, this layer would spread the weight across their possible rook locations.
 
-**Delivery cues (not spoken):** Indicate the stack, the twelve-plus-seven grouping and then the nineteen-by-eight-by-eight dimensions. Do not enumerate rule channels. The rear sheets are schematic; the front grid shows the king layer. Network 1’s additional engine scalar is covered in the correction study. Advance to the handoff slide after the final sentence.
+**Transition:** These visibility and belief layers join the piece layers in the model input.
 
-### Slide 12 How do we learn useful position values?
+**Delivery cues (not spoken):** Compare the same square across the visibility and rook-belief grids. It is invisible in the first and has belief value one in the second. The capture constrains the rook to that square in this worked example; do not suggest the rook is visible or invent nontrivial probabilities. This example has one candidate, not a measured calibrated posterior for an unrestricted game.
+
+### Slide 12 State representation: belief input
+
+**Presenter:** Bryan
+
+**Purpose:** Combine piece, visibility/belief/context and rule-state channels into the belief-network input. Planned 25 seconds.
+
+**Say:** The belief input combines the piece layers with visibility, belief and other context, plus rule-state information. Altogether, there are thirty-two layers, each eight by eight, for each candidate board.
+
+**Delivery cues (not spoken):** Indicate the three groups, then the thirty-two-by-eight-by-eight input. Layers here mean feature planes, not neural-network depth. The stack is schematic and the front sheet is an illustrative piece layer. This is the belief-network representation; Network 1 is a separate correction model introduced later. Advance to the handoff slide after the final sentence.
+
+### Slide 13 How do we learn useful position values?
 
 **Presenter:** Bryan
 
@@ -172,7 +185,7 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 **Delivery cues (not spoken):** Click to this slide after finishing the representation explanation. Address the audience, then turn to Colin at the end. Colin takes over on the next slide. This is the only presenter handoff.
 
-### Slide 13 Three ways to learn position values
+### Slide 14 Three ways to learn position values
 
 **Presenter:** Colin
 
@@ -182,7 +195,7 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 **Transition:** Here’s how Monte Carlo gets its target.
 
-### Slide 14 Monte Carlo learns from completed returns
+### Slide 15 Monte Carlo learns from completed returns
 
 **Presenter:** Colin
 
@@ -192,7 +205,7 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 **Transition:** TD can learn before the outcome is known.
 
-### Slide 15 TD bootstraps from the next estimate
+### Slide 16 TD bootstraps from the next estimate
 
 **Presenter:** Colin
 
@@ -202,7 +215,7 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 **Transition:** What did these targets teach the models?
 
-### Slide 16 Distillation best matched the engine teacher
+### Slide 17 Distillation best matched the engine teacher
 
 **Presenter:** Colin
 
@@ -214,7 +227,7 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 **Delivery cues (not spoken):** Give the audience a moment to locate the three methods. Indicate the lower distillation bar, then state the finding. Do not read every value. The pause is included in the allocation.
 
-### Slide 17 MC and TD better matched recorded outcomes
+### Slide 18 MC and TD better matched recorded outcomes
 
 **Presenter:** Colin
 
@@ -226,19 +239,19 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 **Delivery cues (not spoken):** Pause briefly on the new chart before speaking. Compare the methods within this chart, without comparing its bar heights to the preceding chart. The pause is included in the allocation.
 
-### Slide 18 Testing a learned value correction
+### Slide 19 Network 1: learning a value correction
 
 **Presenter:** Colin
 
 **Purpose:** Neural correction and paired evaluation. Planned 40 seconds.
 
-**Say:** For that question, we tested a separate neural model. It learns a correction to a quick engine estimate, using a deeper engine as the teacher. We compared the baseline against the baseline with this correction, checking prediction error, game score and time per move. Each opening was played twice with colours swapped, and both agents used the same one-move outer planner.
+**Say:** For that question, we tested Network 1, a separate neural model. It learns a correction to a quick engine estimate, using a deeper engine as the teacher. We compared the baseline against the baseline with this correction, checking prediction error, game score and time per move. Each opening was played twice with colours swapped, and both agents used the same one-move outer planner.
 
 **Transition:** First, did the predictions improve?
 
 **Delivery cues (not spoken):** Introduce this as a separate experiment from the linear MC/TD comparison. Protocol details are in the archived match backup.
 
-### Slide 19 Prediction error decreased by about 20%
+### Slide 20 Prediction error decreased by about 20%
 
 **Presenter:** Colin
 
@@ -248,7 +261,7 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 **Transition:** Did that translate into better play?
 
-### Slide 20 The games did not establish a playing gain
+### Slide 21 The games did not establish a playing gain
 
 **Presenter:** Colin
 
@@ -260,7 +273,7 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 **Delivery cues (not spoken):** Indicate the equal-points reference and interval. Explain the result, without reading the interval endpoints.
 
-### Slide 21 The learned correction took about 3× as long
+### Slide 22 The learned correction took about 3× as long
 
 **Presenter:** Colin
 
@@ -270,7 +283,7 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 **Transition:** Here’s why prediction accuracy alone can miss what matters for choosing an action.
 
-### Slide 22 The reference slightly prefers Move A
+### Slide 23 The reference slightly prefers Move A
 
 **Presenter:** Colin
 
@@ -282,7 +295,7 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 **Delivery cues (not spoken):** Keep the reference visible for about two seconds before advancing. Indicate A and B together. Establish that the example is illustrative, not a project measurement.
 
-### Slide 23 Large value errors can preserve the choice
+### Slide 24 Large value errors can preserve the choice
 
 **Presenter:** Colin
 
@@ -294,7 +307,7 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 **Delivery cues (not spoken):** Pause for about two seconds after the question so the audience can make the choice silently. Indicate the selected action, without calculating the numerical error aloud.
 
-### Slide 24 Closer values can still change the choice
+### Slide 25 Closer values can still change the choice
 
 **Presenter:** Colin
 
@@ -306,7 +319,7 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 **Delivery cues (not spoken):** Allow a brief look at the changed ranking before explaining it. Connect the reversed choice to the distinction between value accuracy and action quality. Keep the illustrative scope clear.
 
-### Slide 25 A separate network learns from search
+### Slide 26 A separate network learns from search
 
 **Presenter:** Colin
 
@@ -316,7 +329,7 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 **Transition:** How did this evaluator compare with material counting?
 
-### Slide 26 Does the learned evaluator help?
+### Slide 27 Does the learned evaluator help?
 
 **Presenter:** Colin
 
@@ -328,7 +341,7 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 **Delivery cues (not spoken):** Treat the material-label explanation as a hypothesis, not an established cause. Do not present the handover’s game score as a verified strength result.
 
-### Slide 27 Conclusions and next evaluation
+### Slide 28 Conclusions and next evaluation
 
 **Presenter:** Colin
 
@@ -340,7 +353,7 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 ## Questions every team member should be able to answer
 
-**How is a candidate board encoded?** For the archived Network 1 model, 12 piece-location layers and seven turn/rule-information layers form a 19×8×8 tensor from the side-to-move perspective. The model also takes a separate shallow-engine scalar, introduced later. A feature layer describes a candidate board; it is not a probability map or the true hidden board. The tracker uses history to maintain candidates, and the evaluator encodes those candidates.
+**How is the belief input encoded?** Each candidate receives 32 feature planes: twelve piece-location layers, fourteen visibility/belief/history/context layers and six rule-state layers. The encoder also returns the candidate weights, and the belief network combines per-candidate embeddings with a weighted belief summary. This is distinct from Network 1, which uses nineteen board planes plus a quick-engine scalar. Neither representation grants access to the true hidden state; these are finite candidate-based inputs, not a claim of an exact calibrated Markov belief.
 
 
 **Is the solver-trained network Network 1?** No. The original Network 1 learns a correction toward stronger-engine values. The separate solver-trained network learns targets produced by the search agent. Its experimental code and handover are separate from the archived one-ply batch.
@@ -362,7 +375,7 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 **Does the bot see the real board?** The referee owns the true state. The bot receives a private observation and reconstructs possibilities. Fog Lab reveals its hypotheses for inspection in this demonstration.
 
-**What did the network learn?** Network 1 learns a correction to quick Stockfish using deeper full-board Stockfish values as targets. The correction still requires the quick engine call.
+**What did Network 1 learn?** Network 1 learns a correction to quick Stockfish using deeper full-board Stockfish values as targets. The correction still requires the quick engine call.
 
 **Why can better predictions fail to help moves?** Average value error and ranking the best action differ. Close alternatives can swap order even when average prediction improves. This is a plausible explanation, not a causal claim established by the game batch.
 
@@ -384,19 +397,23 @@ The provisional allocations total 13:00. The combined representation slide retai
 
 ## Delivery and rehearsal
 
-Bryan covers the introduction, hidden-state examples, depth-limited search, state representation and the handoff (slides 1–12, allocation 5:50). Colin covers learning targets, experiments, interpretation and conclusions (slides 13–27, 7:10). Handoff once on slide 12. Bryan and Colin both prepare for Q&A.
+Bryan covers the introduction, hidden-state examples, depth-limited search, belief representation and the handoff (slides 1–13, allocation 6:25). Colin covers learning targets, experiments, interpretation and conclusions (slides 14–28, 7:10). Handoff once on slide 13. Bryan and Colin both prepare for Q&A.
 
-The planned allocations total 13:00; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
+The planned allocations total 13:35; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
 
 ## Hidden backup navigation
 
-28: archived match rows. 29: full value/move metrics. 30: offline belief context. 31: full MC/TD comparison. 32: retained-search prototype. 33: evaluator inventory. 34: contribution confirmations. 35: sources and scope. 36: archived Black-view belief demonstration. These are hidden during the core talk; the PDFs and slide-with-script Word copy include all pages.
+29: archived match rows. 30: full value/move metrics. 31: offline belief context. 32: full MC/TD comparison. 33: retained-search prototype. 34: evaluator inventory. 35: contribution confirmations. 36: sources and scope. 37: archived Black-view belief demonstration. These are hidden during the core talk; the PDFs and slide-with-script Word copy include all pages.
 
 ## Sources and evidence boundaries
 
-**Board encoding:** Board representation for the archived Network 1 evaluator, not a new agent input or an exact Markov belief-state claim. Pinned encoder: https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/src/pairb/encode.py . encode_board returns 19 x 8 x 8 float32. Channels 0–5 are side-to-move pieces (pawn, knight, bishop, rook, queen, king); 6–11 are opponent pieces. Black-to-move boards are mirrored by ranks and colours to normalize the mover perspective. Channel 12 is constant 1 (mover indicator); 13–16 encode castling rights; 17 marks the en-passant target only if a pseudo-legal capture exists; 18 repeats halfmove_clock/100. Thus 12 binary piece channels plus seven game-information channels, some binary and the counter fractional. The combined representation slide shows king/rook/opponent-king channels beside the candidate board; the following slide shows a schematic stack of all nineteen channels for the familiar White-to-move candidate inferred from the capture history: 8/5k2/3r4/8/3K4/8/8/8 w - - 0 1. Blank cells in these piece channels mean 0, not unobserved. The halfmove counter plane is zero after the capture. The opponent-king layer is occupied and appears on the separate-piece-layers slide; the other piece channels are zero. The nineteen-sheet stack indicates channel grouping and shape, not literal values on every hidden sheet. Twelve piece channels are followed by seven turn/rule/counter channels. Some non-piece channels contain constant or fractional information, rather than piece occupancy. The candidate board is an illustrative hypothesis, not privileged true-state input. History determines which candidates remain possible; encoding represents each candidate for evaluation. NetworkEvaluator.evaluate_beliefs loops over hypotheses and calls encode_board in _correct. https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/src/pairb/network_evaluator.py . Network 1 also takes a separate shallow-Stockfish scalar, introduced later in the correction study: https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/src/pairb/net1.py . This slide explains the board portion of that input, not all evaluator variants or the later solver-trained model. Existing source chess artwork and board palette are reused.
+**Belief encoding:** Belief representation, distinct from Network 1. Exact source at https://github.com/Mr-Teal/CS5446_project/blob/10352fe54ec5c11acbad8671f165642b812eae78/fow_shared/features.py : encode_belief returns (N,32,8,8) float32 plus normalized candidate weights. The 32 feature planes group as 12 piece-location channels (0–11), 14 visibility/belief/history/context channels (12–25), and six rule-state channels (26–31). The fourteen contain current-player visibility and actually visible enemy pieces, six weighted enemy-piece occupancy maps across the candidate sample, population size, opponent visibility and our pieces visible to the opponent computed per hypothesis, capture recency, ply count and search depth. The six rule-state channels are four castling flags, en-passant availability and halfmove clock. Each candidate has its own piece and rule information and shares appropriate belief summaries. Rows are oriented to the observing player: for White the top visual row is rank eight. Weights are conditional on the supplied candidate sample, not a claim of an exact calibrated posterior or Markov sufficient statistic. Visibility callbacks inspect hypotheses, not the true referee state. The model wiring at https://github.com/Mr-Teal/CS5446_project/blob/10352fe54ec5c11acbad8671f165642b812eae78/pair_b/src/pairb/belief_net.py defaults to in_planes=32 and embeds each candidate with a weighted belief-context summary. These are input feature planes, not the depth of the neural network. Some optional belief-model variants also accept a quick-engine scalar; the 32-plane board/belief representation is distinct from that scalar and from Network 1’s 19-plane board-only encoder. These references establish implemented encoding/model interfaces, not new performance or checkpoint results.
 
-**Search and values:** Conceptual search diagram, not a recorded game tree, action selection, branching-factor claim or complete agent architecture. The board is the history-inferred White candidate after the rook captures the knight: 8/5k2/3r4/8/3K4/8/8/8 w - - 0 1. The rules model supplies hypothetical transitions. The archived fixed-depth tree expands to its requested ply depth and assigns evaluator values to nonterminal children at the frontier (remaining == 1); terminal outcomes are resolved directly. Source: https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep/chess_search.py . Search depth is distinct from Stockfish leaf-evaluator depth. Later anytime/growing variants can extend the frontier within configured depth/node/time limits; this slide does not claim all configurations use the same fixed depth. A depth-limited search uses frontier position estimates to compare continuations. Nodes are schematic positions, with moves by both players abstracted; there are no selected chess moves, invented numerical values or preferred continuation. The diagram starts from one candidate only for illustration. It does not imply the tracker knows the true hidden board or that the agent considers only one hypothesis. This connects course decision-time search and value approximation to the project evaluator interface. The recorded Black-view material-evaluator demonstration remains hidden backup 36. No new performance evidence.
+**Representation example:** Reuses the verified capture successor: 8/5k2/3r4/8/3K4/8/8/8 w - - 0 1. The king stays on d4; rook d6 and opponent king f7 match the board-to-piece-layer comparison. White observes c3/c4/c5/d3/d4/d5/e3/e4/e5. The rook at d6 is outside that view. Capture history rules out the king as captor and fixes the rook at the captured knight’s square. For the illustrative single-candidate belief with normalized weight one, executing the exact pinned 32-plane encoder verifies king plane 5 at row4/col3, rook plane 9 at row2/col3, opponent king plane11 at row1/col5, visibility plane12 with nine marked cells and zero at row2/col3, and enemy-rook probability plane17 equal to one at row2/col3. This is a deterministic consequence within the known-piece worked example and its supplied belief, not invented fractional probabilities or an empirical full posterior. Additional planes are schematic on the stack. No new training or game measurements.
+
+**Network 1 encoding:** Separate archived Network 1 correction model. Its encode_board in pair_b/src/pairb/encode.py returns (19,8,8), made from twelve piece planes and seven turn/rule/counter planes. Network1 in pair_b/src/pairb/net1.py also receives a separate shallow-engine value. This differs from the 32-plane shared belief encoder and is not a universal project input. Archived experiment source: https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/src/pairb/encode.py . Current wiring also verified at https://github.com/Mr-Teal/CS5446_project/blob/10352fe54ec5c11acbad8671f165642b812eae78/pair_b/src/pairb/encode.py and https://github.com/Mr-Teal/CS5446_project/blob/10352fe54ec5c11acbad8671f165642b812eae78/pair_b/src/pairb/net1.py . Existing Network 1 numerical results and their scope remain unchanged.
+
+**Search and values:** Conceptual search diagram, not a recorded game tree, action selection, branching-factor claim or complete agent architecture. The board is the history-inferred White candidate after the rook captures the knight: 8/5k2/3r4/8/3K4/8/8/8 w - - 0 1. The rules model supplies hypothetical transitions. The archived fixed-depth tree expands to its requested ply depth and assigns evaluator values to nonterminal children at the frontier (remaining == 1); terminal outcomes are resolved directly. Source: https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep/chess_search.py . Search depth is distinct from Stockfish leaf-evaluator depth. Later anytime/growing variants can extend the frontier within configured depth/node/time limits; this slide does not claim all configurations use the same fixed depth. A depth-limited search uses frontier position estimates to compare continuations. Nodes are schematic positions, with moves by both players abstracted; there are no selected chess moves, invented numerical values or preferred continuation. The diagram starts from one candidate only for illustration. It does not imply the tracker knows the true hidden board or that the agent considers only one hypothesis. This connects course decision-time search and value approximation to the project evaluator interface. The recorded Black-view material-evaluator demonstration remains hidden backup 37. No new performance evidence.
 
 **Solver-trained network extension:** Separate solver-trained network extension. Pair A handover, PR73 at 8abc854ed1779013c9cc4818584108cc07f552c2: https://github.com/Mr-Teal/CS5446_project/blob/8abc854ed1779013c9cc4818584108cc07f552c2/pair_a_prep/docs/handover_2026-11-08.md . Self-play label collection code inspected at 87b30892ee5016f0c1fc7216bec7f885b76137bb: https://github.com/Mr-Teal/CS5446_project/blob/87b30892ee5016f0c1fc7216bec7f885b76137bb/pair_a_prep/label_run.py . Network evaluator hook inspected at d63de87a9d1591c7b2fc06fea8360b00494a99b9: https://github.com/Mr-Teal/CS5446_project/blob/d63de87a9d1591c7b2fc06fea8360b00494a99b9/pair_a_prep/evaluation_factories.py . These establish accessible pipeline code, not independent execution or strength validation. The new belief-solver-v1 checkpoint, solver-v1 dataset and complete per-attempt records are not in the inspected repository trees or local workspace. Handover training counts and result figures are author-reported; numerical performance claims are therefore omitted from the slides. The reported offline error is worse than material and the jointly surviving game comparison does not establish an improvement or equivalence. Complete attempted/terminal/capped/failed/killed/unplayed accounting and frozen configs/weights/engine identities still need reconciliation. Greedy-opponent ceiling and platform separation matter. One cycle is reported, not repeated policy improvement or an AlphaZero/Obscuro reproduction. The suggestion that shallow material-derived targets explain the offline result is a hypothesis. This is a separate model, target source and experiment from the archived Network 1 correction study; do not pool them.
 
@@ -422,7 +439,7 @@ The planned allocations total 13:00; the confirmed speaking slot is 12 minutes, 
 
 **Demonstration:** The archived screenshot and two-ply record remain in presentation-assets/. The archived backup figure aligns the Black observation and two saved hypotheses at the same pre-action decision point. It illustrates the information pipeline with a material evaluator, not learned-model strength.
 
-**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 27-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
+**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 28-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
 
 **Contributions and AI assistance:** The existing individual contribution statements remain in backup and require each member's confirmation. Do not infer the human identity of xiaomiao-fong from the account name. Copilot assisted earlier drafts. Codex assisted the restructuring, rules-example checks and browser demonstration under Bryan's direction. No new training or formal match batch was run.
 
@@ -436,6 +453,7 @@ The planned allocations total 13:00; the confirmed speaking slot is 12 minutes, 
 
 
 
+
 ## Delivery and pacing
 
-Slide 9 shows a complete candidate reconstructed from observation history, rather than the true hidden board being available to the actor. On slide 10 the original candidate and all three piece layers remain visible together, aligned at the same scale. Point from the pieces to their matching feature cells. The next slide stacks the layers into the model input; the single handoff follows on slide 12. All earlier approved clarity edits and Colin’s speech remain in place.
+Keep the board beside the piece layers on slide 10. Slide 11 distinguishes the current visibility mask from the history-informed rook belief; a one at the hidden capture square follows from the worked example’s known pieces and capture. Slide 12 groups the full 32-plane belief input. Handoff once on slide 13. The later correction experiment is explicitly identified as Network 1, with its distinct 19-plane input described in supporting notes. Do not imply that every project model shares an encoder or merge their experimental results.
