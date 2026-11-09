@@ -169,9 +169,9 @@ The provisional allocations total 13:35. A new 35-second visibility/belief expla
 
 **Purpose:** Combine piece, visibility/belief/context and rule-state channels into the belief-network input. Planned 25 seconds.
 
-**Say:** The belief input combines the piece layers with visibility, belief and other context, plus rule-state information. Altogether, there are thirty-two layers, each eight by eight, for each candidate board.
+**Say:** So the model receives more than piece locations. It also receives what we can see and what we’ve inferred from history. Together with context and rule information, these make up thirty-two layers, each eight by eight, for each candidate board. That gives the model its input. It still has to learn how good the position is.
 
-**Delivery cues (not spoken):** Indicate the five displayed groups, then the thirty-two-by-eight-by-eight input. The fourteen additional channels are grouped as four visibility, seven belief and three context layers. The belief group includes six enemy-piece probability maps plus candidate-population size. Context covers capture recency, ply and search depth. The script stays at the overview level. The diagram groups channels conceptually and does not prescribe a new tensor order. Advance to the handoff slide after the final sentence.
+**Delivery cues (not spoken):** Connect the visibility-and-belief example to the full stack. Indicate the groups without reading out every count, then point to the thirty-two layers, each eight by eight. Pause after the final sentence, then advance to the question and handoff on slide 13. The groups summarize the implemented encoder without changing its tensor order.
 
 ### Slide 13 How do we learn useful position values?
 
@@ -454,4 +454,4 @@ The planned allocations total 13:35; the confirmed speaking slot is 12 minutes, 
 
 ## Delivery and pacing
 
-Slide 9 follows the search tree to the depth limit and explains why unfinished positions require value estimates. Keep the board as supporting context. Slide 10 explains one binary layer per piece type and side while the original board stays visible. Slide 11 defines visibility and belief separately before interpreting the same square as visibility zero and rook probability one. Click directly to the full input on slide 12, whose spoken overview is unchanged. The displayed breakdown is 12 piece + 4 visibility + 7 belief + 3 context + 6 rule-state layers. The belief count includes six probability maps plus population size. Keep the single handoff after slide 13. No unrelated speech or timing guides are changed.
+Slide 9 follows the search tree to the depth limit and explains why unfinished positions require value estimates. Keep the board as supporting context. Slide 10 explains one binary layer per piece type and side while the original board stays visible. Slide 11 defines visibility and belief separately before interpreting the same square as visibility zero and rook probability one. Click directly to the full input on slide 12. Its script connects what we see and infer to the full stack, then closes on learning position values before the slide 13 handoff. The displayed breakdown is 12 piece + 4 visibility + 7 belief + 3 context + 6 rule-state layers. The belief count includes six probability maps plus population size. Keep the single handoff after slide 13. No unrelated speech or timing guides are changed.
