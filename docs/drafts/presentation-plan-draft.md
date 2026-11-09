@@ -6,7 +6,7 @@ Presentation plan with a separate three-minute Q&A
 
 ## The argument
 
-History constrains the possible hidden boards. The belief network receives candidate piece locations together with visibility, belief and context information. Its input has 32 feature layers per candidate, grouped as 12 piece layers, 14 visibility/belief/context layers and six rule-state layers. The later Network 1 correction experiment uses a separate 19-plane board encoder. The presentation distinguishes the two models while asking whether learned values help decisions.
+History constrains the possible hidden boards. The belief network receives candidate piece locations together with visibility, belief and context information. Its input has 32 feature layers per candidate, grouped as 12 piece layers, four visibility layers, seven belief layers, three context layers and six rule-state layers. The later Network 1 correction experiment uses a separate 19-plane board encoder. The presentation distinguishes the two models while asking whether learned values help decisions.
 
 The provisional allocations total 13:35. A new 35-second visibility/belief explanation keeps one idea per slide. No unrelated speech or allocations are shortened. Actual pacing remains for rehearsal against the confirmed 12-minute presentation plus three minutes Q&A.
 
@@ -135,11 +135,11 @@ The provisional allocations total 13:35. A new 35-second visibility/belief expla
 
 **Purpose:** Locate value estimation at the search depth limit. Planned 45 seconds.
 
-**Say:** This is one possible hidden board reconstructed from our observation history. We search ahead from each candidate to a depth limit. For positions still in play at that depth, we estimate how favourable they are. Those values help search compare moves, and that’s what we want the model to learn.
+**Say:** Our agent looks ahead at possible moves and replies. We limit how many moves ahead it searches. At that depth limit, many positions are still unfinished. A value function estimates how good those positions are, so search can compare the available moves. Learning these estimates is the prediction task we focus on.
 
-**Transition:** Here’s how we represent a position for that model.
+**Transition:** To evaluate those positions, the model needs a numerical input.
 
-**Delivery cues (not spoken):** Follow the search branches to the depth-limit line and then the teal frontier positions. The tree is schematic: the displayed branch count and drawn depth are not numerical claims about a specific run. Distinguish search depth from the engine evaluator’s own depth. The complete diagrammed board is one hypothesis reconstructed from private observation history. The actor still receives a partial observation; the diagram does not grant access to the true hidden state.
+**Delivery cues (not spoken):** Focus on the tree: follow the branches to the depth-limit line, then explain why unfinished positions need values. The board provides context and does not need narration. The drawn depth and branching are schematic, not a claim about a measured run.
 
 ### Slide 10 State representation: 12 piece layers
 
@@ -147,11 +147,11 @@ The provisional allocations total 13:35. A new 35-second visibility/belief expla
 
 **Purpose:** Compare one candidate board directly with its separate numerical piece layers. Planned 55 seconds.
 
-**Say:** The belief representation starts with twelve piece-location layers, one for each piece type and side. Here, the king’s square is one in its layer, with zeros elsewhere. The rook and opponent’s king appear in their own layers. All the layers keep the same spatial layout and describe this same candidate board.
+**Say:** Each type of piece has a separate layer for each side. We use binary encoding: a cell is one if that piece is present and zero otherwise. All layers use the same board layout, so a cell refers to the same square in every layer.
 
-**Transition:** We also encode what we can see and what our belief tells us.
+**Transition:** We also encode what we can see and infer.
 
-**Delivery cues (not spoken):** Keep the original board visible while pointing from each piece to its marked cell in the matching layer. All four grids share the same orientation, dimensions and alignment. Blank feature cells mean zero in this candidate, not fog or a probability. The three grids are channels of one board, not different hidden-state hypotheses.
+**Delivery cues (not spoken):** Point to one occupied feature cell and one empty cell while the original board stays visible. Do not read out the pictured piece names. Blank cells mean zero for that piece within this candidate. The grids are channels of the same candidate, not different hypotheses.
 
 ### Slide 11 State representation: visibility and belief
 
@@ -159,11 +159,9 @@ The provisional allocations total 13:35. A new 35-second visibility/belief expla
 
 **Purpose:** Distinguish current visibility from history-informed belief information. Planned 35 seconds.
 
-**Say:** The visibility layer marks the squares we can see now. The rook is outside that view, but our capture history tells us its location. That gives it a belief value of one here. If several boards remained possible, this layer would spread the weight across their possible rook locations.
+**Say:** The visibility layer uses one for a square we can see and zero for one we can’t. The rook belief layer records how likely the rook is to be on each square. Here, the rook is hidden, so its visibility is zero. But all the remaining possible boards put it here because of the capture. That gives this square probability one.
 
-**Transition:** These visibility and belief layers join the piece layers in the model input.
-
-**Delivery cues (not spoken):** Compare the same square across the visibility and rook-belief grids. It is invisible in the first and has belief value one in the second. The capture constrains the rook to that square in this worked example; do not suggest the rook is visible or invent nontrivial probabilities. This example has one candidate, not a measured calibrated posterior for an unrestricted game.
+**Delivery cues (not spoken):** Point at the same rook square across the visibility and belief maps. Explain visibility zero versus rook probability one. The probability is conditional on the current candidate belief; it is not a claim of calibrated certainty for an unrestricted game.
 
 ### Slide 12 State representation: belief input
 
@@ -173,7 +171,7 @@ The provisional allocations total 13:35. A new 35-second visibility/belief expla
 
 **Say:** The belief input combines the piece layers with visibility, belief and other context, plus rule-state information. Altogether, there are thirty-two layers, each eight by eight, for each candidate board.
 
-**Delivery cues (not spoken):** Indicate the three groups, then the thirty-two-by-eight-by-eight input. Layers here mean feature planes, not neural-network depth. The stack is schematic and the front sheet is an illustrative piece layer. This is the belief-network representation; Network 1 is a separate correction model introduced later. Advance to the handoff slide after the final sentence.
+**Delivery cues (not spoken):** Indicate the five displayed groups, then the thirty-two-by-eight-by-eight input. The fourteen additional channels are grouped as four visibility, seven belief and three context layers. The belief group includes six enemy-piece probability maps plus candidate-population size. Context covers capture recency, ply and search depth. The script stays at the overview level. The diagram groups channels conceptually and does not prescribe a new tensor order. Advance to the handoff slide after the final sentence.
 
 ### Slide 13 How do we learn useful position values?
 
@@ -353,7 +351,7 @@ The provisional allocations total 13:35. A new 35-second visibility/belief expla
 
 ## Questions every team member should be able to answer
 
-**How is the belief input encoded?** Each candidate receives 32 feature planes: twelve piece-location layers, fourteen visibility/belief/history/context layers and six rule-state layers. The encoder also returns the candidate weights, and the belief network combines per-candidate embeddings with a weighted belief summary. This is distinct from Network 1, which uses nineteen board planes plus a quick-engine scalar. Neither representation grants access to the true hidden state; these are finite candidate-based inputs, not a claim of an exact calibrated Markov belief.
+**How is the belief input encoded?** Each candidate receives 32 feature planes: twelve piece-location layers, four visibility layers, seven belief layers, three context layers and six rule-state layers. The encoder also returns the candidate weights, and the belief network combines per-candidate embeddings with a weighted belief summary. This is distinct from Network 1, which uses nineteen board planes plus a quick-engine scalar. Neither representation grants access to the true hidden state; these are finite candidate-based inputs, not a claim of an exact calibrated Markov belief.
 
 
 **Is the solver-trained network Network 1?** No. The original Network 1 learns a correction toward stronger-engine values. The separate solver-trained network learns targets produced by the search agent. Its experimental code and handover are separate from the archived one-ply batch.
@@ -407,7 +405,7 @@ The planned allocations total 13:35; the confirmed speaking slot is 12 minutes, 
 
 ## Sources and evidence boundaries
 
-**Belief encoding:** Belief representation, distinct from Network 1. Exact source at https://github.com/Mr-Teal/CS5446_project/blob/10352fe54ec5c11acbad8671f165642b812eae78/fow_shared/features.py : encode_belief returns (N,32,8,8) float32 plus normalized candidate weights. The 32 feature planes group as 12 piece-location channels (0–11), 14 visibility/belief/history/context channels (12–25), and six rule-state channels (26–31). The fourteen contain current-player visibility and actually visible enemy pieces, six weighted enemy-piece occupancy maps across the candidate sample, population size, opponent visibility and our pieces visible to the opponent computed per hypothesis, capture recency, ply count and search depth. The six rule-state channels are four castling flags, en-passant availability and halfmove clock. Each candidate has its own piece and rule information and shares appropriate belief summaries. Rows are oriented to the observing player: for White the top visual row is rank eight. Weights are conditional on the supplied candidate sample, not a claim of an exact calibrated posterior or Markov sufficient statistic. Visibility callbacks inspect hypotheses, not the true referee state. The model wiring at https://github.com/Mr-Teal/CS5446_project/blob/10352fe54ec5c11acbad8671f165642b812eae78/pair_b/src/pairb/belief_net.py defaults to in_planes=32 and embeds each candidate with a weighted belief-context summary. These are input feature planes, not the depth of the neural network. Some optional belief-model variants also accept a quick-engine scalar; the 32-plane board/belief representation is distinct from that scalar and from Network 1’s 19-plane board-only encoder. These references establish implemented encoding/model interfaces, not new performance or checkpoint results.
+**Belief encoding:** Belief representation, distinct from Network 1. Exact source at https://github.com/Mr-Teal/CS5446_project/blob/10352fe54ec5c11acbad8671f165642b812eae78/fow_shared/features.py : encode_belief returns (N,32,8,8) float32 plus normalized candidate weights. The 32 feature planes group as 12 piece-location channels (0–11), 14 visibility/belief/history/context channels (12–25), and six rule-state channels (26–31). The fourteen contain current-player visibility and actually visible enemy pieces, six weighted enemy-piece occupancy maps across the candidate sample, population size, opponent visibility and our pieces visible to the opponent computed per hypothesis, capture recency, ply count and search depth. The six rule-state channels are four castling flags, en-passant availability and halfmove clock. Each candidate has its own piece and rule information and shares appropriate belief summaries. Rows are oriented to the observing player: for White the top visual row is rank eight. Weights are conditional on the supplied candidate sample, not a claim of an exact calibrated posterior or Markov sufficient statistic. Visibility callbacks inspect hypotheses, not the true referee state. The model wiring at https://github.com/Mr-Teal/CS5446_project/blob/10352fe54ec5c11acbad8671f165642b812eae78/pair_b/src/pairb/belief_net.py defaults to in_planes=32 and embeds each candidate with a weighted belief-context summary. These are input feature planes, not the depth of the neural network. Some optional belief-model variants also accept a quick-engine scalar; the 32-plane board/belief representation is distinct from that scalar and from Network 1’s 19-plane board-only encoder. These references establish implemented encoding/model interfaces, not new performance or checkpoint results. For the finer slide grouping, the fourteen channels are four visibility channels (12,13,21,22), seven belief channels (14–20: six enemy-piece probability maps and candidate-population size), and three context channels (23 capture recency, 24 ply count, 25 search depth). This semantic grouping does not reorder or modify the implemented encoder. The six rule-state channels remain 26–31. Thus 12+4+7+3+6=32. A belief probability is the sum of supplied candidate weights placing that enemy piece on the square; it is distinct from the binary current-visibility mask.
 
 **Representation example:** Reuses the verified capture successor: 8/5k2/3r4/8/3K4/8/8/8 w - - 0 1. The king stays on d4; rook d6 and opponent king f7 match the board-to-piece-layer comparison. White observes c3/c4/c5/d3/d4/d5/e3/e4/e5. The rook at d6 is outside that view. Capture history rules out the king as captor and fixes the rook at the captured knight’s square. For the illustrative single-candidate belief with normalized weight one, executing the exact pinned 32-plane encoder verifies king plane 5 at row4/col3, rook plane 9 at row2/col3, opponent king plane11 at row1/col5, visibility plane12 with nine marked cells and zero at row2/col3, and enemy-rook probability plane17 equal to one at row2/col3. This is a deterministic consequence within the known-piece worked example and its supplied belief, not invented fractional probabilities or an empirical full posterior. Additional planes are schematic on the stack. No new training or game measurements.
 
@@ -456,4 +454,4 @@ The planned allocations total 13:35; the confirmed speaking slot is 12 minutes, 
 
 ## Delivery and pacing
 
-Keep the board beside the piece layers on slide 10. Slide 11 distinguishes the current visibility mask from the history-informed rook belief; a one at the hidden capture square follows from the worked example’s known pieces and capture. Slide 12 groups the full 32-plane belief input. Handoff once on slide 13. The later correction experiment is explicitly identified as Network 1, with its distinct 19-plane input described in supporting notes. Do not imply that every project model shares an encoder or merge their experimental results.
+Slide 9 follows the search tree to the depth limit and explains why unfinished positions require value estimates. Keep the board as supporting context. Slide 10 explains one binary layer per piece type and side while the original board stays visible. Slide 11 defines visibility and belief separately before interpreting the same square as visibility zero and rook probability one. Click directly to the full input on slide 12, whose spoken overview is unchanged. The displayed breakdown is 12 piece + 4 visibility + 7 belief + 3 context + 6 rule-state layers. The belief count includes six probability maps plus population size. Keep the single handoff after slide 13. No unrelated speech or timing guides are changed.
