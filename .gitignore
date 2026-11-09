@@ -13,3 +13,4 @@ pair_a_prep/zs21/native/inference.dylib
 # Host build of the batch engine; the audited Windows binary is committed.
 zs21_runtime/engines/stockfish13-batch-v6/stockfish13
 pair_a_prep/_pcfr_build/
+pair_a_prep/_rules_build/

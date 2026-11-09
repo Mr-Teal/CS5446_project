@@ -1,5 +1,13 @@
-"""History-preserving FoW rules and a private-observation referee."""
+"""History-preserving FoW rules and a private-observation referee.
 
+RulesAdapter(backend="native") answers from a C++ kernel (rules_kernel.cpp, built with
+`python -m pair_a_prep.build_rules_kernel`) with the same results (test_rules_native.py); its states carry a packed
+board and build the python-chess board only on demand. backend="auto" (the default) uses the kernel when it is
+built, and Python otherwise or for subclasses, which may override single rules. FOW_RULES_BACKEND in the
+environment sets the default.
+"""
+
+import os
 from dataclasses import dataclass, field
 from typing import Optional, Tuple
 
@@ -31,7 +39,19 @@ class RuleState:
     @property
     def fen(self) -> str:
         """Position snapshot only; use board_copy() when history is required."""
+        if "_board" not in self.__dict__:
+            from . import _rules_native
+            return _rules_native.fen(self)
         return self._board.fen(en_passant="fen")
+
+    def __getattr__(self, name):
+        # Only states made by the native backend lack _board; build it from their ancestors once.
+        if name != "_board" or "_native" not in self.__dict__:
+            raise AttributeError(name)
+        from . import _rules_native
+        board = _rules_native.materialize(self)
+        object.__setattr__(self, "_board", board)
+        return board
 
     def board_copy(self) -> chess.Board:
         """Return an independent board with its complete retained move stack."""
@@ -40,6 +60,26 @@ class RuleState:
 
 class RulesAdapter:
     """Shared rules for the referee and hypothetical tracker branches."""
+
+    BACKEND = os.environ.get("FOW_RULES_BACKEND", "auto")  # auto, python or native (see module docstring)
+    backend = "python"  # resolved per instance; subclasses that skip __init__ stay on Python
+
+    def __init__(self, backend: Optional[str] = None):
+        requested = self.BACKEND if backend is None else backend
+        if requested not in ("auto", "python", "native"):
+            raise ValueError("backend must be auto, python or native")
+        if requested == "python" or (requested == "auto" and type(self) is not RulesAdapter):
+            self.backend = "python"
+            return
+        from . import _rules_native
+        if _rules_native.library() is None:
+            if requested == "native":
+                raise RuntimeError("native rules kernel is not built; run python -m pair_a_prep.build_rules_kernel")
+            self.backend = "python"
+        else:
+            self.backend = "native"
+        if self.backend == "native":
+            self._kernel = _rules_native
 
     @staticmethod
     def _color(player: Player) -> bool:
@@ -56,6 +96,8 @@ class RulesAdapter:
         actual side to move and reveals both target and capturable pawn.
         """
         color = self._color(player)
+        if self.backend == "native":
+            return self._kernel.visible_squares(state, player)
         # Visibility depends on the position, never its repetition history.
         board = state._board.copy(stack=False)
         if board.turn != color:
@@ -70,6 +112,8 @@ class RulesAdapter:
 
     def observe(self, state: RuleState, player: Player) -> Observation:
         self._color(player)
+        if self.backend == "native":
+            return self._kernel.observe(state, player)
         squares = self.visible_squares(state, player)
         pieces = {square: (piece.symbol() if piece else None)
                   for square in squares
@@ -95,14 +139,27 @@ class RulesAdapter:
             raise ValueError("both kings are missing")
         return RuleState(board)
 
+    def observation_key(self, state: RuleState, player: Player) -> str:
+        """chess_search.observation_key(self.observe(state, player))."""
+        self._color(player)
+        if self.backend == "native":
+            return self._kernel.observation_key(state, player)
+        from .chess_search import observation_key
+        return observation_key(self.observe(state, player))
+
     def current_player(self, state: RuleState) -> Player:
+        if self.backend == "native":
+            return self._kernel.current_player(state)
         return "white" if state._board.turn == chess.WHITE else "black"
 
     def legal_moves(self, state: RuleState) -> Tuple[str, ...]:
+        if self.backend == "native":
+            return self._kernel.legal_moves(state)
         return tuple(sorted(move.uci() for move in fog_legal_moves(state._board)))
 
     def terminal(self, state: RuleState) -> Optional[Outcome]:
-        result = terminal_score(state._board)
+        result = (self._kernel.terminal_score(state) if self.backend == "native"
+                  else terminal_score(state._board))
         if result is None:
             return None
         reason, score = result
@@ -117,6 +174,8 @@ class RulesAdapter:
         return Outcome(winner=winner, reason=reasons[reason])
 
     def apply_move(self, state: RuleState, move: str) -> RuleState:
+        if self.backend == "native":
+            return self._kernel.apply_move(state, move, RuleState)
         if move not in self.legal_moves(state):
             raise ValueError("unavailable UCI move: {!r}".format(move))
         action = chess.Move.from_uci(move)
