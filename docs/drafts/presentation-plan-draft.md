@@ -2,13 +2,13 @@
 
 Presentation plan with a separate three-minute Q&A
 
-9 November 2026. Twenty-eight core slides, nine hidden backups. Bryan: slides 1–13 (6:20). Colin: slides 14–28 (7:10). One handoff on slide 13.
+9 November 2026. Twenty-nine core slides, nine hidden backups. Bryan: slides 1–14 (6:50). Colin: slides 15–29 (7:10). One handoff on slide 14.
 
 ## The argument
 
-History constrains the possible hidden boards. The belief network receives candidate piece locations together with visibility, belief and context information. Its input has 32 feature layers per candidate, grouped as 12 piece layers, four visibility layers, seven belief layers, three context layers and six rule-state layers. The later Network 1 correction experiment uses a separate 19-plane board encoder. The presentation distinguishes the two models while asking whether learned values help decisions.
+History constrains the possible hidden boards. The belief network receives candidate piece locations together with visibility, belief and context information. Each candidate receives 32 feature layers, grouped as 12 piece layers, four visibility layers, seven belief layers, three context layers and six rule-state layers. Binary piece layers describe one candidate; enemy-piece probability layers summarize the weighted candidate set. The later Network 1 correction experiment uses a separate 19-plane board encoder. The presentation distinguishes the two models while asking whether learned values help decisions.
 
-The provisional allocations total 13:30. A new 35-second visibility/belief explanation keeps one idea per slide. No unrelated speech or allocations are shortened. Actual pacing remains for rehearsal against the confirmed 12-minute presentation plus three minutes Q&A.
+The provisional allocations total 14:00. The new king-belief example has a 30-second guide. No unrelated speech or allocations are shortened. Actual pacing remains for rehearsal against the confirmed 12-minute presentation plus three minutes Q&A.
 
 ## Run of show
 
@@ -25,23 +25,24 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 | 9 | Search needs a value function | 0:45 |
 | 10 | State representation: 12 piece layers | 0:55 |
 | 11 | State representation: visibility and belief | 0:35 |
-| 12 | State representation: belief input | 0:25 |
-| 13 | How do we learn useful position values? | 0:15 |
-| 14 | Three ways to learn position values | 0:20 |
-| 15 | Monte Carlo learns from completed returns | 0:30 |
-| 16 | TD bootstraps from the next estimate | 0:25 |
-| 17 | Distillation best matched the engine teacher | 0:30 |
-| 18 | MC and TD better matched recorded outcomes | 0:30 |
-| 19 | Network 1: learning a value correction | 0:40 |
-| 20 | Prediction error decreased by about 20% | 0:25 |
-| 21 | The games did not establish a playing gain | 0:40 |
-| 22 | The learned correction took about 3× as long | 0:25 |
-| 23 | The reference slightly prefers Move A | 0:15 |
-| 24 | Large value errors can preserve the choice | 0:20 |
-| 25 | Closer values can still change the choice | 0:30 |
-| 26 | A separate network learns from search | 0:25 |
-| 27 | Does the learned evaluator help? | 0:30 |
-| 28 | Conclusions and next evaluation | 0:45 |
+| 12 | State representation: king belief | 0:30 |
+| 13 | State representation: belief input | 0:25 |
+| 14 | How do we learn useful position values? | 0:15 |
+| 15 | Three ways to learn position values | 0:20 |
+| 16 | Monte Carlo learns from completed returns | 0:30 |
+| 17 | TD bootstraps from the next estimate | 0:25 |
+| 18 | Distillation best matched the engine teacher | 0:30 |
+| 19 | MC and TD better matched recorded outcomes | 0:30 |
+| 20 | Network 1: learning a value correction | 0:40 |
+| 21 | Prediction error decreased by about 20% | 0:25 |
+| 22 | The games did not establish a playing gain | 0:40 |
+| 23 | The learned correction took about 3× as long | 0:25 |
+| 24 | The reference slightly prefers Move A | 0:15 |
+| 25 | Large value errors can preserve the choice | 0:20 |
+| 26 | Closer values can still change the choice | 0:30 |
+| 27 | A separate network learns from search | 0:25 |
+| 28 | Does the learned evaluator help? | 0:30 |
+| 29 | Conclusions and next evaluation | 0:45 |
 
 ## Slide notes
 
@@ -53,7 +54,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Say:** Hello everyone. I’m Bryan, and Colin and I will be presenting our team’s Fog of War Chess project.
 
-**Transition:** Let’s look at an example.
+**Transition:** Let’s begin with an example.
 
 ### Slide 2 Where would you move?
 
@@ -61,7 +62,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Purpose:** Hidden information. Planned 25 seconds.
 
-**Say:** Look at this chessboard. White has only a king left, while Black still has a king and a rook. If you were playing White, what move would you make? All eight surrounding squares are available, but you can’t see where Black’s pieces are.
+**Say:** Look at this chessboard. White has only a king left, while Black still has a king and a rook. If you were playing White, what move would you make?
 
 **Transition:** Let’s look at what could be hidden.
 
@@ -105,7 +106,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Purpose:** Game and problem formulation. Planned 35 seconds.
 
-**Say:** In Fog of War Chess, the goal is to capture the opponent’s king, but we can only see part of the board. The game has a full underlying state, while our agent receives only this partial observation.
+**Say:** In Fog of War Chess, the goal is to capture the opponent’s king, but we can only see the squares that our pieces are able to move to. The game has a full underlying state, while our agent receives only this partial observation.
 
 **Transition:** But the current view isn’t all the information we have.
 
@@ -135,7 +136,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Purpose:** Locate value estimation at the search depth limit. Planned 45 seconds.
 
-**Say:** Our agent looks ahead at possible moves and replies. We limit how many moves ahead it searches. At that depth limit, many positions are still unfinished. A value function estimates how good those positions are, so search can compare the available moves. Learning these estimates is the prediction task we focus on.
+**Say:** Our agent looks ahead at possible moves and replies. At the search depth limit, many positions are still unfinished. A value function estimates how good those positions are, so search can compare the available moves. Learning these estimates is the prediction task we focus on.
 
 **Transition:** To evaluate those positions, the model needs a numerical input.
 
@@ -147,7 +148,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Purpose:** Compare one candidate board directly with its separate numerical piece layers. Planned 55 seconds.
 
-**Say:** Each type of piece has a separate layer for each side. We use binary encoding: a cell is one if that piece is present and zero otherwise. All layers use the same board layout, so a cell refers to the same square in every layer.
+**Say:** Each type of piece has a separate layer for each side. We use binary encoding: a cell is one if that piece is present and zero otherwise.
 
 **Transition:** We also encode what we can see and infer.
 
@@ -163,7 +164,17 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Delivery cues (not spoken):** Point at the same rook square across the visibility and belief maps. Explain visibility zero versus rook probability one. The probability is conditional on the current candidate belief; it is not a claim of calibrated certainty for an unrestricted game.
 
-### Slide 12 State representation: belief input
+### Slide 12 State representation: king belief
+
+**Presenter:** Bryan
+
+**Purpose:** Show how equally weighted candidate boards produce an uncertain enemy-piece belief layer. Planned 30 seconds.
+
+**Say:** The rook’s location is fixed, but the black king could still be in different places. Here are three possible boards, each with equal weight. Each puts the king on a different square, so the king’s belief layer assigns one third to each of those squares. These probabilities come from the candidate set.
+
+**Delivery cues (not spoken):** Compare the black king across the three candidates, then point to the three marked cells in the belief map. Do not name squares or read every label. Each candidate still has a binary king-piece layer; the fractional king-belief map summarizes the candidate set and is shared across candidates. All three candidates keep the same White king and Black rook. These are illustrative candidates with uniform weights, not a measured tracker snapshot or calibrated probabilities for every possible game state.
+
+### Slide 13 State representation: belief input
 
 **Presenter:** Bryan
 
@@ -171,9 +182,9 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Say:** So the model receives more than piece locations. It also receives what we can see and what we’ve inferred from history. Together with context and rule information, these make up thirty-two layers, each eight by eight, for each candidate board. That gives the model its input. It still has to learn how good the position is.
 
-**Delivery cues (not spoken):** Connect the visibility-and-belief example to the full stack. Indicate the groups without reading out every count, then point to the thirty-two layers, each eight by eight. Pause after the final sentence, then advance to the question and handoff on slide 13. The groups summarize the implemented encoder without changing its tensor order.
+**Delivery cues (not spoken):** Connect the visibility-and-belief example to the full stack. Indicate the groups without reading out every count, then point to the thirty-two layers, each eight by eight. Pause after the final sentence, then advance to the question and handoff on slide 14. The groups summarize the implemented encoder without changing its tensor order.
 
-### Slide 13 How do we learn useful position values?
+### Slide 14 How do we learn useful position values?
 
 **Presenter:** Bryan
 
@@ -183,7 +194,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Delivery cues (not spoken):** Click to this slide after finishing the representation explanation. Address the audience, then turn to Colin at the end. Colin takes over on the next slide. This is the only presenter handoff.
 
-### Slide 14 Three ways to learn position values
+### Slide 15 Three ways to learn position values
 
 **Presenter:** Colin
 
@@ -193,7 +204,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Transition:** Here’s how Monte Carlo gets its target.
 
-### Slide 15 Monte Carlo learns from completed returns
+### Slide 16 Monte Carlo learns from completed returns
 
 **Presenter:** Colin
 
@@ -203,7 +214,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Transition:** TD can learn before the outcome is known.
 
-### Slide 16 TD bootstraps from the next estimate
+### Slide 17 TD bootstraps from the next estimate
 
 **Presenter:** Colin
 
@@ -213,7 +224,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Transition:** What did these targets teach the models?
 
-### Slide 17 Distillation best matched the engine teacher
+### Slide 18 Distillation best matched the engine teacher
 
 **Presenter:** Colin
 
@@ -225,7 +236,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Delivery cues (not spoken):** Give the audience a moment to locate the three methods. Indicate the lower distillation bar, then state the finding. Do not read every value. The pause is included in the allocation.
 
-### Slide 18 MC and TD better matched recorded outcomes
+### Slide 19 MC and TD better matched recorded outcomes
 
 **Presenter:** Colin
 
@@ -237,7 +248,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Delivery cues (not spoken):** Pause briefly on the new chart before speaking. Compare the methods within this chart, without comparing its bar heights to the preceding chart. The pause is included in the allocation.
 
-### Slide 19 Network 1: learning a value correction
+### Slide 20 Network 1: learning a value correction
 
 **Presenter:** Colin
 
@@ -249,7 +260,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Delivery cues (not spoken):** Introduce this as a separate experiment from the linear MC/TD comparison. Protocol details are in the archived match backup.
 
-### Slide 20 Prediction error decreased by about 20%
+### Slide 21 Prediction error decreased by about 20%
 
 **Presenter:** Colin
 
@@ -259,7 +270,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Transition:** Did that translate into better play?
 
-### Slide 21 The games did not establish a playing gain
+### Slide 22 The games did not establish a playing gain
 
 **Presenter:** Colin
 
@@ -271,7 +282,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Delivery cues (not spoken):** Indicate the equal-points reference and interval. Explain the result, without reading the interval endpoints.
 
-### Slide 22 The learned correction took about 3× as long
+### Slide 23 The learned correction took about 3× as long
 
 **Presenter:** Colin
 
@@ -281,7 +292,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Transition:** Here’s why prediction accuracy alone can miss what matters for choosing an action.
 
-### Slide 23 The reference slightly prefers Move A
+### Slide 24 The reference slightly prefers Move A
 
 **Presenter:** Colin
 
@@ -293,7 +304,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Delivery cues (not spoken):** Keep the reference visible for about two seconds before advancing. Indicate A and B together. Establish that the example is illustrative, not a project measurement.
 
-### Slide 24 Large value errors can preserve the choice
+### Slide 25 Large value errors can preserve the choice
 
 **Presenter:** Colin
 
@@ -305,7 +316,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Delivery cues (not spoken):** Pause for about two seconds after the question so the audience can make the choice silently. Indicate the selected action, without calculating the numerical error aloud.
 
-### Slide 25 Closer values can still change the choice
+### Slide 26 Closer values can still change the choice
 
 **Presenter:** Colin
 
@@ -317,7 +328,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Delivery cues (not spoken):** Allow a brief look at the changed ranking before explaining it. Connect the reversed choice to the distinction between value accuracy and action quality. Keep the illustrative scope clear.
 
-### Slide 26 A separate network learns from search
+### Slide 27 A separate network learns from search
 
 **Presenter:** Colin
 
@@ -327,7 +338,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Transition:** How did this evaluator compare with material counting?
 
-### Slide 27 Does the learned evaluator help?
+### Slide 28 Does the learned evaluator help?
 
 **Presenter:** Colin
 
@@ -339,7 +350,7 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 **Delivery cues (not spoken):** Treat the material-label explanation as a hypothesis, not an established cause. Do not present the handover’s game score as a verified strength result.
 
-### Slide 28 Conclusions and next evaluation
+### Slide 29 Conclusions and next evaluation
 
 **Presenter:** Colin
 
@@ -395,13 +406,13 @@ The provisional allocations total 13:30. A new 35-second visibility/belief expla
 
 ## Delivery and rehearsal
 
-Bryan covers the introduction, hidden-state examples, depth-limited search, belief representation and the handoff (slides 1–13, allocation 6:20). Colin covers learning targets, experiments, interpretation and conclusions (slides 14–28, 7:10). Handoff once on slide 13. Bryan and Colin both prepare for Q&A.
+Bryan covers the introduction, hidden-state examples, depth-limited search, belief representation and the handoff (slides 1–14, allocation 6:50). Colin covers learning targets, experiments, interpretation and conclusions (slides 15–29, 7:10). Handoff once on slide 14. Bryan and Colin both prepare for Q&A.
 
-The planned allocations total 13:30; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
+The planned allocations total 14:00; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
 
 ## Hidden backup navigation
 
-29: archived match rows. 30: full value/move metrics. 31: offline belief context. 32: full MC/TD comparison. 33: retained-search prototype. 34: evaluator inventory. 35: contribution confirmations. 36: sources and scope. 37: archived Black-view belief demonstration. These are hidden during the core talk; the PDFs and slide-with-script Word copy include all pages.
+30: archived match rows. 31: full value/move metrics. 32: offline belief context. 33: full MC/TD comparison. 34: retained-search prototype. 35: evaluator inventory. 36: contribution confirmations. 37: sources and scope. 38: archived Black-view belief demonstration. These are hidden during the core talk; the PDFs and slide-with-script Word copy include all pages.
 
 ## Sources and evidence boundaries
 
@@ -409,9 +420,11 @@ The planned allocations total 13:30; the confirmed speaking slot is 12 minutes, 
 
 **Representation example:** Reuses the verified capture successor: 8/5k2/3r4/8/3K4/8/8/8 w - - 0 1. The king stays on d4; rook d6 and opponent king f7 match the board-to-piece-layer comparison. White observes c3/c4/c5/d3/d4/d5/e3/e4/e5. The rook at d6 is outside that view. Capture history rules out the king as captor and fixes the rook at the captured knight’s square. For the illustrative single-candidate belief with normalized weight one, executing the exact pinned 32-plane encoder verifies king plane 5 at row4/col3, rook plane 9 at row2/col3, opponent king plane11 at row1/col5, visibility plane12 with nine marked cells and zero at row2/col3, and enemy-rook probability plane17 equal to one at row2/col3. This is a deterministic consequence within the known-piece worked example and its supplied belief, not invented fractional probabilities or an empirical full posterior. Additional planes are schematic on the stack. No new training or game measurements.
 
+**King belief example:** Illustrative three-candidate extension of the known-piece capture example, not an archived tracker snapshot. White king d4 and Black rook d6 are fixed in every candidate; Black king is at f7, f8 or g7. All three have White to move, no castling or en-passant rights and the same counters. All three match the current nine-square observation. Each candidate has weight 1/3. Executing the exact shared encoder verifies shape (3,32,8,8), binary enemy-king plane11 for each candidate and the same enemy-king probability plane19 with 1/3 at the three locations in every candidate. The enemy-rook probability plane17 remains one at d6. Fractions are probabilities conditional on this illustrative candidate set, with zeros elsewhere in the map. The current Pair A and Pair B trackers return uniform weights over their returned candidate histories: https://github.com/Mr-Teal/CS5446_project/blob/10352fe54ec5c11acbad8671f165642b812eae78/pair_a_prep/belief_tracker.py and https://github.com/Mr-Teal/CS5446_project/blob/10352fe54ec5c11acbad8671f165642b812eae78/pair_b/src/pairb/tracker.py . The layer calculation is implemented in https://github.com/Mr-Teal/CS5446_project/blob/10352fe54ec5c11acbad8671f165642b812eae78/fow_shared/features.py . No claim that candidates have different learned weights or that the probability maps alone replace the candidate boards.
+
 **Network 1 encoding:** Separate archived Network 1 correction model. Its encode_board in pair_b/src/pairb/encode.py returns (19,8,8), made from twelve piece planes and seven turn/rule/counter planes. Network1 in pair_b/src/pairb/net1.py also receives a separate shallow-engine value. This differs from the 32-plane shared belief encoder and is not a universal project input. Archived experiment source: https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/src/pairb/encode.py . Current wiring also verified at https://github.com/Mr-Teal/CS5446_project/blob/10352fe54ec5c11acbad8671f165642b812eae78/pair_b/src/pairb/encode.py and https://github.com/Mr-Teal/CS5446_project/blob/10352fe54ec5c11acbad8671f165642b812eae78/pair_b/src/pairb/net1.py . Existing Network 1 numerical results and their scope remain unchanged.
 
-**Search and values:** Conceptual search diagram, not a recorded game tree, action selection, branching-factor claim or complete agent architecture. The board is the history-inferred White candidate after the rook captures the knight: 8/5k2/3r4/8/3K4/8/8/8 w - - 0 1. The rules model supplies hypothetical transitions. The archived fixed-depth tree expands to its requested ply depth and assigns evaluator values to nonterminal children at the frontier (remaining == 1); terminal outcomes are resolved directly. Source: https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep/chess_search.py . Search depth is distinct from Stockfish leaf-evaluator depth. Later anytime/growing variants can extend the frontier within configured depth/node/time limits; this slide does not claim all configurations use the same fixed depth. A depth-limited search uses frontier position estimates to compare continuations. Nodes are schematic positions, with moves by both players abstracted; there are no selected chess moves, invented numerical values or preferred continuation. The diagram starts from one candidate only for illustration. It does not imply the tracker knows the true hidden board or that the agent considers only one hypothesis. This connects course decision-time search and value approximation to the project evaluator interface. The recorded Black-view material-evaluator demonstration remains hidden backup 37. No new performance evidence.
+**Search and values:** Conceptual search diagram, not a recorded game tree, action selection, branching-factor claim or complete agent architecture. The board is the history-inferred White candidate after the rook captures the knight: 8/5k2/3r4/8/3K4/8/8/8 w - - 0 1. The rules model supplies hypothetical transitions. The archived fixed-depth tree expands to its requested ply depth and assigns evaluator values to nonterminal children at the frontier (remaining == 1); terminal outcomes are resolved directly. Source: https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_a_prep/chess_search.py . Search depth is distinct from Stockfish leaf-evaluator depth. Later anytime/growing variants can extend the frontier within configured depth/node/time limits; this slide does not claim all configurations use the same fixed depth. A depth-limited search uses frontier position estimates to compare continuations. Nodes are schematic positions, with moves by both players abstracted; there are no selected chess moves, invented numerical values or preferred continuation. The diagram starts from one candidate only for illustration. It does not imply the tracker knows the true hidden board or that the agent considers only one hypothesis. This connects course decision-time search and value approximation to the project evaluator interface. The recorded Black-view material-evaluator demonstration remains hidden backup 38. No new performance evidence.
 
 **Solver-trained network extension:** Separate solver-trained network extension. Pair A handover, PR73 at 8abc854ed1779013c9cc4818584108cc07f552c2: https://github.com/Mr-Teal/CS5446_project/blob/8abc854ed1779013c9cc4818584108cc07f552c2/pair_a_prep/docs/handover_2026-11-08.md . Self-play label collection code inspected at 87b30892ee5016f0c1fc7216bec7f885b76137bb: https://github.com/Mr-Teal/CS5446_project/blob/87b30892ee5016f0c1fc7216bec7f885b76137bb/pair_a_prep/label_run.py . Network evaluator hook inspected at d63de87a9d1591c7b2fc06fea8360b00494a99b9: https://github.com/Mr-Teal/CS5446_project/blob/d63de87a9d1591c7b2fc06fea8360b00494a99b9/pair_a_prep/evaluation_factories.py . These establish accessible pipeline code, not independent execution or strength validation. The new belief-solver-v1 checkpoint, solver-v1 dataset and complete per-attempt records are not in the inspected repository trees or local workspace. Handover training counts and result figures are author-reported; numerical performance claims are therefore omitted from the slides. The reported offline error is worse than material and the jointly surviving game comparison does not establish an improvement or equivalence. Complete attempted/terminal/capped/failed/killed/unplayed accounting and frozen configs/weights/engine identities still need reconciliation. Greedy-opponent ceiling and platform separation matter. One cycle is reported, not repeated policy improvement or an AlphaZero/Obscuro reproduction. The suggestion that shallow material-derived targets explain the offline result is a hypothesis. This is a separate model, target source and experiment from the archived Network 1 correction study; do not pool them.
 
@@ -437,7 +450,7 @@ The planned allocations total 13:30; the confirmed speaking slot is 12 minutes, 
 
 **Demonstration:** The archived screenshot and two-ply record remain in presentation-assets/. The archived backup figure aligns the Black observation and two saved hypotheses at the same pre-action decision point. It illustrates the information pipeline with a material evaluator, not learned-model strength.
 
-**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 28-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
+**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 29-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
 
 **Contributions and AI assistance:** The existing individual contribution statements remain in backup and require each member's confirmation. Do not infer the human identity of xiaomiao-fong from the account name. Copilot assisted earlier drafts. Codex assisted the restructuring, rules-example checks and browser demonstration under Bryan's direction. No new training or formal match batch was run.
 
@@ -454,4 +467,4 @@ The planned allocations total 13:30; the confirmed speaking slot is 12 minutes, 
 
 ## Delivery and pacing
 
-Slide 9 follows the search tree to the depth limit and explains why unfinished positions require value estimates. Keep the board as supporting context. Slide 10 explains one binary layer per piece type and side while the original board stays visible. Slide 11 defines visibility and belief separately before interpreting the same square as visibility zero and rook probability one. Click directly to the full input on slide 12. Its script connects what we see and infer to the full stack, then closes on learning position values before the slide 13 handoff. The displayed breakdown is 12 piece + 4 visibility + 7 belief + 3 context + 6 rule-state layers. The belief count includes six probability maps plus population size. Keep the single handoff after slide 13. No unrelated speech or timing guides are changed.
+Slide 9 follows search to its depth limit and explains why unfinished positions need values. Slide 10 explains binary piece layers for one candidate. Slide 11 separates current visibility from the history-informed rook belief. Slide 12 uses three illustrative candidates with equal weights to show how the black king can have a fractional belief at several squares. Keep the rook and White king fixed, and point to the changing black king without naming cells. Slide 13 combines these features into the full input and closes on learning position values. Handoff once on slide 14; Colin starts the learning-target comparison on slide 15. No unrelated speech or timing guides are changed.
