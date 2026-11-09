@@ -7,7 +7,14 @@ what its side to move would see if that board were true (pairb.observe). Boards 
 rules decide keep the rule's exact value. A use_d1 network also reads quick Stockfish's value of
 each board: one depth-1 call per board, children included, because that is the value it trained
 on (a parent's MultiPV score of a child differs from the child's own by 0.07 on average).
+
+evaluate_children has a native data path (pair_a_prep/leaf_kernel.cpp, through pair_a_prep._leaf_native): the
+children, their rule values and their planes, bit-identical to this module's Python path; the network pass is
+the same. FOW_LEAF_BACKEND in the environment ("auto", "python" or "native") sets the default, the constructor's
+leaf_backend overrides it; auto takes native when the kernel is built. A use_d1 network stays on Python (it needs
+Stockfish per child). Native without the kernel is a RuntimeError.
 """
+import os
 from pathlib import Path
 
 import chess
@@ -40,14 +47,33 @@ def _alone(board: chess.Board) -> AgentInput:
     return AgentInput(observe(board, player), Belief(player, 0, (Hypothesis(standard_fen(board), 1.0),)), 1000)
 
 
+def _leaf_kernel():
+    """pair_a_prep._leaf_native when its library is built, else None."""
+    try:
+        from pair_a_prep import _leaf_native
+    except ImportError:
+        return None
+    return _leaf_native if _leaf_native.library() is not None else None
+
+
 class BeliefNetworkEvaluator:
+    LEAF_BACKEND = os.environ.get("FOW_LEAF_BACKEND", "auto")  # auto, python or native (see module docstring)
+
     def __init__(self, net: BeliefNetwork, label: str = "belief", *, name: str | None = None,
-                 stockfish_path: str = "stockfish", device: str | None = None, new_game_each_call: bool = True):
+                 stockfish_path: str = "stockfish", device: str | None = None, new_game_each_call: bool = True,
+                 leaf_backend: str | None = None):
         self.device = pick_device(device)
         self.net = net.to(self.device).eval()
         self.stockfish = (StockfishEvaluator(depth=1, path=stockfish_path, new_game_each_call=new_game_each_call)
                           if net.use_d1 else None)
         self.name = name if name is not None else (f"{label}+{self.stockfish.name}" if self.stockfish else label)
+        requested = self.LEAF_BACKEND if leaf_backend is None else leaf_backend
+        if requested not in ("auto", "python", "native"):
+            raise ValueError("leaf_backend must be auto, python or native")
+        kernel = _leaf_kernel() if requested != "python" else None
+        if requested == "native" and kernel is None:
+            raise RuntimeError("native leaf kernel not built (python -m pair_a_prep.build_leaf_kernel)")
+        self.leaf_backend = "native" if kernel is not None and not net.use_d1 else "python"
 
     @classmethod
     def from_checkpoint(cls, path, **kwargs) -> "BeliefNetworkEvaluator":
@@ -91,6 +117,8 @@ class BeliefNetworkEvaluator:
 
     def evaluate_children(self, fen: str) -> dict[str, float]:
         """{move: value} for every fog-of-war legal move, from the moving player's view."""
+        if self.leaf_backend == "native":
+            return self._native_children(fen)
         board = chess.Board(fen)
         if terminal_score(board) is not None:
             return {}
@@ -107,6 +135,22 @@ class BeliefNetworkEvaluator:
         white = self._white_values(children, list(known.values()))
         sign = _to_white(board)
         return {uci: sign * v + 0.0 for uci, v in zip(known, white)}
+
+    def _native_children(self, fen: str) -> dict[str, float]:
+        """evaluate_children with the children, rule values and planes from the native kernel."""
+        from pair_a_prep import _leaf_native
+        kids = _leaf_native.children(fen)
+        if not kids.moves:
+            return {}
+        sign = 1.0 if fen.split()[1] == "w" else -1.0  # _to_white(parent); each child has -sign
+        white = kids.white
+        engine = [i for i, by_rule in enumerate(kids.rule) if not by_rule]
+        if engine:
+            n = len(engine)
+            scored = self._forward(kids.planes, np.ones(n, dtype=np.float32), np.arange(n), n, None)
+            for i, v in zip(engine, scored):
+                white[i] = -sign * v
+        return {uci: sign * v + 0.0 for uci, v in zip(kids.moves, white)}
 
     def _known(self, board: chess.Board) -> tuple[float, bool]:
         """White-view value of a board the rules decide, flagged True; otherwise quick Stockfish's
@@ -140,8 +184,14 @@ class BeliefNetworkEvaluator:
             belief.append(np.full(len(w), b))
             d1.extend(sign * v for v, _ in boards)
             engine.extend(not by_rule for _, by_rule in boards)
+        d = np.nan_to_num(np.array(d1, dtype=np.float32)) if self.net.use_d1 else None
+        out = self._forward(np.concatenate(planes), np.concatenate(weights), np.concatenate(belief), len(turns), d)
+        return [v for v, keep in zip(out, engine) if keep]
+
+    @torch.no_grad()
+    def _forward(self, planes, weights, belief, beliefs: int, d1) -> list[float]:
+        """One network pass: a value per board row, each for its belief's acting player."""
         to = lambda a, dtype: torch.from_numpy(np.asarray(a, dtype=dtype)).to(self.device)
-        d = to(np.nan_to_num(np.array(d1, dtype=np.float32)), np.float32) if self.net.use_d1 else None
-        out = self.net(to(np.concatenate(planes), np.float32), to(np.concatenate(weights), np.float32),
-                       to(np.concatenate(belief), np.int64), len(turns), d).cpu().numpy()
-        return [float(v) for v, keep in zip(out, engine) if keep]
+        d = to(d1, np.float32) if d1 is not None else None
+        out = self.net(to(planes, np.float32), to(weights, np.float32), to(belief, np.int64), beliefs, d).cpu().numpy()
+        return [float(v) for v in out]
