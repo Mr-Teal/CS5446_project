@@ -55,7 +55,7 @@ def test_round_and_solver_values_equal_continuation_values_every_round(schedule)
         assert repr(gadgets[0].tree.probabilities) == repr(gadgets[1].tree.probabilities)
         assert (controls[0].margins, controls[0].p_max) == (controls[1].margins, controls[1].p_max)
         assert solvers[0].policy() == solvers[1].policy()
-    assert gadgets[1].__dict__.get("_checked") == set(gadgets[1].continuations)
+    assert gadgets[1]._pending() == ()
 
 
 def _state(control):
@@ -115,10 +115,44 @@ def test_round_values_validate_on_the_first_call_of_each_gadget():
     with pytest.raises(KeyError):  # what continuation_values raises for a profile without a set
         gadget.round_values(missing)
     gadget.round_values(profile)  # the first valid call validates the gadget
-    assert gadget.__dict__.get("_checked") == set(gadget.continuations)
+    assert gadget._pending() == ()
     fresh = dataclasses.replace(gadget, tree=gadget.tree)  # an expansion's new gadget validates again
     with pytest.raises(ValueError):
         fresh.round_values(bad)
+
+
+def test_regrown_gadget_equals_a_fresh_build_and_validates_only_the_grafts():
+    from pair_a_prep.gadgets import regrow_blended
+    prior = {"A": .6, "B": .4}
+    roots = _toy_roots()
+    gadget = build_gadget(roots, {"A": 0.1, "B": -0.2}, mode="blended", group_prior=prior)
+    profile = PCFRPlus(gadget.tree, backend="python").policy()
+    gadget.round_values(profile)
+    assert gadget._pending() == ()
+    # Grow root c (a single cutoff: graft at the continuation's root) and root b below its player-1 node.
+    c_subtree = Node(player=0, infoset="fresh", children={"x": terminal(0.5), "y": terminal(-0.5)})
+    b_subtree = Node(player=1, infoset="deep", children={"s": terminal(1.0), "t": terminal(0.0)})
+    b_old = roots[1].continuation
+    b_new = Node(player=0, infoset="mine", children={"L": b_old.children["L"], "R": Node(
+        player=1, infoset="theirs", children={"u": b_subtree, "v": terminal(0.75)})})
+    grown = [roots[0], SubgameRoot("b", "A", b_new, 1.0), SubgameRoot("c", "B", c_subtree, 1.0)]
+    regrown = regrow_blended(gadget, grown, {"c": [((), c_subtree)], "b": [(("R", "u"), b_subtree)]}, prior,
+                             None)
+    fresh = build_gadget(grown, {"A": 0.1, "B": -0.2}, mode="blended", group_prior=prior)
+    assert regrown.continuations == fresh.continuations and list(regrown.continuations) == list(fresh.continuations)
+    assert (regrown.roots, regrown.alternate_player0, repr(regrown.root_prior)) == (
+        fresh.roots, fresh.alternate_player0, repr(fresh.root_prior))
+    assert regrown.continuations["a"] is gadget.continuations["a"]
+    assert [root_id for root_id, _ in regrown._pending()] == ["b", "c"]
+    regrown.tree = fresh.tree
+    full = PCFRPlus(fresh.tree, backend="python").policy()
+    with pytest.raises(KeyError):  # the grafted sets are checked: a profile without them fails
+        regrown.round_values(profile)
+    bad = (dict(full[0], fresh={"x": 2.0, "y": -1.0}), full[1])
+    with pytest.raises(ValueError, match="invalid strategy distribution"):
+        regrown.round_values(bad)
+    assert repr(regrown.round_values(full)) == repr(fresh.continuation_values(full))
+    assert regrown._pending() == ()
 
 
 def test_round_values_validate_every_call_when_fast_is_off(monkeypatch):
@@ -149,6 +183,12 @@ def _games(count, turns):
 TIMING = ("elapsed_ms", "over_budget")
 
 
+def _subtrees(node):
+    yield node
+    for child in node.children.values():
+        yield from _subtrees(child)
+
+
 def _replay(backend, fast, player, turns, check_values=False):
     """One ChessSubgameAgent over the turns (material leaf, round budgets, no clock). Returns per turn the decision,
     its non-timing diagnostics, the raw root profile and the controller's trace of every round."""
@@ -176,12 +216,12 @@ def _replay_patched(monkeypatch, backend, fast, player, turns, check_values):
 
         def compared(self, solver, *args, **kwargs):
             """The fast expansion's bridge equals the one the reference builds from the same grown chess tree."""
-            checked = self.gadget.__dict__.get("_checked", frozenset())
             bridge = expand(self, solver, *args, **kwargs)
             if bridge is self:
                 return bridge
-            grown = {self.roots.root_ids[int(path[0])] for path in kwargs["selected_paths"]}
-            assert bridge.gadget.__dict__.get("_checked") == checked - grown  # grown continuations validate again
+            pending = bridge.gadget._pending()  # the grafted subtrees (or still unvalidated continuations)
+            assert pending and all(any(node is n for n in _subtrees(bridge.gadget.continuations[root_id]))
+                                   for root_id, node in pending)
             reference = bridge.roots.build(self.gadget.alternate_player0, reach_mass=self.reach_mass,
                                            mode="blended", group_prior=self.group_prior)
             assert bridge == reference.__class__(reference.roots, bridge.gadget, reference.reach_mass,

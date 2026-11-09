@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import json
 from math import fsum, isfinite
 import os
@@ -52,26 +52,31 @@ class Gadget:
     def round_values(self, policies) -> dict:
         """continuation_values for the per-round controller (BlendedGadgetControl.update), validated once.
 
-        A continuation is validated as continuation_values does it (its information sets, the profile restricted
-        to them, behavioral_value's checks and errors) the first time this gadget evaluates it; the first call on a
-        new gadget is therefore continuation_values itself. Afterwards it is only walked (toy_games.value_walk: the
-        operations of behavioral_value in the same order, so the values are identical): a continuation's tree
-        never changes, and the per-round profile is the solver's, whose strategies are distributions by
-        construction. A gadget regrown by an expansion (regrow_blended) keeps its unchanged continuations
-        validated and validates the grown ones. With FAST off every call is continuation_values.
+        Every part of the gadget's continuations is validated once, as continuation_values validates a
+        continuation (its information sets, the profile restricted to them, behavioral_value's checks and errors):
+        on the first call of a new gadget each whole continuation, in order (so that call raises what
+        continuation_values raises); on a gadget regrown by an expansion (regrow_blended) only the grafted
+        subtrees. Values are then walks only (toy_games.value_walk: the operations of behavioral_value in the
+        same order, so the values are identical): a continuation never changes once built, and the per-round
+        profile is the solver's, whose strategies are distributions by construction. With FAST off every call is
+        continuation_values.
         """
         if not self.FAST:
             return self.continuation_values(policies)
-        checked = self.__dict__.get("_checked", frozenset())
-        values = {root_id: value_walk(node, policies) if root_id in checked else _continuation_value(node, policies)
-                  for root_id, node in self.continuations.items()}
-        self._checked = frozenset(self.continuations)
-        return values
+        for _, node in self._pending():
+            _continuation_value(node, policies)
+        self._unchecked = ()
+        return {root_id: value_walk(node, policies) for root_id, node in self.continuations.items()}
+
+    def _pending(self):
+        """(root_id, subtree) still to validate: all continuations until a first validation, see round_values."""
+        pending = self.__dict__.get("_unchecked")
+        return tuple(self.continuations.items()) if pending is None else pending
 
     def solver_values(self, solver) -> dict:
         """round_values(solver.policy()) for the solver that solves this gadget, without the profile dictionaries.
 
-        On the native backend (blended gadget whose tree is the solver's root) continuations not yet validated are
+        On the native backend (blended gadget whose tree is the solver's root) the parts not yet validated are
         validated as round_values does, with the solver's profile restricted to their sets (policy()'s entries),
         and then the kernel walks every continuation where it sits in the solver's flat tree, under the published
         strategies that policy() returns, in value_walk's floating-point order (pcfr_behavioral_values). In a
@@ -85,20 +90,16 @@ class Gadget:
 
     def native_nodes(self, solver):
         """The flat node ids of the continuations (in continuations order) in a native solver of this blended gadget,
-        after validating the continuations not yet validated (as solver_values describes); None when the native
-        path does not apply (FAST off, Python solver, another mode, or the solver is not on this gadget's tree)."""
+        after validating what is not yet validated (as solver_values describes); None when the native path does
+        not apply (FAST off, Python solver, another mode, or the solver is not on this gadget's tree)."""
         native = getattr(solver, "_native", None)
         if native is None or not self.FAST or self.mode != "blended" or solver.root is not self.tree:
             return None
-        checked = self.__dict__.get("_checked", frozenset())
-        if len(checked) < len(self.continuations):
-            for root_id, node in self.continuations.items():
-                if root_id not in checked:
-                    sets = information_sets(node)
-                    _continuation_value(node, tuple({key: dict(zip(solver.sets[p][key],
-                                                                   map(float, solver._strategy[p][key])))
-                                                     for key in sets[p]} for p in (0, 1)))
-            self._checked = frozenset(self.continuations)
+        for _, node in self._pending():
+            sets = information_sets(node)
+            _continuation_value(node, tuple({key: dict(zip(solver.sets[p][key], map(float, solver._strategy[p][key])))
+                                             for key in sets[p]} for p in (0, 1)))
+        self._unchecked = ()
         positions = self.__dict__.get("_positions")
         if positions is None:
             order = {action: i for i, action in enumerate(self.tree.children)}
@@ -220,18 +221,31 @@ def build_gadget(roots: Sequence[SubgameRoot], alternate_player0: Mapping[str, f
     return Gadget(tree, mode, roots, continuations, dict(alternate_player0), root_prior)
 
 
-def regrow_blended(gadget: Gadget, roots: Sequence[SubgameRoot], changed, group_prior: Mapping[str, float],
+def _graft_clone(clone, path, subtree, group):
+    """`clone` (a _clone of a continuation) with the _clone of `subtree` at `path`, copying only the nodes on the
+    path: equal (Node ==) to cloning the grafted continuation whole. Returns (new clone, cloned subtree)."""
+    if not path:
+        grafted = _clone(subtree, group)
+        return grafted, grafted
+    children = dict(clone.children)
+    children[path[0]], grafted = _graft_clone(children[path[0]], path[1:], subtree, group)
+    return replace(clone, children=children), grafted
+
+
+def regrow_blended(gadget: Gadget, roots: Sequence[SubgameRoot], grafts, group_prior: Mapping[str, float],
                    tree: Node) -> Gadget:
-    """build_gadget(roots, gadget.alternate_player0, "blended", group_prior) with `tree` as its tree, for roots
-    that differ from gadget.roots only in the continuations of the root IDs in `changed` (grown by grafts).
+    """build_gadget(roots, gadget.alternate_player0, "blended", group_prior) with `tree` as its tree, for roots that
+    differ from gadget.roots only by the grafts {root_id: [(path in the continuation, raw subtree), ...]}.
 
     Used by ChessGadget.expand on its fast path. Root IDs, groups, reach masses, alternates and the prior are those
-    the gadget was built and validated with, so only the changed continuations are checked for the reserved
-    namespace and cloned; the others are the gadget's clones, which equal what cloning them again gives. The
-    whole-tree solver validation of build_gadget is not repeated: the caller validated the raw graft (action
-    order, perfect recall) on the whole raw tree, which implies it for the gadget tree (player 0's keys and
-    histories are the raw ones; player 1's keys are the raw ones refined by group), and the trained solver's
-    expand() checks the gadget graft again. root_prior is computed as build_gadget computes it.
+    the gadget was built and validated with, so only the grafted subtrees are checked for the reserved namespace
+    and cloned into the previous clones (_graft_clone: the result equals cloning the grown continuation); the
+    other continuations are the gadget's clones, which equal what cloning them again gives. The whole-tree solver
+    validation of build_gadget is not repeated: the caller validated the raw graft (action order, perfect recall)
+    on the whole raw tree, which implies it for the gadget tree (player 0's keys and histories are the raw ones;
+    player 1's keys are the raw ones refined by group), and the trained solver's expand() checks the gadget graft
+    again. The grafted subtrees join the parts that round_values / native_nodes validate on their next call.
+    root_prior is computed as build_gadget computes it.
     """
     if gadget.mode != "blended":
         raise ValueError("regrow_blended needs a blended gadget")
@@ -240,12 +254,19 @@ def regrow_blended(gadget: Gadget, roots: Sequence[SubgameRoot], changed, group_
             (r.root_id, r.opponent_infoset, r.reach_mass) for r in gadget.roots):
         raise ValueError("regrow_blended keeps the gadget's roots, groups and reach masses")
     continuations = dict(gadget.continuations)
+    pending = list(gadget._pending())
+    whole = {root_id for root_id, node in pending if node is gadget.continuations[root_id]}
     for r in roots:
-        if r.root_id in changed:
-            for sets in information_sets(r.continuation):
+        for path, subtree in grafts.get(r.root_id, ()):
+            for sets in information_sets(subtree):
                 if any(key.startswith(PREFIX) for key in sets):
                     raise ValueError("continuation uses reserved gadget namespace")
-            continuations[r.root_id] = _clone(r.continuation, r.opponent_infoset)
+            continuations[r.root_id], grafted = _graft_clone(continuations[r.root_id], tuple(path), subtree,
+                                                             r.opponent_infoset)
+            if r.root_id not in whole:
+                pending.append((r.root_id, grafted))
+    # A continuation never validated stays pending whole, as its grown version.
+    pending = [(root_id, continuations[root_id] if root_id in whole else node) for root_id, node in pending]
     groups = {}
     for r in roots:
         groups.setdefault(r.opponent_infoset, []).append(r)
@@ -255,7 +276,7 @@ def regrow_blended(gadget: Gadget, roots: Sequence[SubgameRoot], changed, group_
     root_prior = {r.root_id: prior[r.opponent_infoset] * conditional[r.root_id] for r in roots}
     root_prior.update({"exit:" + j: 0.0 for j in groups})
     result = Gadget(tree, "blended", roots, continuations, dict(gadget.alternate_player0), root_prior)
-    result._checked = gadget.__dict__.get("_checked", frozenset()) - set(changed)  # see Gadget.round_values
+    result._unchecked = tuple(pending)  # see Gadget.round_values
     return result
 
 

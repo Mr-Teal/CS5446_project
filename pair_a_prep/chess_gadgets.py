@@ -164,11 +164,16 @@ class ChessGadget:
             # = roots.build(...) for the same alternates, reach masses and group prior; only the tree differs.
             if set(self.reach_mass) != set(roots.root_ids):
                 raise ValueError("reach_mass must cover exactly the sampled root IDs")
-            changed = {self.roots.root_ids[int(path[0])] for path in paths}
+            grafts = {}  # root_id -> [(path in its continuation, grafted raw subtree)]
+            for path in paths:
+                node = grown.continuations[int(path[0])]
+                for action in path[1:]:
+                    node = node.children[action]
+                grafts.setdefault(self.roots.root_ids[int(path[0])], []).append((path[1:], node))
             subgame_roots = tuple(SubgameRoot(root_id, key, continuation, self.reach_mass[root_id])
                                   for root_id, key, continuation in zip(
                                       roots.root_ids, roots.opponent_infosets, grown.continuations))
-            candidate = ChessGadget(roots, regrow_blended(self.gadget, subgame_roots, changed, self.group_prior,
+            candidate = ChessGadget(roots, regrow_blended(self.gadget, subgame_roots, grafts, self.group_prior,
                                                           None),
                                     dict(self.reach_mass), dict(self.group_prior), raw_solver)
         else:
