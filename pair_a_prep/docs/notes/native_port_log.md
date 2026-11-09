@@ -298,3 +298,128 @@ timing-dependent).
 Next: the leaf's own python-chess work (pairb.observe, forced_score, the planes) is now the largest
 non-network cost per expansion; and with expansions cheap, the depth-cap and growth-fraction settings of A2
 are worth measuring again.
+
+## B2: the leaf data path (belief-network `evaluate_children`)
+
+Before B2, every expansion called `BeliefNetworkEvaluator.evaluate_children(fen)`, which made each child with
+python-chess, decided it with `rule_value`, built its one-board belief (`_alone`: `observe` + `standard_fen` +
+`Hypothesis`) and encoded it with `encode_belief`, then ran one network pass. Under the profiler that was
+~30 ms per call (2.7 s per move at plies 5 and 28); the GPU pass is a small part of it.
+
+### Design as built
+
+* Kernel `pair_a_prep/leaf_kernel.cpp` includes `rules_kernel.cpp` (hence `zs21/native/inference.cpp`) and exports
+  one call, `lk_children(parent, halfmove, fullmove, all_planes, ...)`. For the packed parent it returns 0 when
+  `terminal_score(parent)` is set (the evaluator's `{}`), else for every fog-legal move in `fog_legal_moves` order:
+  the encoded action and its UCI name, the rule flag and White-view rule value (`rule_value`), the 32x8x8 float32
+  planes (for the undecided children only, packed in order, or for all with `all_planes`), and optionally the
+  packed child boards and their standard FENs (tests only).
+* Loader `pair_a_prep/_leaf_native.py` (`library()`, `children(fen, all_planes=False, details=False)`), build
+  `python -m pair_a_prep.build_leaf_kernel` into `pair_a_prep/_leaf_build/` (ignored) with `manifest.json`
+  (sha256 of `leaf_kernel.cpp`, `rules_kernel.cpp`, `zs21/native/inference.cpp`, `_leaf_native.py` and the
+  library); `library()` returns None for a missing or stale build. Same compiler flags as B1. The host build
+  (g++ 11.4) loads in the `fow-portability` GPU container.
+* `pairb/belief_evaluator.py`: `BeliefNetworkEvaluator(leaf_backend="auto"|"python"|"native")`, default
+  `LEAF_BACKEND` = `FOW_LEAF_BACKEND` or "auto"; auto = native when the library loads; native without it is a
+  `RuntimeError`; a `use_d1` network always stays on Python (it needs Stockfish per child). `self.leaf_backend`
+  is the effective choice. The native branch (`_native_children`) feeds the kernel's planes straight to the
+  network with weight 1 and one belief per child, and applies the same signs and `+ 0.0` as the Python path.
+  The network pass is factored out of `_score` into `_forward`, used by both paths, unchanged.
+  `evaluate_boards` / `evaluate_beliefs` stay on Python.
+
+### Reused, and what was added
+
+Reused from B1 / the tracker kernel: the `Board` layout (`native_tracker.Packed` / `pack`), attack masks, `play()`
+with B1's `rk_play` bridge (exact EP square after a double step, cleaned rights), `rk::clean_rights`,
+`rk::ep_effective` (python-chess `has_pseudo_legal_en_passant`), `rk::visible_squares` (the
+`RulesAdapter.visible_squares` rule, which `pairb.observe.visible_squares` follows), `rk::uci` and `zs_fen`.
+
+Added:
+
+* `fog_moves`: `fog_legal_moves` in its exact order, which B1's sorted `moves()` does not give: python-chess
+  `generate_pseudo_legal_moves` (non-pawn pieces by square high to low, targets high to low; then castling
+  that python-chess allows, i.e. with `_attacked_for_king` checks, rights scanned high to low; pawn captures by
+  square high to low with promotions Q, R, B, N; single pushes by target high to low; double pushes; EP), then
+  `_available_fog_moves`'s fog-only castling (kingside, then queenside) when not already listed. The order
+  matters: the dict `evaluate_children` returns and the network batch are in it.
+* `attackers` (python-chess `attackers_mask` with an explicit occupancy), `was_into_check`, `terminal`
+  (`terminal_score` without history: king captured, fifty-move, no fog-legal move) and `rule_value`
+  (`terminal_score` or `forced_score`, then White's view and `+ 0.0`). Repetition is not checked: the parent is a
+  FEN with no history, so the child has one move on its stack and the grandchildren two, below the four plies
+  `_is_fog_threefold_repetition` needs.
+* `encode`: the planes, below.
+
+### Plane-by-plane source of truth
+
+The belief `_alone(child)`: player = child's side to move, one hypothesis `standard_fen(child)` of weight 1,
+`Belief.ply` 0, `population_size` None, observation `observe(child, player)` with ply 0; `encode_belief` with
+`opponent_visible`, search depth 0, no capture recency. Mirroring is `_index`: White row = 7 - rank, Black
+row = rank, column = file.
+
+| planes | Python source | native |
+|---|---|---|
+| 0-5, 6-11 | hypothesis board pieces, own / enemy by `player_white` | child board, same split |
+| 12 | `obs.visible_squares` = `pairb.observe.visible_squares(child, player)` | `rk::visible_squares(child, player)` |
+| 13 | of those, squares whose `visible_pieces` letter is the enemy's | same squares with an enemy piece |
+| 14-19 | `+= weights[i]` for each enemy piece: 1.0 | 1.0 |
+| 20 | `min(log2(population_size or 1) / 15, 1)` = 0 | 0 |
+| 21 | `opponent_visible(board)` = the other colour's `visible_squares` on the re-parsed hypothesis | `rk::visible_squares(child, !player)` |
+| 22 | of those, squares holding the player's pieces | same |
+| 23 | capture recency: none | 0 |
+| 24, 25 | `min(ply / 200, 1)` with ply 0; `min(search_depth / 4, 1)` with 0 | 0 |
+| 26-29 | `has_kingside/queenside_castling_rights` on `chess.Board(standard_fen)` (own, then enemy) | cleaned rights bits h/a corner of each back rank |
+| 30 | EP square, only when `has_pseudo_legal_en_passant()` | `rk::ep_effective` |
+| 31 | `min(halfmove_clock / 100, 1.0)` of the hypothesis (float64, cast to float32) | `float(min(double(h) / 100, 1.0))` |
+
+Planes that needed careful reading: 21-22 are computed on the hypothesis board re-parsed from its FEN, not on the
+child board object, so the castling rights and EP square are the FEN's (cleaned on parse; equal to the pushed
+child's, as B1 established); 26-29 use python-chess's `has_*_castling_rights`, which on a freshly parsed board
+are exactly the cleaned corner bits; 30 is marked only when an EP capture is pseudo-legal although the standard
+FEN names the square after every double step; 31 is the child's own clock (0 after a pawn move or capture, else
+the parent's + 1), not hidden as in the observation; 20, 23, 24 and 25 are constant 0 here.
+
+### Tests
+
+`pair_b/tests/test_leaf_native.py` (5 tests; skipped without the library; needs torch). Per parent, against
+the Python path: move list and order, child standard FENs, packed child boards, rule flags, rule values (by
+`repr`, so a -0.0 would show), all children's planes with `np.array_equal` on float32, and the evaluator's
+compact planes (undecided children only). Parents: 24 corner sequences (37 positions: EP used / unused / fog-only
+/ unusable FEN square, castling allowed, into and through attacks, lost and impossible rights, promotions,
+king captures, a king left en prise, a missing king, fifty-move at the child, one move ahead and at the parent,
+no fog-legal move), the rule fixtures (`pair_a_prep.fixtures`, 25 positions), and 4,000 recorded parents (hypotheses of every 10th
+part file of `solver-v2-sf8-g237`, both sides to move: 2,006 Black, plus two random children of each):
+122,490 children, 4,468 rule-decided, 998 castling moves, 112 promotions, 1,115 with an EP plane. End to end
+with `belief-solver-v2-sf8-g237/best.pt` on CPU: Python and native evaluators on 337 parents (695 s on CPU; the
+committed test uses 97 parents, 89 network passes, 183 s, also exact): same move order, largest value difference 0.0, and all 329 planes arrays fed to
+the network identical. Everything was bit-exact on the first run; nothing needed a tolerance.
+
+Existing suites with `FOW_LEAF_BACKEND=native`: `pair_b/tests/test_belief_evaluator.py`, `test_belief_net.py`,
+`pair_a_prep/tests/test_chess_search.py`, `test_anytime_agent.py`: 40 passed.
+
+### Before / after (profile_move.py, native solver and native rules, 16,384 rounds, depth cap 4, 5 s budget)
+
+"before" = the branch before B2; "python" = B2 with the leaf build hidden (auto falls back to Python); "native"
+= B2 with the kernel. Module times are own time under cProfile; `evaluate_children` cumulative is not in the
+native run's top 12 any more, so it is bounded by the 12th entry's cumulative time.
+
+| ply | leaf | nodes | expansions | evaluator calls | rounds | wall s | stop | `chess/` | features + observe + values | `evaluate_children` cum. | ms / call (profiled) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 5 | before | 2,545 | 76 | 89 | 7,443 | 4.52 | submission_reserve | 1.25 s (28.0 %) | 0.62 s | 2.78 s | 31 |
+| 5 | python | 2,607 | 78 | 90 | 7,322 | 4.52 | submission_reserve | 1.22 s (27.5 %) | 0.61 s | 2.73 s | 30 |
+| 5 | native | 3,061 | 94 | 106 | 7,408 | 4.52 | submission_reserve | 0.03 s (0.6 %) | 0 | < 0.54 s | < 5.1 |
+| 28 | before | 2,887 | 61 | 77 | 6,243 | 4.52 | submission_reserve | 1.28 s (28.7 %) | 0.64 s | 2.74 s | 36 |
+| 28 | python | 2,921 | 62 | 79 | 5,959 | 4.52 | submission_reserve | 1.35 s (30.3 %) | 0.64 s | 2.81 s | 36 |
+| 28 | native | 6,943 | 167 | 183 | 3,041 | 4.54 | submission_reserve | 0.06 s (1.3 %) | 0 | < 0.64 s | < 3.5 |
+| 68 | before | 3,330 | 208 | 209 | 7,323 | 4.52 | submission_reserve | 0.70 s (15.6 %) | 0.32 s | 1.56 s | 7.5 |
+| 68 | python | 3,330 | 208 | 210 | 7,243 | 4.52 | submission_reserve | 0.69 s (15.3 %) | 0.31 s | 1.54 s | 7.3 |
+| 68 | native | 4,567 | 278 | 279 | 5,970 | 4.53 | submission_reserve | 0.07 s (1.5 %) | 0 | < 0.66 s | < 2.4 |
+
+Without the profiler (GPU container, 400 recorded parents, 32.2 children each, two alternating runs per
+backend): Python 10.1 / 10.6 ms per `evaluate_children`, native 0.75 / 0.64 ms, network pass included.
+
+With the leaf off the critical path the move's time is now the solver: `one_sided.select` / `utilities`
+(2.1 s cumulative, 1.5 s own, at ply 5), `pcfr.policy`, and at plies 28 and 68 the per-expansion
+`pcfr._native_compile` (0.96-1.13 s cumulative, of which `toy_games.information_sets` 0.64-0.68 s), which
+recompiles the whole tree after every expansion.
+Expansions rose 1.2-2.7x; at ply 28 the solver now reaches fewer rounds (3,041) because the tree is 2.4x larger,
+and the move differed (d1f1 vs d4e5), as growth is timing-dependent.
