@@ -79,7 +79,8 @@ class RulesAdapter:
         else:
             self.backend = "native"
         if self.backend == "native":
-            self._kernel = _rules_native
+            # On the class, not the instance: memory accounting walks instance attributes.
+            RulesAdapter._kernel = _rules_native
 
     @staticmethod
     def _color(player: Player) -> bool:
