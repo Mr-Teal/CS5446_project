@@ -13,7 +13,9 @@ Implements pair_b/docs/label_definitions.md with the sampled subgame agent:
 One part file per game (part-NNNN.jsonl) so a killed run keeps its finished
 games, progress.jsonl as it goes, manifest.json at the end, then Pair B's own
 validator over the folder. Running again with the same output skips games whose
-part file exists.
+part file exists. A game that dies (the guarded tracker finding no candidate
+after a prune, a contract violation) is written as far as it got, logged with
+its error in progress.jsonl, and the run continues.
 
 The agent's clock is the move budget as in play; tracking is outside it, as in
 the paper. A clocked run is therefore not bit-reproducible; --no-clock fixes the
@@ -32,6 +34,8 @@ import json
 from pathlib import Path
 from random import Random
 import sys
+
+import chess.engine
 from time import perf_counter
 
 from fow_shared.contracts import Decision
@@ -43,6 +47,41 @@ from .chess_search import SearchBudgetError, TreeCapacityError
 from .chess_subgame_agent import ChessSubgameAgent
 from .rules_adapter import RulesReferee
 from .tail_guard import TailGuardedBeliefTracker
+
+
+class RevivingLeaf:
+    """A leaf evaluator whose engine is reopened after a timed-out or dead call.
+
+    Pair B's StockfishEvaluator closes the engine when one call exceeds call_timeout_s and raises
+    TimeoutError; every later call then fails with EngineTerminatedError, so without this one slow
+    call ends the game and every remaining game of the run (labels-sf8 tasks 5 and 6, 2026-11-09).
+    Here the failing call revives the engine and raises SearchBudgetError instead, so only that
+    move falls back and the game goes on with a fresh engine.
+    """
+
+    def __init__(self, make):
+        self.make = make
+        self.base = make()
+        self.revivals = 0
+
+    def __getattr__(self, key):
+        return getattr(self.base, key)
+
+    def evaluate_children(self, fen):
+        try:
+            return self.base.evaluate_children(fen)
+        except (TimeoutError, chess.engine.EngineError) as exc:
+            try:
+                self.base.close()
+            except Exception:
+                pass
+            self.base = self.make()
+            self.revivals += 1
+            print(f"leaf revived ({self.revivals}) after {type(exc).__name__}: {exc}", file=sys.stderr, flush=True)
+            raise SearchBudgetError(f"leaf call failed and the engine was reopened: {type(exc).__name__}") from exc
+
+    def close(self):
+        self.base.close()
 
 RULES_ID = "paper_fow_v1_proposed"
 
@@ -73,6 +112,8 @@ class LabelAgent(ChessSubgameAgent):
             record = self.label(turn, self.game_id)
         except (SearchBudgetError, TreeCapacityError) as exc:
             self.fallbacks += 1
+            print(f"fallback game={self.game_id} ply={turn.observation.ply} after {perf_counter() - started:.1f}s: "
+                  f"{type(exc).__name__}: {exc}", file=sys.stderr, flush=True)
             return self.fallback_decision(turn, exc, started)
         # Records carry the protocol identity, as the pilot did; the agent's own
         # configuration identity goes in the manifest. The validator requires every
@@ -134,22 +175,35 @@ def collect(out, *, games, seed, evaluator, config, time_budget_ms, max_states, 
         if hasattr(evaluator, "new_game"):
             evaluator.new_game()
         started = perf_counter()
-        result = play_game(RulesReferee(initial_fen), agents, trackers,
-                           MatchConfig(time_budget_ms, max_plies, game_seed, RULES_ID,
-                                       evaluator.name, getattr(evaluator, "depth", 0)))
+        result, error = None, None
+        try:
+            result = play_game(RulesReferee(initial_fen), agents, trackers,
+                               MatchConfig(time_budget_ms, max_plies, game_seed, RULES_ID,
+                                           evaluator.name, getattr(evaluator, "depth", 0)))
+        except Exception as exc:
+            # One dead game must not end the run. The tail guard can prune the
+            # true history, after which an observation may match no retained
+            # hypothesis (BeliefBudgetError from the tracker); whatever the cause,
+            # the decisions labelled before it are labels, the part file is still
+            # written so a resume skips this game, and the error goes to progress.
+            error = f"{type(exc).__name__}: {exc}"
         write_records(part, records)
+        # Every ply is exactly one opening move, one label or one fallback.
+        plies = (len(result.plies) if result is not None else
+                 sum(agent.opening_moves + agent.fallbacks for agent in agents.values()) + len(records))
         summary = dict(index=index, game_id=game_id, seed=game_seed, opening_plies=opening,
-                       plies=len(result.plies), records=len(records),
+                       plies=plies, records=len(records),
                        fallbacks=sum(agent.fallbacks for agent in agents.values()),
                        guards=sum(tracker.guards for tracker in trackers.values()),
-                       winner=None if result.stopped_at_ply_limit else result.winner,
-                       stopped_at_ply_limit=result.stopped_at_ply_limit,
-                       wall_s=round(perf_counter()-started, 1), part=part.name)
+                       winner=None if result is None or result.stopped_at_ply_limit else result.winner,
+                       stopped_at_ply_limit=result is not None and result.stopped_at_ply_limit,
+                       wall_s=round(perf_counter()-started, 1), part=part.name, error=error)
         summaries.append(summary)
         with (out / "progress.jsonl").open("a", encoding="utf-8") as stream:
             stream.write(json.dumps(summary) + "\n")
         log(f"game {index}: seed {game_seed}, {summary['plies']} plies, {summary['records']} records, "
-            f"{summary['fallbacks']} fallbacks, {summary['guards']} guards, {summary['wall_s']} s")
+            f"{summary['fallbacks']} fallbacks, {summary['guards']} guards, {summary['wall_s']} s"
+            + (f"; FAILED {error}" if error else ""))
     return identity, proto, summaries
 
 
@@ -161,7 +215,12 @@ def main(argv=None):
     parser.add_argument("--evaluator", choices=("material", "stockfish"), default="material")
     parser.add_argument("--stockfish", default="/usr/games/stockfish")
     parser.add_argument("--stockfish-sha256", default="")
+    parser.add_argument("--leaf-depth", type=int, default=1, help="Stockfish search depth per leaf call")
+    parser.add_argument("--stockfish-call-timeout-s", type=float, default=2.0,
+                        help="seconds before one engine call is abandoned; raise it with the depth")
     parser.add_argument("--time-budget-ms", type=int, default=5000)
+    parser.add_argument("--expansion-fraction", type=float, default=0.7,
+                        help="share of the move clock in which the tree may still be built or grown")
     parser.add_argument("--max-plies", type=int, default=200)
     parser.add_argument("--max-states", type=int, default=96000)
     parser.add_argument("--sample-size", type=int, default=16)
@@ -178,10 +237,13 @@ def main(argv=None):
     from .evaluation_factories import _load_leaf
     settings = {"leaf_evaluator": args.evaluator}
     if args.evaluator == "stockfish":
-        settings.update(leaf_depth="1", stockfish_path=args.stockfish, stockfish_sha256=args.stockfish_sha256)
-    leaf = _load_leaf(settings)
+        settings.update(leaf_depth=str(args.leaf_depth), stockfish_path=args.stockfish,
+                        stockfish_sha256=args.stockfish_sha256,
+                        stockfish_call_timeout_s=str(args.stockfish_call_timeout_s))
+    leaf = RevivingLeaf(lambda: _load_leaf(settings))
     config = AnytimeConfig(growth="one_sided", rounds=args.solver_rounds, max_nodes=args.max_nodes,
                            max_evaluator_calls=args.max_evaluator_calls, stop_on_time=not args.no_clock,
+                           expansion_fraction=args.expansion_fraction,
                            initial_depth=1, max_depth=2, rounds_per_stage=2, final_rounds=2,
                            schedule="alternating")
     created = datetime.now(timezone.utc).isoformat()
@@ -206,12 +268,13 @@ def main(argv=None):
                     games=len(progress), records=sum(row["records"] for row in progress),
                     fallbacks=sum(row["fallbacks"] for row in progress),
                     guards=sum(row["guards"] for row in progress),
+                    failed=sum(1 for row in progress if row.get("error")),
                     validation=dict(files=report.files, errors=len(report.errors),
                                     warnings=len(getattr(report, "warnings", []))),
                     **git_metadata(Path(__file__).resolve().parents[1]))
     (args.out / "manifest.json").write_text(json.dumps(manifest, indent=2, default=str) + "\n", encoding="utf-8")
-    print(f"{manifest['games']} games, {manifest['records']} records, {manifest['fallbacks']} fallbacks, "
-          f"{manifest['guards']} guards; validation errors: {len(report.errors)}")
+    print(f"{manifest['games']} games ({manifest['failed']} failed), {manifest['records']} records, "
+          f"{manifest['fallbacks']} fallbacks, {manifest['guards']} guards; validation errors: {len(report.errors)}")
     for error in report.errors[:10]:
         print("  error:", error)
     return 1 if report.errors else 0
