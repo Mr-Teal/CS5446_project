@@ -1,14 +1,14 @@
 # Fog of War Chess
 
-Presentation plan for a 12-minute presentation followed by 3-minute Q&A
+Presentation plan with a separate three-minute Q&A
 
-8 November 2026. Twenty-six core slides, eight hidden backups. Bryan: slides 1–11 (5:25). Colin: slides 12–26 (7:10). One handoff after slide 11.
+9 November 2026. Twenty-seven core slides, eight hidden backups. Bryan: slides 1–12 (6:20). Colin: slides 13–27 (7:10). One handoff after slide 12.
 
 ## The argument
 
-Observation history helps constrain hidden state. Learned values must be evaluated through decisions, outcomes and computation. Colin presents three distinct studies: linear prediction targets, a neural correction tested in games, and a preliminary network trained from search-generated targets.
+Observation history constrains possible hidden boards. A numerical encoding represents each candidate board for the value model. Learned values must then be evaluated through decisions, outcomes and computation. The representation slide connects the two main points rather than adding a third topic.
 
-The rehearsal guide totals 12:35, allowing pauses for the comparison charts and action-ranking example. This is 35 seconds above the 12-minute presentation slot, with a separate three-minute Q&A. It is a planning guide, not a measured runtime. Prioritize understanding and natural delivery when rehearsing.
+The current allocations total 13:30, including the new explanation. Overall timing is deliberately left for a later rehearsal; no unrelated sections have been shortened. The confirmed slot is 12 minutes of presentation plus three minutes of Q&A.
 
 ## Run of show
 
@@ -25,21 +25,22 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 | 9 | Information available for a decision | 0:45 |
 | 10 | Choosing a move under uncertainty | 0:35 |
 | 11 | One observation, several possible hidden states | 0:35 |
-| 12 | Three ways to learn position values | 0:20 |
-| 13 | Monte Carlo learns from completed returns | 0:30 |
-| 14 | TD bootstraps from the next estimate | 0:25 |
-| 15 | Distillation best matched the engine teacher | 0:30 |
-| 16 | MC and TD better matched recorded outcomes | 0:30 |
-| 17 | Testing a learned value correction | 0:40 |
-| 18 | Prediction error decreased by about 20% | 0:25 |
-| 19 | The games did not establish a playing gain | 0:40 |
-| 20 | The learned correction took about 3× as long | 0:25 |
-| 21 | The reference slightly prefers Move A | 0:15 |
-| 22 | Large value errors can preserve the choice | 0:20 |
-| 23 | Closer values can still change the choice | 0:30 |
-| 24 | Learning from our own search | 0:25 |
-| 25 | Does the learned evaluator help? | 0:30 |
-| 26 | Conclusions and next evaluation | 0:45 |
+| 12 | Representing a candidate board | 0:55 |
+| 13 | Three ways to learn position values | 0:20 |
+| 14 | Monte Carlo learns from completed returns | 0:30 |
+| 15 | TD bootstraps from the next estimate | 0:25 |
+| 16 | Distillation best matched the engine teacher | 0:30 |
+| 17 | MC and TD better matched recorded outcomes | 0:30 |
+| 18 | Testing a learned value correction | 0:40 |
+| 19 | Prediction error decreased by about 20% | 0:25 |
+| 20 | The games did not establish a playing gain | 0:40 |
+| 21 | The learned correction took about 3× as long | 0:25 |
+| 22 | The reference slightly prefers Move A | 0:15 |
+| 23 | Large value errors can preserve the choice | 0:20 |
+| 24 | Closer values can still change the choice | 0:30 |
+| 25 | Learning from our own search | 0:25 |
+| 26 | Does the learned evaluator help? | 0:30 |
+| 27 | Conclusions and next evaluation | 0:45 |
 
 ## Slide notes
 
@@ -155,11 +156,21 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 
 **Say:** This time, we’re looking from the Black bot’s perspective. It can’t see White’s knight, so it considers different places the knight could be. These two boards both fit what it can observe. The agent has to evaluate moves across such possibilities. This particular recording used a simple material score.
 
+**Transition:** To evaluate these possibilities, we first turn a board into model input.
+
+### Slide 12 Representing a candidate board
+
+**Presenter:** Bryan
+
+**Purpose:** Board encoding between belief tracking and value learning. Planned 55 seconds.
+
+**Say:** We can use our rook example to see how a board is represented. We separate the position into layers: one marks our king, another the opponent’s rook, and so on for each piece type on each side. A one means the piece is present; the other cells are zero. We also include whose turn it is and rule information that a picture alone can miss. The evaluator receives this encoding for a candidate board. It still doesn’t know which hidden board is the real one.
+
 **Transition:** I’ll hand over to Colin to explain how we learned and tested position values.
 
-**Delivery cues (not spoken):** Handoff from Bryan to Colin after this slide.
+**Delivery cues (not spoken):** Return explicitly to the familiar rook example after the Black-view recording. Point from the king on the candidate board to the marked cell in its layer, then to the rook layer. Only three of the twelve piece layers are shown. Blank means zero within this candidate, not fog. Do not name chess coordinates, enumerate all nineteen channels or read all source details. Handoff to Colin after this slide.
 
-### Slide 12 Three ways to learn position values
+### Slide 13 Three ways to learn position values
 
 **Presenter:** Colin
 
@@ -169,7 +180,7 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 
 **Transition:** Here’s how Monte Carlo gets its target.
 
-### Slide 13 Monte Carlo learns from completed returns
+### Slide 14 Monte Carlo learns from completed returns
 
 **Presenter:** Colin
 
@@ -179,7 +190,7 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 
 **Transition:** TD can learn before the outcome is known.
 
-### Slide 14 TD bootstraps from the next estimate
+### Slide 15 TD bootstraps from the next estimate
 
 **Presenter:** Colin
 
@@ -189,7 +200,7 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 
 **Transition:** What did these targets teach the models?
 
-### Slide 15 Distillation best matched the engine teacher
+### Slide 16 Distillation best matched the engine teacher
 
 **Presenter:** Colin
 
@@ -201,7 +212,7 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 
 **Delivery cues (not spoken):** Give the audience a moment to locate the three methods. Indicate the lower distillation bar, then state the finding. Do not read every value. The pause is included in the allocation.
 
-### Slide 16 MC and TD better matched recorded outcomes
+### Slide 17 MC and TD better matched recorded outcomes
 
 **Presenter:** Colin
 
@@ -213,7 +224,7 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 
 **Delivery cues (not spoken):** Pause briefly on the new chart before speaking. Compare the methods within this chart, without comparing its bar heights to the preceding chart. The pause is included in the allocation.
 
-### Slide 17 Testing a learned value correction
+### Slide 18 Testing a learned value correction
 
 **Presenter:** Colin
 
@@ -225,7 +236,7 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 
 **Delivery cues (not spoken):** Introduce this as a separate experiment from the linear MC/TD comparison. Protocol details are in the archived match backup.
 
-### Slide 18 Prediction error decreased by about 20%
+### Slide 19 Prediction error decreased by about 20%
 
 **Presenter:** Colin
 
@@ -235,7 +246,7 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 
 **Transition:** Did that translate into better play?
 
-### Slide 19 The games did not establish a playing gain
+### Slide 20 The games did not establish a playing gain
 
 **Presenter:** Colin
 
@@ -247,7 +258,7 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 
 **Delivery cues (not spoken):** Indicate the equal-points reference and interval. Explain the result, without reading the interval endpoints.
 
-### Slide 20 The learned correction took about 3× as long
+### Slide 21 The learned correction took about 3× as long
 
 **Presenter:** Colin
 
@@ -257,7 +268,7 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 
 **Transition:** Here’s why prediction accuracy alone can miss what matters for choosing an action.
 
-### Slide 21 The reference slightly prefers Move A
+### Slide 22 The reference slightly prefers Move A
 
 **Presenter:** Colin
 
@@ -269,7 +280,7 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 
 **Delivery cues (not spoken):** Keep the reference visible for about two seconds before advancing. Indicate A and B together. Establish that the example is illustrative, not a project measurement.
 
-### Slide 22 Large value errors can preserve the choice
+### Slide 23 Large value errors can preserve the choice
 
 **Presenter:** Colin
 
@@ -281,7 +292,7 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 
 **Delivery cues (not spoken):** Pause for about two seconds after the question so the audience can make the choice silently. Indicate the selected action, without calculating the numerical error aloud.
 
-### Slide 23 Closer values can still change the choice
+### Slide 24 Closer values can still change the choice
 
 **Presenter:** Colin
 
@@ -293,7 +304,7 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 
 **Delivery cues (not spoken):** Allow a brief look at the changed ranking before explaining it. Connect the reversed choice to the distinction between value accuracy and action quality. Keep the illustrative scope clear.
 
-### Slide 24 Learning from our own search
+### Slide 25 Learning from our own search
 
 **Presenter:** Colin
 
@@ -303,7 +314,7 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 
 **Transition:** How did this evaluator compare with material counting?
 
-### Slide 25 Does the learned evaluator help?
+### Slide 26 Does the learned evaluator help?
 
 **Presenter:** Colin
 
@@ -315,7 +326,7 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 
 **Delivery cues (not spoken):** Treat the material-label explanation as a hypothesis, not an established cause. Do not present the handover’s game score as a verified strength result.
 
-### Slide 26 Conclusions and next evaluation
+### Slide 27 Conclusions and next evaluation
 
 **Presenter:** Colin
 
@@ -326,6 +337,9 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 **Delivery cues (not spoken):** Finish here and allow three minutes for Q&A. Keep the two findings distinct from proposed future evaluation.
 
 ## Questions every team member should be able to answer
+
+**How is a candidate board encoded?** For the archived Network 1 model, 12 piece-location layers and seven turn/rule-information layers form a 19×8×8 tensor from the side-to-move perspective. The model also takes a separate shallow-engine scalar, introduced later. A feature layer describes a candidate board; it is not a probability map or the true hidden board. The tracker uses history to maintain candidates, and the evaluator encodes those candidates.
+
 
 **Is the solver-trained network Network 1?** No. The original Network 1 learns a correction toward stronger-engine values. The separate solver-trained network learns targets produced by the search agent. Its experimental code and handover are separate from the archived one-ply batch.
 
@@ -368,15 +382,17 @@ The rehearsal guide totals 12:35, allowing pauses for the comparison charts and 
 
 ## Delivery and rehearsal
 
-Bryan covers the introduction, hidden-state examples, information formulation and the aligned recorded demo (slides 1–11, retained allocation 5:25). Colin covers learning targets, experiments, interpretation and conclusions (slides 12–26, 7:10). Handoff once after slide 11. Bryan and Colin both prepare for Q&A.
+Bryan covers the introduction, hidden-state examples, information formulation and the aligned recorded demo (slides 1–12, allocation 6:20). Colin covers learning targets, experiments, interpretation and conclusions (slides 13–27, 7:10). Handoff once after slide 12. Bryan and Colin both prepare for Q&A.
 
-The planned allocations total 12:35; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
+The planned allocations total 13:30; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
 
 ## Hidden backup navigation
 
-27: archived match rows. 28: full value/move metrics. 29: offline belief context. 30: full MC/TD comparison. 31: retained-search prototype. 32: evaluator inventory. 33: contribution confirmations. 34: sources and scope. These are hidden during the core talk; the PDFs and slide-with-script Word copy include all pages.
+28: archived match rows. 29: full value/move metrics. 30: offline belief context. 31: full MC/TD comparison. 32: retained-search prototype. 33: evaluator inventory. 34: contribution confirmations. 35: sources and scope. These are hidden during the core talk; the PDFs and slide-with-script Word copy include all pages.
 
 ## Sources and evidence boundaries
+
+**Board encoding:** Board representation for the archived Network 1 evaluator, not a new agent input or an exact Markov belief-state claim. Pinned encoder: https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/src/pairb/encode.py . encode_board returns 19 x 8 x 8 float32. Channels 0–5 are side-to-move pieces (pawn, knight, bishop, rook, queen, king); 6–11 are opponent pieces. Black-to-move boards are mirrored by ranks and colours to normalize the mover perspective. Channel 12 is constant 1 (mover indicator); 13–16 encode castling rights; 17 marks the en-passant target only if a pseudo-legal capture exists; 18 repeats halfmove_clock/100. Thus 12 binary piece channels plus seven game-information channels, some binary and the counter fractional. The slide shows only the king/rook/king piece channels for the familiar White-to-move capture successor: 8/5k2/3r4/8/3K4/8/8/8 w - - 0 1. Blank cells in these piece channels mean 0, not unobserved. Other piece channels are zero in this example. The candidate board is an illustrative hypothesis, not privileged true-state input. History determines which candidates remain possible; encoding represents each candidate for evaluation. NetworkEvaluator.evaluate_beliefs loops over hypotheses and calls encode_board in _correct. https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/src/pairb/network_evaluator.py . Network 1 also takes a separate shallow-Stockfish scalar, introduced later in the correction study: https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/src/pairb/net1.py . This slide explains the board portion of that input, not all evaluator variants or the later solver-trained model. Existing source chess artwork and board palette are reused.
 
 **Solver-trained network extension:** Separate solver-trained network extension. Pair A handover, PR73 at 8abc854ed1779013c9cc4818584108cc07f552c2: https://github.com/Mr-Teal/CS5446_project/blob/8abc854ed1779013c9cc4818584108cc07f552c2/pair_a_prep/docs/handover_2026-11-08.md . Self-play label collection code inspected at 87b30892ee5016f0c1fc7216bec7f885b76137bb: https://github.com/Mr-Teal/CS5446_project/blob/87b30892ee5016f0c1fc7216bec7f885b76137bb/pair_a_prep/label_run.py . Network evaluator hook inspected at d63de87a9d1591c7b2fc06fea8360b00494a99b9: https://github.com/Mr-Teal/CS5446_project/blob/d63de87a9d1591c7b2fc06fea8360b00494a99b9/pair_a_prep/evaluation_factories.py . These establish accessible pipeline code, not independent execution or strength validation. The new belief-solver-v1 checkpoint, solver-v1 dataset and complete per-attempt records are not in the inspected repository trees or local workspace. Handover training counts and result figures are author-reported; numerical performance claims are therefore omitted from the slides. The reported offline error is worse than material and the jointly surviving game comparison does not establish an improvement or equivalence. Complete attempted/terminal/capped/failed/killed/unplayed accounting and frozen configs/weights/engine identities still need reconciliation. Greedy-opponent ceiling and platform separation matter. One cycle is reported, not repeated policy improvement or an AlphaZero/Obscuro reproduction. The suggestion that shallow material-derived targets explain the offline result is a hypothesis. This is a separate model, target source and experiment from the archived Network 1 correction study; do not pool them.
 
@@ -402,7 +418,7 @@ The planned allocations total 12:35; the confirmed speaking slot is 12 minutes, 
 
 **Demonstration:** The archived screenshot and two-ply record remain in presentation-assets/. The revised main figure aligns the Black observation and two saved hypotheses at the same pre-action decision point. It illustrates the information pipeline with a material evaluator, not learned-model strength.
 
-**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 26-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
+**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 27-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
 
 **Contributions and AI assistance:** The existing individual contribution statements remain in backup and require each member's confirmation. Do not infer the human identity of xiaomiao-fong from the account name. Copilot assisted earlier drafts. Codex assisted the restructuring, rules-example checks and browser demonstration under Bryan's direction. No new training or formal match batch was run.
 
@@ -414,16 +430,6 @@ The planned allocations total 12:35; the confirmed speaking slot is 12 minutes, 
 
 ## Delivery and pacing
 
-Bryan’s slides 1–11 and 5:25 allocation are unchanged. Colin’s section is 7:10. One handoff follows slide 11. The separate MC/TD visuals and three-step action-ranking illustration remain. Treat the ranking reveals as one connected explanation, allowing time for the audience to identify the preferred action before revealing the change. The combined setup is slide 17; detailed game protocol remains in the archived-match backup. Slide 26 combines conclusions with the next evaluation.
+The new slide 12 belongs to Bryan and follows the recorded belief example. Return to the familiar rook example, map one piece to its marked feature cell, and explain the remaining channels at a high level. Keep the physical hidden game state, belief representation and model input encoding distinct. Do not enumerate channels or introduce chess coordinates in speech.
 
-| Colin’s section | Target |
-| --- | --- |
-| 12–14: training targets | 1:15 |
-| 15–16: prediction comparisons | 1:00 |
-| 17: neural correction and evaluation | 0:40 |
-| 18–20: accuracy, games and cost | 1:30 |
-| 21–23: action-ranking illustration | 1:05 |
-| 24–25: preliminary search-trained model | 0:55 |
-| 26: conclusions and next evaluation | 0:45 |
-
-Each limitation is explained beside the result it qualifies. Keep the development-data selection warning, uncertainty interpretation, unequal-time comparison and preliminary-study attribution. Do not read detailed methods or source notes during the core talk. Rehearse with slide advances, the built-in pauses and the handoff. Check understanding and actual elapsed time without speeding through the charts to match an allocation.
+Bryan hands over after slide 12. Colin’s previous scripts, pauses and allocations are retained at slides 13–27. Comparison charts are now slides 16–17; the action-ranking illustration is 22–24. The combined setup is 18 and the closing slide is 27. Review overall time later, with no pressure to rush the examples during this content revision.
