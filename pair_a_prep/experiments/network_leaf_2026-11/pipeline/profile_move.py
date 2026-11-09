@@ -18,6 +18,83 @@ import time
 from fow_shared.recording import read_records
 
 
+def _families(stats) -> dict:
+    """Own time per module family from a pstats.Stats."""
+    families = {"pair_a_prep.chess_search": 0.0, "pair_a_prep.pcfr": 0.0, "pair_a_prep._pcfr_native": 0.0,
+                "pair_a_prep.one_sided": 0.0, "pair_a_prep.chess_projection": 0.0, "pair_a_prep.chess_gadgets": 0.0,
+                "pair_a_prep.cross_turn": 0.0, "pair_a_prep.rules": 0.0, "pair_a_prep._rules_native": 0.0,
+                "pair_a_prep._leaf_native": 0.0, "pairb.belief_evaluator": 0.0, "fow_shared.features": 0.0,
+                "torch": 0.0, "chess/": 0.0, "pairb.observe": 0.0, "fow_shared.values": 0.0, "toy_games": 0.0}
+    for (filename, _line, _func), (_cc, _nc, tt, _ct, _callers) in stats.stats.items():
+        name = filename.replace("\\", "/")
+        for key in families:
+            if key.replace(".", "/") in name:
+                families[key] += tt
+                break
+    return families
+
+
+def replay_game(args, leaf, config) -> None:
+    """Consecutive own turns of one recorded game through one agent: the saved tree is projected and rebased
+    each turn, so the cross-turn gadget path runs from turn 2. Profiles turns 2..N together."""
+    from pair_a_prep.chess_subgame_agent import ChessSubgameAgent
+
+    games = {}
+    for path in sorted(glob.glob(f"{args.data}/part-*.jsonl"))[:40]:
+        for record in read_records(path):
+            games.setdefault((record.game_id, record.agent_input.observation.player), []).append(record)
+        if any(len(v) >= args.game_turns for v in games.values()):
+            break
+    key = next((k for k, v in games.items() if len(v) >= args.game_turns), None)
+    if key is None:
+        print("no game with that many own turns in the first part files")
+        return
+    turns = sorted(games[key], key=lambda r: r.agent_input.observation.ply)[: args.game_turns]
+    agent = ChessSubgameAgent(leaf, config, None)
+    agent.reset(key[1], 7)
+    profiler = cProfile.Profile()
+    print(f"=== game {key[0]} as {key[1]}: {len(turns)} own turns, budget {args.budget_ms} ms, profiling turns 2..{len(turns)}")
+    for index, record in enumerate(turns, start=1):
+        turn = dataclasses.replace(record.agent_input, time_budget_ms=args.budget_ms)
+        if index >= 2:
+            profiler.enable()
+        started = time.perf_counter()
+        try:
+            decision = agent.act(turn)
+        except ValueError as exc:
+            # The record's own move is the LABEL agent's; when this agent's purified policy gave it zero
+            # probability, the saved tree cannot be projected onto it (a real game never does this). Start fresh.
+            if index >= 2:
+                profiler.disable()
+            print(f"turn {index} ply {turn.observation.ply}: projection refused ({exc}); saved tree dropped, fresh turn")
+            agent.saved = None
+            if index >= 2:
+                profiler.enable()
+            started = time.perf_counter()
+            decision = agent.act(turn)
+        elapsed = time.perf_counter() - started
+        if index >= 2:
+            profiler.disable()
+        d = decision.diagnostics
+        proj = {k[11:]: f"{v:g}" for k, v in d.items() if k.startswith("projection:")}
+        print(f"turn {index} ply {turn.observation.ply}: wall {elapsed:.2f} s | nodes {d.get('search_nodes')} | "
+              f"rounds {d.get('solver_rounds_this_turn')} | expansions {d.get('expansions')} | "
+              f"mode_switches {d.get('mode_switches')} | fallback {d.get('fallback')} | "
+              f"stop {[k[5:] for k in d if k.startswith('stop:') and d[k]]} | projection {proj} | move {decision.move}")
+    stats = pstats.Stats(profiler)
+    total = stats.total_tt
+    print(f"own time by module over turns 2..{len(turns)} (s, of {total:.2f} profiled):")
+    for key_, value in sorted(_families(stats).items(), key=lambda kv: -kv[1]):
+        if value > 0.01:
+            print(f"  {key_:28s} {value:6.2f}  ({100 * value / total:4.1f} %)")
+    buf = io.StringIO()
+    pstats.Stats(profiler, stream=buf).sort_stats("cumulative").print_stats(18)
+    lines = [l for l in buf.getvalue().splitlines() if l.strip() and not l.startswith("Ordered") and "function calls" not in l]
+    print("top cumulative:")
+    for l in lines[:22]:
+        print("  " + l.strip()[:160])
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", required=True)
@@ -33,6 +110,10 @@ def main():
     ap.add_argument("--rounds", type=int, default=1024, help="AnytimeConfig.rounds, the PCFR+ round cap per move")
     ap.add_argument("--max-depth", type=int, default=2, help="AnytimeConfig.max_depth, the subgame tree depth cap in plies")
     ap.add_argument("--max-nodes", type=int, default=16384, help="AnytimeConfig.max_nodes")
+    ap.add_argument("--game-turns", type=int, default=0,
+                    help="replay this many consecutive own turns of ONE recorded game through one agent instead of "
+                         "isolated positions, so cross-turn projection and gadget mode run from the second turn on; "
+                         "the profile covers turns 2..N")
     args = ap.parse_args()
 
     if args.pcfr_fast is not None:
@@ -50,6 +131,11 @@ def main():
                            stop_on_time=True, expansion_fraction=0.7, initial_depth=1, max_depth=args.max_depth,
                            rounds_per_stage=2, final_rounds=2, schedule="alternating")
     targets = [int(x) for x in args.plies.split(",")][: args.moves]
+
+    if args.game_turns:
+        replay_game(args, leaf, config)
+        leaf.close()
+        return
 
     # one record per target ply, from the first part files
     picked = {}
