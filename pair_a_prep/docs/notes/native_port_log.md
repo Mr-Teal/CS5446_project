@@ -423,3 +423,167 @@ With the leaf off the critical path the move's time is now the solver: `one_side
 recompiles the whole tree after every expansion.
 Expansions rose 1.2-2.7x; at ply 28 the solver now reaches fewer rounds (3,041) because the tree is 2.4x larger,
 and the move differed (d1f1 vs d4e5), as growth is timing-dependent.
+
+## A3/A4/D1: the Python glue around the solver (2026-11-10)
+
+Result: with all three kernels on, the Python work around the solver during a move is gone: no per-round dispatch
+or `policy()` dictionaries, no recompilation after an expansion, no Python tree walk per growth attempt. In the
+arms' configuration (1,024 rounds, depth cap 2) a move does the identical search in 0.30-0.67 s instead of
+0.82-2.31 s. In the 5 s configuration (16,384 rounds, depth cap 4) the move at ply 5 reaches the round cap
+(16,384 rounds, 7,680 before), and at plies 28 and 68 the agent grows 2.3-3.2x the tree in the same time. Every
+result stays equal bit for bit to the Python path. One pre-existing A1 bug was found and fixed on the way (below).
+
+### Bug fixed first: stale chance probabilities in gadget mode (A1)
+
+`BlendedGadgetControl.apply` rewrites the gadget root's `probabilities` dict in place after every round. The
+native solver compiled `chance_prob` once and never re-read it, so from the subgame agent's second move on (a
+saved blueprint, hence a blended gadget) the native solver solved a stale gadget. On the branch as found: a toy
+tree with a reweighted root gives strategy differences up to 0.80 between the backends, and a four-ply
+`ConstantLeaf` game with the subgame agent plays a different move at ply 2 (a2a3 native vs a2b2 Python). Fix
+(commit 829227e): the compiled tree keeps its chance nodes' dicts, and every kernel call re-reads them first (one
+`np.fromiter`; the grown chess trees measured have one chance node, the root, with 16 entries). Test:
+`test_pcfr_native.py::test_chance_probabilities_rewritten_in_place_reach_the_kernel`, and the end-to-end game
+comparison below.
+
+### Design as built
+
+* A3, rounds in batches. Kernel `pcfr_run(s, rounds, n, *done, trace_player, trace_set, trace)` calls `pcfr_step`
+  n times from the completed count (so the alternating schedule's round-0 prepare and the weight
+  `(rounds+1) ** averaging_power` are per round, as in `step()`), reports the rounds completed (a pending-flag
+  error mid-batch leaves `solver.rounds` correct), and optionally writes one set's published strategy after
+  every round. `PCFRPlus.run(n, record=None)` uses it on the native backend; `record=(player, key)` returns the
+  rows (`policy()[player][key]` after each round). It goes through `step()` when `step` was replaced on the
+  class or instance (tests patch it to inject failures or advance a fake clock) or the solver is instrumented.
+* A3, the agent loops. Both agents run the rounds up to the next growth check (or the round target) with one
+  `run()`; with a clock a batch has at most `ROUND_BATCH = 32` rounds (class attribute, not in `AnytimeConfig`, so
+  config ids are unchanged). The clock is read between batches exactly where the per-round loop read it between
+  rounds, so a move stops at the same round count up to one batch: the batch is the granularity of the
+  anytime agent's deadline and of the subgame agent's half-budget mark. The subgame agent keeps its
+  submission-reserve rule (stop when `now + predicted >= solve_deadline`), with `predicted` = the last batch's
+  time per round, one round per batch until a round has been timed, and a batch cut to the rounds that end
+  before the solve deadline at that pace. Its stable-support observation takes the root policy of every round
+  from `run(..., record=(0, root_infoset))` instead of `solver.policy()` per round. With a blended gadget the
+  controller needs the full profile after every round and rewrites the root, so batches are one round there.
+  Without a clock (round budgets) the rounds, growth checks and results are those of the per-round loop.
+* A4, incremental index. `GraftIndex` (`_pcfr_native.py`, native backend only) keeps, per set, the child-index
+  path of its first node (`information_sets` lists a player's sets in DFS order of first occurrence, which is the
+  lexicographic order of these paths) and its own history (`_check_recall`). `expand()` grafts as before, then
+  indexes only the grafted subtrees: the action-order check against existing and new sets (same message as
+  `information_sets`), then perfect recall from the graft point's histories (same message), new sets inserted
+  into the sorted (path, key) lists with `bisect` (a set that reappears earlier in DFS order moves, as the
+  full walk would move it), `_order` by depth buckets (= the stable reverse sort). So `sets` (including its
+  order), `_order` and `_depth` are what `_index_tree` returns for the whole tree; the Python backend still uses
+  `_index_tree` (it stays the reference). `information_sets(subtree)` still validates each replacement, as
+  before.
+* A4, incremental compile. `NativeState.extend` appends the grafted subtrees' nodes (DFS within each graft) and
+  points the replaced leaf's slot in its parent (and the parent's chance slot) at the new subtree; the leaf stays
+  as an unreachable node. New sets get the next ids (after the existing ones) and their offsets; the state
+  arrays are allocated with spare room (`_room(n) = 2n + 64`), so the new sets' state is written in place and the
+  existing views (`FlatMinimizer`, `FlatDict`, the opponent snapshots) stay valid; only when the room runs out do
+  the arrays move and every view is rebound. The containers gain the new sets in the order the Python path adds
+  them. Levels are rebuilt from `_order` (same keys in the same order as a full compile). Grafting at the root
+  (a solver whose whole tree was one cutoff) still recompiles.
+* Deviation from "ids identical to a full recompile": a full compile numbers sets in `solver.sets` order (DFS
+  first occurrence), so new sets are interleaved with old ones there, not appended; appending is what keeps the
+  existing views valid. The two numberings differ only by a permutation of ids (and of node ids, since grafted
+  nodes are appended); the kernel's results do not depend on it (a level's sets are published independently,
+  walks follow child pointers), and the test compares the incremental state with a fresh compile through the
+  keys and a parallel walk from the root.
+* D1. Kernel `pcfr_growth_utilities(s, conditional0, conditional1)` is `OneSidedExpansion.utilities` under the
+  published strategies (= `solver.policy()`, the raw last iterate) on the flat tree, in the Python walk's
+  floating-point order: reach times `strategy[i]` for both players, signed values `v * 1` / `v * -1`,
+  reach-weighted totals and masses accumulated in DFS order, CPython `sum()` (Neumaier, from the int 0) for
+  chance nodes, node values and the zero-reach fallback mean. `OneSidedExpansion.flat_utilities(solver)` returns
+  a `FlatUtilities` mapping ((player, infoset) -> {action: value} built on access from the arrays, with the
+  sets and slots of the walk's time). `select()` uses it when the solver is native and the sampled tree is the
+  solver's, and builds `{action: probability}` from `solver._strategy` only for the nodes on the sampled path;
+  `distribution`, the `Random` draws and `commit` are unchanged. The deadline is checked before and after the
+  walk instead of at every node: the walk takes about 0.012 ms on a grown 2.3k-node chess tree (the Python walk
+  1.0 ms), measured outside the profiler. Python solvers keep the Python walk with `policy()`.
+* Build unchanged (`python -m pair_a_prep.build_pcfr_kernel`); the manifest covers the edited kernel and loader.
+
+### Tests
+
+`pair_a_prep/tests/test_native_loop.py` (25 tests, 4 s on the host) plus the chance test in
+`test_pcfr_native.py`:
+
+* `run(n)` vs n x `step()` on two native solvers, bit for bit (every state array, both policies, initial
+  actions): matching pennies, hidden coin, Kuhn x both schedules x averaging power 0/1/2, with initial actions,
+  batches of 1, 2, 5, 0, 13, 32 starting at round 0; the recorded rows equal `policy()[0][key]` after each step.
+  `run()` goes through a patched `step()`.
+* Incremental compile: Kuhn poker grown layer by layer from one cutoff (the first graft replaces the root),
+  both schedules, two rounds between expansions, with the spare room shrunk so the arrays move several times;
+  after every expansion: `sets` (as ordered item lists), `_order`, `_depth` equal `_index_tree` of the whole
+  tree; a parallel walk of the incremental and a freshly compiled `NativeState` from the root (kind, player,
+  payoff, infoset key, children, chance children and probabilities; every node of the fresh compile reached);
+  the same chance dicts; per key the action widths, regrets, strategies, previous utilities, sums, pending,
+  depth, initial action, opponent snapshots; levels as (depth, keys). Solver state against the Python solver.
+* `flat_utilities` equals `utilities(root, solver.policy())` with `==` on toy games, including pure initial
+  strategies that leave sets without reach (the fallback mean).
+* Recorded chess positions (3 per schedule, material leaf): a Python solver + sampler against a native solver +
+  sampler with the same seed, 30 batches of 2 rounds with a growth attempt after each, as the agents do: state
+  equal after every batch, flat utilities equal to the Python walk, proposals equal (path, visited sets,
+  utilities, RNG state) with `policy` disabled on the native solver during `select`, samplers equal after each
+  commit, and the incremental-vs-fresh compile check after every expansion.
+* End to end: `ChessSubgameAgent` and `AnytimePCFRAgent` play the same four-ply `ConstantLeaf` game on both
+  backends with round budgets (40 rounds, growth every 2, depth 2-4): same moves and all non-timing diagnostics
+  equal (policies, values, nodes, expansions, mode switches, margins, Nash gap); the subgame agent runs its
+  blended gadget from its second move. This comparison fails on the branch as found (the chance bug).
+
+Everything compared equal with `==` / `np.array_equal`; nothing needed a tolerance (the A1 tests keep their
+1e-9).
+
+Whole suites (`pair_a_prep/tests` + `pair_b/tests/test_belief_evaluator.py`, all three backends switched
+together): before 862 passed, 53 failed, 33 skipped under native and the same under python; after 888 passed
+(+26 new), 53 failed, 33 skipped under native and under python. The 53 are the `test_zs21_*` tests that need
+`zs21/native/inference.so` (not built on this host). One existing test needed the "one round until timed" rule:
+`test_clock_ablation::test_clock_guard_cannot_interrupt_an_inflight_round`.
+
+### Before / after (profile_move.py, all three kernels, three recorded positions, 5 s budget)
+
+"before" = the branch as found (40227c1), "after" = be2ffcc. Module shares are own time under cProfile; the
+kernel runs inside `_pcfr_native.py`'s ctypes calls, so its share now is mostly the PCFR+ rounds themselves.
+
+16,384-round cap, depth cap 4:
+
+| ply | run | nodes | expansions | rounds | wall s | stop | `_pcfr_native` | `pcfr` | `one_sided` | `chess_search` | move |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 5 | before | 3,061 | 94 | 7,680 | 4.52 | submission_reserve | 0.70 s (15.4 %) | 0.79 s (17.5 %) | 1.55 s (34.2 %) | 0.07 s (1.6 %) | g8h6 |
+| 5 | after | 3,061 | 94 | 16,384 | 4.04 | round_limit | 1.38 s (34.3 %) | 0.01 s (0.3 %) | 1.07 s (26.5 %) | 0.04 s (0.9 %) | g8h6 |
+| 28 | before | 7,058 | 170 | 2,917 | 4.55 | submission_reserve | 1.13 s (24.9 %) | 0.80 s (17.6 %) | 0.54 s (11.8 %) | 0.10 s (2.2 %) | d1f1 |
+| 28 | after | 16,367 | 410 | 5,328 | 4.59 | submission_reserve | 2.05 s (44.8 %) | 0.02 s (0.5 %) | 0.14 s (3.1 %) | 0.40 s (8.7 %) | d1f1 |
+| 68 | before | 4,545 | 277 | 6,126 | 4.53 | submission_reserve | 1.25 s (27.7 %) | 0.67 s (14.8 %) | 0.54 s (11.8 %) | 0.08 s (1.8 %) | c5b4 |
+| 68 | after | 14,499 | 842 | 4,564 | 4.59 | submission_reserve | 1.55 s (33.9 %) | 0.03 s (0.6 %) | 0.17 s (3.8 %) | 0.44 s (9.7 %) | c5b4 |
+
+Per operation (cumulative): `PCFRPlus.expand` 11.9 ms -> 1.4 ms per expansion at ply 28 (2.02 s for 170 ->
+0.57 s for 410), with no `_native_compile` or `_index_tree` after the first (`information_sets` only on each
+grafted subtree); every expansion leaves one unreachable leaf in the compiled arrays; `pcfr.policy`
+8,471 calls (0.73 s) at ply 5 -> one per move; `one_sided.select` 2.8 ms -> 0.43 ms per attempt at ply 5
+(789 -> 4,670 attempts), the Python `utilities` walk (1.85 s) replaced by the kernel walk.
+
+1,024-round cap, depth cap 2 (the arms' configuration): the same search before and after (same nodes,
+expansions, rounds and moves; every move ends at the round cap), only faster:
+
+| ply | run | nodes | expansions | rounds | wall s | stop | `_pcfr_native` | `pcfr` | `one_sided` | move |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 5 | before | 929 | 19 | 1,024 | 0.82 | round_limit | 0.04 s (4.4 %) | 0.05 s (5.9 %) | 0.29 s (35.5 %) | g8h6 |
+| 5 | after | 929 | 19 | 1,024 | 0.41 | round_limit | 0.03 s (6.6 %) | < 0.01 s | 0.02 s (5.9 %) | g8h6 |
+| 28 | before | 1,440 | 23 | 1,024 | 1.00 | round_limit | 0.05 s (5.4 %) | 0.08 s (8.2 %) | 0.46 s (45.5 %) | d4e5 |
+| 28 | after | 1,440 | 23 | 1,024 | 0.30 | round_limit | 0.04 s (12.9 %) | < 0.01 s | 0.03 s (10.6 %) | d4e5 |
+| 68 | before | 2,439 | 177 | 1,024 | 2.31 | round_limit | 0.31 s (13.6 %) | 0.15 s (6.5 %) | 0.68 s (29.3 %) | c5b4 |
+| 68 | after | 2,439 | 177 | 1,024 | 0.67 | round_limit | 0.07 s (10.8 %) | < 0.01 s | 0.04 s (6.1 %) | c5b4 |
+
+### What a 5 s move spends its time on now
+
+* The PCFR+ rounds themselves (the kernel inside `_pcfr_native._run`): 1.2-1.9 s, on trees now up to 3x larger.
+* Tree construction for the expansions: `expand_chess_tree` 2.2-2.6 s cumulative at plies 28/68, of it
+  `_build_roots` 1.4-1.7 s (the leaf evaluator about 0.5-1.0 s, the network pass included) and 0.26-0.30 s own
+  time in `expand_chess_tree` (not attributed further; from reading the code, the per-expansion work there that
+  grows with the tree is the `next_frontiers` comprehension over all frontiers).
+* At ply 5, where the tree stops growing (most of 4,670 attempts sample a terminal or depth-capped path):
+  `OneSidedExpansion.distribution` (1.56 s cumulative), i.e. the variance bonus recomputed with `sum()` over each
+  action's whole sample list at every explorer node of every attempt. Making it incremental would change the
+  floating-point order of the variance, so it needs its own exactness decision.
+* Not covered by the profile (first moves only): in gadget mode `ChessGadget.expand` still builds a temporary
+  `PCFRPlus` on the raw chess tree per expansion (a full native compile and `GraftIndex` walk each time), and
+  batches are one round there because the controller needs the profile every round.
