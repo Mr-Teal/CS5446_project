@@ -20,7 +20,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from pairb.belief_ablation import MODES, collapse
+from pairb.belief_ablation import LEAF_MODES, MODES, collapse
 from pairb.belief_data import ENCODING, belief_batches, load_arrays, rows_of
 from pairb.belief_eval import baseline_pred, errors, predict, require_d1
 from pairb.belief_net import BeliefNetwork
@@ -71,10 +71,12 @@ def main():
     ap.add_argument("--embed", type=int, default=128)
     ap.add_argument("--use-d1", action="store_true", help="also read quick Stockfish's value of each board")
     ap.add_argument("--no-context", action="store_true", help="ablation: ignore the rest of the belief")
-    ap.add_argument("--input", choices=MODES, default="full",
+    ap.add_argument("--input", choices=MODES + LEAF_MODES, default="full",
                     help="ablation of the state representation: full = every sampled hypothesis board; marginals = "
                          "one pseudo-board per belief with the observation and the belief marginals, no sampling; "
-                         "observation = one pseudo-board with the fogged observation only (see pairb.belief_ablation)")
+                         "observation = one pseudo-board with the fogged observation only; alone = every board as a "
+                         "belief of its own, i.e. train the network the way the search's per-board leaf call uses it "
+                         "(see pairb.belief_ablation); with alone, raise --batch so a step holds thousands of boards")
     ap.add_argument("--policy-weight", type=float, default=0.0,
                     help="also train a policy head on the solver's raw root policy (pairb.moves slots), with this "
                          "weight on its cross-entropy next to the value loss; 0 = no policy head")
