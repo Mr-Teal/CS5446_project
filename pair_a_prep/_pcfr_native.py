@@ -1,13 +1,17 @@
 """Optional native PCFR+ round (pcfr_kernel.cpp): loader, flattened tree and flat solver state.
 
 PCFRPlus keeps the Node tree, expand(), information_sets and the infoset-key <-> id mapping. NativeState compiles
-the tree into arrays (nodes in DFS order) after __init__ and after every expand(), and holds the solver state in
-flat float64 arrays, one block of actions per information set. The solver's Python-visible state
+the tree into arrays (nodes in DFS order) after __init__, and holds the solver state in flat float64 arrays, one
+block of actions per information set. The solver's Python-visible state
 (minimizers[p][key].regrets / .strategy / .previous_utility / ._pending, _strategy, _sums, _previous_opponent)
 becomes views of those arrays: reads see the kernel's results, in-place writes and assignments write through.
-_initial_actions stays a plain dict and is handed to the kernel around each step. Chance probabilities are re-read
-from the tree's dicts before every kernel call, because the blended gadget's controller rewrites its root
-distribution in place between rounds.
+_initial_actions stays a plain dict and is handed to the kernel around each step.
+
+expand() does not recompile: GraftIndex indexes only the grafted subtrees, and NativeState.extend appends their
+nodes (the replaced leaf's slot in its parent points at the new subtree; the leaf stays as an unreachable node) and
+their new information sets (ids after the existing ones; the state arrays have spare room, so the existing views
+stay valid). Chance probabilities are re-read from the tree's dicts before every kernel call, because the blended
+gadget's controller rewrites its root distribution in place between rounds.
 
 Instrumentation that replaces PCFRPlus._utilities or a minimizer's observe/next_strategy on an instance (to count
 or spy on calls) sets `instrumented`, and PCFRPlus.step then runs that solver's rounds in Python on the same views.
@@ -15,6 +19,7 @@ or spy on calls) sets `instrumented`, and PCFRPlus.step then runs that solver's 
 Build with `python -m pair_a_prep.build_pcfr_kernel`; library() returns None when the build is missing or stale.
 """
 
+from bisect import bisect_left, insort
 import ctypes as C
 from copy import deepcopy
 from functools import lru_cache
@@ -61,7 +66,9 @@ def library():
     for name, args in (("pcfr_utilities", [solver, C.c_int, _P, _P]), ("pcfr_prepare", [solver, C.c_int]),
                        ("pcfr_observe", [solver, C.c_int]),
                        ("pcfr_accumulate_average", [solver, C.c_int, C.c_double]),
-                       ("pcfr_step", [solver, C.c_int64])):
+                       ("pcfr_step", [solver, C.c_int64]),
+                       ("pcfr_run", [solver, C.c_int64, C.c_int64, C.POINTER(C.c_int64), C.c_int, C.c_int, _P]),
+                       ("pcfr_growth_utilities", [solver, _P, _P])):
         function = getattr(dll, name)
         function.argtypes, function.restype = args, C.c_int
     return dll
@@ -77,6 +84,111 @@ def _check(code):
 
 def _pointer(array):
     return array.ctypes.data
+
+
+def _room(needed):
+    """Capacity of a state array that has to hold `needed` entries: spare room for later expansions."""
+    return 2 * needed + 64
+
+
+def _ranges(base, lengths):
+    """child_begin / chance_begin entries after `base` for nodes with these numbers of entries."""
+    return (base + np.cumsum(np.asarray(lengths, dtype=np.int64))).astype(np.int32)
+
+
+def _extend_history(node, action, histories):
+    """The players' own histories below `action` at `node` (as PCFRPlus._check_recall extends them)."""
+    if node.player is None:
+        return histories
+    extended = list(histories)
+    extended[node.player] += ((node.infoset, action),)
+    return tuple(extended)
+
+
+class GraftIndex:
+    """The incremental twin of PCFRPlus._index_tree, used by expand() on the native backend.
+
+    information_sets lists a player's sets in the DFS order of each set's first node, which is the lexicographic
+    order of that node's path of child indices; _check_recall needs every set's own history. Both are kept here, so
+    a graft is indexed by walking only the grafted subtrees, and sets, _order and _depth come out as _index_tree
+    computes them on the whole tree (test_pcfr_native.py compares them after every expansion).
+    """
+
+    def __init__(self, root):
+        self.first, self.history = ({}, {}), {}
+
+        def visit(node, position, histories):
+            if node.payoff is not None:
+                return
+            if node.player is not None:
+                self.first[node.player].setdefault(node.infoset, position)
+                self.history.setdefault((node.player, node.infoset), histories[node.player])
+            for i, (action, child) in enumerate(node.children.items()):
+                visit(child, position + (i,), _extend_history(node, action, histories))
+
+        visit(root, (), ((), ()))
+        self.ordered = tuple(sorted((position, key) for key, position in first.items()) for first in self.first)
+
+    def graft(self, solver, root, paths):
+        """Index `root`, the solver's tree with subtrees grafted at `paths`.
+
+        Returns ((sets, order, depth) as _index_tree(root) gives them, staged index for commit()). Raises the errors
+        the whole-tree walks raise for the grafted subtrees: an action order that differs from another node of the
+        set (information_sets), then an inconsistent own history (_check_recall). Changes nothing.
+        """
+        sets = solver.sets
+        first = (dict(self.first[0]), dict(self.first[1]))
+        new, moved = ({}, {}), ({}, {})
+        sites = []
+        for path in paths:
+            node, position, histories = root, (), ((), ())
+            for action in path:
+                position += (list(node.children).index(action),)
+                histories = _extend_history(node, action, histories)
+                node = node.children[action]
+            sites.append((node, position, histories))
+
+        def scan(node, position):
+            if node.payoff is not None:
+                return
+            if node.player is not None:
+                p, key, actions = node.player, node.infoset, tuple(node.children)
+                known = sets[p].get(key) or new[p].get(key)
+                if known is None:
+                    new[p][key] = actions
+                elif known != actions:
+                    raise ValueError("nodes in one infoset need the same action order")
+                old = first[p].get(key)
+                if old is None or position < old:
+                    first[p][key] = position
+                    moved[p].setdefault(key, old)  # the position before this expansion (None: a new set)
+            for i, child in enumerate(node.children.values()):
+                scan(child, position + (i,))
+
+        for node, position, _ in sites:
+            scan(node, position)
+        history = dict(self.history)
+        for node, _, histories in sites:
+            solver._check_recall(node, histories, history)
+        ordered = [list(self.ordered[0]), list(self.ordered[1])]
+        for p in (0, 1):
+            for key, old in moved[p].items():
+                if old is not None:
+                    del ordered[p][bisect_left(ordered[p], (old, key))]
+                insort(ordered[p], (first[p][key], key))
+        new_sets = tuple({key: sets[p].get(key) or new[p][key] for _, key in ordered[p]} for p in (0, 1))
+        depth = tuple({**solver._depth[p], **{key: len(history[(p, key)]) for key in new[p]}} for p in (0, 1))
+        order = []
+        for p in (0, 1):
+            levels = {}
+            for key in new_sets[p]:
+                levels.setdefault(depth[p][key], []).append(key)
+            # = sorted(new_sets[p], key=depth, reverse=True): stable, deepest first
+            order.append([key for level in sorted(levels, reverse=True) for key in levels[level]])
+        return (new_sets, tuple(order), depth), (first, tuple(ordered), history)
+
+    def commit(self, staged):
+        self.first, self.ordered, self.history = staged
 
 
 class FlatMinimizer(PredictiveRMPlus):
@@ -209,24 +321,31 @@ class NativeState:
         self.has_previous = np.zeros(2, dtype=np.int8)
         self.sides = []
         for p in (0, 1):
-            levels = {}
-            for key in solver._order[p]:  # deepest first
-                levels.setdefault(solver._depth[p][key], []).append(self.index[p][key])
-            actions = int(offsets[p][-1])
+            actions, opponent, count = int(offsets[p][-1]), int(offsets[1 - p][-1]), len(sets[p])
             self.sides.append(dict(
                 offset=offsets[p],
                 depth=np.array([solver._depth[p][key] for key in sets[p]], dtype=np.int32),
-                level_begin=np.cumsum([0] + [len(v) for v in levels.values()]).astype(np.int32),
-                level_sets=np.array([i for v in levels.values() for i in v], dtype=np.int32),
-                level_depth=np.array(list(levels), dtype=np.int32),
-                regrets=np.zeros(actions), strategy=np.zeros(actions), previous_utility=np.zeros(actions),
-                sums=np.zeros(actions), pending=np.zeros(len(sets[p]), dtype=np.int8),
-                initial_action=np.full(len(sets[p]), -1, dtype=np.int32),
-                previous_opponent=np.zeros(int(offsets[1 - p][-1]))))
+                **self._levels(solver, p),
+                # State arrays have spare room (_room) so that expand() can append sets without moving them.
+                regrets=np.zeros(_room(actions)), strategy=np.zeros(_room(actions)),
+                previous_utility=np.zeros(_room(actions)), sums=np.zeros(_room(actions)),
+                pending=np.zeros(_room(count), dtype=np.int8),
+                initial_action=np.full(_room(count), -1, dtype=np.int32),
+                previous_opponent=np.zeros(_room(opponent))))
         self._load(solver)
         self.struct = self._structure(solver)
 
-    def _compile_tree(self, root, sets):
+    def _levels(self, solver, p):
+        """The level-wise prepare's order: solver._order (deepest first) as set ids, grouped by depth."""
+        levels = {}
+        for key in solver._order[p]:  # deepest first
+            levels.setdefault(solver._depth[p][key], []).append(self.index[p][key])
+        return dict(level_begin=np.cumsum([0] + [len(v) for v in levels.values()]).astype(np.int32),
+                    level_sets=np.array([i for v in levels.values() for i in v], dtype=np.int32),
+                    level_depth=np.array(list(levels), dtype=np.int32))
+
+    def _flatten(self, root, sets, first_id):
+        """The nodes of the subtree at `root` in DFS order, numbered from first_id, as per-node lists."""
         kind, player, infoset, payoff, children, chance, dicts = [], [], [], [], [], [], []
 
         def visit(node):
@@ -239,7 +358,7 @@ class NativeState:
             chance.append(())
             if node.payoff is not None:
                 payoff[i] = float(node.payoff)
-                return i
+                return first_id + i
             if node.player is None:
                 dicts.append(node.probabilities)  # in node-id order, like the chance_prob ranges
             ids = {action: visit(child) for action, child in node.children.items()}
@@ -251,9 +370,13 @@ class NativeState:
                 if tuple(node.children) != sets[node.player][node.infoset]:
                     raise ValueError("children must follow the information set's action order: " + node.infoset)
                 kind[i], player[i], infoset[i] = 2, node.player, self.index[node.player][node.infoset]
-            return i
+            return first_id + i
 
         visit(root)
+        return kind, player, infoset, payoff, children, chance, dicts
+
+    def _compile_tree(self, root, sets):
+        kind, player, infoset, payoff, children, chance, dicts = self._flatten(root, sets, 0)
         self.kind = np.array(kind, dtype=np.int8)
         self.player = np.array(player, dtype=np.int8)
         self.infoset = np.array(infoset, dtype=np.int32)
@@ -270,6 +393,100 @@ class NativeState:
         if self.chance_dicts:
             self.chance_prob[:] = np.fromiter(chain.from_iterable(d.values() for d in self.chance_dicts),
                                               np.float64, len(self.chance_prob))
+
+    def extend(self, solver, paths, added, strategies):
+        """Append the subtrees that PCFRPlus.expand grafted at `paths` (no path is the root).
+
+        solver.root, sets, _order and _depth are already the grafted ones; added[p] holds the new sets' minimizers
+        in solver.sets order and strategies[p] their published strategies. New sets get the next ids and their
+        state goes into the spare room of the state arrays (which move, with every view rebound, only when the room
+        runs out); the containers gain views for them, in the order PCFRPlus.expand's Python path adds them.
+        """
+        sets = solver.sets
+        for p in (0, 1):
+            index, slots, side = self.index[p], self.slots[p], self.sides[p]
+            total, ends = int(side["offset"][-1]), []
+            for key in added[p]:
+                index[key] = len(index)
+                slots[key] = (total, total + len(sets[p][key]))
+                total += len(sets[p][key])
+                ends.append(total)
+            side["offset"] = np.concatenate([side["offset"], np.array(ends, dtype=np.int32)])
+            side["depth"] = np.concatenate([side["depth"], np.array([solver._depth[p][key] for key in added[p]],
+                                                                    dtype=np.int32)])
+        moved = False
+        for p in (0, 1):
+            side = self.sides[p]
+            actions, opponent = int(side["offset"][-1]), int(self.sides[1 - p]["offset"][-1])
+            for name, needed in (("regrets", actions), ("strategy", actions), ("previous_utility", actions),
+                                 ("sums", actions), ("pending", len(side["depth"])),
+                                 ("initial_action", len(side["depth"])), ("previous_opponent", opponent)):
+                if len(side[name]) < needed:
+                    array = np.full(_room(needed), -1 if name == "initial_action" else 0, dtype=side[name].dtype)
+                    array[:len(side[name])] = side[name]
+                    side[name], moved = array, True
+        for p in (0, 1):
+            side = self.sides[p]
+            for key, minimizer in added[p].items():
+                start, stop = self.slots[p][key]
+                side["regrets"][start:stop] = minimizer.regrets
+                side["previous_utility"][start:stop] = minimizer.previous_utility
+                side["strategy"][start:stop] = strategies[p][key]
+                side["sums"][start:stop] = 0.0
+                side["pending"][self.index[p][key]] = bool(minimizer._pending)
+                side["initial_action"][self.index[p][key]] = -1
+            if self.has_previous[p]:
+                for key in added[1 - p]:
+                    start, stop = self.slots[1 - p][key]
+                    side["previous_opponent"][start:stop] = strategies[1 - p][key]
+        for p in (0, 1):
+            side, previous = self.sides[p], list.__getitem__(solver._previous_opponent, p)
+            for key, minimizer in added[p].items():
+                start, stop = self.slots[p][key]
+                if not moved:
+                    minimizer = FlatMinimizer(self, p, self.index[p][key], minimizer.predictive)
+                dict.__setitem__(solver.minimizers[p], key, minimizer)
+                dict.__setitem__(solver._strategy[p], key, side["strategy"][start:stop])
+                dict.__setitem__(solver._sums[p], key, side["sums"][start:stop])
+            if previous is not None:
+                for key in added[1 - p]:
+                    start, stop = self.slots[1 - p][key]
+                    dict.__setitem__(previous, key, side["previous_opponent"][start:stop])
+        if moved:
+            self.bind(solver)  # every view onto the moved arrays; the new minimizers become FlatMinimizers here
+
+        n = len(self.kind)
+        child, chance_child = self.child.copy(), self.chance_child.copy()
+        lists = [[] for _ in range(7)]
+        for path in paths:
+            node_id, node = 0, solver.root
+            for action in path[:-1]:
+                node_id = int(child[self.child_begin[node_id] + list(node.children).index(action)])
+                node = node.children[action]
+            subtree = node.children[path[-1]]
+            flat = self._flatten(subtree, sets, n)
+            # The replaced leaf keeps its id but is no longer reachable; its parent's slot points at the subtree.
+            child[self.child_begin[node_id] + list(node.children).index(path[-1])] = n
+            if node.player is None:
+                chance_child[self.chance_begin[node_id] + list(node.probabilities).index(path[-1])] = n
+            n += len(flat[0])
+            for target, items in zip(lists, flat):
+                target.extend(items)
+        kind, player, infoset, payoff, children, chance, dicts = lists
+        self.kind = np.concatenate([self.kind, np.array(kind, dtype=np.int8)])
+        self.player = np.concatenate([self.player, np.array(player, dtype=np.int8)])
+        self.infoset = np.concatenate([self.infoset, np.array(infoset, dtype=np.int32)])
+        self.payoff = np.concatenate([self.payoff, np.array(payoff, dtype=np.float64)])
+        self.child_begin = np.concatenate([self.child_begin, _ranges(self.child_begin[-1], [len(c) for c in children])])
+        self.child = np.concatenate([child, np.array([j for c in children for j in c], dtype=np.int32)])
+        self.chance_begin = np.concatenate([self.chance_begin, _ranges(self.chance_begin[-1], [len(c) for c in chance])])
+        self.chance_child = np.concatenate([chance_child, np.array([j for c in chance for j, _ in c], dtype=np.int32)])
+        self.chance_prob = np.concatenate([self.chance_prob, np.array([q for c in chance for _, q in c],
+                                                                      dtype=np.float64)])
+        self.chance_dicts = self.chance_dicts + dicts
+        for p in (0, 1):
+            self.sides[p].update(self._levels(solver, p))
+        self.struct = self._structure(solver)
 
     def _load(self, solver):
         """Copy the solver's current Python-visible state (views of an older state or plain objects) in."""
@@ -357,6 +574,29 @@ class NativeState:
     def step(self, solver):
         self._run(solver, self.dll.pcfr_step, solver.rounds)
         solver.rounds += 1
+
+    def run(self, solver, rounds, record=None):
+        """PCFRPlus.run: `rounds` steps in one kernel call; with record=(player, key), that set's published
+        strategy after each round, one row per round."""
+        done, trace, player, index = C.c_int64(0), None, 0, -1
+        if record is not None:
+            player, key = record
+            start, stop = self.slots[player][key]
+            index, trace = self.index[player][key], np.empty((rounds, stop - start))
+        try:
+            self._run(solver, self.dll.pcfr_run, solver.rounds, rounds, C.byref(done), player, index,
+                      None if trace is None else _pointer(trace))
+        finally:
+            solver.rounds += done.value
+        return trace
+
+    def growth_utilities(self):
+        """OneSidedExpansion.utilities under the published profile: per player, the conditional utilities of every
+        set in that player's flat action layout (slots)."""
+        self._sync_chance()
+        values = tuple(np.zeros(int(self.sides[p]["offset"][-1])) for p in (0, 1))
+        _check(self.dll.pcfr_growth_utilities(C.byref(self.struct), _pointer(values[0]), _pointer(values[1])))
+        return values
 
     def prepare(self, solver, player):
         self._run(solver, self.dll.pcfr_prepare, player)

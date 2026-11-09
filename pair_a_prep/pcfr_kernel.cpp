@@ -130,8 +130,9 @@ struct Compensated {
 };
 
 struct Scratch {
-    std::vector<double> stack, values, theta, zeros, memo;
-    std::vector<int8_t> memo_set, in_level, seen;
+    std::vector<double> stack, values, theta, zeros, memo, mass, fallback, compensation;
+    std::vector<int8_t> memo_set, in_level, seen, started;
+    std::vector<int32_t> count;
 };
 
 Scratch& scratch() {
@@ -356,6 +357,57 @@ void accumulate_visit(const PcfrSolver& s, int player, double weight, int8_t* se
     }
 }
 
+// OneSidedExpansion.utilities under the published strategies (what PCFRPlus.policy() returns): every node is
+// reached with reach * strategy[i] for both players; per set the reach-weighted sum of the player-signed action
+// values (`totals`), the reach mass, and as fallback the CPython sum() of the signed values over the set's nodes and
+// their count, all in the order of the Python walk. Payoffs stay player 0's; a decision node returns
+// sum(policy[a] * v for a, v in values.items()) (a CPython sum, not a dot).
+struct GrowthWalk {
+    const PcfrSolver& s;
+    double* totals[2];
+    double* mass[2];
+    double* fallback[2];      // compensated sums of the signed values, per action
+    double* compensation[2];
+    int8_t* started[2];       // per action: the compensated sum has its first term
+    int32_t* count[2];        // per set: nodes visited
+    double* stack;
+
+    double visit(int node, double reach) {
+        const int8_t kind = s.kind[node];
+        if (kind == TERMINAL) return s.payoff[node];
+        if (kind == CHANCE) {
+            Compensated sum;
+            for (int k = s.chance_begin[node]; k < s.chance_begin[node + 1]; ++k) {
+                const double prob = s.chance_prob[k];
+                sum.add(prob * visit(s.chance_child[k], reach * prob));
+            }
+            return sum.value();
+        }
+        const int p = s.player[node], set = s.infoset[node];
+        const int offset = s.side[p].offset[set];
+        const double* strategy = s.side[p].strategy + offset;
+        const int begin = s.child_begin[node], n = s.child_begin[node + 1] - begin;
+        double* values = stack;
+        stack += n;
+        for (int i = 0; i < n; ++i) values[i] = visit(s.child[begin + i], reach * strategy[i]);
+        for (int i = 0; i < n; ++i) {
+            const double signed_value = p == 0 ? values[i] * 1.0 : values[i] * -1.0;
+            totals[p][offset + i] += reach * signed_value;
+            Compensated term{fallback[p][offset + i], compensation[p][offset + i], !started[p][offset + i]};
+            term.add(signed_value);
+            fallback[p][offset + i] = term.total;
+            compensation[p][offset + i] = term.c;
+            started[p][offset + i] = 1;
+        }
+        mass[p][set] += reach;
+        count[p][set] += 1;
+        Compensated value;
+        for (int i = 0; i < n; ++i) value.add(strategy[i] * values[i]);
+        stack -= n;
+        return value.value();
+    }
+};
+
 }  // namespace
 
 extern "C" {
@@ -400,6 +452,61 @@ int pcfr_step(const PcfrSolver* s, int64_t rounds) {
     int64_t weight = 1;
     for (int k = 0; k < s->averaging_power; ++k) weight *= rounds + 1;
     for (int p = 0; p < 2; ++p) pcfr_accumulate_average(s, p, static_cast<double>(weight));
+    return 0;
+}
+
+// PCFRPlus.run(n): n consecutive pcfr_step calls from `rounds` completed rounds; *done = the rounds completed (n
+// unless a step failed). With `trace`, row k (the actions of trace_set of trace_player) receives that set's
+// published strategy after round k, i.e. what policy()[trace_player][key] returns after each step.
+int pcfr_run(const PcfrSolver* s, int64_t rounds, int64_t n, int64_t* done, int trace_player, int trace_set,
+             double* trace) {
+    *done = 0;
+    for (int64_t k = 0; k < n; ++k) {
+        const int code = pcfr_step(s, rounds + k);
+        if (code) return code;
+        *done = k + 1;
+        if (trace) {
+            const PcfrSide& side = s->side[trace_player];
+            const int offset = side.offset[trace_set], width = side.offset[trace_set + 1] - offset;
+            for (int i = 0; i < width; ++i) trace[k * width + i] = side.strategy[offset + i];
+        }
+    }
+    return 0;
+}
+
+// OneSidedExpansion.utilities on the flat tree: conditional[p] (player p's actions) receives, per set, the
+// reach-weighted mean of the signed action values, or their plain mean over the set's nodes when it has no reach.
+int pcfr_growth_utilities(const PcfrSolver* s, double* conditional0, double* conditional1) {
+    Scratch& w = scratch();
+    reserve_stack(*s, w);
+    const int a0 = total_actions(s->side[0]), a1 = total_actions(s->side[1]);
+    const int n0 = s->side[0].n_sets, n1 = s->side[1].n_sets;
+    w.values.assign(a0 + a1 + 1, 0.0);
+    w.fallback.assign(a0 + a1 + 1, 0.0);
+    w.compensation.assign(a0 + a1 + 1, 0.0);
+    w.started.assign(a0 + a1 + 1, 0);
+    w.mass.assign(n0 + n1 + 1, 0.0);
+    w.count.assign(n0 + n1 + 1, 0);
+    GrowthWalk walk{*s, {w.values.data(), w.values.data() + a0}, {w.mass.data(), w.mass.data() + n0},
+                    {w.fallback.data(), w.fallback.data() + a0}, {w.compensation.data(), w.compensation.data() + a0},
+                    {w.started.data(), w.started.data() + a0}, {w.count.data(), w.count.data() + n0},
+                    w.stack.data()};
+    walk.visit(0, 1.0);
+    double* conditional[2] = {conditional0, conditional1};
+    for (int p = 0; p < 2; ++p) {
+        const PcfrSide& side = s->side[p];
+        for (int set = 0; set < side.n_sets; ++set) {
+            const double mass = walk.mass[p][set];
+            for (int a = side.offset[set]; a < side.offset[set + 1]; ++a) {
+                if (mass > 0) {
+                    conditional[p][a] = walk.totals[p][a] / mass;
+                } else {
+                    const Compensated term{walk.fallback[p][a], walk.compensation[p][a], !walk.started[p][a]};
+                    conditional[p][a] = term.value() / static_cast<double>(walk.count[p][set]);
+                }
+            }
+        }
+    }
     return 0;
 }
 

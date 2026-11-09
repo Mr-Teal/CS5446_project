@@ -12,8 +12,10 @@ The round also runs natively (pcfr_kernel.cpp through _pcfr_native.py; build wit
 `python -m pair_a_prep.build_pcfr_kernel`), with the same results (test_pcfr_native.py). backend="auto" (the
 default) uses the kernel when it is built and fast_prepare is on, "python" never, "native" always (an error if
 the kernel is missing). FOW_PCFR_BACKEND in the environment sets the default; under it a solver constructed with
-fast_prepare=False stays on Python. On the native path the state containers (minimizers, _strategy, _sums,
-_previous_opponent) are views of flat arrays, so reading and writing them works as before; a solver whose
+fast_prepare=False stays on Python. On the native backend run(n) performs the n rounds in one kernel call, and
+expand() appends the grafted subtrees to the compiled tree instead of recompiling it (see _pcfr_native.py). On
+the native path the state containers (minimizers, _strategy, _sums, _previous_opponent) are views of flat
+arrays, so reading and writing them works as before; a solver whose
 _utilities or a minimizer's observe/next_strategy was replaced on the instance (instrumentation) runs its rounds
 in Python on those views.
 """
@@ -118,8 +120,11 @@ class PCFRPlus:
             strategy[self.sets[p][key].index(action)] = 1
             self.minimizers[p][key].strategy = strategy.copy()
         self._native = None
+        self._graft_index = None
         self.backend = self._resolve_backend(backend)
         if self.backend == "native":
+            from ._pcfr_native import GraftIndex
+            self._graft_index = GraftIndex(root)  # expand() indexes only the grafted subtrees
             self._native_compile()
 
     def _resolve_backend(self, backend):
@@ -201,11 +206,14 @@ class PCFRPlus:
         root = self.root
         for path, subtree in replacements.items():
             root = graft(root, path, subtree)
-        sets, order, depth = self._index_tree(root)
-        for player in (0, 1):
-            for key, actions in self.sets[player].items():
-                if sets[player].get(key) != actions:
-                    raise ValueError("expansion must preserve existing infoset actions: " + key)
+        if self._graft_index is None:
+            sets, order, depth = self._index_tree(root)
+            for player in (0, 1):
+                for key, actions in self.sets[player].items():
+                    if sets[player].get(key) != actions:
+                        raise ValueError("expansion must preserve existing infoset actions: " + key)
+        else:  # native: the same index from the grafted subtrees alone
+            (sets, order, depth), staged = self._graft_index.graft(self, root, tuple(replacements))
 
         added = tuple({key: PredictiveRMPlus(len(actions), self.predictive)
                        for key, actions in sets[player].items()
@@ -227,22 +235,27 @@ class PCFRPlus:
                 # advancing PRM+ (which would turn a zero-regret state uniform).
                 minimizer._pending = self.schedule == "alternating" and bool(self.rounds)
                 sums[player][key] = np.zeros_like(minimizer.regrets)
-        previous_opponent = [
-            None if previous is None else {
-                **previous, **{key: value.copy() for key, value in strategies[1 - player].items()}}
-            for player, previous in enumerate(self._previous_opponent)]
 
         self.root, self.sets, self._order, self._depth = root, sets, order, depth
-        for player in (0, 1):
-            self.minimizers[player].update(added[player])
-            self._strategy[player].update(strategies[player])
-            self._sums[player].update(sums[player])
-        self._previous_opponent = previous_opponent
+        if self._graft_index is not None:
+            self._graft_index.commit(staged)
+        incremental = self._native is not None and () not in replacements
+        if incremental:
+            self._native.extend(self, tuple(replacements), added, strategies)  # appends; no recompilation
+        else:
+            for player in (0, 1):
+                self.minimizers[player].update(added[player])
+                self._strategy[player].update(strategies[player])
+                self._sums[player].update(sums[player])
+            self._previous_opponent = [
+                None if previous is None else {
+                    **previous, **{key: value.copy() for key, value in strategies[1 - player].items()}}
+                for player, previous in enumerate(self._previous_opponent)]
         if self.schedule == "simultaneous" or not self.rounds:
             self._initial_actions.update({(p, key): action for (p, key), action in (initial_actions or {}).items()
                                           if key in added[p]})
-        if self._native is not None:
-            self._native_compile()  # carries every set's state by key, including the ones just added
+        if self._native is not None and not incremental:
+            self._native_compile()  # the root itself was replaced: carries every set's state by key
 
     def _check_recall(self, node, histories, seen):
         if node.payoff is not None:
@@ -406,12 +419,26 @@ class PCFRPlus:
         for player in (0, 1):
             self._accumulate_average(player, self.rounds ** self.averaging_power)
 
-    def run(self, rounds: int) -> None:
-        """Perform this many additional rounds; continuation preserves all state."""
+    def run(self, rounds: int, record=None):
+        """Perform this many additional rounds; continuation preserves all state.
+
+        record=(player, key) returns one row per round: that information set's published strategy after the
+        round, in action order (policy()[player][key] after each step). On the native backend the rounds run in
+        one kernel call with the results of `rounds` step() calls, unless step() or the instrumented methods were
+        replaced, in which case they go through step().
+        """
         if not isinstance(rounds, int) or isinstance(rounds, bool) or rounds < 0:
             raise ValueError("rounds must be a nonnegative integer")
-        for _ in range(rounds):
+        native = self._native
+        if (native is not None and not native.instrumented and "_utilities" not in self.__dict__
+                and "step" not in self.__dict__ and type(self).step is _STEP):
+            return native.run(self, rounds, record)
+        trace = None if record is None else np.empty((rounds, len(self.sets[record[0]][record[1]])))
+        for k in range(rounds):
             self.step()
+            if trace is not None:
+                trace[k] = self._strategy[record[0]][record[1]]
+        return trace
 
     def policy(self, average: bool = False) -> tuple:
         """Detached behavioral strategies in the toy oracle's input format.
@@ -437,6 +464,9 @@ class PCFRPlus:
             report[name] = {"value": behavioral_value(self.root, policy),
                             "nash_gap": behavioral_nash_gap(self.root, policy)}
         return report
+
+
+_STEP = PCFRPlus.step  # run() batches natively only while step() is this one (tests may patch it)
 
 
 def main() -> None:
