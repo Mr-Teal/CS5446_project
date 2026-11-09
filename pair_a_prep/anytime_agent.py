@@ -51,6 +51,7 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
     """
 
     name = "uniform-growth-pcfr-prototype-v1"
+    ROUND_BATCH = 32  # most rounds per solver.run() call between two clock checks
 
     def __init__(self, evaluator, config=None, initial_fen=None):
         super().__init__(evaluator, config or AnytimeConfig(), initial_fen)
@@ -150,8 +151,15 @@ class AnytimePCFRAgent(FixedDepthPCFRAgent):
         while solver.rounds < target_rounds:
             if deadline is not None and perf_counter() >= deadline:
                 break
+            # The rounds up to the next growth check (or the target) run as one batch; with a clock, a batch has
+            # at most ROUND_BATCH rounds, which is the granularity of the deadline check.
+            batch = target_rounds - solver.rounds
+            if growth_reason is None:
+                batch = min(batch, next_growth - solver.rounds)
+            if deadline is not None:
+                batch = min(batch, self.ROUND_BATCH)
             stage_started = perf_counter()
-            solver.step()
+            solver.run(batch)
             solving_ms += (perf_counter() - stage_started) * 1000
             if growth_reason is not None or solver.rounds < next_growth:
                 continue

@@ -3,7 +3,7 @@
 from dataclasses import asdict, replace
 from hashlib import sha256
 import json
-from math import isfinite
+from math import ceil, isfinite
 from time import perf_counter
 from types import SimpleNamespace
 
@@ -36,6 +36,7 @@ def opponent_key_map(projection, to_raw=False):
 
 class ChessSubgameAgent(FixedDepthPCFRAgent):
     name = "sampled-I2-gadget-pcfr-prototype-v2"
+    ROUND_BATCH = 32  # most rounds per solver.run() call between two clock checks
 
     def __init__(self, evaluator, config=None, initial_fen=None, purify=True,
                  submission_reserve_fraction=.1):
@@ -131,28 +132,47 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
         sampler, stable = OneSidedExpansion(self._rng.getrandbits(64)), StableSupport()
         next_growth = self.config.rounds_per_stage
         growth_stopped = None
-        previous_round_s = 0.
-        for completed in range(self.config.rounds):
+        round_s = 0.  # time per round of the last batch
+        root_actions = solver.sets[0][projection.tree.root_infoset]
+        completed = 0
+        while completed < self.config.rounds:
+            # The rounds up to the next growth check run as one batch (solver.run). With a clock a batch has at most
+            # ROUND_BATCH rounds, and with a submission reserve only as many as end before the solve deadline at
+            # the last batch's time per round (one round until a round has been timed). The clock is read between
+            # batches, so a batch is the granularity of the half-budget mark (and of the deadline without a
+            # reserve). A blended gadget's controller needs the profile after every round: one round per batch.
+            batch = self.config.rounds-completed
+            if not growth_stopped:
+                batch = min(batch, next_growth-completed)
+            if control:
+                batch = 1
+            elif deadline is not None:
+                batch = min(batch, self.ROUND_BATCH)
             round_started = perf_counter()
             if solve_deadline is not None:
-                predicted = previous_round_s if self.submission_reserve_fraction > 0 else 0.
+                predicted = round_s if self.submission_reserve_fraction > 0 else 0.
                 if round_started+predicted >= solve_deadline:
                     self.last_stop_reason = "submission_reserve" if self.submission_reserve_fraction else "deadline"
                     break
-            solver.step()
+                if self.submission_reserve_fraction > 0:  # no batch runs past the solve deadline at that pace
+                    batch = 1 if predicted == 0 else min(
+                        batch, max(1, ceil((solve_deadline-round_started)/predicted)-1))
+            trace = solver.run(batch, record=(0, projection.tree.root_infoset))
             if control:
                 control.update(bridge.gadget, solver.policy())
                 if control.mode != mode:
                     mode = control.mode
                     switches += 1
-            previous_round_s = perf_counter()-round_started
-            after_half = ((perf_counter()-started >= turn.time_budget_ms/2000) if deadline else
-                          completed+1 > self.config.rounds/2)
-            stable.observe(solver.policy()[0][projection.tree.root_infoset], after_half)
-            if completed+1 < next_growth or growth_stopped:
+            round_s = (perf_counter()-round_started)/batch
+            after_half = (perf_counter()-started >= turn.time_budget_ms/2000) if deadline else None
+            for row in trace:  # the root policy after each round of the batch
+                completed += 1
+                stable.observe(dict(zip(root_actions, row.tolist())),
+                               after_half if deadline else completed > self.config.rounds/2)
+            if completed < next_growth or growth_stopped:
                 continue
-            next_growth = completed+1+self.config.rounds_per_stage
-            if completed+1 >= self.config.rounds-self.config.final_rounds:
+            next_growth = completed+self.config.rounds_per_stage
+            if completed >= self.config.rounds-self.config.final_rounds:
                 continue
             if growth_deadline is not None and perf_counter() >= growth_deadline:
                 growth_stopped = "growth_deadline"
