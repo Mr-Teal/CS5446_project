@@ -1,6 +1,7 @@
 """Record tracker work independently of the shared loop's agent-only timer."""
 
 from time import perf_counter
+from dataclasses import asdict, is_dataclass
 
 
 class RecordingTracker:
@@ -30,6 +31,10 @@ class RecordingTracker:
                 result = None
             row = {
                 "player": self.player, "ply": observation.ply, "elapsed_ms": elapsed,
+                "observation": asdict(observation) if is_dataclass(observation) else None,
+                "own_move": own_move,
+                "prunes": getattr(self.tracker, "prunes", None),
+                "rebuilds": getattr(self.tracker, "rebuilds", None),
                 "outcome": "failed" if error else "returned", "error": error,
                 "policy": getattr(self.tracker, "evaluation_policy", None),
                 "policy_stop": getattr(self.tracker, "policy_stop", None),

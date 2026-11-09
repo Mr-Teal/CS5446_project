@@ -1,3 +1,7 @@
+> **Follow-up:** this exact-tracker configuration timed out on Pair C's host.
+> Retain it as historical evidence. For the opt-in approximate replacement,
+> use [bounded-history readiness](network1-bounded-readiness.md).
+
 # Network 1 versus Stockfish D1: tested anytime handoff
 
 Configuration: `network1-anytime-readiness.ini`. Use main `10352fe` or a revision

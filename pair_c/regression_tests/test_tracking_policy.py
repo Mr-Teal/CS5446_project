@@ -62,3 +62,18 @@ def test_atomic_tracker_failure_does_not_reuse_previous_ply_metadata():
     with pytest.raises(ValueError): tracker.update(SimpleNamespace(ply=8))
     assert rows[0]["ply"] == 8 and rows[0]["outcome"] == "failed"
     assert rows[0]["status"] is None and rows[0]["support_complete"] is None
+
+
+def test_failed_tracker_records_private_inputs_for_replay():
+    from pair_c.tracking import RecordingTracker
+    from pair_a_prep.rules_adapter import RulesAdapter
+    from dataclasses import asdict
+    observation = RulesAdapter().observe(RulesAdapter().initial_state(), "white")
+    class Broken:
+        def update(self, observation, own_move=None):
+            raise RuntimeError("inference failed")
+    rows = []
+    with pytest.raises(RuntimeError):
+        RecordingTracker(Broken(), "white", rows.append).update(observation)
+    assert rows[0]["observation"] == asdict(observation)
+    assert rows[0]["own_move"] is None
