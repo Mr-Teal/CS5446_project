@@ -1,0 +1,51 @@
+#!/bin/bash
+#PBS -N fow-labels-sf8b
+#PBS -q serial
+#PBS -l select=1:ncpus=1:mem=15gb
+#PBS -l walltime=72:00:00
+#PBS -j oe
+#PBS -o /hpctmp/tommy.21.31/fow/logs/
+
+# labels-sf8 resubmission script: identical protocol and output folders to label_sf8.pbs (depth 8, 30 s,
+# growth window 0.85, TAG labels-sf8, seed 50001+1000N) but runs pair_a_prep.label_run2, which wraps the
+# Stockfish leaf in RevivingLeaf: a call that exceeds call_timeout_s (10 s) used to close the engine for
+# good, after which every remaining game of the task failed with EngineTerminatedError (tasks 5 and 6
+# lost 3 + 6 games on 2026-11-09). label_run2 reopens the engine and lets only that move fall back.
+# label_run.py itself is left untouched because the first-wave tasks were still running from it.
+# Finished parts are skipped, so submitting a task resumes it:
+#   qsub -v TAG=labels-sf8,GAMES=12,BUDGET_MS=30000,MAX_STATES=96000,SEED_BASE=50001,N=13 label_sf8b.pbs
+set -u
+
+: "${TAG:?submit with -v TAG=labels-sf8,GAMES=12,...}"
+GAMES=${GAMES:-12}
+BUDGET_MS=${BUDGET_MS:-30000}
+SEED_BASE=${SEED_BASE:-50001}
+MAX_STATES=${MAX_STATES:-96000}
+SAMPLE=${SAMPLE:-16}
+DEPTH=${DEPTH:-8}
+CALL_TIMEOUT=${CALL_TIMEOUT:-10}
+EXPANSION=${EXPANSION:-0.85}
+TASK=${PBS_ARRAY_INDEX:-${N:?submit with -v ...,N=<task index>}}
+
+ROOT=/hpctmp/$USER/fow
+cd "$ROOT/repo-exp"
+source "$ROOT/env.sh"
+export PYTHONPATH=$ROOT/repo-exp/pair_b/src:$ROOT/experiment
+SF=$ROOT/bin/stockfish
+SF_SHA=222fa1bde9c66c80fae891a0082863d8eb71b5021304e77c3f3b964f90c5e604
+
+SEED=$((SEED_BASE + 1000 * TASK))
+OUT="pair_c/runs/${TAG}/task-${TASK}"
+echo "[$(date -Is)] labels ${TAG} task ${TASK} (label_run2, reviving leaf) on $(hostname) code=repo-exp@6995d6c+label-flags games=$GAMES seed=$SEED budget_ms=$BUDGET_MS expansion_fraction=$EXPANSION leaf=stockfish depth=$DEPTH call_timeout_s=$CALL_TIMEOUT max_states=$MAX_STATES out=$OUT"
+grep -m1 "model name" /proc/cpuinfo
+python -c "import pair_a_prep.label_run2, pair_a_prep.tail_guard, pairb.stockfish; print(\"label runner 2 importable\")"
+(echo uci; echo quit) | "$SF" | grep -m1 "id name"
+
+/usr/bin/time -v python -m pair_a_prep.label_run2 --out "$OUT" --games "$GAMES" --seed "$SEED" \
+    --evaluator stockfish --stockfish "$SF" --stockfish-sha256 "$SF_SHA" \
+    --leaf-depth "$DEPTH" --stockfish-call-timeout-s "$CALL_TIMEOUT" \
+    --time-budget-ms "$BUDGET_MS" --expansion-fraction "$EXPANSION" --max-plies 200 \
+    --max-states "$MAX_STATES" --sample-size "$SAMPLE" --commit "6995d6c+label-flags"
+status=$?
+echo "[$(date -Is)] labels ${TAG} task ${TASK} exit=$status"
+exit $status
