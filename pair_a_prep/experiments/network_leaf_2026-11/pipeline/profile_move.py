@@ -28,11 +28,16 @@ def main():
     ap.add_argument("--plies", default="4,30,70", help="target plies to pick records near (one per move)")
     ap.add_argument("--pcfr-fast", type=int, default=None, choices=(0, 1),
                     help="force PCFRPlus.FAST_PREPARE (the level-wise prediction walk) on or off")
+    ap.add_argument("--pcfr-backend", default=None, choices=("python", "native"),
+                    help="force PCFRPlus.BACKEND (native: the C++ round, which must be built)")
     args = ap.parse_args()
 
     if args.pcfr_fast is not None:
         from pair_a_prep import pcfr
         pcfr.PCFRPlus.FAST_PREPARE = bool(args.pcfr_fast)
+    if args.pcfr_backend is not None:
+        from pair_a_prep import pcfr
+        pcfr.PCFRPlus.BACKEND = args.pcfr_backend
     from pair_a_prep.anytime_agent import AnytimeConfig
     from pair_a_prep.chess_subgame_agent import ChessSubgameAgent
     from pairb.belief_evaluator import BeliefNetworkEvaluator
@@ -76,7 +81,8 @@ def main():
         stats = pstats.Stats(profiler)
         total = stats.total_tt
         # time by module family (tottime = own time inside that module's functions)
-        families = {"pair_a_prep.chess_search": 0.0, "pair_a_prep.pcfr": 0.0, "pair_a_prep.one_sided": 0.0,
+        families = {"pair_a_prep.chess_search": 0.0, "pair_a_prep.pcfr": 0.0, "pair_a_prep._pcfr_native": 0.0,
+                    "pair_a_prep.one_sided": 0.0,
                     "pair_a_prep.chess_projection": 0.0, "pair_a_prep.chess_gadgets": 0.0, "pair_a_prep.rules": 0.0,
                     "pairb.belief_evaluator": 0.0, "fow_shared.features": 0.0, "torch": 0.0, "chess/": 0.0,
                     "pairb.observe": 0.0, "fow_shared.values": 0.0}
