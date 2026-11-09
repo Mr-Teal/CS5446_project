@@ -2,19 +2,19 @@
 
 Presentation plan with a separate three-minute Q&A
 
-9 November 2026. Twenty-eight core slides, nine hidden backups. Bryan: slides 1–13 (6:25). Colin: slides 14–28 (7:10). One handoff on slide 13.
+9 November 2026. Twenty-eight core slides, nine hidden backups. Bryan: slides 1–13 (6:20). Colin: slides 14–28 (7:10). One handoff on slide 13.
 
 ## The argument
 
 History constrains the possible hidden boards. The belief network receives candidate piece locations together with visibility, belief and context information. Its input has 32 feature layers per candidate, grouped as 12 piece layers, four visibility layers, seven belief layers, three context layers and six rule-state layers. The later Network 1 correction experiment uses a separate 19-plane board encoder. The presentation distinguishes the two models while asking whether learned values help decisions.
 
-The provisional allocations total 13:35. A new 35-second visibility/belief explanation keeps one idea per slide. No unrelated speech or allocations are shortened. Actual pacing remains for rehearsal against the confirmed 12-minute presentation plus three minutes Q&A.
+The provisional allocations total 13:30. A new 35-second visibility/belief explanation keeps one idea per slide. No unrelated speech or allocations are shortened. Actual pacing remains for rehearsal against the confirmed 12-minute presentation plus three minutes Q&A.
 
 ## Run of show
 
 | Slide | Slide purpose or finding | Planned time |
 | --- | --- | --- |
-| 1 | Fog of War Chess | 0:20 |
+| 1 | Fog of War Chess | 0:15 |
 | 2 | Where would you move? | 0:25 |
 | 3 | Possibility A | 0:20 |
 | 4 | Possibility B | 0:20 |
@@ -49,11 +49,11 @@ The provisional allocations total 13:35. A new 35-second visibility/belief expla
 
 **Presenter:** Bryan
 
-**Purpose:** Project and team introduction. Planned 20 seconds.
+**Purpose:** Project and team introduction. Planned 15 seconds.
 
-**Say:** Hello everyone. Today we’ll be presenting our Fog of War Chess project. Our agent has to choose moves without seeing the full board. We explored how it can keep track of what might be hidden, and whether learning more accurate position values helps it make better decisions.
+**Say:** Hello everyone. I’m Bryan, and Colin and I will be presenting our team’s Fog of War Chess project.
 
-**Transition:** Let’s start with a situation the agent could face.
+**Transition:** Let’s look at an example.
 
 ### Slide 2 Where would you move?
 
@@ -395,9 +395,9 @@ The provisional allocations total 13:35. A new 35-second visibility/belief expla
 
 ## Delivery and rehearsal
 
-Bryan covers the introduction, hidden-state examples, depth-limited search, belief representation and the handoff (slides 1–13, allocation 6:25). Colin covers learning targets, experiments, interpretation and conclusions (slides 14–28, 7:10). Handoff once on slide 13. Bryan and Colin both prepare for Q&A.
+Bryan covers the introduction, hidden-state examples, depth-limited search, belief representation and the handoff (slides 1–13, allocation 6:20). Colin covers learning targets, experiments, interpretation and conclusions (slides 14–28, 7:10). Handoff once on slide 13. Bryan and Colin both prepare for Q&A.
 
-The planned allocations total 13:35; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
+The planned allocations total 13:30; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
 
 ## Hidden backup navigation
 
