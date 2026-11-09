@@ -40,7 +40,11 @@ def observation_key(observation: Observation) -> str:
 
 
 def _extend(memory: str, observation: Observation, own_move: Optional[str]) -> str:
-    payload = json.dumps([memory, own_move, observation_key(observation)], separators=(",", ":"))
+    return _extend_key(memory, observation_key(observation), own_move)
+
+
+def _extend_key(memory: str, key: str, own_move: Optional[str]) -> str:
+    payload = json.dumps([memory, own_move, key], separators=(",", ":"))
     return sha256(payload.encode("utf-8")).hexdigest()
 
 
@@ -71,15 +75,14 @@ def reconstruct_roots(turn: AgentInput, rules: RulesAdapter,
         for ply in range(turn.observation.ply + 1):
             if deadline is not None and perf_counter() >= deadline:
                 raise SearchBudgetError("budget exhausted during candidate replay")
-            views = [rules.observe(state, p) for p in ("white", "black")]
-            for i, view in enumerate(views):
+            keys = [rules.observation_key(state, p) for p in ("white", "black")]
+            for i, key in enumerate(keys):
                 previous_move = (hypothesis.candidate_moves[ply - 1]
-                                 if ply and view.player != rules.current_player(state) else None)
-                memories[i] = _extend(memories[i], view, previous_move)
-            observed = views[0 if viewer == "white" else 1]
+                                 if ply and ("white", "black")[i] != rules.current_player(state) else None)
+                memories[i] = _extend_key(memories[i], key, previous_move)
             expected = (turn.history[ply].observation if ply < turn.observation.ply
                         else turn.observation)
-            if observation_key(observed) != observation_key(expected):
+            if keys[0 if viewer == "white" else 1] != observation_key(expected):
                 raise ValueError("candidate path disagrees with private observation history")
             if ply < turn.observation.ply:
                 move = hypothesis.candidate_moves[ply]
@@ -194,16 +197,16 @@ def _build_roots(roots, viewer, weights, evaluator, depth, max_nodes, deadline,
                 if ended_value(child) is None and not rules.legal_moves(child):
                     raise UnresolvedNoMoveError("defensive check: blocked frontier lacks its terminal draw")
                 if ended_value(child) is None:
-                    next_memories = tuple(_extend(memories[i], rules.observe(child, p),
-                                                  action if p == mover else None)
+                    next_memories = tuple(_extend_key(memories[i], rules.observation_key(child, p),
+                                                      action if p == mover else None)
                                           for i, p in enumerate(("white", "black")))
                     frontiers[path + (action,)] = HistoryRoot(child, next_memories)
                     node.children[action] = frontier(float(value))
                 else:
                     node.children[action] = terminal(float(value))
             else:
-                next_memories = tuple(_extend(memories[i], rules.observe(child, p),
-                                              action if p == mover else None)
+                next_memories = tuple(_extend_key(memories[i], rules.observation_key(child, p),
+                                                  action if p == mover else None)
                                       for i, p in enumerate(("white", "black")))
                 node.children[action] = expand(child, next_memories, remaining - 1, path + (action,))
         return node
