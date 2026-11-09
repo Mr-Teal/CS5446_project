@@ -2,13 +2,13 @@
 
 Presentation plan with a separate three-minute Q&A
 
-9 November 2026. Twenty-seven core slides, nine hidden backups. Bryan: slides 1–12 (6:20). Colin: slides 13–27 (7:10). One handoff after slide 12.
+9 November 2026. Twenty-five core slides, nine hidden backups. Bryan: slides 1–10 (5:30). Colin: slides 11–25 (7:10). One handoff after slide 10.
 
 ## The argument
 
-Observation history constrains possible hidden boards. A numerical encoding represents each candidate board for the value model. Learned values must then be evaluated through decisions, outcomes and computation. The representation slide connects the two main points rather than adding a third topic.
+Observation history constrains possible hidden boards. Search uses those candidates to compare moves and needs a value function to judge positions before the game ends. A numerical board representation provides the model input. The experiments then ask whether learned values improve predictions and playing decisions.
 
-The current allocations total 13:30, including the new explanation. Overall timing is deliberately left for a later rehearsal; no unrelated sections have been shortened. The confirmed slot is 12 minutes of presentation plus three minutes of Q&A.
+The current allocations total 12:40. The shorter explanation removes the extra chess continuations; no unrelated speech or allocations have been shortened. Overall timing remains for rehearsal. The confirmed slot is 12 minutes of presentation plus three minutes of Q&A.
 
 ## Run of show
 
@@ -22,25 +22,23 @@ The current allocations total 13:30, including the new explanation. Overall timi
 | 6 | Fog of War Chess | 0:35 |
 | 7 | A capture reveals a hidden rook | 0:30 |
 | 8 | History filters the possible boards | 0:35 |
-| 9 | Suppose we step to the side | 0:45 |
-| 10 | Black gets a reply too | 0:35 |
-| 11 | How does the model read this position? | 0:45 |
-| 12 | Which continuation should we prefer? | 0:45 |
-| 13 | Three ways to learn position values | 0:20 |
-| 14 | Monte Carlo learns from completed returns | 0:30 |
-| 15 | TD bootstraps from the next estimate | 0:25 |
-| 16 | Distillation best matched the engine teacher | 0:30 |
-| 17 | MC and TD better matched recorded outcomes | 0:30 |
-| 18 | Testing a learned value correction | 0:40 |
-| 19 | Prediction error decreased by about 20% | 0:25 |
-| 20 | The games did not establish a playing gain | 0:40 |
-| 21 | The learned correction took about 3× as long | 0:25 |
-| 22 | The reference slightly prefers Move A | 0:15 |
-| 23 | Large value errors can preserve the choice | 0:20 |
-| 24 | Closer values can still change the choice | 0:30 |
-| 25 | Learning from our own search | 0:25 |
-| 26 | Does the learned evaluator help? | 0:30 |
-| 27 | Conclusions and next evaluation | 0:45 |
+| 9 | Search needs a value function | 1:00 |
+| 10 | The model receives a candidate board | 1:00 |
+| 11 | Three ways to learn position values | 0:20 |
+| 12 | Monte Carlo learns from completed returns | 0:30 |
+| 13 | TD bootstraps from the next estimate | 0:25 |
+| 14 | Distillation best matched the engine teacher | 0:30 |
+| 15 | MC and TD better matched recorded outcomes | 0:30 |
+| 16 | Testing a learned value correction | 0:40 |
+| 17 | Prediction error decreased by about 20% | 0:25 |
+| 18 | The games did not establish a playing gain | 0:40 |
+| 19 | The learned correction took about 3× as long | 0:25 |
+| 20 | The reference slightly prefers Move A | 0:15 |
+| 21 | Large value errors can preserve the choice | 0:20 |
+| 22 | Closer values can still change the choice | 0:30 |
+| 23 | Learning from our own search | 0:25 |
+| 24 | Does the learned evaluator help? | 0:30 |
+| 25 | Conclusions and next evaluation | 0:45 |
 
 ## Slide notes
 
@@ -126,57 +124,33 @@ The current allocations total 13:30, including the new explanation. Overall timi
 
 **Say:** If we forget the capture and look only at what we can see now, all three positions fit. Remembering the capture rules out A and B, leaving C. That’s why our agent needs a belief tracker: it keeps track of which hidden boards still fit what has happened so far.
 
-**Transition:** Let’s use that possible board to think through our next move.
+**Transition:** Knowing what could be hidden is only the first part. How do we use those possible boards to choose a move?
 
-### Slide 9 Suppose we step to the side
-
-**Presenter:** Bryan
-
-**Purpose:** Use a candidate board to simulate an action. Planned 45 seconds.
-
-**Say:** Let’s use the rook position we inferred from that capture. The real game state is hidden; this is a board reconstructed from our observations. Suppose we move our king one step to the side. We can simulate that move before committing to it. It takes us out of the rook’s current path.
-
-**Transition:** But Black gets a turn too.
-
-**Delivery cues (not spoken):** Indicate the highlighted destination and then the king on the second board. All eight legal destinations remain shown. This is one illustrative continuation, not the bot’s recorded choice. Do not call the move safe or optimal.
-
-### Slide 10 Black gets a reply too
+### Slide 9 Search needs a value function
 
 **Presenter:** Bryan
 
-**Purpose:** Account for the opponent’s response. Planned 35 seconds.
+**Purpose:** Explain the job of a value function inside bounded search. Planned 60 seconds.
 
-**Say:** Black could move the rook across and attack our king again. So evaluating our move means looking beyond the position immediately after it. We also consider what the opponent could do next. That’s the role of search here.
+**Say:** The tracker gives us possible boards. Search then explores what could happen after our moves and the opponent’s replies. But we can’t search every game to the end. At some point, we stop at positions like these and need to judge how favourable they are. That judgement is the value function’s job. Search uses those estimates to compare moves. This is where learning comes in: we want a model that gives useful position values.
 
-**Transition:** When we stop searching, how does the model receive the position we’ve reached?
+**Transition:** To learn that judgement, the model first needs a numerical description of a position.
 
-**Delivery cues (not spoken):** Pause on the changed rook position. The red arrow shows an attack; the king has not been captured. Keep the same White perspective. Avoid chess coordinates and move notation.
+**Delivery cues (not spoken):** Indicate the familiar candidate board, follow the branches and pause at the teal endpoints. Those are positions where this schematic search stops. Explain the role of the value function without asking the audience to analyse any chess move. The branches are conceptual, not recorded moves or a fixed search depth.
 
-### Slide 11 How does the model read this position?
-
-**Presenter:** Bryan
-
-**Purpose:** Encode the same simulated position for evaluation. Planned 45 seconds.
-
-**Say:** We represent this same position using separate numerical layers. This one marks our king, and this one marks the opponent’s rook. A one means that piece is present; the other cells are zero. The same format works for every candidate board, with additional layers for the other pieces, whose turn it is and rule information. The tracker handles which boards are possible; these features describe one board for the model.
-
-**Transition:** Once we have that input, what should the model predict?
-
-**Delivery cues (not spoken):** Map the king to its marked feature cell, then the rook to its layer. These are two example piece layers, not probability maps. Only the encoding changes: the board is exactly the position after Black’s reply on slide 10. Channel counts, normalization and the engine scalar stay in source notes.
-
-### Slide 12 Which continuation should we prefer?
+### Slide 10 The model receives a candidate board
 
 **Presenter:** Bryan
 
-**Purpose:** Motivate learning a value function at the search frontier. Planned 45 seconds.
+**Purpose:** Explain numerical board representation as the value model input. Planned 60 seconds.
 
-**Say:** A different move would lead to a different continuation. We can’t search all the way to the end of every game, so we need a value function to judge the positions where search stops. We already have the rules to simulate moves. What we want to learn is a value estimate that helps us choose better actions.
+**Say:** We use the same board from the capture example. The king’s location becomes a one in this layer, and the rook’s location becomes a one in another. The remaining cells are zero. We repeat this for each piece type and side, with extra layers for whose turn it is and rule information. That gives the model a numerical description of one candidate position. The tracker determines which boards are possible, and the value model learns to judge those positions.
 
-**Transition:** I’ll hand over to Colin to explain how we learned and tested position values.
+**Transition:** So we have the input and we know what the value function is for. I’ll hand over to Colin to explain how we trained it and tested whether it helped.
 
-**Delivery cues (not spoken):** Let the audience compare the two continuations briefly. No winner or measured score is claimed. Both are nonterminal positions; do not equate an attack with a completed king capture. Handoff to Colin after this slide.
+**Delivery cues (not spoken):** Point from the white king to its marked feature cell, then do the same for the rook. Do not enumerate tensor channels or use chess coordinates. These two layers are examples; the opponent king and other channels are omitted. The model is evaluating a hypothetical candidate, not receiving the true hidden board. Handoff to Colin after this slide.
 
-### Slide 13 Three ways to learn position values
+### Slide 11 Three ways to learn position values
 
 **Presenter:** Colin
 
@@ -186,7 +160,7 @@ The current allocations total 13:30, including the new explanation. Overall timi
 
 **Transition:** Here’s how Monte Carlo gets its target.
 
-### Slide 14 Monte Carlo learns from completed returns
+### Slide 12 Monte Carlo learns from completed returns
 
 **Presenter:** Colin
 
@@ -196,7 +170,7 @@ The current allocations total 13:30, including the new explanation. Overall timi
 
 **Transition:** TD can learn before the outcome is known.
 
-### Slide 15 TD bootstraps from the next estimate
+### Slide 13 TD bootstraps from the next estimate
 
 **Presenter:** Colin
 
@@ -206,7 +180,7 @@ The current allocations total 13:30, including the new explanation. Overall timi
 
 **Transition:** What did these targets teach the models?
 
-### Slide 16 Distillation best matched the engine teacher
+### Slide 14 Distillation best matched the engine teacher
 
 **Presenter:** Colin
 
@@ -218,7 +192,7 @@ The current allocations total 13:30, including the new explanation. Overall timi
 
 **Delivery cues (not spoken):** Give the audience a moment to locate the three methods. Indicate the lower distillation bar, then state the finding. Do not read every value. The pause is included in the allocation.
 
-### Slide 17 MC and TD better matched recorded outcomes
+### Slide 15 MC and TD better matched recorded outcomes
 
 **Presenter:** Colin
 
@@ -230,7 +204,7 @@ The current allocations total 13:30, including the new explanation. Overall timi
 
 **Delivery cues (not spoken):** Pause briefly on the new chart before speaking. Compare the methods within this chart, without comparing its bar heights to the preceding chart. The pause is included in the allocation.
 
-### Slide 18 Testing a learned value correction
+### Slide 16 Testing a learned value correction
 
 **Presenter:** Colin
 
@@ -242,7 +216,7 @@ The current allocations total 13:30, including the new explanation. Overall timi
 
 **Delivery cues (not spoken):** Introduce this as a separate experiment from the linear MC/TD comparison. Protocol details are in the archived match backup.
 
-### Slide 19 Prediction error decreased by about 20%
+### Slide 17 Prediction error decreased by about 20%
 
 **Presenter:** Colin
 
@@ -252,7 +226,7 @@ The current allocations total 13:30, including the new explanation. Overall timi
 
 **Transition:** Did that translate into better play?
 
-### Slide 20 The games did not establish a playing gain
+### Slide 18 The games did not establish a playing gain
 
 **Presenter:** Colin
 
@@ -264,7 +238,7 @@ The current allocations total 13:30, including the new explanation. Overall timi
 
 **Delivery cues (not spoken):** Indicate the equal-points reference and interval. Explain the result, without reading the interval endpoints.
 
-### Slide 21 The learned correction took about 3× as long
+### Slide 19 The learned correction took about 3× as long
 
 **Presenter:** Colin
 
@@ -274,7 +248,7 @@ The current allocations total 13:30, including the new explanation. Overall timi
 
 **Transition:** Here’s why prediction accuracy alone can miss what matters for choosing an action.
 
-### Slide 22 The reference slightly prefers Move A
+### Slide 20 The reference slightly prefers Move A
 
 **Presenter:** Colin
 
@@ -286,7 +260,7 @@ The current allocations total 13:30, including the new explanation. Overall timi
 
 **Delivery cues (not spoken):** Keep the reference visible for about two seconds before advancing. Indicate A and B together. Establish that the example is illustrative, not a project measurement.
 
-### Slide 23 Large value errors can preserve the choice
+### Slide 21 Large value errors can preserve the choice
 
 **Presenter:** Colin
 
@@ -298,7 +272,7 @@ The current allocations total 13:30, including the new explanation. Overall timi
 
 **Delivery cues (not spoken):** Pause for about two seconds after the question so the audience can make the choice silently. Indicate the selected action, without calculating the numerical error aloud.
 
-### Slide 24 Closer values can still change the choice
+### Slide 22 Closer values can still change the choice
 
 **Presenter:** Colin
 
@@ -310,7 +284,7 @@ The current allocations total 13:30, including the new explanation. Overall timi
 
 **Delivery cues (not spoken):** Allow a brief look at the changed ranking before explaining it. Connect the reversed choice to the distinction between value accuracy and action quality. Keep the illustrative scope clear.
 
-### Slide 25 Learning from our own search
+### Slide 23 Learning from our own search
 
 **Presenter:** Colin
 
@@ -320,7 +294,7 @@ The current allocations total 13:30, including the new explanation. Overall timi
 
 **Transition:** How did this evaluator compare with material counting?
 
-### Slide 26 Does the learned evaluator help?
+### Slide 24 Does the learned evaluator help?
 
 **Presenter:** Colin
 
@@ -332,13 +306,15 @@ The current allocations total 13:30, including the new explanation. Overall timi
 
 **Delivery cues (not spoken):** Treat the material-label explanation as a hypothesis, not an established cause. Do not present the handover’s game score as a verified strength result.
 
-### Slide 27 Conclusions and next evaluation
+### Slide 25 Conclusions and next evaluation
 
 **Presenter:** Colin
 
 **Purpose:** Two findings and the next decision-level test. Planned 45 seconds.
 
 **Say:** Observation history helps us narrow down what might be hidden. For learned values, better predictions alone weren’t enough: our correction cost more computation without an established playing gain. The separate search-trained model also has no established benefit over material. Next, we need complete game records, equal thinking time and stronger opponents to test whether learning improves the decisions our agent makes. Thank you. We’re happy to take questions.
+
+**Transition:** 
 
 **Delivery cues (not spoken):** Finish here and allow three minutes for Q&A. Keep the two findings distinct from proposed future evaluation.
 
@@ -388,19 +364,19 @@ The current allocations total 13:30, including the new explanation. Overall timi
 
 ## Delivery and rehearsal
 
-Bryan covers the introduction, hidden-state examples, information formulation and the connected decision example (slides 1–12, allocation 6:20). Colin covers learning targets, experiments, interpretation and conclusions (slides 13–27, 7:10). Handoff once after slide 12. Bryan and Colin both prepare for Q&A.
+Bryan covers the introduction, hidden-state examples, the role of values in search and candidate encoding (slides 1–10, allocation 5:30). Colin covers learning targets, experiments, interpretation and conclusions (slides 11–25, 7:10). Handoff once after slide 10. Bryan and Colin both prepare for Q&A.
 
-The planned allocations total 13:30; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
+The planned allocations total 12:40; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
 
 ## Hidden backup navigation
 
-28: archived match rows. 29: full value/move metrics. 30: offline belief context. 31: full MC/TD comparison. 32: retained-search prototype. 33: evaluator inventory. 34: contribution confirmations. 35: sources and scope. 36: archived Black-view belief demonstration. These are hidden during the core talk; the PDFs and slide-with-script Word copy include all pages.
+26: archived match rows. 27: full value/move metrics. 28: offline belief context. 29: full MC/TD comparison. 30: retained-search prototype. 31: evaluator inventory. 32: contribution confirmations. 33: sources and scope. 34: archived Black-view belief demonstration. These are hidden during the core talk; the PDFs and slide-with-script Word copy include all pages.
 
 ## Sources and evidence boundaries
 
-**Board encoding:** Board representation for the archived Network 1 evaluator, not a new agent input or an exact Markov belief-state claim. Pinned encoder: https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/src/pairb/encode.py . encode_board returns 19 x 8 x 8 float32. Channels 0–5 are side-to-move pieces (pawn, knight, bishop, rook, queen, king); 6–11 are opponent pieces. Black-to-move boards are mirrored by ranks and colours to normalize the mover perspective. Channel 12 is constant 1 (mover indicator); 13–16 encode castling rights; 17 marks the en-passant target only if a pseudo-legal capture exists; 18 repeats halfmove_clock/100. Thus 12 binary piece channels plus seven game-information channels, some binary and the counter fractional. The slide shows only the king/rook piece channels for the White-to-move position after the illustrative Black reply: 8/5k2/4r3/8/4K3/8/8/8 w - - 2 2. Blank cells in these piece channels mean 0, not unobserved. The halfmove counter plane is 0.02 after the two illustrated king/rook moves. The opponent-king layer is also occupied but omitted from this simplified view; the other piece channels are zero. The candidate board is an illustrative hypothesis, not privileged true-state input. History determines which candidates remain possible; encoding represents each candidate for evaluation. NetworkEvaluator.evaluate_beliefs loops over hypotheses and calls encode_board in _correct. https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/src/pairb/network_evaluator.py . Network 1 also takes a separate shallow-Stockfish scalar, introduced later in the correction study: https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/src/pairb/net1.py . This slide explains the board portion of that input, not all evaluator variants or the later solver-trained model. Existing source chess artwork and board palette are reused.
+**Board encoding:** Board representation for the archived Network 1 evaluator, not a new agent input or an exact Markov belief-state claim. Pinned encoder: https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/src/pairb/encode.py . encode_board returns 19 x 8 x 8 float32. Channels 0–5 are side-to-move pieces (pawn, knight, bishop, rook, queen, king); 6–11 are opponent pieces. Black-to-move boards are mirrored by ranks and colours to normalize the mover perspective. Channel 12 is constant 1 (mover indicator); 13–16 encode castling rights; 17 marks the en-passant target only if a pseudo-legal capture exists; 18 repeats halfmove_clock/100. Thus 12 binary piece channels plus seven game-information channels, some binary and the counter fractional. The slide shows only the king/rook piece channels for the familiar White-to-move candidate inferred from the capture history: 8/5k2/3r4/8/3K4/8/8/8 w - - 0 1. Blank cells in these piece channels mean 0, not unobserved. The halfmove counter plane is zero after the capture. The opponent-king layer is also occupied but omitted from this simplified view; the other piece channels are zero. The candidate board is an illustrative hypothesis, not privileged true-state input. History determines which candidates remain possible; encoding represents each candidate for evaluation. NetworkEvaluator.evaluate_beliefs loops over hypotheses and calls encode_board in _correct. https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/src/pairb/network_evaluator.py . Network 1 also takes a separate shallow-Stockfish scalar, introduced later in the correction study: https://github.com/Mr-Teal/CS5446_project/blob/5f334b1e26de31e5c90d444d3a4222352e5fb3ed/pair_b/src/pairb/net1.py . This slide explains the board portion of that input, not all evaluator variants or the later solver-trained model. Existing source chess artwork and board palette are reused.
 
-**Decision example:** Illustrative continuation of the history-inferred rook candidate, not a recorded bot decision or a measured search/value result. Start: 8/5k2/3r4/8/3K4/8/8/8 w - - 0 1. White d4e4, Black d6e6 yield 8/5k2/4r3/8/4K3/8/8/8 w - - 2 2. Alternative: White d4c4, Black d6c6 yield 8/5k2/2r5/8/2K5/8/8/8 w - - 2 2. All four transitions are legal in ordinary chess and hence in the illustrated fog-of-war setting. The start has all eight legal king destinations under project rules; slide 9 shows all eight but follows one example, and slide 12 compares two continuations without claiming they exhaust the available actions. After either Black reply both kings still exist; it is White’s turn and the rook attacks White’s king. A king capture has not occurred; neither branch is called safe, optimal or superior. No action value, probability or measured performance is assigned. Rules provide simulation; a value evaluator estimates nonterminal positions at the search frontier. The actor maintains candidates using its private observations/history, not access to the referee’s true board. The feature example uses the White-to-move position after the illustrative Black reply, with the same mover perspective throughout slides 9–12. The existing recorded Black-view demo is retained as hidden backup 36 with its original source identity and material evaluator.
+**Search and values:** Conceptual search diagram, not a recorded game tree, action selection, branching-factor claim or complete agent architecture. The board is the history-inferred White candidate after the rook captures the knight: 8/5k2/3r4/8/3K4/8/8/8 w - - 0 1. The rules model supplies hypothetical transitions. A bounded search uses position evaluations at its frontier to compare continuations. Nodes are schematic positions, with moves by both players abstracted; there are no selected chess moves, invented numerical values or preferred continuation. The diagram starts from one candidate only for illustration. It does not imply the tracker knows the true hidden board or that the agent considers only one hypothesis. This connects course decision-time search and value approximation to the project evaluator interface. The recorded Black-view material-evaluator demonstration remains hidden backup 34. No new performance evidence.
 
 **Solver-trained network extension:** Separate solver-trained network extension. Pair A handover, PR73 at 8abc854ed1779013c9cc4818584108cc07f552c2: https://github.com/Mr-Teal/CS5446_project/blob/8abc854ed1779013c9cc4818584108cc07f552c2/pair_a_prep/docs/handover_2026-11-08.md . Self-play label collection code inspected at 87b30892ee5016f0c1fc7216bec7f885b76137bb: https://github.com/Mr-Teal/CS5446_project/blob/87b30892ee5016f0c1fc7216bec7f885b76137bb/pair_a_prep/label_run.py . Network evaluator hook inspected at d63de87a9d1591c7b2fc06fea8360b00494a99b9: https://github.com/Mr-Teal/CS5446_project/blob/d63de87a9d1591c7b2fc06fea8360b00494a99b9/pair_a_prep/evaluation_factories.py . These establish accessible pipeline code, not independent execution or strength validation. The new belief-solver-v1 checkpoint, solver-v1 dataset and complete per-attempt records are not in the inspected repository trees or local workspace. Handover training counts and result figures are author-reported; numerical performance claims are therefore omitted from the slides. The reported offline error is worse than material and the jointly surviving game comparison does not establish an improvement or equivalence. Complete attempted/terminal/capped/failed/killed/unplayed accounting and frozen configs/weights/engine identities still need reconciliation. Greedy-opponent ceiling and platform separation matter. One cycle is reported, not repeated policy improvement or an AlphaZero/Obscuro reproduction. The suggestion that shallow material-derived targets explain the offline result is a hypothesis. This is a separate model, target source and experiment from the archived Network 1 correction study; do not pool them.
 
@@ -426,7 +402,7 @@ The planned allocations total 13:30; the confirmed speaking slot is 12 minutes, 
 
 **Demonstration:** The archived screenshot and two-ply record remain in presentation-assets/. The archived backup figure aligns the Black observation and two saved hypotheses at the same pre-action decision point. It illustrates the information pipeline with a material evaluator, not learned-model strength.
 
-**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 27-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
+**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 25-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
 
 **Contributions and AI assistance:** The existing individual contribution statements remain in backup and require each member's confirmation. Do not infer the human identity of xiaomiao-fong from the account name. Copilot assisted earlier drafts. Codex assisted the restructuring, rules-example checks and browser demonstration under Bryan's direction. No new training or formal match batch was run.
 
@@ -436,8 +412,7 @@ The planned allocations total 13:30; the confirmed speaking slot is 12 minutes, 
 
 **Course formulation:** Course formulation: Week 4 Lecture-mdp.pdf, PDF pages 7 (problem representation and observations), 10 and 13–14 (transition model and Markov property); Week 5 Lecture-rl-modelfree.pdf, PDF pages 3–4 (prediction versus control); Week 10 Lecture-game.pdf, PDF page 22 (information and sequential games). The underlying game state may be hidden; it is not the current observation. Rule-relevant history can be needed beyond piece placement. The project adapts this to private observation/action history and a finite possible-board belief representation. Do not claim that the hypothesis set is an exact posterior, an exact Markov sufficient statistic, or a fully observed single-agent MDP. Learned board evaluators score hypothetical complete boards within planning; the actor does not receive the referee’s true board.
 
+
 ## Delivery and pacing
 
-Slides 9–12 now follow one White-side decision: simulate a step to the side, consider a Black reply, encode the resulting position and motivate its value estimate. The rook starts where capture history placed it. All boards preserve the same orientation and artwork. These are illustrative continuations, distinct from measured results. The recorded Black-view demo remains available as hidden backup 36.
-
-Do not announce abstract definitions before the example or switch perspectives during this sequence. Map one piece to one input layer and connect the value function to the unfinished search. The distinction between hidden game state, private observations/history, possible-board belief and candidate encoding is retained in the script and notes. One handoff remains after slide 12. Colin’s speech, chart pauses, numerical evidence and allocations are unchanged. Overall timing remains for later rehearsal.
+The bridge has two jobs. Slide 9 locates the value function at the end of a bounded search. Slide 10 explains its board input using the familiar capture-history candidate. No new chess moves or adversarial continuations need to be decoded. The single handoff follows slide 10, leading directly into how position values are learned. Colin’s speech, evidence, chart pauses and allocations are unchanged.
