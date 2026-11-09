@@ -1,7 +1,8 @@
-"""The five scorers Fog Lab offers, which of them can run on this machine and why not, and opening one.
+"""The six scorers Fog Lab offers, which of them can run on this machine and why not, and opening one.
 
-All five are existing LeafEvaluators (fow_shared.interfaces): piece values, Stockfish at depth 1 and at
-depth 11, Network 1 and the belief network.
+All six are existing LeafEvaluators (fow_shared.interfaces): piece values, Stockfish at depth 1 and at
+depth 11, Network 1, the belief network, and the belief network v2 (the same BeliefNetwork class trained on
+Pair A's Stockfish-depth-8 solver labels; it reads no engine value, so it needs torch and its checkpoint only).
 
 available_scorers only looks. It asks whether torch can be found (importlib.util.find_spec, no import),
 whether the engine is there and whether the checkpoint files are there, and starts and loads nothing,
@@ -10,8 +11,8 @@ open_scorer imports them, so the app starts on a machine with no torch (an Intel
 networks greyed out with the reason, instead of failing to start.
 
 A scorer that is held back by several things gives one reason, the first of: no torch, no Stockfish, no
-checkpoint. The networks need all three; torch comes first because nothing the user does about the
-others helps on a machine that cannot run it.
+checkpoint. Network 1 and the belief network need all three (belief network v2 skips the engine); torch
+comes first because nothing the user does about the others helps on a machine that cannot run it.
 
 Stockfish-based scorers are opened with new_game_each_call=False, as inside a search: no ucinewgame
 before each call, so the engine keeps its hash and answers faster (about 3.4x for quick Stockfish,
@@ -26,10 +27,13 @@ from pathlib import Path
 from ..material import MaterialEvaluator
 from ..stockfish import StockfishEvaluator
 
-SCORER_IDS = ("material", "stockfish-d1", "stockfish-d11", "network1", "belief")
+SCORER_IDS = ("material", "stockfish-d1", "stockfish-d11", "network1", "belief", "belief-v2")
 LABELS = {"material": "Piece values", "stockfish-d1": "Quick Stockfish",
-          "stockfish-d11": "Careful Stockfish", "network1": "Network 1", "belief": "Belief network"}
-CHECKPOINTS = {"network1": "net1-v2/best.pt", "belief": "belief-v1-d1/best.pt"}  # inside the checkpoints folder
+          "stockfish-d11": "Careful Stockfish", "network1": "Network 1", "belief": "Belief network",
+          "belief-v2": "Belief network v2 (solver labels, engine-free)"}
+CHECKPOINTS = {"network1": "net1-v2/best.pt", "belief": "belief-v1-d1/best.pt",  # inside the checkpoints folder
+               "belief-v2": "belief-solver-v2-sf8-g237/best.pt"}
+_ENGINE_FREE = ("material", "belief-v2")  # open no Stockfish process
 
 _STOCKFISH_DEPTH = {"stockfish-d1": 1, "stockfish-d11": 11}
 _NO_TORCH = "needs torch, which this machine does not have"
@@ -74,7 +78,7 @@ def _why_unavailable(scorer_id: str, opts: ScorerOptions) -> str | None:
     is_network = scorer_id in CHECKPOINTS
     if is_network and not torch_available():
         return _NO_TORCH
-    if scorer_id != "material" and not stockfish_available(opts.stockfish):
+    if scorer_id not in _ENGINE_FREE and not stockfish_available(opts.stockfish):
         return f"no Stockfish found at '{opts.stockfish}'"
     if is_network:
         checkpoint = opts.checkpoints / CHECKPOINTS[scorer_id]

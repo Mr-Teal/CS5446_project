@@ -65,10 +65,12 @@ def assert_closed(evaluator):
 # Catches: an id, a label or a checkpoint path changed on one side only. The page, the API and the saved
 # games all name scorers by these ids, and the page shows these labels.
 def test_ids_labels_and_checkpoints_are_the_agreed_ones():
-    assert SCORER_IDS == ("material", "stockfish-d1", "stockfish-d11", "network1", "belief")
+    assert SCORER_IDS == ("material", "stockfish-d1", "stockfish-d11", "network1", "belief", "belief-v2")
     assert LABELS == {"material": "Piece values", "stockfish-d1": "Quick Stockfish",
-                      "stockfish-d11": "Careful Stockfish", "network1": "Network 1", "belief": "Belief network"}
-    assert CHECKPOINTS == {"network1": "net1-v2/best.pt", "belief": "belief-v1-d1/best.pt"}
+                      "stockfish-d11": "Careful Stockfish", "network1": "Network 1", "belief": "Belief network",
+                      "belief-v2": "Belief network v2 (solver labels, engine-free)"}
+    assert CHECKPOINTS == {"network1": "net1-v2/best.pt", "belief": "belief-v1-d1/best.pt",
+                           "belief-v2": "belief-solver-v2-sf8-g237/best.pt"}
 
 
 def test_options_default_to_the_stockfish_on_the_path_and_the_best_device(tmp_path):
@@ -92,6 +94,7 @@ def test_the_repos_own_checkpoints_are_where_the_registry_looks(tmp_path, monkey
     opts = dataclasses.replace(machine(tmp_path, monkeypatch), checkpoints=PAIR_B / "checkpoints")
     got = listing(opts)
     assert got["network1"].available and got["belief"].available, [got[s].reason for s in NETWORKS]
+    assert got["belief-v2"].available, got["belief-v2"].reason
 
 
 # ---- why a scorer is not available ----
@@ -126,6 +129,18 @@ def test_networks_need_torch(tmp_path, monkeypatch):
     for scorer_id in NETWORKS:
         assert (got[scorer_id].available, got[scorer_id].reason) == (False, NO_TORCH)
     assert all(got[s].available for s in NEED_NOTHING_BUT_AN_ENGINE)
+
+
+# Catches: belief network v2, which reads no engine value, held back by a missing Stockfish, or offered on a
+# machine without torch or without its checkpoint.
+def test_belief_v2_needs_torch_and_its_checkpoint_but_no_engine(tmp_path, monkeypatch):
+    def pretend(name, **missing) -> ScorerInfo:
+        (tmp_path / name).mkdir()  # machine() makes one checkpoints folder per pretend machine
+        return listing(machine(tmp_path / name, monkeypatch, **missing))["belief-v2"]
+
+    assert pretend("no-engine", has_stockfish=False).available
+    assert pretend("no-torch", has_torch=False).reason == NO_TORCH
+    assert pretend("no-checkpoint", has_checkpoints=False).reason.startswith("checkpoint missing")
 
 
 # Catches: the checkpoint blamed on a machine that can never run the network, which sends the user off to
