@@ -10,7 +10,7 @@ from hashlib import sha256
 from math import fsum
 from time import perf_counter
 
-from .chess_search import (ChessTree, HistoryRoot, _build_roots, _extend,
+from .chess_search import (ChessTree, HistoryRoot, _build_roots, _extend_key,
                            reconstruct_roots, observation_key, SearchBudgetError,
                            TreeCapacityError, build_chess_tree)
 from .chess_gadgets import ChessRootGroups
@@ -112,8 +112,10 @@ def project_chess(turn, evaluator, *, initial_fen, depth, max_nodes, saved=None,
         mover = rules.current_player(context.state)
         for action, child in node.children.items():
             state = rules.apply_move(context.state, action)
-            memories = tuple(_extend(context.memories[i], rules.observe(state, p),
-                                     action if p == mover else None)
+            # = _extend(memory, rules.observe(state, p), ...): the adapter's observation_key is
+            # observation_key(observe(...)) without building the Observation on the native backend.
+            memories = tuple(_extend_key(context.memories[i], rules.observation_key(state, p),
+                                         action if p == mover else None)
                              for i, p in enumerate(("white", "black")))
             visit(child, HistoryRoot(state, memories), path+(action,), moves+(action,), remaining-1)
 

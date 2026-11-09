@@ -116,6 +116,11 @@ def _replay_patched(monkeypatch, backend, fast, player, turns, check_values):
 
     monkeypatch.setattr(PCFRPlus, "BACKEND", backend)
     monkeypatch.setattr(Gadget, "FAST", fast)
+    if not fast:  # the reference keys private observations as before D2: observation_key(observe(...))
+        from pair_a_prep.chess_search import observation_key
+        from pair_a_prep.rules_adapter import RulesAdapter
+        monkeypatch.setattr(RulesAdapter, "observation_key", lambda self, state, player: observation_key(
+            self.observe(state, player)))
     trace = []
     advance = BlendedGadgetControl._advance
 
@@ -178,8 +183,20 @@ def _replay_patched(monkeypatch, backend, fast, player, turns, check_values):
             decision = agent.act(turn)
         assert agent.last_solver.backend == backend
         diagnostics = {k: v for k, v in decision.diagnostics.items() if k not in TIMING}
+        projection = agent.last_projection
+        boundaries = projection.boundaries
         rows.append(dict(move=decision.move, policy=repr(decision.root_policy), diagnostics=repr(diagnostics),
-                         refused=refused, profile=repr(agent.last_solver.policy()), trace=list(trace)))
+                         refused=refused, profile=repr(agent.last_solver.policy()), trace=list(trace),
+                         projection=repr((projection.root_ids, projection.groups, projection.current_ids,
+                                          projection.aliases, projection.audit, projection.paths,
+                                          projection.tree.frontiers.keys(), projection.tree.root_infoset,
+                                          [c.memories for c in projection.tree.history_roots],
+                                          None if boundaries is None else (
+                                              boundaries.alternate_player0, boundaries.gifts,
+                                              boundaries.group_prior, boundaries.audit,
+                                              [(r.root_id, r.opponent_infoset, r.reach_mass)
+                                               for r in boundaries.roots]))),
+                         tree=projection.tree.root))  # compared with Node == (the whole structure)
     return rows
 
 
