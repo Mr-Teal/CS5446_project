@@ -2,13 +2,13 @@
 
 Presentation plan with a separate three-minute Q&A
 
-9 November 2026. Thirty core slides, nine hidden backups. Bryan: slides 1–15 (6:55). Colin: slides 16–30 (7:25). One handoff on slide 15.
+9 November 2026. Twenty-seven core slides, twelve hidden backups. Bryan: slides 1–15 (6:55). Colin: slides 16–27 (6:00). One handoff on slide 15.
 
 ## The argument
 
-History constrains the possible hidden boards. The shared belief-network input combines per-candidate piece information with visibility, belief and context. Colin then distinguishes separate learning experiments: a simple linear-model comparison of prediction targets, a neural correction to a fast engine evaluator, and a preliminary belief network trained from the agent’s own search. The correction matched its teacher more closely without an established playing gain, and required more computation. The presentation asks whether learned values improve the agent’s decisions.
+History constrains the hidden states the agent must consider. Colin then follows one main case study: adding a learned correction to the same agent’s evaluator. Closer teacher agreement did not establish stronger play and cost more computation. The ranking example explains how numerical accuracy and action choice can differ. A separate MC/TD study supports the distinction between prediction objectives, and one short slide describes the preliminary search-trained extension. The main talk closes on decision-level evaluation under equal thinking time.
 
-The provisional allocations total 14:20. Colin’s opening and search-trained introduction have five to ten seconds more space for essential context. Bryan’s script and allocations are unchanged. Rehearsal pacing remains separate from the confirmed 12-minute talk plus three-minute Q&A; no unrelated section was shortened.
+The existing guides for retained core slides total 12:55. Bryan’s portion is unchanged. Detailed MC and TD teaching examples and the separate preliminary-results slide are now untimed Q&A backups, with their explanations retained. No numerical evidence was removed from the deck. Actual pacing remains for rehearsal against the confirmed 12-minute talk and three-minute Q&A.
 
 ## Run of show
 
@@ -29,21 +29,18 @@ The provisional allocations total 14:20. Colin’s opening and search-trained in
 | 13 | State representation: king belief | 0:30 |
 | 14 | State representation: belief input | 0:25 |
 | 15 | How do we learn useful position values? | 0:15 |
-| 16 | What should the value function learn? | 0:30 |
-| 17 | Monte Carlo learns from completed returns | 0:30 |
-| 18 | TD bootstraps from the next estimate | 0:25 |
-| 19 | Distillation best matched the teacher | 0:30 |
-| 20 | MC and TD better predicted recorded outcomes | 0:30 |
-| 21 | Learning a correction to a fast evaluator | 0:40 |
-| 22 | Error against the teacher fell by about 20% | 0:25 |
-| 23 | No clear improvement in game score | 0:40 |
-| 24 | The learned correction took about 3× as long | 0:25 |
-| 25 | The reference slightly prefers Move A | 0:15 |
-| 26 | Less accurate value estimates | 0:20 |
-| 27 | More accurate value estimates | 0:30 |
-| 28 | Learning values from our own search | 0:30 |
-| 29 | Search-trained model: initial results | 0:30 |
-| 30 | Conclusions and next evaluation | 0:45 |
+| 16 | Can a learned evaluator improve play? | 0:40 |
+| 17 | The correction matched the teacher more closely | 0:25 |
+| 18 | The games did not establish stronger play | 0:40 |
+| 19 | The correction took about 3× as long | 0:25 |
+| 20 | Which move does the reference prefer? | 0:15 |
+| 21 | Less accurate value estimates | 0:20 |
+| 22 | More accurate value estimates | 0:30 |
+| 23 | What should the value function predict? | 0:30 |
+| 24 | Distillation best matched the teacher | 0:30 |
+| 25 | MC and TD better predicted recorded outcomes | 0:30 |
+| 26 | Learning values from our own search | 0:30 |
+| 27 | Conclusions and next evaluation | 0:45 |
 
 ## Slide notes
 
@@ -205,121 +202,63 @@ The provisional allocations total 14:20. Colin’s opening and search-trained in
 
 **Delivery cues (not spoken):** Click to this slide after finishing the representation explanation. Address the audience, then turn to Colin at the end. Colin takes over on the next slide. This is the only presenter handoff.
 
-### Slide 16 What should the value function learn?
+### Slide 16 Can a learned evaluator improve play?
 
 **Presenter:** Colin
 
-**Purpose:** Value learning and training targets. Planned 30 seconds.
+**Purpose:** Introduce the main agent comparison and its decision-level objective. Planned 40 seconds.
 
-**Say:** Thanks, Bryan. We first investigated what the value function should learn, using the same simple linear model in a separate prediction experiment. We compared engine distillation, Monte Carlo and TD. Distillation means learning to reproduce the evaluations of Stockfish, an existing chess program.
+**Say:** Thanks, Bryan. We wanted to test whether learned values improve the moves our agent chooses. We started with a fast chess engine, a program that scores positions. A separate neural model learned to correct those scores towards a deeper engine’s evaluations. We compared the same agent with and without that correction, using matched openings with colours swapped.
 
-**Transition:** For Monte Carlo, the target comes from the game’s outcome.
+**Transition:** First, did the correction improve the value estimates?
 
-**Delivery cues (not spoken):** Introduce these linear-model prediction tests as separate from the 32-plane belief-network representation. Define distillation once. MC and TD are course concepts; focus on the targets used in our experiment.
+**Delivery cues (not spoken):** Start with the decision question, then compare the two evaluator rows. This is the archived Network 1 correction experiment, separate from the earlier 32-plane belief network. The same move-selection procedure is used in both rows. Exact encoder, engine-depth and protocol details remain in source notes.
 
-### Slide 17 Monte Carlo learns from completed returns
-
-**Presenter:** Colin
-
-**Purpose:** Monte Carlo prediction. Planned 30 seconds.
-
-**Say:** For a recorded game that our player wins, the Monte Carlo target for an earlier position is plus one. These targets reflect the policy that generated the games.
-
-**Transition:** TD instead uses the next position’s estimate.
-
-### Slide 18 TD bootstraps from the next estimate
-
-**Presenter:** Colin
-
-**Purpose:** Temporal-difference prediction. Planned 25 seconds.
-
-**Say:** TD uses the next position’s estimate. Our values are from the player-to-move’s perspective. After our move, that player is the opponent, so we reverse the sign. For terminal positions, we use the actual outcome. We fit these targets from recorded games.
-
-**Transition:** What did these targets teach the models?
-
-**Delivery cues (not spoken):** Indicate the opponent’s positive estimate, then its negative value from our perspective. This illustrative nonterminal target uses the implemented undiscounted, zero-intermediate-reward convention. Do not imply online TD control: these are fitted prediction targets from recorded games.
-
-### Slide 19 Distillation best matched the teacher
-
-**Presenter:** Colin
-
-**Purpose:** Offline teacher-prediction result. Planned 30 seconds.
-
-**Say:** Distillation came closest to the stronger engine’s evaluations. That is the target it was trained to predict. The methods also used different training positions, so this is not a controlled comparison of target choice alone.
-
-**Transition:** Now ask a different question: which model predicts game outcomes?
-
-**Delivery cues (not spoken):** Give the audience a moment to locate the three methods. Indicate the lower distillation bar, then state the finding. Do not read every value. The pause is included in the allocation.
-
-### Slide 20 MC and TD better predicted recorded outcomes
-
-**Presenter:** Colin
-
-**Purpose:** Offline outcome-prediction result. Planned 30 seconds.
-
-**Say:** When we ask them to predict recorded game outcomes, MC and TD do slightly better. That is a different prediction task, under the policy that generated those games. The charts use different metrics and evaluation sets, so compare the methods within each chart.
-
-**Transition:** These prediction tests don’t tell us whether the agent chooses better moves.
-
-**Delivery cues (not spoken):** Pause briefly on the new chart before speaking. Compare the methods within this chart, without comparing its bar heights to the preceding chart. The pause is included in the allocation.
-
-### Slide 21 Learning a correction to a fast evaluator
-
-**Presenter:** Colin
-
-**Purpose:** Neural correction and paired evaluation. Planned 40 seconds.
-
-**Say:** To test playing strength, we ran a separate experiment with a neural correction model. It adjusts a fast engine estimate towards a deeper engine’s evaluation. We compared the fast evaluator with and without the correction, looking at prediction error, game score and time per move. Each opening was played with both colours, and both agents evaluated the positions after each available move.
-
-**Transition:** First, did the predictions improve?
-
-**Delivery cues (not spoken):** Identify this as the separate archived Network 1 correction experiment, not a continuation of the linear MC/TD training or a test of the 32-plane belief network. The plus-sign diagram is conceptual; the implemented correction uses the bounded value link described in the source notes. Exact model and engine-depth settings remain in the supporting notes.
-
-### Slide 22 Error against the teacher fell by about 20%
+### Slide 17 The correction matched the teacher more closely
 
 **Presenter:** Colin
 
 **Purpose:** Prediction result. Planned 25 seconds.
 
-**Say:** The corrected estimates matched the teacher more closely, with about twenty percent lower error. This was development data used to select the model, so it is evidence of closer teacher agreement rather than an independent test.
+**Say:** The correction reduced error against the deeper engine by about twenty percent. It learned to imitate the teacher more closely. This result comes from the development data used for model selection, so it is not an independent test.
 
-**Transition:** Did that translate into better play?
+**Transition:** Did that improvement help the agent play better?
 
-### Slide 23 No clear improvement in game score
+### Slide 18 The games did not establish stronger play
 
 **Presenter:** Colin
 
 **Purpose:** Outcome result. Planned 40 seconds.
 
-**Say:** The corrected agent earned 51.5 percent of the available game points. The uncertainty interval crossed an even split, so we cannot conclude that the correction improved play. This also does not establish that the two agents are equally strong.
+**Say:** The corrected agent earned 51.5 percent of the available game points. Its uncertainty interval crossed an even split, so this comparison did not establish stronger play. It also did not establish that the agents were equally strong.
 
-**Transition:** What did those predictions cost?
+**Transition:** And there was a computational cost.
 
 **Delivery cues (not spoken):** Indicate the equal-points reference and interval. Explain the result, without reading the interval endpoints.
 
-### Slide 24 The learned correction took about 3× as long
+### Slide 19 The correction took about 3× as long
 
 **Presenter:** Colin
 
 **Purpose:** Resource result. Planned 25 seconds.
 
-**Say:** It also took about three times as long per move. This makes thinking time part of the comparison: extra computation could also be spent searching further ahead.
+**Say:** The corrected agent took about three times as long per move. That extra computation did not produce an established game-score improvement in this setup. To judge the practical benefit, we would need to compare agents given the same thinking time.
 
-**Transition:** Why can closer predictions fail to improve the move choice?
+**Transition:** Why might closer values still fail to improve the move?
 
-### Slide 25 The reference slightly prefers Move A
+### Slide 20 Which move does the reference prefer?
 
 **Presenter:** Colin
 
 **Purpose:** Illustrative ranking reference. Planned 15 seconds.
 
-**Say:** Consider these two illustrative action values. The reference slightly prefers A.
+**Say:** Move selection depends on which action ranks highest. Here is an illustrative example. The reference values slightly prefer A over B.
 
 **Transition:** Now compare an evaluator’s estimates with that reference.
 
-**Delivery cues (not spoken):** Establish the reference preference without reading every number. The next two slides keep the same reference chart visible on the left. This is an illustration, not measured project performance.
+**Delivery cues (not spoken):** Establish the small reference preference, then advance. The next two slides keep the same reference chart visible on the left. This is a conceptual illustration, not an observed cause of the game results.
 
-### Slide 26 Less accurate value estimates
+### Slide 21 Less accurate value estimates
 
 **Presenter:** Colin
 
@@ -329,9 +268,9 @@ The provisional allocations total 14:20. Colin’s opening and search-trained in
 
 **Transition:** Now let’s reduce the prediction errors.
 
-**Delivery cues (not spoken):** Compare the fixed reference on the left with the estimates on the right. Pause for about two seconds after the question, then click once to reveal Selected move A before continuing the script. The following click advances the slide. PDF and Word copies show the completed reveal. Do not calculate the numerical error aloud.
+**Delivery cues (not spoken):** Compare the fixed reference on the left with estimates on the right. Pause after the question, then click once to reveal Selected move A. The next click advances. PDF and Word copies show the completed reveal. The error numbers are illustrative and unchanged.
 
-### Slide 27 More accurate value estimates
+### Slide 22 More accurate value estimates
 
 **Presenter:** Colin
 
@@ -339,43 +278,87 @@ The provisional allocations total 14:20. Colin’s opening and search-trained in
 
 **Say:** Now the estimates are much closer. Which move ranks higher? B does, so the evaluator changes its choice even though its average error is smaller. This shows how improving value accuracy can still reverse an action ranking; it is an illustration, not a diagnosis of our game results.
 
-**Transition:** We also explored another source of training targets: our agent’s own search.
+**Transition:** That raises another question: what should the value function predict?
 
-**Delivery cues (not spoken):** Keep the reference chart visible on the left. Pause after the question, then click once to reveal Selected move B. Continue with the change in ranking and its illustrative scope. The following click advances the slide. PDF and Word copies show the completed reveal.
+**Delivery cues (not spoken):** Pause after asking which move ranks higher, then click once to reveal Selected move B. Continue with the lower-error/reversed-ranking explanation. This illustrates a possibility, not a diagnosed cause of the project game result. The next click advances. PDF and Word copies show the completed reveal.
 
-### Slide 28 Learning values from our own search
+### Slide 23 What should the value function predict?
+
+**Presenter:** Colin
+
+**Purpose:** Value learning and training targets. Planned 30 seconds.
+
+**Say:** A model learns the target we give it. In a separate study, we used simple linear models to compare three targets. Engine distillation imitates a stronger engine’s scores. Monte Carlo uses the final return from recorded games, while TD uses the next position’s value estimate.
+
+**Transition:** Those choices change what counts as a good prediction.
+
+**Delivery cues (not spoken):** Introduce this study as supporting evidence about prediction objectives, not a continuation of the neural correction training. Keep MC/TD definitions to the actual targets in the table. Detailed recorded-game examples are available in backups28 and29.
+
+### Slide 24 Distillation best matched the teacher
+
+**Presenter:** Colin
+
+**Purpose:** Offline teacher-prediction result. Planned 30 seconds.
+
+**Say:** If we measure agreement with the engine teacher, distillation performs best. That matches its training objective. The methods also saw different training positions, so this comparison does not isolate the effect of the target alone.
+
+**Transition:** But predicting the recorded game outcomes gives a different answer.
+
+**Delivery cues (not spoken):** Give the audience a moment to locate the three methods. Indicate the lower distillation bar, then state the finding. Do not read every value. The pause is included in the allocation.
+
+### Slide 25 MC and TD better predicted recorded outcomes
+
+**Presenter:** Colin
+
+**Purpose:** Offline outcome-prediction result. Planned 30 seconds.
+
+**Say:** For recorded outcomes, MC and TD do slightly better. These targets describe the policy that generated the games. The point is that matching engine scores and predicting that policy’s returns are different tasks. Neither chart, by itself, tests whether the trained agent makes better decisions.
+
+**Transition:** We also explored learning values from our own search.
+
+**Delivery cues (not spoken):** Compare methods within this outcome chart. The preceding teacher chart uses a different metric and evaluation set. State the connection to the main argument: prediction objectives differ, while decision quality still requires an agent comparison.
+
+### Slide 26 Learning values from our own search
 
 **Presenter:** Colin
 
 **Purpose:** Search-generated learning targets. Planned 30 seconds.
 
-**Say:** This separate, preliminary experiment began with a simple evaluator that scores the pieces each side has left. Search generated targets during self-play. We trained the belief network described earlier on those targets, then used it inside search. The available results cover one training cycle.
+**Say:** In this preliminary extension, search used a simple score based on the pieces each side had left. Self-play search generated targets for the belief network Bryan described. We then used that network inside search. So far, this covers one training cycle, with no established improvement in play.
 
-**Transition:** Did learning beat that simple piece-value baseline?
+**Transition:** So what can we conclude?
 
-**Delivery cues (not spoken):** Explain the simple material evaluator as a score based on the pieces each side has left, not a count treating all pieces equally. This is the separate solver-trained belief-network extension described in the cited handover, using the earlier 32-plane representation. The cycle and performance remain author-reported; do not imply independently reproduced training or repeated policy improvement.
+**Delivery cues (not spoken):** Keep this to the motivation, one search/learning cycle and its preliminary status. The baseline weights piece types; it does not count all pieces equally. Full preliminary findings, the hypothesis about material-derived labels and record-reconciliation limits remain in backup30 and the source notes. This is author-reported progress, not an independently reproduced strength result.
 
-### Slide 29 Search-trained model: initial results
-
-**Presenter:** Colin
-
-**Purpose:** Preliminary results and interpretation. Planned 30 seconds.
-
-**Say:** The preliminary results put prediction error above the simple piece-value baseline, with no established improvement in games. The targets came from shallow search using that same baseline, so the network may mainly be reproducing it. This remains a hypothesis, and we still need to reconcile the full game records.
-
-**Transition:** That brings us back to our two main findings.
-
-**Delivery cues (not spoken):** Keep the preliminary qualifier visible. The material-derived-target explanation is a hypothesis, not an established cause. Original source attribution to the Pair A handover and unresolved game accounting remain in the notes. Do not present a reported game score as verified strength evidence.
-
-### Slide 30 Conclusions and next evaluation
+### Slide 27 Conclusions and next evaluation
 
 **Presenter:** Colin
 
 **Purpose:** Two findings and the next decision-level test. Planned 45 seconds.
 
-**Say:** Observation history helps us narrow down the hidden states. Our neural correction matched its teacher more closely, but we did not establish stronger play, and it required more computation. The search-trained extension is still preliminary. The next step is to compare evaluators with equal thinking time against stronger opponents, using complete game records. Thank you. We’re happy to take questions.
+**Say:** Observation history helps us narrow down what may be hidden. Our correction learned closer agreement with the teacher, but the games did not establish stronger play, and it required more computation. Learning values must therefore be evaluated through the decisions they produce. The next test needs complete game records, equal thinking time and stronger opponents. Thank you. We’re happy to take questions.
 
-**Delivery cues (not spoken):** Finish here and allow three minutes for Q&A. Keep the two findings distinct from proposed future evaluation.
+**Delivery cues (not spoken):** Finish on the two main points from Bryan and Colin, then leave three minutes for Q&A. The search-trained extension remains preliminary; do not introduce a third results discussion in the conclusion.
+
+## Additional Q&A explanations
+
+### Backup 28 Monte Carlo learns from completed returns
+
+Untimed. Open only when useful for a question.
+
+**Suggested explanation:** For a recorded game that our player wins, the Monte Carlo target for an earlier position is plus one. These targets reflect the policy that generated the games.
+
+### Backup 29 TD bootstraps from the next estimate
+
+Untimed. Open only when useful for a question.
+
+**Suggested explanation:** TD uses the next position’s estimate. Our values are from the player-to-move’s perspective. After our move, that player is the opponent, so we reverse the sign. For terminal positions, we use the actual outcome. We fit these targets from recorded games.
+
+### Backup 30 Search-trained model: initial results
+
+Untimed. Open only when useful for a question.
+
+**Suggested explanation:** The preliminary results put prediction error above the simple piece-value baseline, with no established improvement in games. The targets came from shallow search using that same baseline, so the network may mainly be reproducing it. This remains a hypothesis, and we still need to reconcile the full game records.
 
 ## Questions every team member should be able to answer
 
@@ -423,13 +406,13 @@ The provisional allocations total 14:20. Colin’s opening and search-trained in
 
 ## Delivery and rehearsal
 
-Bryan covers the introduction, hidden-state examples, depth-limited search, belief representation and the handoff (slides 1–15, allocation 6:55). Colin covers learning targets, experiments, interpretation and conclusions (slides 16–30, 7:25). Handoff once on slide 15. Bryan and Colin both prepare for Q&A.
+Bryan covers the introduction, hidden-state examples, depth-limited search, belief representation and the handoff (slides 1–15, allocation 6:55). Colin covers learning targets, experiments, interpretation and conclusions (slides 16–27, 6:00). Handoff once on slide 15. Bryan and Colin both prepare for Q&A.
 
-The planned allocations total 14:20; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
+The planned allocations total 12:55; the confirmed speaking slot is 12 minutes, followed by three minutes Q&A. Rehearsal must determine the actual pacing. Do not read square coordinates, narrate individual moves or read every number from a chart. Explain what the visual establishes and connect it to the decision problem.
 
 ## Hidden backup navigation
 
-31: archived match rows. 32: full value/move metrics. 33: offline belief context. 34: full MC/TD comparison. 35: retained-search prototype. 36: evaluator inventory. 37: contribution confirmations. 38: sources and scope. 39: archived Black-view belief demonstration. These are hidden during the core talk; the PDFs and slide-with-script Word copy include all pages.
+28: recorded-game Monte Carlo example. 29: TD player-perspective example. 30: full preliminary search-trained results. 31: archived match rows. 32: full value/move metrics. 33: offline belief context. 34: full MC/TD comparison. 35: retained-search prototype. 36: evaluator inventory. 37: contribution confirmations. 38: sources and scope. 39: archived Black-view belief demonstration. These are hidden during the core talk; the PDFs and slide-with-script Word copy include all pages.
 
 ## Sources and evidence boundaries
 
@@ -467,7 +450,7 @@ The planned allocations total 14:20; the confirmed speaking slot is 12 minutes, 
 
 **Demonstration:** The archived screenshot and two-ply record remain in presentation-assets/. The archived backup figure aligns the Black observation and two saved hypotheses at the same pre-action decision point. It illustrates the information pipeline with a material evaluator, not learned-model strength.
 
-**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 30-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
+**Course alignment:** The project guidelines, pages 3-5, emphasize an AI-familiar audience outside the topic and presentation relevance, organization, clarity, time management and Q&A. The 27-slide core develops two main points, explicitly introduces the game after the opening example and ends with conclusions and the next evaluation. The user confirmed 12 minutes presentation plus 3 minutes Q&A, superseding the older draft guideline duration.
 
 **Contributions and AI assistance:** The existing individual contribution statements remain in backup and require each member's confirmation. Do not infer the human identity of xiaomiao-fong from the account name. Copilot assisted earlier drafts. Codex assisted the restructuring, rules-example checks and browser demonstration under Bryan's direction. No new training or formal match batch was run.
 
@@ -484,4 +467,4 @@ The planned allocations total 14:20; the confirmed speaking slot is 12 minutes, 
 
 ## Delivery and pacing
 
-Bryan’s portion is unchanged. Colin introduces engine distillation and keeps the linear target comparison separate from the neural correction study and the preliminary search-trained belief network. MC/TD examples explain the recorded targets and player perspective without re-teaching the course. The two result charts ask different questions. Use the same fast-engine versus engine-plus-correction labels through the error, game-score and latency results. For slides 26 and 27, compare the reference on the left with estimates on the right, pause after the question and click once to reveal the selected move; the following click advances. PDF and Word copies show the completed reveal. Introduce search-trained targets as a separate preliminary experiment and define the piece-value baseline once. End on the two findings, then the next decision-level evaluation. Material-derived labels remain a possible explanation rather than an established cause.
+Bryan1–15 is unchanged. Colin16 starts directly with the question of stronger play and the paired evaluator comparison. Follow the same experiment through teacher error17, game points18 and computation19. Use the ranking illustration20–22 to explain why closer predictions need not preserve the preferred move; click once to reveal the answers on21 and22. Introduce the separate linear-model study23–25 only to show that different training targets answer different prediction questions. Keep the search-trained extension26 to its motivation, one cycle and preliminary status. Close on27. MC28, TD29 and the full preliminary findings30 are hidden and untimed. All PDFs and Word review pages show completed animation reveals. No new results or causal claims are introduced.
