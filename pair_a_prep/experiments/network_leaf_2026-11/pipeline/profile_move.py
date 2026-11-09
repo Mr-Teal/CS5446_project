@@ -30,6 +30,9 @@ def main():
                     help="force PCFRPlus.FAST_PREPARE (the level-wise prediction walk) on or off")
     ap.add_argument("--pcfr-backend", default=None, choices=("python", "native"),
                     help="force PCFRPlus.BACKEND (native: the C++ round, which must be built)")
+    ap.add_argument("--rounds", type=int, default=1024, help="AnytimeConfig.rounds, the PCFR+ round cap per move")
+    ap.add_argument("--max-depth", type=int, default=2, help="AnytimeConfig.max_depth, the subgame tree depth cap in plies")
+    ap.add_argument("--max-nodes", type=int, default=16384, help="AnytimeConfig.max_nodes")
     args = ap.parse_args()
 
     if args.pcfr_fast is not None:
@@ -43,8 +46,8 @@ def main():
     from pairb.belief_evaluator import BeliefNetworkEvaluator
 
     leaf = BeliefNetworkEvaluator.from_checkpoint(args.checkpoint, device=args.device)
-    config = AnytimeConfig(growth="one_sided", rounds=1024, max_nodes=16384, max_evaluator_calls=4096,
-                           stop_on_time=True, expansion_fraction=0.7, initial_depth=1, max_depth=2,
+    config = AnytimeConfig(growth="one_sided", rounds=args.rounds, max_nodes=args.max_nodes, max_evaluator_calls=4096,
+                           stop_on_time=True, expansion_fraction=0.7, initial_depth=1, max_depth=args.max_depth,
                            rounds_per_stage=2, final_rounds=2, schedule="alternating")
     targets = [int(x) for x in args.plies.split(",")][: args.moves]
 
@@ -77,7 +80,9 @@ def main():
         print(f"\n=== ply {turn.observation.ply} ({turn.observation.player}), {len(turn.belief.hypotheses)} hypotheses, "
               f"{len(turn.observation.legal_moves)} legal moves: wall {elapsed:.2f} s | nodes {d.get('search_nodes')} | "
               f"evaluator calls {d.get('evaluator_calls')} | rounds {d.get('solver_rounds_this_turn')} | "
-              f"expansions {d.get('expansions')} | fallback {d.get('fallback')} | move {decision.move}")
+              f"expansions {d.get('expansions')} | fallback {d.get('fallback')} | move {decision.move} | "
+              f"stop {[k[5:] for k in d if k.startswith('stop:') and d[k]]} | "
+              f"depth {{{', '.join(f'{k}={v:g}' for k, v in d.items() if 'depth' in k)}}}")
         stats = pstats.Stats(profiler)
         total = stats.total_tt
         # time by module family (tottime = own time inside that module's functions)

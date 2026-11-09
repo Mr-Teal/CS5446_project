@@ -137,3 +137,14 @@ VM, so compare within a table, not across.
 No deviation measured: every compared quantity is equal bit for bit on this VM (19 cases, every round). The
 match depends on the OpenBLAS kernel numpy uses here; on a host whose BLAS picks another ddot kernel the dot
 products can differ in the last bits, which is what the 1e-9 test tolerance allows for.
+
+## A2. Rounds and depth caps with the native solver (2026-11-10 07:50)
+
+`profile_move.py --pcfr-backend native --rounds R --max-depth D`, three recorded positions, 5 s budget, no tracker.
+Rounds 1,024 -> 4,096 cost 0.3 s more; 16,384 requested gives 11.9k-13.2k rounds before the clock stops the move
+(~3,000 rounds/s on a 1.6k-node tree). Depth cap 2 -> 4 -> 6 changes nodes by at most 1,440 -> 1,556 (ply 28) and
+929 -> 1,685 (ply 5), with 26-114 expansions per move: growth stops at the 70 % growth deadline because each
+expansion costs about 40 ms in python-chess and the rules adapter (`rules_adapter.py observe` 0.82-0.86 s per move
+over 3.8k-5.7k calls, `chess/` 0.9-1.4 s). Conclusion: phase B (native rules, move generation, observation) is the
+binding constraint now; revisit depth caps after it. profile_move.py gained --rounds, --max-depth, --max-nodes and
+prints the stop reason.
