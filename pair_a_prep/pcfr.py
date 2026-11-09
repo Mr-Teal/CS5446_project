@@ -7,6 +7,15 @@ The prediction step (_prepare) walks the tree once per own-history depth with me
 instead of once per information set; the result is identical (see _prepare_fast and test_pcfr_fast.py), and
 the per-infoset reference walk is kept as _prepare_reference. FOW_PCFR_FAST=0 in the environment, or
 PCFRPlus(..., fast_prepare=False), selects the reference.
+
+The round also runs natively (pcfr_kernel.cpp through _pcfr_native.py; build with
+`python -m pair_a_prep.build_pcfr_kernel`), with the same results (test_pcfr_native.py). backend="auto" (the
+default) uses the kernel when it is built and fast_prepare is on, "python" never, "native" always (an error if
+the kernel is missing). FOW_PCFR_BACKEND in the environment sets the default; under it a solver constructed with
+fast_prepare=False stays on Python. On the native path the state containers (minimizers, _strategy, _sums,
+_previous_opponent) are views of flat arrays, so reading and writing them works as before; a solver whose
+_utilities or a minimizer's observe/next_strategy was replaced on the instance (instrumentation) runs its rounds
+in Python on those views.
 """
 
 from __future__ import annotations
@@ -77,9 +86,11 @@ class PCFRPlus:
     """
 
     FAST_PREPARE = os.environ.get("FOW_PCFR_FAST", "1") != "0"  # the level-wise prediction walk (see module docstring)
+    BACKEND = os.environ.get("FOW_PCFR_BACKEND", "auto")  # auto, python or native (see module docstring)
 
     def __init__(self, root: Node, predictive: bool = True, averaging_power: int = 2,
-                 schedule: str = "simultaneous", initial_actions=None, fast_prepare: bool | None = None):
+                 schedule: str = "simultaneous", initial_actions=None, fast_prepare: bool | None = None,
+                 backend: str | None = None):
         if schedule not in ("simultaneous", "alternating"):
             raise ValueError("schedule must be simultaneous or alternating")
         self.schedule = schedule
@@ -106,6 +117,44 @@ class PCFRPlus:
             strategy[:] = 0
             strategy[self.sets[p][key].index(action)] = 1
             self.minimizers[p][key].strategy = strategy.copy()
+        self._native = None
+        self.backend = self._resolve_backend(backend)
+        if self.backend == "native":
+            self._native_compile()
+
+    def _resolve_backend(self, backend):
+        requested = self.BACKEND if backend is None else backend
+        if requested not in ("auto", "python", "native"):
+            raise ValueError("backend must be auto, python or native")
+        if requested == "python":
+            return "python"
+        if not self.fast_prepare:
+            if backend == "native":
+                raise ValueError("the native backend implements the level-wise prepare; it needs fast_prepare")
+            return "python"
+        from ._pcfr_native import library
+        if library() is None:
+            if requested == "native":
+                raise RuntimeError("the native PCFR+ kernel is not built or is stale: "
+                                   "python -m pair_a_prep.build_pcfr_kernel")
+            return "python"
+        return "native"
+
+    def _native_compile(self) -> None:
+        """Flatten the tree and move the state into flat arrays (after __init__ and every expand)."""
+        from ._pcfr_native import NativeState, library
+        state = NativeState(self, library())
+        state.bind(self)
+        self._native = state
+
+    def __deepcopy__(self, memo):
+        result = object.__new__(type(self))
+        memo[id(self)] = result
+        for name, value in self.__dict__.items():
+            result.__dict__[name] = None if name == "_native" else deepcopy(value, memo)
+        if self._native is not None:
+            result._native_compile()
+        return result
 
     def _index_tree(self, root):
         sets = information_sets(root)
@@ -192,6 +241,8 @@ class PCFRPlus:
         if self.schedule == "simultaneous" or not self.rounds:
             self._initial_actions.update({(p, key): action for (p, key), action in (initial_actions or {}).items()
                                           if key in added[p]})
+        if self._native is not None:
+            self._native_compile()  # carries every set's state by key, including the ones just added
 
     def _check_recall(self, node, histories, seen):
         if node.payoff is not None:
@@ -333,6 +384,10 @@ class PCFRPlus:
             key: value.copy() for key, value in self._strategy[1 - player].items()}
 
     def step(self) -> None:
+        native = self._native
+        if native is not None and not native.instrumented and "_utilities" not in self.__dict__:
+            native.step(self)
+            return
         if self.schedule == "simultaneous":
             for player in (0, 1):
                 self._prepare(player)
