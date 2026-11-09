@@ -179,7 +179,7 @@ The provisional allocations total 13:35. A new 35-second visibility/belief expla
 
 **Purpose:** Bridge from state representation to Colin’s learning and evaluation section. Planned 15 seconds.
 
-**Say:** I’ll hand over to Colin to explain how we learn these values and test whether they improve our moves.
+**Say:** I’ll hand over to Colin to explain how we learn these value estimates, and test whether they lead to better moves.
 
 **Delivery cues (not spoken):** Click to this slide after finishing the representation explanation. Address the audience, then turn to Colin at the end. Colin takes over on the next slide. This is the only presenter handoff.
 
