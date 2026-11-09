@@ -2,13 +2,38 @@
 
 Conditional utilities aggregate all expanded occurrences of an infoset under
 the current raw profile. Expansion counts are separate from CFR iterations.
+
+With a native solver (PCFRPlus backend "native") on the sampled tree, select() takes the utilities from the PCFR+
+kernel's walk of the compiled tree under the published strategies (flat_utilities, equal to utilities() of
+solver.policy()) and reads the strategies of the nodes on the sampled path from the solver's arrays, so no policy
+dictionaries are built; the random draws are the same.
 """
 
+from collections.abc import Mapping
 from math import sqrt
 from random import Random
 from time import perf_counter
 
 from .chess_search import SearchBudgetError
+
+
+class FlatUtilities(Mapping):
+    """(player, infoset) -> {action: conditional utility}, read on access from the kernel's per-player arrays;
+    the sets and slots are the solver's at the time of the walk."""
+
+    def __init__(self, sets, slots, values):
+        self._sets, self._slots, self._values = sets, slots, values
+
+    def __getitem__(self, key):
+        player, infoset = key
+        start, stop = self._slots[player][infoset]
+        return dict(zip(self._sets[player][infoset], self._values[player][start:stop].tolist()))
+
+    def __iter__(self):
+        return ((player, infoset) for player in (0, 1) for infoset in self._sets[player])
+
+    def __len__(self):
+        return len(self._sets[0]) + len(self._sets[1])
 
 
 class OneSidedExpansion:
@@ -50,6 +75,16 @@ class OneSidedExpansion:
                          sum(row[a] for row in fallback[key]) / len(fallback[key]))
                       for a, v in values.items()} for key, values in totals.items()}
 
+    def flat_utilities(self, solver, deadline=None):
+        """utilities(solver.root, solver.policy(), deadline) from the native kernel; the deadline is checked before
+        and after the walk instead of at every node."""
+        if deadline is not None and perf_counter() >= deadline:
+            raise SearchBudgetError("growth_deadline")
+        values = solver._native.growth_utilities()
+        if deadline is not None and perf_counter() >= deadline:
+            raise SearchBudgetError("growth_deadline")
+        return FlatUtilities(solver.sets, solver._native.slots, values)
+
     def distribution(self, player, infoset, policy, utilities):
         if player != self.explorer:
             return dict(policy)
@@ -70,15 +105,25 @@ class OneSidedExpansion:
         """Failed grafts leave state unchanged; terminal draws consume RNG only."""
         rng = Random()
         rng.setstate(self.rng.getstate())
-        profile = solver.policy()
-        utilities = self.utilities(tree.root, profile, deadline)
+        if getattr(solver, "_native", None) is not None and tree.root is solver.root:
+            utilities = self.flat_utilities(solver, deadline)
+            sets, strategies = solver.sets, solver._strategy
+
+            def policy_of(player, infoset):  # = solver.policy()[player][infoset], for this node only
+                return dict(zip(sets[player][infoset], strategies[player][infoset].tolist()))
+        else:
+            profile = solver.policy()
+            utilities = self.utilities(tree.root, profile, deadline)
+
+            def policy_of(player, infoset):
+                return profile[player][infoset]
         path, visited, node = (), [], tree.root
         while node.payoff is None:
             if node.player is None:
                 policy = node.probabilities
             else:
                 key = (node.player, node.infoset)
-                policy = self.distribution(*key, profile[node.player][node.infoset], utilities[key])
+                policy = self.distribution(*key, policy_of(*key), utilities[key])
             action = rng.choices(list(policy), weights=list(policy.values()), k=1)[0]
             if node.player == self.explorer:
                 visited.append(((node.player, node.infoset), action))
