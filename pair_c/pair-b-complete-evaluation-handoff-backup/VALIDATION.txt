@@ -1,0 +1,24 @@
+HANDOFF VALIDATION — 9 NOVEMBER 2026
+
+Eleven synthetic orchestration tests passed. They cover advancement through all
+stages, stopping before a batch after failed readiness, expected opening caps,
+unscored readiness caps, missing diagnostics, real process timeout/termination,
+corrupt/partial records, engine/source provenance rejection, player identity
+across colour swaps, excluding pilots from batch analysis, explicit missing/
+unplayed accounting, rule-decided zero-evaluator trees, and final ZIP creation.
+The simulated batch uses synthetic test records, not measured game results.
+
+The real preflight was run on the existing local Network 1 checkpoint and
+Stockfish 19, choosing CPU (torch 2.2.2) and returning values for all 20 initial
+moves. Separately, the earlier pilot with the same settings completed both
+standard-start four-ply attempts: eight legal actions, zero failed attempts,
+16 solver rounds per action and zero action over-budget flags. Those attempts
+were capped/unscored. Nineteen core runtime files in that local snapshot matched
+the pinned source commit by blob hash. Its source was not a full Git checkout.
+
+No full readiness/batch experiment, real CUDA run or Windows taskkill exercise
+was performed here. The handoff requires the clean pinned checkout for the
+actual run. The POSIX timeout path was exercised; the Windows process-tree stop
+uses the standard taskkill /T /F operation. Runtime source, weights, PR33 and
+remote branches were not changed. No test/model/data artifacts are included in
+the handoff ZIP, and the package does not upload files automatically.

@@ -1,0 +1,31 @@
+Hi Zhijian, attached is the evaluation package for Network 1 versus Stockfish D1 using the merged search code. No new training or pending Pair A PRs are required.
+
+Please take this through to completion without waiting for us between stages:
+
+1. Follow README.txt using the pinned commit and your existing Python environment. The command checks the setup/device, runs opening and full-game readiness checks, then automatically proceeds to 50 colour-swapped pairs (100 batch games) if those pass. The default limit is four hours.
+
+2. If a check fails or the time limit is reached, retain all outputs and report that outcome. Don’t change the model, tracker policy, budgets or source to force a successful run. Failed/capped games must remain accounted for and must not be scored as draws.
+
+3. Open a PR containing the final configs, results summary, analysis and accessible supporting records. Include the exact source/checkpoint/engine identities, actual device, attempted/completed/failed/capped/unplayed counts, and any machine interruption. The generated return ZIP contains the supporting outputs.
+
+4. If you’re confident the results and interpretation are correct, and required checks/reviews are satisfied, you can merge that evaluation PR. If you need our approval, tag Colin and me on the PR with the exact remaining questions and say explicitly that it is ready for approval and merge. We can then review and merge directly without another round of coordination.
+
+If the evaluation cannot complete, a reproducible diagnostic PR documenting the limitation is still a useful completed deliverable—no need to troubleshoot Pair A’s pending work.
+
+Please keep this scoped to the evaluation; leave PR33 and unrelated PRs untouched. Thanks!
+
+Hi Zhijian, please use this new ZIP instead of the earlier pilot-only package.
+
+It has one command and complete instructions in README.txt. It checks the pinned
+merged code, model, Stockfish and device; runs opening and full-game readiness
+checks; and, if those pass, automatically runs 50 colour-swapped pairs (100 batch
+games), analyses them and creates a return ZIP. The default limit is four hours.
+
+You don't need to wait for us between stages. If a setup/readiness check or
+resource limit fails, it stops and packages the diagnosis instead. Please don't
+change code, training, weights or experiment settings to force it through.
+
+Send us the *-return.zip printed at the end, including failures and incomplete
+attempts. A diagnostic stop is the final outcome for this configuration; no need
+to troubleshoot the pending Pair A PRs. Please also mention any machine/power
+interruption. Thanks!

@@ -1,0 +1,21 @@
+ADAPTATION STATUS
+
+The earlier11 synthetic tests and external CPU results do not validate this
+modified controller. The former fixed/Python test suite has been replaced by a
+small __main__ orchestration smoke check; it has NOT been run in this edit.
+No evaluation, model inference, native build, tests or controller execution was
+started by the editing assistant, per the user's instruction.
+
+Existing host GPU readiness on PR76 aaa000a: seeds17/18, four terminal games,
+zero caps/failures/fallbacks/search overruns; maximum observed tracker update
+39068.2ms (seed17) and683.1ms (seed18). These are prior local readiness records,
+not validation of this controller and not batch strength results. The controller
+repeats its own GPU gates and preserves their records separately from batch.
+Windows process-tree termination and full four-hour orchestration have not been
+revalidated here. Review modified scripts before launching.
+
+Follow-up review: all four Python files passed AST syntax parsing and
+git diff --check passed. No controller/test/model/engine execution was performed.
+Provenance checks no longer depend on assertions; malformed worker records are
+excluded with unknown outcome slots so diagnostic finalization can continue.
+The documented source worktree is now CS5446_evaluation at the same PR76 commit.

@@ -1,0 +1,8 @@
+Current formal evaluation: GPU Network 1 vs SF19 D1 on pinned PR76 runtime.
+Follow README.txt. The controller uses native bounded-history tracking and anytime
+search, repeats GPU readiness, then launches50 fixed colour pairs if gates pass.
+Keep failed/capped/incomplete outputs. No source/weights/budgets changes during a
+run; use a fresh output directory for each invocation. Return the printed ZIP and
+report machine or operator interruptions. Previous exact-tracker failures remain
+separate. This file describes the locally adapted workflow, not a new message or
+approval from Bryan/Colin. No remote action is performed by this package.
