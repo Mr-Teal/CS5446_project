@@ -68,6 +68,20 @@ class GadgetFrontiers:
             assert list(self.frontiers.items()) == list(rebuilt.frontiers.items())
 
 
+_VALUE_SLACK = 1e-9
+
+
+def _bounded(value):
+    """A solver value as a label. Roots whose leaves are all exactly +-1 can come back as 1 + 2e-16 through the
+    belief weights and the compensated sums; TrainingRecord refuses that and the whole game fails (an Atlas gen-0
+    game, 2026-11-10). Overshoot within the slack is clamped; anything beyond it is a real defect and is left for
+    the contract to raise on."""
+    value = float(value)
+    if -1.-_VALUE_SLACK <= value <= 1.+_VALUE_SLACK:
+        return min(1., max(-1., value))
+    return value
+
+
 class ChessSubgameAgent(FixedDepthPCFRAgent):
     name = "sampled-I2-gadget-pcfr-prototype-v2"
     ROUND_BATCH = 32  # most rounds per solver.run() call between two clock checks
@@ -385,6 +399,6 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
         if not game_id.strip():
             raise ValueError("label runs require a game_id")
         result = self.solve(turn)
-        return TrainingRecord(turn, result.decision, result.root_value,
-                              result.hypothesis_values, self._seed, self.name,
+        return TrainingRecord(turn, result.decision, _bounded(result.root_value),
+                              tuple(_bounded(v) for v in result.hypothesis_values), self._seed, self.name,
                               self.config_id, game_id)

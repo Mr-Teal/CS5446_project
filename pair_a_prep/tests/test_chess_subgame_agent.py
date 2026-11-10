@@ -141,6 +141,25 @@ def test_failed_projection_discards_saved_blueprint_and_next_turn_recovers():
     assert agent.last_projection.boundaries is None
 
 
+def test_labels_clamp_floating_point_overshoot_of_the_value_bounds():
+    # A root whose leaves are all exactly +-1 can come back as 1 + 2e-16 through the belief weights and the
+    # compensated sums. TrainingRecord refuses such a value and the runner then fails the whole game (an Atlas
+    # generation-0 game at 12 s, 2026-11-10). Overshoot within 1e-9 is clamped; beyond it the contract still raises.
+    config = AnytimeConfig(growth="one_sided", rounds=4, final_rounds=1,
+                           stop_on_time=False, max_evaluator_calls=256, max_nodes=2000)
+    agent = ChessSubgameAgent(ConstantLeaf(), config, KINGS)
+    agent.reset("white", 17)
+    turn = turn_after()
+    real = agent.solve(turn)
+    n = len(turn.belief.hypotheses)
+    agent.solve = lambda _turn: replace(real, hypothesis_values=(1+1e-12,)*n, root_value=-(1+1e-12))
+    record = agent.label(turn, "overshoot")
+    assert record.hypothesis_values == (1.,)*n and record.root_value == -1.
+    agent.solve = lambda _turn: replace(real, hypothesis_values=(1+1e-6,)*n, root_value=1.)
+    with pytest.raises(ValueError, match="finite and in"):
+        agent.label(turn, "overshoot")
+
+
 def test_projected_labels_follow_the_label_definitions_contract():
     # pair_b/docs/label_definitions.md: one value per hypothesis under the raw
     # profile, root_value their belief-weighted mean, raw root policy, played
