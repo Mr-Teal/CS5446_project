@@ -16,6 +16,10 @@ gadget's controller rewrites its root distribution in place between rounds.
 Instrumentation that replaces PCFRPlus._utilities or a minimizer's observe/next_strategy on an instance (to count
 or spy on calls) sets `instrumented`, and PCFRPlus.step then runs that solver's rounds in Python on the same views.
 
+Threads: FOW_PCFR_THREADS (default 1) sets the number of threads of the kernel's root-parallel walks when the
+library is loaded, FOW_PCFR_PARALLEL_NODES the smallest tree they run on (default 1024 nodes); set_threads()
+changes both. The results do not depend on them (see pcfr_kernel.cpp).
+
 Build with `python -m pair_a_prep.build_pcfr_kernel`; library() returns None when the build is missing or stale.
 """
 
@@ -26,6 +30,7 @@ from functools import lru_cache
 from hashlib import sha256
 from itertools import chain
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -83,10 +88,20 @@ def library():
                        ("pcfr_growth_utilities", [solver, _P, _P]),
                        ("pcfr_behavioral_values", [solver, C.c_int32, _P, _P]),
                        ("pcfr_run_gadget", [solver, C.POINTER(Control), C.c_int64, C.c_int64, C.POINTER(C.c_int64),
-                                            C.c_int, C.c_int, _P, _P, _P])):
+                                            C.c_int, C.c_int, _P, _P, _P]),
+                       ("pcfr_set_threads", [C.c_int, C.c_int])):
         function = getattr(dll, name)
         function.argtypes, function.restype = args, C.c_int
+    dll.pcfr_parallel_walks.argtypes, dll.pcfr_parallel_walks.restype = [], C.c_int64
+    dll.pcfr_set_threads(int(os.environ.get("FOW_PCFR_THREADS", "1") or 1),
+                         int(os.environ.get("FOW_PCFR_PARALLEL_NODES", "-1") or -1))
     return dll
+
+
+def set_threads(threads, min_nodes=-1):
+    """The number of threads of the kernel's root-parallel walks (at least 1) and, if not negative, the smallest
+    tree in nodes they run on (default 1024); returns the previous number of threads."""
+    return library().pcfr_set_threads(int(threads), int(min_nodes))
 
 
 _ERRORS = {-1: "observe the pending strategy first", -2: "request a strategy before observing utilities",

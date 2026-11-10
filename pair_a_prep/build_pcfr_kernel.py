@@ -44,8 +44,9 @@ def main():
     digest = sha256(json.dumps(source_hashes(), sort_keys=True).encode()).hexdigest()[:16]
     library = directory / f"pcfr_kernel-{digest}{library_suffix()}"
     # -ffp-contract=off: no fused multiply-adds beyond the explicit std::fma that mirrors numpy's dot.
-    command = [compiler, "-std=c++17", "-O3", "-DNDEBUG", "-ffp-contract=off", "-shared", "-static-libgcc",
-               "-static-libstdc++"]
+    # -fopenmp: the root-parallel walks (pcfr_set_threads); libgomp stays a shared library.
+    command = [compiler, "-std=c++17", "-O3", "-DNDEBUG", "-ffp-contract=off", "-fopenmp", "-shared",
+               "-static-libgcc", "-static-libstdc++"]
     if sys.platform != "win32":
         command.append("-fPIC")
     command += [str(ROOT / "pcfr_kernel.cpp"), "-o", str(library)]

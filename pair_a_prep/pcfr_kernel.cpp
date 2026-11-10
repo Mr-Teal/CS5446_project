@@ -10,10 +10,22 @@
 //   * elementwise updates are single IEEE operations, so they match exactly (build with -ffp-contract=off).
 // Return codes: 0 success, -1 next strategy requested while feedback is pending, -2 feedback without a
 // pending strategy (the two ValueErrors of PredictiveRMPlus).
+//
+// Threads (pcfr_set_threads, default 1). With more than one thread the walks over the whole tree (utilities,
+// each prediction level, the average, the growth utilities) visit the root's children in parallel (OpenMP), one
+// subtree per task. A subtree walk does not add into the shared per-action arrays: it records its contributions
+// in a log of its own, in DFS order, and after the parallel part the logs are applied one after the other in root
+// order, followed by the root's own operations. Every addition therefore happens in the order of the sequential
+// walk, so the results are bit-equal for every thread count (test_pcfr_threads.py). The continuations' value
+// walks of the gadget controller and pcfr_behavioral_values are independent per subtree and run in parallel too.
+// With one thread (or a tree below g_parallel_nodes nodes) the sequential code runs.
 
 #include <cmath>
 #include <cstdint>
 #include <vector>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 extern "C" {
 
@@ -162,11 +174,27 @@ struct Compensated {
     double value() const { return (c != 0.0 && std::isfinite(c)) ? total + c : total; }
 };
 
-struct Scratch {
-    std::vector<double> stack, values, theta, zeros, memo, mass, fallback, compensation;
-    std::vector<int8_t> memo_set, in_level, seen, started;
-    std::vector<int32_t> count;
+// One root subtree's contributions to the shared per-action arrays, in the order the sequential walk makes them.
+struct Log {
+    std::vector<int32_t> head;  // per entry: the walk's own fields (see each walk)
+    std::vector<double> data;   // per entry: its numbers
+    void clear() {
+        head.clear();
+        data.clear();
+    }
 };
+
+struct Scratch {
+    std::vector<double> stack, values, theta, zeros, memo, mass, fallback, compensation, child_values;
+    std::vector<int8_t> memo_set, in_level, seen, started, seen_local;
+    std::vector<int32_t> count, touched, root_child;
+    std::vector<double> root_reach;
+    std::vector<Log> logs;
+};
+
+int g_threads = 1;
+int g_parallel_nodes = 1024;  // smaller trees run sequentially (the results are the same; tests lower it)
+int64_t g_parallel_walks = 0;  // root-parallel walks run so far (tests check that the parallel path ran)
 
 Scratch& scratch() {
     static thread_local Scratch s;
@@ -184,6 +212,7 @@ struct UtilityWalk {
     const double* opponent;
     double* values;
     double* stack;
+    Log* log = nullptr;  // set: record (offset, n) and the n products instead of adding them into values
 
     double visit(int node, double reach) {
         const int8_t kind = s.kind[node];
@@ -206,14 +235,29 @@ struct UtilityWalk {
         for (int i = 0; i < n; ++i)
             action_values[i] = visit(s.child[begin + i], p != player ? reach * strategy[i] : reach * 1.0);
         if (p == player) {
-            double* target = values + offset;
-            for (int i = 0; i < n; ++i) target[i] += reach * action_values[i];
+            if (log) {
+                log->head.push_back(offset);
+                log->head.push_back(n);
+                for (int i = 0; i < n; ++i) log->data.push_back(reach * action_values[i]);
+            } else {
+                double* target = values + offset;
+                for (int i = 0; i < n; ++i) target[i] += reach * action_values[i];
+            }
         }
         const double value = dot(strategy, action_values, n);
         stack -= n;
         return value;
     }
 };
+
+// Adds a UtilityWalk / PredictionWalk log into values, entry by entry, as the walk would have.
+void replay_values(const Log& log, double* values) {
+    size_t d = 0;
+    for (size_t h = 0; h < log.head.size(); h += 2) {
+        double* target = values + log.head[h];
+        for (int i = 0; i < log.head[h + 1]; ++i) target[i] += log.data[d++];
+    }
+}
 
 // One level of PCFRPlus._prepare_fast: predictions for the sets flagged in_level, memo over final own nodes.
 struct PredictionWalk {
@@ -225,6 +269,7 @@ struct PredictionWalk {
     double* memo;
     int8_t* memo_set;
     double* stack;
+    Log* log = nullptr;  // as in UtilityWalk
 
     double visit(int node, double reach) {
         const int8_t kind = s.kind[node];
@@ -249,8 +294,14 @@ struct PredictionWalk {
             const double* strategy = side.strategy + offset;
             for (int i = 0; i < n; ++i) action_values[i] = visit(s.child[begin + i], reach);
             if (in_level[set]) {
-                double* target = values + offset;
-                for (int i = 0; i < n; ++i) target[i] += reach * action_values[i];
+                if (log) {
+                    log->head.push_back(offset);
+                    log->head.push_back(n);
+                    for (int i = 0; i < n; ++i) log->data.push_back(reach * action_values[i]);
+                } else {
+                    double* target = values + offset;
+                    for (int i = 0; i < n; ++i) target[i] += reach * action_values[i];
+                }
             }
             value = dot(strategy, action_values, n);
             if (side.depth[set] > depth) {
@@ -266,6 +317,10 @@ struct PredictionWalk {
         return value;
     }
 };
+
+bool parallel_root(const PcfrSolver& s);
+void utility_parallel(const PcfrSolver& s, int player, const double* opponent, double* values);
+void prediction_parallel(const PcfrSolver& s, const PredictionWalk& base);
 
 // PredictiveRMPlus.next_strategy followed by the initial-action override of PCFRPlus._publish.
 void publish(const PcfrSolver& s, int player, int set, const double* prediction, double* theta) {
@@ -332,7 +387,8 @@ int prepare(const PcfrSolver& s, int player) {
         }
         PredictionWalk walk{s, player, side.level_depth[level], w.in_level.data(), w.values.data(),
                             w.memo.data(), w.memo_set.data(), w.stack.data()};
-        walk.visit(0, 1.0);
+        if (parallel_root(s)) prediction_parallel(s, walk);
+        else walk.visit(0, 1.0);
         for (int k = begin; k < end; ++k) {
             const int set = side.level_sets[k];
             publish(s, player, set, w.values.data() + side.offset[set], w.theta.data());
@@ -349,8 +405,12 @@ int observe(const PcfrSolver& s, int player) {
     Scratch& w = scratch();
     reserve_stack(s, w);
     w.values.assign(total_actions(side) + 1, 0.0);
-    UtilityWalk walk{s, player, nullptr, w.values.data(), w.stack.data()};
-    walk.visit(0, 1.0);
+    if (parallel_root(s)) {
+        utility_parallel(s, player, nullptr, w.values.data());
+    } else {
+        UtilityWalk walk{s, player, nullptr, w.values.data(), w.stack.data()};
+        walk.visit(0, 1.0);
+    }
     for (int set = 0; set < side.n_sets; ++set) {
         const int offset = side.offset[set], n = side.offset[set + 1] - offset;
         const double* utilities = w.values.data() + offset;
@@ -404,6 +464,7 @@ struct GrowthWalk {
     int8_t* started[2];       // per action: the compensated sum has its first term
     int32_t* count[2];        // per set: nodes visited
     double* stack;
+    Log* log = nullptr;       // set: record (p, set, offset, n) and (reach, n signed values) instead (see replay)
 
     double visit(int node, double reach) {
         const int8_t kind = s.kind[node];
@@ -423,6 +484,15 @@ struct GrowthWalk {
         double* values = stack;
         stack += n;
         for (int i = 0; i < n; ++i) values[i] = visit(s.child[begin + i], reach * strategy[i]);
+        if (log) {
+            log->head.insert(log->head.end(), {p, set, offset, n});
+            log->data.push_back(reach);
+            for (int i = 0; i < n; ++i) log->data.push_back(p == 0 ? values[i] * 1.0 : values[i] * -1.0);
+            Compensated value;
+            for (int i = 0; i < n; ++i) value.add(strategy[i] * values[i]);
+            stack -= n;
+            return value.value();
+        }
         for (int i = 0; i < n; ++i) {
             const double signed_value = p == 0 ? values[i] * 1.0 : values[i] * -1.0;
             totals[p][offset + i] += reach * signed_value;
@@ -438,6 +508,26 @@ struct GrowthWalk {
         for (int i = 0; i < n; ++i) value.add(strategy[i] * values[i]);
         stack -= n;
         return value.value();
+    }
+
+    // A logged node's updates, in the order visit() makes them.
+    void replay(const Log& log) {
+        size_t d = 0;
+        for (size_t h = 0; h < log.head.size(); h += 4) {
+            const int p = log.head[h], set = log.head[h + 1], offset = log.head[h + 2], n = log.head[h + 3];
+            const double reach = log.data[d++];
+            for (int i = 0; i < n; ++i) {
+                const double signed_value = log.data[d++];
+                totals[p][offset + i] += reach * signed_value;
+                Compensated term{fallback[p][offset + i], compensation[p][offset + i], !started[p][offset + i]};
+                term.add(signed_value);
+                fallback[p][offset + i] = term.total;
+                compensation[p][offset + i] = term.c;
+                started[p][offset + i] = 1;
+            }
+            mass[p][set] += reach;
+            count[p][set] += 1;
+        }
     }
 };
 
@@ -469,6 +559,217 @@ double behavioral_visit(const PcfrSolver& s, int node) {
     return sum.value();
 }
 
+// Root-parallel walks (see the header). The root's children are walked as tasks, each into its own log; the logs
+// are then applied in root order and the root's own operations follow, as in the sequential visit of node 0.
+
+bool parallel_root(const PcfrSolver& s) {
+    if (g_threads <= 1 || s.n_nodes < g_parallel_nodes) return false;
+    const int8_t kind = s.kind[0];
+    if (kind == TERMINAL) return false;
+    const int count = kind == CHANCE ? s.chance_begin[1] - s.chance_begin[0] : s.child_begin[1] - s.child_begin[0];
+    return count >= 2;
+}
+
+template <class Body>
+void for_each_task(int m, const Body& body) {
+    ++g_parallel_walks;
+#pragma omp parallel for schedule(dynamic, 1) num_threads(g_threads)
+    for (int k = 0; k < m; ++k) body(k);
+}
+
+// The root's children in visit order with their reach (`chance`: the probabilities order, else the children order).
+void root_children(const PcfrSolver& s, Scratch& w, bool chance) {
+    w.root_child.clear();
+    w.root_reach.clear();
+    if (chance) {
+        for (int k = s.chance_begin[0]; k < s.chance_begin[1]; ++k) w.root_child.push_back(s.chance_child[k]);
+    } else {
+        for (int k = s.child_begin[0]; k < s.child_begin[1]; ++k) w.root_child.push_back(s.child[k]);
+    }
+    const size_t m = w.root_child.size();
+    if (w.logs.size() < m) w.logs.resize(m);
+    for (size_t k = 0; k < m; ++k) w.logs[k].clear();
+    w.child_values.assign(m, 0.0);
+}
+
+// UtilityWalk::visit(0, 1.0).
+void utility_parallel(const PcfrSolver& s, int player, const double* opponent, double* values) {
+    Scratch& w = scratch();
+    const double reach = 1.0;
+    const bool chance = s.kind[0] == CHANCE;
+    root_children(s, w, chance);
+    const int m = static_cast<int>(w.root_child.size());
+    const int p = chance ? -1 : s.player[0];
+    const int offset = chance ? 0 : s.side[p].offset[s.infoset[0]];
+    const double* strategy = chance ? nullptr : (p != player && opponent) ? opponent + offset : s.side[p].strategy + offset;
+    for (int k = 0; k < m; ++k)
+        w.root_reach.push_back(chance ? reach * s.chance_prob[s.chance_begin[0] + k]
+                                      : (p != player ? reach * strategy[k] : reach * 1.0));
+    Log* logs = w.logs.data();
+    double* out = w.child_values.data();
+    const int32_t* child = w.root_child.data();
+    const double* child_reach = w.root_reach.data();
+    for_each_task(m, [&](int k) {
+        Scratch& t = scratch();
+        reserve_stack(s, t);
+        UtilityWalk walk{s, player, opponent, values, t.stack.data(), &logs[k]};
+        out[k] = walk.visit(child[k], child_reach[k]);
+    });
+    for (int k = 0; k < m; ++k) replay_values(logs[k], values);
+    if (!chance && p == player)
+        for (int i = 0; i < m; ++i) values[offset + i] += reach * out[i];
+    // The root's value (a compensated sum or a dot) is not used by any caller.
+}
+
+// PredictionWalk::visit(0, 1.0) for the walk `base` (its stack and log are per task).
+void prediction_parallel(const PcfrSolver& s, const PredictionWalk& base) {
+    if (base.memo_set[0]) return;
+    Scratch& w = scratch();
+    const double reach = 1.0;
+    const bool chance = s.kind[0] == CHANCE;
+    root_children(s, w, chance);
+    const int m = static_cast<int>(w.root_child.size());
+    const int player = base.player, p = chance ? -1 : s.player[0], set = chance ? -1 : s.infoset[0];
+    const int offset = chance ? 0 : s.side[p].offset[set];
+    for (int k = 0; k < m; ++k) {
+        if (chance) w.root_reach.push_back(reach * s.chance_prob[s.chance_begin[0] + k]);
+        else if (p == player) w.root_reach.push_back(reach);
+        else w.root_reach.push_back(reach * s.side[player].previous_opponent[offset + k]);
+    }
+    Log* logs = w.logs.data();
+    double* out = w.child_values.data();
+    const int32_t* child = w.root_child.data();
+    const double* child_reach = w.root_reach.data();
+    for_each_task(m, [&](int k) {
+        Scratch& t = scratch();
+        reserve_stack(s, t);
+        PredictionWalk walk = base;
+        walk.stack = t.stack.data();
+        walk.log = &logs[k];
+        out[k] = walk.visit(child[k], child_reach[k]);
+    });
+    for (int k = 0; k < m; ++k) replay_values(logs[k], base.values);
+    if (!chance && p == player) {
+        const PcfrSide& side = s.side[p];
+        if (base.in_level[set])
+            for (int i = 0; i < m; ++i) base.values[offset + i] += reach * out[i];
+        const double value = dot(side.strategy + offset, out, m);
+        if (side.depth[set] > base.depth) {
+            base.memo[0] = value;
+            base.memo_set[0] = 1;
+        }
+    }
+}
+
+// GrowthWalk::visit(0, 1.0) for `walk` (the shared arrays).
+void growth_parallel(const PcfrSolver& s, GrowthWalk& walk) {
+    Scratch& w = scratch();
+    const double reach = 1.0;
+    const bool chance = s.kind[0] == CHANCE;
+    root_children(s, w, chance);
+    const int m = static_cast<int>(w.root_child.size());
+    const int p = chance ? -1 : s.player[0], set = chance ? -1 : s.infoset[0];
+    const int offset = chance ? 0 : s.side[p].offset[set];
+    for (int k = 0; k < m; ++k)
+        w.root_reach.push_back(chance ? reach * s.chance_prob[s.chance_begin[0] + k]
+                                      : reach * s.side[p].strategy[offset + k]);
+    Log* logs = w.logs.data();
+    double* out = w.child_values.data();
+    const int32_t* child = w.root_child.data();
+    const double* child_reach = w.root_reach.data();
+    for_each_task(m, [&](int k) {
+        Scratch& t = scratch();
+        reserve_stack(s, t);
+        GrowthWalk task = walk;
+        task.stack = t.stack.data();
+        task.log = &logs[k];
+        out[k] = task.visit(child[k], child_reach[k]);
+    });
+    for (int k = 0; k < m; ++k) walk.replay(logs[k]);
+    if (!chance) {
+        Log own;
+        own.head.insert(own.head.end(), {p, set, offset, m});
+        own.data.push_back(reach);
+        for (int i = 0; i < m; ++i) own.data.push_back(p == 0 ? out[i] * 1.0 : out[i] * -1.0);
+        walk.replay(own);
+    }
+}
+
+// accumulate_visit for a subtree: the first visit of each set (in DFS order) and its own reach, into `log`.
+void accumulate_log(const PcfrSolver& s, int player, int8_t* seen, std::vector<int32_t>& touched, Log& log, int node,
+                    double own_reach) {
+    const int8_t kind = s.kind[node];
+    if (kind == TERMINAL) return;
+    const int begin = s.child_begin[node], end = s.child_begin[node + 1];
+    if (kind == DECISION && s.player[node] == player) {
+        const PcfrSide& side = s.side[player];
+        const int set = s.infoset[node];
+        const double* strategy = side.strategy + side.offset[set];
+        if (!seen[set]) {
+            seen[set] = 1;
+            touched.push_back(set);
+            log.head.push_back(set);
+            log.data.push_back(own_reach);
+        }
+        for (int i = 0; i < end - begin; ++i)
+            accumulate_log(s, player, seen, touched, log, s.child[begin + i], own_reach * strategy[i]);
+    } else {
+        for (int k = begin; k < end; ++k) accumulate_log(s, player, seen, touched, log, s.child[k], own_reach);
+    }
+}
+
+// accumulate_visit(0, 1.0) with the global first-visit flags `seen`.
+void accumulate_parallel(const PcfrSolver& s, int player, double weight, int8_t* seen) {
+    Scratch& w = scratch();
+    const PcfrSide& side = s.side[player];
+    const double own_reach = 1.0;
+    root_children(s, w, false);
+    const int m = static_cast<int>(w.root_child.size());
+    const bool own = s.kind[0] == DECISION && s.player[0] == player;
+    if (own) {
+        const int set = s.infoset[0], offset = side.offset[set];
+        if (!seen[set]) {
+            const double scale = weight * own_reach;
+            for (int i = 0; i < m; ++i) side.sums[offset + i] += scale * side.strategy[offset + i];
+            seen[set] = 1;
+        }
+        for (int i = 0; i < m; ++i) w.root_reach.push_back(own_reach * side.strategy[offset + i]);
+    } else {
+        for (int i = 0; i < m; ++i) w.root_reach.push_back(own_reach);
+    }
+    Log* logs = w.logs.data();
+    const int32_t* child = w.root_child.data();
+    const double* child_reach = w.root_reach.data();
+    const size_t sets = static_cast<size_t>(side.n_sets) + 1;
+    for_each_task(m, [&](int k) {
+        Scratch& t = scratch();
+        if (t.seen_local.size() < sets) t.seen_local.resize(sets, 0);
+        accumulate_log(s, player, t.seen_local.data(), t.touched, logs[k], child[k], child_reach[k]);
+        for (int32_t set : t.touched) t.seen_local[set] = 0;
+        t.touched.clear();
+    });
+    for (int k = 0; k < m; ++k) {
+        const Log& log = logs[k];
+        for (size_t e = 0; e < log.head.size(); ++e) {
+            const int set = log.head[e];
+            if (seen[set]) continue;
+            const int offset = side.offset[set], n = side.offset[set + 1] - offset;
+            const double scale = weight * log.data[e];
+            for (int i = 0; i < n; ++i) side.sums[offset + i] += scale * side.strategy[offset + i];
+            seen[set] = 1;
+        }
+    }
+}
+
+// values[k] = behavioral_visit(nodes[k]) for k < n, the subtrees in parallel when the tree is large.
+void behavioral_many(const PcfrSolver& s, int n, const int32_t* nodes, double* values) {
+    if (g_threads > 1 && s.n_nodes >= g_parallel_nodes && n >= 2) {
+        for_each_task(n, [&](int k) { values[k] = behavioral_visit(s, nodes[k]); });
+        return;
+    }
+    for (int k = 0; k < n; ++k) values[k] = behavioral_visit(s, nodes[k]);
+}
+
 }  // namespace
 
 extern "C" {
@@ -477,6 +778,10 @@ int pcfr_utilities(const PcfrSolver* s, int player, const double* opponent, doub
     Scratch& w = scratch();
     reserve_stack(*s, w);
     for (int a = 0; a < total_actions(s->side[player]); ++a) values[a] = 0.0;
+    if (parallel_root(*s)) {
+        utility_parallel(*s, player, opponent, values);
+        return 0;
+    }
     UtilityWalk walk{*s, player, opponent, values, w.stack.data()};
     walk.visit(0, 1.0);
     return 0;
@@ -489,7 +794,8 @@ int pcfr_observe(const PcfrSolver* s, int player) { return observe(*s, player); 
 int pcfr_accumulate_average(const PcfrSolver* s, int player, double weight) {
     Scratch& w = scratch();
     w.seen.assign(s->side[player].n_sets + 1, 0);
-    accumulate_visit(*s, player, weight, w.seen.data(), 0, 1.0);
+    if (parallel_root(*s)) accumulate_parallel(*s, player, weight, w.seen.data());
+    else accumulate_visit(*s, player, weight, w.seen.data(), 0, 1.0);
     return 0;
 }
 
@@ -552,7 +858,8 @@ int pcfr_growth_utilities(const PcfrSolver* s, double* conditional0, double* con
                     {w.fallback.data(), w.fallback.data() + a0}, {w.compensation.data(), w.compensation.data() + a0},
                     {w.started.data(), w.started.data() + a0}, {w.count.data(), w.count.data() + n0},
                     w.stack.data()};
-    walk.visit(0, 1.0);
+    if (parallel_root(*s)) growth_parallel(*s, walk);
+    else walk.visit(0, 1.0);
     double* conditional[2] = {conditional0, conditional1};
     for (int p = 0; p < 2; ++p) {
         const PcfrSide& side = s->side[p];
@@ -574,8 +881,19 @@ int pcfr_growth_utilities(const PcfrSolver* s, double* conditional0, double* con
 // value_walk of the subtrees at nodes[0..n): values[k] = the behavioral value of the subtree at nodes[k] under the
 // published strategies (what toy_games.behavioral_value returns for it with PCFRPlus.policy()).
 int pcfr_behavioral_values(const PcfrSolver* s, int32_t n, const int32_t* nodes, double* values) {
-    for (int k = 0; k < n; ++k) values[k] = behavioral_visit(*s, nodes[k]);
+    behavioral_many(*s, n, nodes, values);
     return 0;
+}
+
+int64_t pcfr_parallel_walks() { return g_parallel_walks; }
+
+// The number of threads of the root-parallel walks (at least 1) and the smallest tree (nodes) they run on
+// (negative: unchanged); returns the previous number of threads.
+int pcfr_set_threads(int n, int min_nodes) {
+    const int previous = g_threads;
+    g_threads = n < 1 ? 1 : n;
+    if (min_nodes >= 0) g_parallel_nodes = min_nodes;
+    return previous;
 }
 
 }  // extern "C"
@@ -668,7 +986,7 @@ int prm_next(const double* regrets, double* strategy, const double* previous, in
 int control_advance(const PcfrSolver& s, const GadgetControl& c, std::vector<double>& scratch,
                     std::vector<double>& partials) {
     const int g = c.n_groups;
-    for (int r = 0; r < c.n_roots; ++r) c.values[r] = behavioral_visit(s, c.root_node[r]);
+    behavioral_many(s, c.n_roots, c.root_node, c.values);
     scratch.resize(static_cast<size_t>(3 * g) + 8);
     double* terms = scratch.data();
     for (int j = 0; j < g; ++j) {
