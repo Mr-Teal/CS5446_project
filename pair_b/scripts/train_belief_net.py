@@ -10,6 +10,12 @@ A step holds whole beliefs, at most --batch of them and --max-boards boards, so 
 in main memory when they would not fit on the GPU. Writes best.pt, metrics.jsonl, splits.json
 (the games used) and summary.json into --out, which must not exist yet. summary.json records the
 SHA-256 of the data files and of best.pt, the commit and the library versions.
+
+--outcome-mix LAMBDA trains each board on (1 - LAMBDA) * its search value + LAMBDA * the final result of
+its game from the acting player's side (+1 / 0 / -1, read from --outcomes, label_run's progress.jsonl),
+as a ReBeL-style self-play loop wants. Beliefs whose game died or has no progress row keep their pure
+search value. Only the training targets are mixed: validation, model selection and eval_belief_net.py
+stay on the pure search labels.
 """
 import argparse
 import datetime
@@ -21,7 +27,8 @@ import numpy as np
 import torch
 
 from pairb.belief_ablation import LEAF_MODES, MODES, collapse
-from pairb.belief_data import ENCODING, belief_batches, load_arrays, rows_of
+from pairb.belief_data import (ENCODING, belief_batches, game_outcomes, load_arrays, mixed_targets,
+                               record_outcomes, rows_of)
 from pairb.belief_eval import baseline_pred, errors, predict, require_d1
 from pairb.belief_net import BeliefNetwork
 from pairb.data import split_of
@@ -93,7 +100,18 @@ def main():
     ap.add_argument("--device", default="auto", help="auto, cuda, mps or cpu")
     ap.add_argument("--workers", type=int, default=8, help="processes encoding the records")
     ap.add_argument("--cache-dir", default=str(ROOT / "data" / "cache"))
+    ap.add_argument("--outcome-mix", type=float, default=0.0,
+                    help="train on (1 - this) * search value + this * the game's final result (acting player's side); "
+                         "0 = pure search values")
+    ap.add_argument("--outcomes", nargs="+", default=None,
+                    help="label_run progress.jsonl files with each game's winner; default <data>/progress.jsonl if it exists")
     args = ap.parse_args()
+    if not 0.0 <= args.outcome_mix <= 1.0:
+        raise SystemExit("--outcome-mix must be in [0, 1]")
+    if args.outcomes is None:
+        args.outcomes = [str(Path(args.data) / "progress.jsonl")] if (Path(args.data) / "progress.jsonl").exists() else []
+    if args.outcome_mix > 0 and not args.outcomes:
+        raise SystemExit("--outcome-mix needs --outcomes (or a progress.jsonl in --data)")
 
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=False)
@@ -102,7 +120,15 @@ def main():
     started = time.time()
 
     source = data_source(args.data, args.pattern)  # the bytes read below
-    arrays = collapse(load_arrays(args.data, args.cache_dir, args.workers, args.pattern), args.input)
+    records = load_arrays(args.data, args.cache_dir, args.workers, args.pattern)
+    arrays = collapse(records, args.input)
+    # Game results joined by game_id at load time, not cached: progress.jsonl grows while a self-play run
+    # goes on, and re-reading it costs nothing next to re-encoding the planes.
+    results = game_outcomes(args.outcomes)
+    with_outcome = int((~np.isnan(record_outcomes(records, results))).sum())
+    outcomes = {"records_with_outcome": with_outcome, "records_without": int(len(records["root"]) - with_outcome),
+                "files": args.outcomes}
+    print(f"outcomes: {outcomes}  mix: {args.outcome_mix}", flush=True)
     split = np.array([split_of(g) for g in arrays["game_id"]])
     ids = {name: np.flatnonzero(split == name) for name in ("train", "val", "test")}
     n = {name: {"beliefs": int(len(ids[name])), "boards": int(len(rows_of(arrays, ids[name])[0]))}
@@ -139,7 +165,9 @@ def main():
         "train": sorted(set(arrays["game_id"][trained].tolist())),
         "val": sorted(set(arrays["game_id"][ids["val"]].tolist())),
         "test_held_out_games": len(set(arrays["game_id"][ids["test"]].tolist()))}) + "\n")
-    y_all, w_all = torch.from_numpy(arrays["y"]).to(device), torch.from_numpy(arrays["weight"]).to(device)
+    # The training targets; validation below (errors, predict) reads the pure labels in `arrays`.
+    y_train = mixed_targets(arrays, record_outcomes(arrays, results), args.outcome_mix) if args.outcome_mix > 0 else arrays["y"]
+    y_all, w_all = torch.from_numpy(y_train).to(device), torch.from_numpy(arrays["weight"]).to(device)
     keep_all = torch.from_numpy(~arrays["rule"]).to(device).float()
     d1_all = torch.from_numpy(np.nan_to_num(arrays["d1"])).to(device)
     use_policy = args.policy_weight > 0
@@ -209,7 +237,7 @@ def main():
     summary = {
         "dataset": Path(args.data).name, "encoding": ENCODING, "input": args.input, "config": ckpt["config"], "params": params,
         "device": device.type, "planes_on": "device" if on_device else "host", "n": n, "baseline": baseline,
-        "val": best, "best_epoch": best_epoch,
+        "val": best, "best_epoch": best_epoch, "outcome_mix": args.outcome_mix, "outcomes": outcomes,
         "epochs_run": epoch, "ms_per_belief_of_8_boards": speed, "seconds": round(time.time() - started, 1),
         "created": datetime.datetime.now().astimezone().isoformat(timespec="seconds"), "args": vars(args),
         "source": source, "checkpoint_sha256": sha256_of(out / "best.pt"), "git_commit": git_commit(),

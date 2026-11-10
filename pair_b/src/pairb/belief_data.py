@@ -24,7 +24,7 @@ from .observe import visible_squares
 from .values import rule_value
 
 ENCODING = "fow-shared-features-32+pairb-observe-v1"  # the shared planes, with Pair B's stand-in visibility
-CACHE_VERSION = 3  # bump whenever build_arrays changes what it returns (3: policy + legal per belief)
+CACHE_VERSION = 4  # bump whenever build_arrays changes what it returns (3: policy + legal per belief; 4: player)
 
 
 def opponent_visible(board: chess.Board) -> list[str]:
@@ -57,6 +57,8 @@ def build_arrays(records) -> dict[str, np.ndarray]:
             "y": np.concatenate(y), "d1": np.concatenate(d1), "rule": np.concatenate(rule),
             "root": np.array([r.root_value for r in records], dtype=np.float32),
             "game_id": np.array([r.game_id for r in records]),
+            # the acting player, +1 white / -1 black: the perspective a game result is turned into (record_outcomes)
+            "player": np.array([1 if r.agent_input.observation.player == "white" else -1 for r in records], dtype=np.int8),
             "policy": np.stack(policy), "legal": np.stack(legal)}
 
 
@@ -100,6 +102,44 @@ def load_arrays(folder, cache_dir, workers: int = 8, pattern: str = "part-*.json
     path.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(path, **arrays)
     return arrays
+
+
+def game_outcomes(paths) -> dict[str, float]:
+    """Each game's result from label_run's progress.jsonl rows, from White's side: +1 White won, -1 Black
+    won, 0 a draw (winner null or "draw" and no error; label_run writes null for games stopped at the ply
+    limit and passes on fow_shared's "draw"), NaN a game that died (`error` set), whose result is unknown.
+    A game listed twice with different results is refused."""
+    results: dict[str, float] = {}
+    for path in paths:
+        for line in Path(path).read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            if row.get("error"):
+                value = np.nan
+            else:
+                value = {"white": 1.0, "black": -1.0, "draw": 0.0, None: 0.0}[row.get("winner")]
+            game = row["game_id"]
+            if game in results and not (results[game] == value or (np.isnan(results[game]) and np.isnan(value))):
+                raise ValueError(f"game {game} has two different results in {list(map(str, paths))}")
+            results[game] = value
+    return results
+
+
+def record_outcomes(arrays: dict[str, np.ndarray], results: dict[str, float]) -> np.ndarray:
+    """The final result of each belief's game, from its acting player's side (+1 win, 0 draw, -1 loss), as
+    float32 indexed by belief; NaN when the game died or has no result in `results`."""
+    white = np.array([results.get(g, np.nan) for g in arrays["game_id"]], dtype=np.float32)
+    return white * arrays["player"].astype(np.float32)
+
+
+def mixed_targets(arrays: dict[str, np.ndarray], outcome: np.ndarray, mix: float) -> np.ndarray:
+    """The per-board training target (1 - mix) * y + mix * outcome of the board's belief, and y itself where
+    that belief has no outcome. Mixing every board of a belief this way makes the belief-weighted mean of the
+    targets (1 - mix) * root + mix * outcome."""
+    o = outcome[arrays["belief"]]
+    y = arrays["y"]
+    return np.where(np.isnan(o), y, (1 - mix) * y + mix * np.nan_to_num(o)).astype(np.float32)
 
 
 def belief_batches(sizes: np.ndarray, order: np.ndarray, max_boards: int, max_beliefs: int | None = None) -> list[np.ndarray]:

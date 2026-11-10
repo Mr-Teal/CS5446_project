@@ -69,7 +69,7 @@ def collapse(arrays: dict[str, np.ndarray], mode: str) -> dict[str, np.ndarray]:
     out_arrays = {"planes": out, "weight": np.ones(n, dtype=np.float32), "belief": np.arange(n, dtype=np.int64),
                   "y": arrays["root"].astype(np.float32).copy(), "d1": np.full(n, np.nan, dtype=np.float32),
                   "rule": rule, "root": arrays["root"], "game_id": arrays["game_id"]}
-    for key in ("policy", "legal"):  # one row per belief already, so they carry over unchanged
+    for key in ("policy", "legal", "player"):  # one row per belief already, so they carry over unchanged
         if key in arrays:
             out_arrays[key] = arrays[key]
     return out_arrays
@@ -85,6 +85,9 @@ def _alone(arrays: dict[str, np.ndarray], masked: bool) -> dict[str, np.ndarray]
         planes[:, ENEMY] *= planes[:, VISIBLE][:, None]  # hidden pieces only in the probability planes
     n = len(arrays["y"])
     game_id = arrays["game_id"][arrays["belief"]]
-    return {"planes": planes.astype(arrays["planes"].dtype), "weight": np.ones(n, dtype=np.float32),
-            "belief": np.arange(n, dtype=np.int64), "y": arrays["y"], "d1": arrays["d1"], "rule": arrays["rule"],
-            "root": arrays["y"].astype(np.float32), "game_id": game_id}
+    out_arrays = {"planes": planes.astype(arrays["planes"].dtype), "weight": np.ones(n, dtype=np.float32),
+                  "belief": np.arange(n, dtype=np.int64), "y": arrays["y"], "d1": arrays["d1"], "rule": arrays["rule"],
+                  "root": arrays["y"].astype(np.float32), "game_id": game_id}
+    if "player" in arrays:
+        out_arrays["player"] = arrays["player"][arrays["belief"]]
+    return out_arrays
