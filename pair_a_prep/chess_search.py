@@ -43,8 +43,12 @@ def _extend(memory: str, observation: Observation, own_move: Optional[str]) -> s
     return _extend_key(memory, observation_key(observation), own_move)
 
 
+# = json.dumps(..., separators=(",", ":")), which builds this encoder on every call
+_COMPACT = json.JSONEncoder(separators=(",", ":"))
+
+
 def _extend_key(memory: str, key: str, own_move: Optional[str]) -> str:
-    payload = json.dumps([memory, own_move, key], separators=(",", ":"))
+    payload = _COMPACT.encode([memory, own_move, key])
     return sha256(payload.encode("utf-8")).hexdigest()
 
 

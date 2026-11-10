@@ -67,6 +67,51 @@ class ChessProjection:
             group_prior=self.boundaries.group_prior if mode in ("resolve", "blended") else None)
 
 
+def saved_cut(saved, rules, delta, deadline=None):
+    """The saved tree's histories `delta` plies below its roots: ([(path, node, HistoryRoot, moves)], number of
+    incomplete leaves above the cut), in DFS order. Terminal states are skipped.
+
+    A node's private memories (both players' _extend_key chains) are computed only where they are used, at the cut
+    and on the way to it: a terminal or an incomplete leaf needs none. The memories are the same pure functions of
+    the path either way (test_gadget_native.py compares the cut with an eager walk).
+    """
+    cut, incomplete = [], 0
+
+    def visit(node, context, path, moves, remaining):
+        """`context` is a HistoryRoot, or (state, parent memories, move, its mover) for a child."""
+        nonlocal incomplete
+        if deadline is not None and perf_counter() >= deadline:
+            raise SearchBudgetError("chess projection deadline")
+        state = context.state if isinstance(context, HistoryRoot) else context[0]
+        if rules.terminal(state) is not None:
+            return
+        if remaining == 0:
+            cut.append((path, node, _context(context), moves))
+            return
+        if node.payoff is not None:
+            incomplete += 1
+            return
+        memories = _context(context).memories
+        mover = rules.current_player(state)
+        for action, child in node.children.items():
+            visit(child, (rules.apply_move(state, action), memories, action, mover), path+(action,),
+                  moves+(action,), remaining-1)
+
+    def _context(context):
+        if isinstance(context, HistoryRoot):
+            return context
+        state, memories, action, mover = context
+        # = _extend(memory, rules.observe(state, p), ...): the adapter's observation_key is
+        # observation_key(observe(...)) without building the Observation on the native backend.
+        return HistoryRoot(state, tuple(_extend_key(memories[i], rules.observation_key(state, p),
+                                                    action if p == mover else None)
+                                        for i, p in enumerate(("white", "black"))))
+
+    for i, context in enumerate(saved.tree.history_roots):
+        visit(saved.tree.continuations[i], context, (str(i),), saved.paths[i], delta)
+    return cut, incomplete
+
+
 def project_chess(turn, evaluator, *, initial_fen, depth, max_nodes, saved=None, deadline=None):
     if type(depth) is not int or depth < 1:
         raise ValueError("depth must be a positive integer")
@@ -95,32 +140,7 @@ def project_chess(turn, evaluator, *, initial_fen, depth, max_nodes, saved=None,
     if observation_key(turn.history[saved.turn.observation.ply].observation) != observation_key(saved.turn.observation):
         raise ValueError("saved private observation changed")
     delta = turn.observation.ply-saved.turn.observation.ply
-    cut, incomplete = [], 0
-
-    def visit(node, context, path, moves, remaining):
-        nonlocal incomplete
-        if deadline is not None and perf_counter() >= deadline:
-            raise SearchBudgetError("chess projection deadline")
-        if rules.terminal(context.state) is not None:
-            return
-        if remaining == 0:
-            cut.append((path, node, context, moves))
-            return
-        if node.payoff is not None:
-            incomplete += 1
-            return
-        mover = rules.current_player(context.state)
-        for action, child in node.children.items():
-            state = rules.apply_move(context.state, action)
-            # = _extend(memory, rules.observe(state, p), ...): the adapter's observation_key is
-            # observation_key(observe(...)) without building the Observation on the native backend.
-            memories = tuple(_extend_key(context.memories[i], rules.observation_key(state, p),
-                                         action if p == mover else None)
-                             for i, p in enumerate(("white", "black")))
-            visit(child, HistoryRoot(state, memories), path+(action,), moves+(action,), remaining-1)
-
-    for i, context in enumerate(saved.tree.history_roots):
-        visit(saved.tree.continuations[i], context, (str(i),), saved.paths[i], delta)
+    cut, incomplete = saved_cut(saved, rules, delta, deadline)
     own_memory = current[0].memories[own_index]
     touching = {context.memories[1-own_index] for _, _, context, _ in cut
                 if context.memories[own_index] == own_memory}

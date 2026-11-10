@@ -268,3 +268,19 @@ def test_pilot_repeats_semantics_and_roundtrips_shared_training_records(tmp_path
     assert semantic_records(list(read_records(path))) == semantic_records(first)
     assert games[0]["outcome"] is None and games[0]["stopped_at_ply_limit"]
     assert max(u["population_size"] for u in games[0]["tracker_updates"]) > 1
+
+
+def test_extend_key_matches_json_dumps():
+    """_extend_key keeps one compact encoder; its payload is json.dumps(..., separators=(",", ":")) exactly."""
+    import json
+    from hashlib import sha256
+    from pair_a_prep.chess_search import _extend_key, observation_key
+
+    state = RULES.initial_state(None)
+    keys = [RULES.observation_key(state, p) for p in ("white", "black")] + [
+        '{"a":"é\\"x\\\\","b":[1.5,null,true]}', "", "♔ \n\t"]
+    for memory in ("", "ab" * 32):
+        for move in (None, "e2e4", "e7e8q"):
+            for key in keys:
+                payload = json.dumps([memory, move, key], separators=(",", ":"))
+                assert _extend_key(memory, key, move) == sha256(payload.encode("utf-8")).hexdigest()

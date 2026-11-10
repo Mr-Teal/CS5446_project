@@ -327,3 +327,67 @@ def test_recorded_games_replay_identically_through_the_gadget():
                 assert a[field] == b[field], (game_id, index, field)
         gadget_turns += sum(row["trace"] != "[]" for row in fast)
     assert gadget_turns >= 6  # turns that solved through the blended gadget, not fresh trees
+
+
+@records_only
+def test_saved_cut_equals_an_eager_walk():
+    """chess_projection.saved_cut computes a saved-tree node's private memories only where they are used (not at
+    terminals or incomplete leaves). On the saved blueprints of recorded games it equals the eager walk that
+    project_chess made before D3 (memories computed for every child): same paths, nodes, states, memories, moves and
+    incomplete count, in order."""
+    from pair_a_prep.anytime_agent import AnytimeConfig
+    from pair_a_prep.chess_projection import saved_cut
+    from pair_a_prep.chess_search import HistoryRoot, _extend_key
+    from pair_a_prep.chess_subgame_agent import ChessSubgameAgent
+    from pair_a_prep.rules_adapter import RulesAdapter
+    from pairb.material import MaterialEvaluator
+
+    rules = RulesAdapter()
+
+    def eager(saved, delta):
+        cut, incomplete = [], 0
+
+        def visit(node, context, path, moves, remaining):
+            nonlocal incomplete
+            if rules.terminal(context.state) is not None:
+                return
+            if remaining == 0:
+                cut.append((path, node, context, moves))
+                return
+            if node.payoff is not None:
+                incomplete += 1
+                return
+            mover = rules.current_player(context.state)
+            for action, child in node.children.items():
+                state = rules.apply_move(context.state, action)
+                memories = tuple(_extend_key(context.memories[i], rules.observation_key(state, p),
+                                             action if p == mover else None)
+                                 for i, p in enumerate(("white", "black")))
+                visit(child, HistoryRoot(state, memories), path+(action,), moves+(action,), remaining-1)
+
+        for i, context in enumerate(saved.tree.history_roots):
+            visit(saved.tree.continuations[i], context, (str(i),), saved.paths[i], delta)
+        return cut, incomplete
+
+    config = AnytimeConfig(growth="one_sided", rounds=48, max_nodes=16384, max_evaluator_calls=4096,
+                           stop_on_time=False, initial_depth=1, max_depth=3, rounds_per_stage=2, final_rounds=2,
+                           schedule="alternating")
+    cuts = incomplete = 0
+    for (game_id, player), turns in _games(2, 6):
+        agent = ChessSubgameAgent(MaterialEvaluator(), config, None)
+        agent.reset(player, 7)
+        for record in turns:
+            saved = agent.saved
+            if saved is not None:
+                delta = record.agent_input.observation.ply - saved.turn.observation.ply
+                got, want = saved_cut(saved, rules, delta), eager(saved, delta)
+                assert got[1] == want[1]
+                assert [(p, id(n), c.state.fen, c.memories, m) for p, n, c, m in got[0]] == [
+                    (p, id(n), c.state.fen, c.memories, m) for p, n, c, m in want[0]], game_id
+                cuts += len(got[0])
+                incomplete += got[1]
+            try:
+                agent.act(record.agent_input)
+            except ValueError:  # the recorded own move is the label agent's: see profile_move.py
+                agent.saved = None
+    assert cuts >= 100 and incomplete >= 100
