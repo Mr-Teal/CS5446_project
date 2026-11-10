@@ -266,6 +266,10 @@ def test_chess_grafts_without_copy_equal_copied_grafts(monkeypatch):
             assert before.root == snapshot and before.frontiers.keys() != trees[0].frontiers.keys()
             assert trees[0].root == trees[1].root
             assert list(trees[0].frontiers) == list(trees[1].frontiers)
+            # the previous frontiers without the selected one, in order, then the new ones (the comprehension's order)
+            kept = [(path, context) for path, context in before.frontiers.items() if path not in (proposal[0],)]
+            assert list(trees[0].frontiers.items())[:len(kept)] == kept
+            assert all(path not in before.frontiers for path in list(trees[0].frontiers)[len(kept):])
             assert (trees[0].nodes, trees[0].frontier_leaves, trees[0].terminal_leaves) == (
                 trees[1].nodes, trees[1].frontier_leaves, trees[1].terminal_leaves)
             node = trees[0].root

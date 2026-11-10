@@ -2,10 +2,10 @@
 
 from dataclasses import asdict, replace
 from hashlib import sha256
+from itertools import islice
 import json
 from math import ceil, isfinite
 from time import perf_counter
-from types import SimpleNamespace
 
 from fow_shared.contracts import Decision, TrainingRecord
 from .anytime_agent import AnytimeConfig
@@ -32,6 +32,40 @@ def opponent_key_map(projection, to_raw=False):
                 raise ValueError("opponent root memory cannot be flattened consistently")
             mapping[1, target] = source
     return mapping
+
+
+class GadgetFrontiers:
+    """The gadget path's view of the chess frontiers for OneSidedExpansion.select: `frontiers` maps a gadget path
+    (root id, then the moves) to the chess tree's frontier path (hypothesis index, then the moves); `root` is the
+    solver's root and `tree` the chess tree it was made from.
+
+    An expansion changes it only by the selected frontiers and the ones the expansion added: expand_chess_tree's
+    frontiers are the previous ones without the selected, in their order, followed by the new ones. grown()
+    applies exactly that, so the view stays equal (in content and order) to one built from the grown tree.
+    CHECK (tests) compares it with a rebuilt view after every update.
+    """
+
+    CHECK = False
+
+    def __init__(self, tree, root, root_ids):
+        self.tree, self.root, self.root_ids = tree, root, root_ids
+        self.frontiers = {self._key(path): path for path in tree.frontiers}
+
+    def _key(self, path):
+        return (self.root_ids[int(path[0])],) + path[1:]
+
+    def grown(self, tree, root, selected):
+        """After expanding the frontier paths `selected` of self.tree into `tree` (whose solver root is `root`)."""
+        added = len(tree.frontiers) - len(self.tree.frontiers) + len(selected)
+        for path in selected:
+            del self.frontiers[self._key(path)]
+        tail = list(islice(reversed(tree.frontiers), added))
+        for path in reversed(tail):
+            self.frontiers[self._key(path)] = path
+        self.tree, self.root = tree, root
+        if self.CHECK:
+            rebuilt = GadgetFrontiers(tree, root, self.root_ids)
+            assert list(self.frontiers.items()) == list(rebuilt.frontiers.items())
 
 
 class ChessSubgameAgent(FixedDepthPCFRAgent):
@@ -183,19 +217,18 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
                 continue
             try:
                 if bridge:
-                    # The gadget-path view of the frontiers changes only with an expansion: rebuilt then, not on
-                    # every growth attempt (it covers all frontiers).
+                    # The gadget-path view of the frontiers changes only with an expansion, and then only by the
+                    # selected and the added frontiers (GadgetFrontiers.grown); built whole once per turn.
                     if view is None or view.tree is not projection.tree or view.root is not solver.root:
-                        mapping = {}
-                        for path, context in projection.tree.frontiers.items():
-                            i = int(path[0])
-                            mapping[(projection.root_ids[i],)+path[1:]] = path
-                        view = SimpleNamespace(root=solver.root, frontiers=mapping, tree=projection.tree)
+                        view = GadgetFrontiers(projection.tree, solver.root, projection.root_ids)
                     proposal = sampler.select(view, solver, self.config.max_depth, growth_deadline)
                     if proposal is None:
                         continue
-                    bridge = bridge.expand(solver, leaf, selected_paths=(view.frontiers[proposal[0]],),
+                    selected = (view.frontiers[proposal[0]],)
+                    bridge = bridge.expand(solver, leaf, selected_paths=selected,
                         max_nodes=self.config.max_nodes, deadline=growth_deadline, initialize_best=True)
+                    if bridge.roots.chess_tree is not projection.tree:
+                        view.grown(bridge.roots.chess_tree, solver.root, selected)
                     projection.tree = bridge.roots.chess_tree
                     self.last_bridge = bridge
                 else:

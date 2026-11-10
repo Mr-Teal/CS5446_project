@@ -240,6 +240,8 @@ def _replay_patched(monkeypatch, backend, fast, player, turns, check_values):
 
     monkeypatch.setattr(PCFRPlus, "BACKEND", backend)
     monkeypatch.setattr(Gadget, "FAST", fast)
+    from pair_a_prep.chess_subgame_agent import GadgetFrontiers
+    monkeypatch.setattr(GadgetFrontiers, "CHECK", True)  # the incremental frontier view against a rebuilt one
     if not fast:  # the reference keys private observations as before D2: observation_key(observe(...))
         from pair_a_prep.chess_search import observation_key
         from pair_a_prep.rules_adapter import RulesAdapter

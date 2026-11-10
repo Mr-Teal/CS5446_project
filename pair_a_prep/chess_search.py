@@ -265,7 +265,10 @@ def expand_chess_tree(tree: ChessTree, solver, evaluator: LeafEvaluator, *,
             return evaluator.evaluate_children(fen)
 
     replacements = {}
-    next_frontiers = {path: context for path, context in tree.frontiers.items() if path not in paths}
+    # The current frontiers without the selected ones, in their order (a copy: the given tree stays as it was).
+    next_frontiers = dict(tree.frontiers)
+    for path in paths:
+        del next_frontiers[path]
     nodes, terminals = tree.nodes, tree.terminal_leaves
     for path in paths:
         context = tree.frontiers[path]
