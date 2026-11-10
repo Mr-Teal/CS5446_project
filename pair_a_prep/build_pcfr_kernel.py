@@ -45,8 +45,10 @@ def main():
     library = directory / f"pcfr_kernel-{digest}{library_suffix()}"
     # -ffp-contract=off: no fused multiply-adds beyond the explicit std::fma that mirrors numpy's dot.
     # -fopenmp: the root-parallel walks (pcfr_set_threads); libgomp stays a shared library.
-    command = [compiler, "-std=c++17", "-O3", "-DNDEBUG", "-ffp-contract=off", "-fopenmp", "-shared",
-               "-static-libgcc", "-static-libstdc++"]
+    # inline-unit-growth=100: with the parallel walks in the unit, g++ 11's default unit-growth limit stopped inlining
+    # dot() into the sequential prediction walk, and one thread ran about 10 % slower than before them (D3/C log).
+    command = [compiler, "-std=c++17", "-O3", "-DNDEBUG", "-ffp-contract=off", "-fopenmp", "--param",
+               "inline-unit-growth=100", "-shared", "-static-libgcc", "-static-libstdc++"]
     if sys.platform != "win32":
         command.append("-fPIC")
     command += [str(ROOT / "pcfr_kernel.cpp"), "-o", str(library)]
