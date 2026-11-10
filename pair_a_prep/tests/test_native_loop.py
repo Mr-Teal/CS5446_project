@@ -223,6 +223,60 @@ def test_chess_growth_loop_agrees_with_python(schedule):
         assert expansions >= 5
 
 
+def _node_ids(node):
+    ids = {id(node)}
+    for child in node.children.values():
+        ids |= _node_ids(child)
+    return ids
+
+
+@pytest.mark.skipif(not RECORDS or not glob.glob(f"{RECORDS}/part-*.jsonl"), reason="set FOW_TEST_RECORDS to a label folder")
+def test_chess_grafts_without_copy_equal_copied_grafts(monkeypatch):
+    """expand_chess_tree grafts _build_roots' subtrees without a deep copy (expand(copy=False)): the grown tree,
+    solver state and frontiers equal those of a copying expand after every expansion, the previous tree is left
+    as it was, and the grafted nodes are new objects reachable from no earlier tree."""
+    from pair_a_prep.chess_search import build_chess_tree, expand_chess_tree
+    from pair_a_prep.search_policies import heuristic_actions
+    from pairb.material import MaterialEvaluator
+
+    expand = PCFRPlus.expand
+    leaf = MaterialEvaluator()
+    for turn in _growth_records(2):
+        trees = [build_chess_tree(turn, leaf, depth=1, max_nodes=16384) for _ in range(2)]
+        solvers = [PCFRPlus(tree.root, schedule="alternating", backend="native",
+                            initial_actions=heuristic_actions(tree.root)) for tree in trees]
+        sampler = OneSidedExpansion(5)
+        expansions = 0
+        for _ in range(20):
+            for solver in solvers:
+                solver.run(2)
+            proposal = sampler.select(trees[0], solvers[0], 4)
+            if proposal is None:
+                continue
+            before, snapshot = trees[0], deepcopy(trees[0].root)
+            seen = _node_ids(before.root)
+            for i, copy in enumerate((False, True)):
+                monkeypatch.setattr(PCFRPlus, "expand", lambda self, r, *, initial_actions=None, copy=True, _c=copy:
+                                    expand(self, r, initial_actions=initial_actions, copy=copy or _c))
+                trees[i] = expand_chess_tree(trees[i], solvers[i], leaf, max_nodes=16384,
+                                             selected_paths=(proposal[0],), initialize_best=True)
+            monkeypatch.setattr(PCFRPlus, "expand", expand)
+            sampler.commit(proposal)
+            expansions += 1
+            assert before.root == snapshot and before.frontiers.keys() != trees[0].frontiers.keys()
+            assert trees[0].root == trees[1].root
+            assert list(trees[0].frontiers) == list(trees[1].frontiers)
+            assert (trees[0].nodes, trees[0].frontier_leaves, trees[0].terminal_leaves) == (
+                trees[1].nodes, trees[1].frontier_leaves, trees[1].terminal_leaves)
+            node = trees[0].root
+            for action in proposal[0]:
+                node = node.children[action]
+            assert not (_node_ids(node) & seen)
+            _identical(*solvers)
+            _compiled_equal(solvers[0])
+        assert expansions >= 4
+
+
 def _ply_signature(result):
     timing = ("elapsed_ms", "over_budget", "initial_ms", "solving_ms", "growth_ms", "finalizing_ms")
     return [(ply.player, ply.move, {k: v for k, v in ply.diagnostics.items() if k not in timing})

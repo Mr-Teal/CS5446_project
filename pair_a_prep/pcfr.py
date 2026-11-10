@@ -171,12 +171,16 @@ class PCFRPlus:
         depth = tuple({key: len(histories[(p, key)]) for key in player_sets} for p, player_sets in enumerate(sets))
         return sets, order, depth
 
-    def expand(self, replacements: Mapping[tuple[str, ...], Node], *, initial_actions=None) -> None:
+    def expand(self, replacements: Mapping[tuple[str, ...], Node], *, initial_actions=None,
+               copy: bool = True) -> None:
         """Atomically replace cutoff leaves by subtrees at root-relative paths.
 
         Call only between run()/step() calls, never mutate nodes directly.
         Use one batch for related hidden histories. Existing action orders and
         perfect recall must be preserved. Empty batches are no-ops.
+        The solver's tree receives a deep copy of each subtree; copy=False grafts
+        the given objects themselves, for callers whose subtrees are fresh and
+        not mutated by anyone afterwards (the result is the same tree).
         """
         if not isinstance(replacements, Mapping):
             raise ValueError("expansion needs a mapping from action paths to subtrees")
@@ -198,7 +202,7 @@ class PCFRPlus:
 
         def graft(node, path, subtree):
             if not path:
-                return deepcopy(subtree)
+                return deepcopy(subtree) if copy else subtree
             children = dict(node.children)
             children[path[0]] = graft(children[path[0]], path[1:], subtree)
             return replace(node, children=children)

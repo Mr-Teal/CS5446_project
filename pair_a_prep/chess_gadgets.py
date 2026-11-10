@@ -206,7 +206,10 @@ class ChessGadget:
             for subtree in replacements.values():
                 for key, action in heuristic_actions(subtree).items():
                     initial_actions.setdefault(key, action)
-        solver.expand(replacements, initial_actions=initial_actions)
+        # On the fast path the replacements are regrow_blended's fresh clones of the raw grafts; the regrown gadget's
+        # continuations hold them too, which is how a gadget tree and its continuations share unexpanded subtrees
+        # already (nodes are never mutated), so they are grafted without a copy. The reference path copies.
+        solver.expand(replacements, initial_actions=initial_actions, copy=not fast)
         if fast:  # the regrown gadget is new and ours: set its tree in place, keeping what it has validated
             candidate.gadget.tree = solver.root
             return candidate

@@ -292,7 +292,8 @@ def expand_chess_tree(tree: ChessTree, solver, evaluator: LeafEvaluator, *,
             return values[best]
         for subtree in replacements.values():
             choose(subtree)
-    solver.expand(replacements, initial_actions=initial_actions)
+    # The subtrees were built above by _build_roots and nothing else holds them: grafted without a copy.
+    solver.expand(replacements, initial_actions=initial_actions, copy=False)
     return ChessTree(solver.root, tuple(solver.root.children.values()), tree.root_infoset,
                      nodes, len(next_frontiers), terminals, tree.evaluator_calls + calls,
                      tree.history_roots, next_frontiers, tree.viewer)
