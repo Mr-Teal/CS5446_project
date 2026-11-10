@@ -90,6 +90,40 @@ def test_control_run_in_the_kernel_equals_the_round_loop(monkeypatch, schedule, 
 
 
 @native_only
+@pytest.mark.parametrize("schedule", ["alternating", "simultaneous"])
+def test_control_session_follows_python_writes_between_kernel_calls(monkeypatch, schedule):
+    """The kernel's controller arrays persist across run() calls (BlendedGadgetControl._session): Python updates in
+    between (an update_from_solver round, which replaces the minimizers' arrays, and in-place writes) reach the next
+    kernel call, as on the reference path, and a rebuilt gadget gets a new session."""
+    runs = []
+    for backend, fast in (("python", False), ("native", True)):
+        monkeypatch.setattr(Gadget, "FAST", fast)
+        gadget = build_gadget(_toy_roots(), {"A": 0.1, "B": -0.2}, mode="blended", group_prior={"A": .6, "B": .4})
+        solver = PCFRPlus(gadget.tree, schedule=schedule, backend=backend)
+        control = BlendedGadgetControl(gadget, {"A": .6, "B": .4})
+        key = next(iter(solver.sets[0]))
+        rows = []
+        for step in range(6):
+            trace, modes = control.run(gadget, solver, 3, record=(0, key))
+            rows.append((trace.tolist(), modes, _state(control), repr(gadget.tree.probabilities)))
+            if step == 1:  # one round with the Python controller: R_J and the selector get new arrays
+                solver.run(1)
+                control.update_from_solver(gadget, solver)
+            if step == 2:  # in-place writes into the minimizers' arrays
+                control.entry[control.order[0]].regrets[0] += 0.25
+                control.selector.regrets[-1] += 0.5
+                control.selector.previous_utility[...] = 0.0
+            if step == 3:  # an equal gadget object of its own (keys, slots and roots rebuilt for it)
+                twin = dataclasses.replace(gadget)
+                solver.root = twin.tree
+                gadget = twin
+            rows.append(_state(control))
+        assert (control.__dict__.get("_native_session") is not None) == fast
+        runs.append((rows, repr(solver.policy()), repr(solver.policy(True))))
+    assert runs[0] == runs[1]
+
+
+@native_only
 def test_control_run_falls_back_to_the_round_loop_when_instrumented(monkeypatch):
     calls = []
     advance = BlendedGadgetControl._advance

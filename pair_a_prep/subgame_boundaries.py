@@ -264,17 +264,73 @@ class BlendedGadgetControl:
         return gadget.native_nodes(solver)
 
     def _run_native(self, gadget, solver, rounds, record, nodes):
-        from ._pcfr_native import Control, _pointer
+        """One pcfr_run_gadget call. The arrays the kernel reads and writes are kept across calls (a session per
+        gadget, solver state and root distribution); see _session. The controller's PRM+ minimizers hold views of
+        the state arrays between calls, so their state is the kernel's without copies, and a minimizer whose array
+        was replaced in Python (PredictiveRMPlus.observe / next_strategy assign new arrays) is copied in first."""
         native = solver._native
+        a, control, ids, keys, width = self._session(gadget, native)
+        order, g = self.order, len(self.order)
+        a["root_node"][:] = nodes
+        minimizers = [self.entry[j] for j in order] + [self.selector]
+        views = a["views"]
+        for k, m in enumerate(minimizers):
+            for name, view in zip(("regrets", "strategy", "previous_utility"), views[k]):
+                if m.__dict__.get(name) is not view:  # replaced (or first call): its values into the state array
+                    view[...] = getattr(m, name)
+                    setattr(m, name, view)
+        a["entry_pending"][:] = [m._pending for m in minimizers[:g]]
+        a["selector_pending"][0] = self.selector._pending
+        history = np.zeros((rounds, width)) if width else None
+        probabilities = gadget.tree.probabilities
+        done = solver.rounds
+        try:
+            trace, p_max = native.run_gadget(solver, control, a, rounds, record, history)
+        finally:
+            done = solver.rounds - done
+            for m, pending in zip(minimizers[:g], a["entry_pending"].tolist()):
+                m._pending = bool(pending)
+            self.selector._pending = bool(a["selector_pending"][0])
+            if done:
+                self.pi_resolve = dict(zip(order, a["pi_resolve"].tolist()))
+                self.pi_maxmargin = dict(zip(order, a["pi_maxmargin"].tolist()))
+                self.p_max = float(a["p_max"][0])
+                self.margins = dict(zip(order, a["margins"].tolist()))
+                # apply()'s assignments: every key of the root's dict, in its order (an existing key keeps its place)
+                begin = int(native.chance_begin[0])
+                probabilities.update(zip(keys, native.chance_prob[begin:begin + len(keys)].tolist()))
+                if history is not None:
+                    for row in history[:done].tolist():
+                        values = dict(zip(ids, row[:len(ids)]))
+                        rest = row[len(ids):]
+                        p = rest[3 * g]
+                        self.history.append((values, dict(zip(order, rest[:g])), dict(zip(order, rest[g:2 * g])),
+                                             dict(zip(order, rest[2 * g:3 * g])), p,
+                                             "maxmargin" if p <= self.tolerance else "resolve",
+                                             dict(zip(keys, rest[3 * g + 1:]))))
+        return trace, ["maxmargin" if p <= self.tolerance else "resolve" for p in p_max[:done].tolist()]
+
+    def _session(self, gadget, native):
+        """(arrays, Control, root ids, root distribution keys, history width) for pcfr_run_gadget, built once per
+        gadget, compiled solver state and root distribution, and kept across calls. The fixed numbers (reach masses,
+        groups, alternates, alpha, group masses, chance slots) depend only on these; the root's continuation node
+        ids are rewritten before every call; the PRM+ state arrays persist (the minimizers hold views of them)."""
+        from ._pcfr_native import Control, _pointer
+        probabilities = gadget.tree.probabilities
+        width_wanted = self.history is not None
+        key = (gadget, native, native.struct, probabilities, tuple(probabilities), width_wanted)
+        cached = self.__dict__.get("_native_session")
+        if cached is not None and len(cached[0]) == len(key) and all(x is y for x, y in zip(cached[0][:4], key[:4])) \
+                and cached[0][4:] == key[4:]:
+            return cached[1]
         ids = list(gadget.continuations)
         index = {root_id: i for i, root_id in enumerate(ids)}
         reach = {r.root_id: r.reach_mass for rows in self.groups.values() for r in rows}
-        probabilities = gadget.tree.probabilities
-        slot = {key: i for i, key in enumerate(probabilities)}
+        slot = {k: i for i, k in enumerate(probabilities)}
         begin = int(native.chance_begin[0])
         order, g = self.order, len(self.order)
         a = dict(
-            root_node=np.ascontiguousarray(nodes, dtype=np.int32),
+            root_node=np.zeros(len(ids), dtype=np.int32),
             reach_mass=np.array([reach[root_id] for root_id in ids], dtype=float),
             group_begin=np.cumsum([0] + [len(self.groups[j]) for j in order]).astype(np.int32),
             group_roots=np.array([index[r.root_id] for j in order for r in self.groups[j]], dtype=np.int32),
@@ -283,54 +339,26 @@ class BlendedGadgetControl:
             group_mass=np.array([fsum(r.reach_mass for r in self.groups[j]) for j in order], dtype=float),
             root_slot=np.array([begin + slot[root_id] for root_id in ids], dtype=np.int32),
             exit_slot=np.array([begin + slot["exit:" + j] for j in order], dtype=np.int32),
-            entry_regrets=np.concatenate([self.entry[j].regrets for j in order]).astype(float),
-            entry_strategy=np.concatenate([self.entry[j].strategy for j in order]).astype(float),
-            entry_previous=np.concatenate([self.entry[j].previous_utility for j in order]).astype(float),
-            entry_pending=np.array([self.entry[j]._pending for j in order], dtype=np.int8),
-            selector_regrets=np.array(self.selector.regrets, dtype=float),
-            selector_strategy=np.array(self.selector.strategy, dtype=float),
-            selector_previous=np.array(self.selector.previous_utility, dtype=float),
-            selector_pending=np.array([self.selector._pending], dtype=np.int8),
-            pi_resolve=np.array([self.pi_resolve[j] for j in order], dtype=float),
-            pi_maxmargin=np.array([self.pi_maxmargin[j] for j in order], dtype=float),
-            p_max=np.array([self.p_max], dtype=float), margins=np.zeros(g), values=np.zeros(len(ids)),
-            entering=np.zeros(g))
+            entry_regrets=np.zeros(2 * g), entry_strategy=np.zeros(2 * g), entry_previous=np.zeros(2 * g),
+            entry_pending=np.zeros(g, dtype=np.int8),
+            selector_regrets=np.zeros(g), selector_strategy=np.zeros(g), selector_previous=np.zeros(g),
+            selector_pending=np.zeros(1, dtype=np.int8),
+            pi_resolve=np.zeros(g), pi_maxmargin=np.zeros(g), p_max=np.zeros(1), margins=np.zeros(g),
+            values=np.zeros(len(ids)), entering=np.zeros(g))
+        # The minimizers' views: (regrets, strategy, previous_utility) per R_J in control order, then the selector's.
+        # A previous session's views are not these, so the first call copies the minimizers' values in.
+        views = [tuple(a[name][2 * k:2 * k + 2] for name in ("entry_regrets", "entry_strategy", "entry_previous"))
+                 for k in range(g)]
+        views.append((a["selector_regrets"], a["selector_strategy"], a["selector_previous"]))
         keys = list(probabilities)
-        width = len(ids) + 3 * g + 1 + len(keys) if self.history is not None else 0
+        width = len(ids) + 3 * g + 1 + len(keys) if width_wanted else 0
         control = Control(n_groups=g, n_roots=len(ids), predictive=int(bool(self.selector.predictive)),
                           history_width=width, tolerance=self.tolerance,
                           **{name: _pointer(array) for name, array in a.items()})
-        history = np.zeros((rounds, width)) if width else None
-        done = solver.rounds
-        try:
-            trace, p_max = native.run_gadget(solver, control, a, rounds, record, history)
-        finally:
-            done = solver.rounds - done
-            for k, j in enumerate(order):
-                m = self.entry[j]
-                m.regrets, m.strategy = a["entry_regrets"][2 * k:2 * k + 2].copy(), a["entry_strategy"][2 * k:2 * k + 2].copy()
-                m.previous_utility, m._pending = a["entry_previous"][2 * k:2 * k + 2].copy(), bool(a["entry_pending"][k])
-            m = self.selector
-            m.regrets, m.strategy = a["selector_regrets"].copy(), a["selector_strategy"].copy()
-            m.previous_utility, m._pending = a["selector_previous"].copy(), bool(a["selector_pending"][0])
-            if done:
-                self.pi_resolve = dict(zip(order, map(float, a["pi_resolve"])))
-                self.pi_maxmargin = dict(zip(order, map(float, a["pi_maxmargin"])))
-                self.p_max = float(a["p_max"][0])
-                self.margins = dict(zip(order, map(float, a["margins"])))
-                for key in keys:  # apply()'s assignments, in its order of keys (an existing key keeps its place)
-                    probabilities[key] = float(native.chance_prob[begin + slot[key]])
-                if history is not None:
-                    for row in history[:done]:
-                        values = dict(zip(ids, map(float, row[:len(ids)])))
-                        rest = row[len(ids):]
-                        p = float(rest[3 * g])
-                        self.history.append((values, dict(zip(order, map(float, rest[:g]))),
-                                             dict(zip(order, map(float, rest[g:2 * g]))),
-                                             dict(zip(order, map(float, rest[2 * g:3 * g]))), p,
-                                             "maxmargin" if p <= self.tolerance else "resolve",
-                                             dict(zip(keys, map(float, rest[3 * g + 1:])))))
-        return trace, ["maxmargin" if p <= self.tolerance else "resolve" for p in p_max[:done]]
+        a["views"] = views
+        session = (a, control, ids, keys, width)
+        self._native_session = (key, session)
+        return session
 
     def apply(self, gadget):
         probabilities = gadget.tree.probabilities
