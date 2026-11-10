@@ -40,7 +40,8 @@ def _toy_roots():
 
 @native_only
 @pytest.mark.parametrize("schedule", ["alternating", "simultaneous"])
-def test_round_and_solver_values_equal_continuation_values_every_round(schedule):
+def test_round_and_solver_values_equal_continuation_values_every_round(monkeypatch, schedule):
+    monkeypatch.setattr(Gadget, "FAST", True)  # the fast path under test, whatever FOW_GADGET_FAST says
     gadgets = [build_gadget(_toy_roots(), {"A": 0.1, "B": -0.2}, mode="blended", group_prior={"A": .6, "B": .4})
                for _ in range(2)]
     solvers = [PCFRPlus(g.tree, schedule=schedule, backend=b) for g, b in zip(gadgets, ("python", "native"))]
@@ -105,7 +106,8 @@ def test_control_run_falls_back_to_the_round_loop_when_instrumented(monkeypatch)
     assert len(calls) == 4
 
 
-def test_round_values_validate_on_the_first_call_of_each_gadget():
+def test_round_values_validate_on_the_first_call_of_each_gadget(monkeypatch):
+    monkeypatch.setattr(Gadget, "FAST", True)  # the fast path under test, whatever FOW_GADGET_FAST says
     gadget = build_gadget(_toy_roots(), {"A": 0.1, "B": -0.2}, mode="blended", group_prior={"A": .6, "B": .4})
     profile = PCFRPlus(gadget.tree, backend="python").policy()
     bad = (dict(profile[0], mine={"L": 1.5, "R": -0.5}), profile[1])
@@ -121,7 +123,8 @@ def test_round_values_validate_on_the_first_call_of_each_gadget():
         fresh.round_values(bad)
 
 
-def test_regrown_gadget_equals_a_fresh_build_and_validates_only_the_grafts():
+def test_regrown_gadget_equals_a_fresh_build_and_validates_only_the_grafts(monkeypatch):
+    monkeypatch.setattr(Gadget, "FAST", True)  # the fast path under test, whatever FOW_GADGET_FAST says
     from pair_a_prep.gadgets import regrow_blended
     prior = {"A": .6, "B": .4}
     roots = _toy_roots()
