@@ -141,9 +141,24 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
                 owner.last_evaluator_calls = calls
                 return owner.evaluator.evaluate_children(fen)
         leaf = CountedLeaf()
-        projection = project_chess(turn, leaf, initial_fen=self.initial_fen,
-            depth=self.config.initial_depth, max_nodes=self.config.max_nodes,
-            saved=self.saved, deadline=solve_deadline)
+        # In-turn growth stops growth_headroom nodes under the cap: the saved tree keeps nearly all of them
+        # through the next projection (fog reveals little), and the fresh roots of newly sampled hypotheses
+        # need the rest. Should the projection overflow anyway, the saved tree is dropped and the turn is
+        # built fresh rather than played as a fallback.
+        growth_cap = self.config.max_nodes-self.config.growth_headroom
+        dropped_for_capacity = False
+        try:
+            projection = project_chess(turn, leaf, initial_fen=self.initial_fen,
+                depth=self.config.initial_depth, max_nodes=self.config.max_nodes,
+                saved=self.saved, deadline=solve_deadline)
+        except TreeCapacityError:
+            if self.saved is None:
+                raise
+            self.saved = None
+            dropped_for_capacity = True
+            projection = project_chess(turn, leaf, initial_fen=self.initial_fen,
+                depth=self.config.initial_depth, max_nodes=self.config.max_nodes,
+                saved=None, deadline=solve_deadline)
         evaluation_deadline = growth_deadline
         switches, expansions = 0, 0
         # One gadget for the whole turn: Resolve and Maxmargin share its tree and
@@ -226,7 +241,7 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
                         continue
                     selected = (view.frontiers[proposal[0]],)
                     bridge = bridge.expand(solver, leaf, selected_paths=selected,
-                        max_nodes=self.config.max_nodes, deadline=growth_deadline, initialize_best=True)
+                        max_nodes=growth_cap, deadline=growth_deadline, initialize_best=True)
                     if bridge.roots.chess_tree is not projection.tree:
                         view.grown(bridge.roots.chess_tree, solver.root, selected)
                     projection.tree = bridge.roots.chess_tree
@@ -236,7 +251,7 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
                     if proposal is None:
                         continue
                     projection.tree = expand_chess_tree(projection.tree, solver, leaf,
-                        selected_paths=(proposal[0],), max_nodes=self.config.max_nodes,
+                        selected_paths=(proposal[0],), max_nodes=growth_cap,
                         deadline=growth_deadline, initialize_best=True)
                 sampler.commit(proposal)
                 expansions += 1
@@ -280,6 +295,7 @@ class ChessSubgameAgent(FixedDepthPCFRAgent):
                                                  if self.config.stop_on_time else 0.)
 
         diagnostics.update({"projection:"+key: float(v) for key, v in projection.audit.items()})
+        diagnostics["projection:dropped_for_capacity"] = float(dropped_for_capacity)
         diagnostics.update(ledger.metrics())
         diagnostics.update({"raw_policy:"+a: p for a, p in raw.items()})
         diagnostics.update({"played_policy:"+a: p for a, p in played.items()})

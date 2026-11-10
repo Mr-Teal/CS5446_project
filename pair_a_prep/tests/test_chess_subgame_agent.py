@@ -333,3 +333,49 @@ def test_solve_reports_a_finite_last_iterate_nash_gap_and_minimum_margin():
     assert isfinite(warm["solver_nash_gap"]) and warm["solver_nash_gap"] >= 0
     assert isfinite(warm["minimum_margin"])
     assert warm["projected_from_saved_tree"] == 1
+
+
+def test_growth_headroom_keeps_in_turn_growth_under_the_cap():
+    # At native speed a full-clock move grows to max_nodes; the saved tree keeps nearly all of it through the
+    # next projection (fog reveals little), leaving no room for fresh roots. The headroom is what growth leaves.
+    fen = "4k3/8/8/3p4/4P3/8/8/4K3 w - - 0 1"
+    base = AnytimeConfig(growth="one_sided", initial_depth=1, max_depth=4, rounds=80, rounds_per_stage=1,
+                         final_rounds=1, stop_on_time=False, max_nodes=300, max_evaluator_calls=10000)
+    nodes = {}
+    for headroom in (0, 120):
+        agent = ChessSubgameAgent(ConstantLeaf(), replace(base, growth_headroom=headroom), fen)
+        agent.reset("white", 17)
+        decision = agent.act(single_path_turn(fen, (), "white"))
+        assert decision.diagnostics["fallback"] == 0
+        nodes[headroom] = decision.diagnostics["search_nodes"]
+    assert nodes[0] > 300-120, nodes            # without headroom growth passes the line the headroom draws
+    assert nodes[120] <= 300-120, nodes         # with it, growth stops there
+    with pytest.raises(ValueError):
+        AnytimeConfig(max_nodes=300, growth_headroom=300)
+
+
+def test_projection_overflow_drops_the_saved_tree_instead_of_falling_back(monkeypatch):
+    import pair_a_prep.chess_subgame_agent as module
+    from pair_a_prep.chess_search import TreeCapacityError
+    config = AnytimeConfig(growth="one_sided", rounds=4, final_rounds=1, stop_on_time=False)
+    agent = ChessSubgameAgent(ConstantLeaf(), config, KINGS)
+    agent.reset("white", 17)
+    agent.act(turn_after())
+    assert agent.saved is not None
+    original = module.project_chess
+    calls = []
+    def overflowing(turn, leaf, **kwargs):
+        calls.append(kwargs["saved"] is not None)
+        if kwargs["saved"] is not None:
+            raise TreeCapacityError("projected knowledge tree exceeds max_nodes")
+        return original(turn, leaf, **kwargs)
+    monkeypatch.setattr(module, "project_chess", overflowing)
+    turn = turn_after(moves=("a1b1", "h8g8"))
+    decision = agent.act(turn)
+    assert calls == [True, False]
+    assert decision.diagnostics["fallback"] == 0
+    assert decision.diagnostics["projection:dropped_for_capacity"] == 1
+    assert agent.last_projection.boundaries is None   # a fresh turn, no gadget
+    assert agent.saved is not None                      # and it saved a new blueprint
+    record = agent.label(turn, "labels-after-a-dropped-projection")
+    assert len(record.hypothesis_values) == len(turn.belief.hypotheses)

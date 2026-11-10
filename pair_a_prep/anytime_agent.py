@@ -26,6 +26,9 @@ class AnytimeConfig:
     stop_on_time: bool = True
     expansion_fraction: float = 0.7
     growth: str = "uniform"
+    # Nodes under max_nodes that in-turn growth leaves free, so that the next turn's projection of the saved
+    # tree (which in fog keeps nearly everything) still has room for fresh roots. 0 = grow to the cap.
+    growth_headroom: int = 0
 
     def __post_init__(self):
         for key in ("initial_depth", "max_depth", "rounds", "rounds_per_stage",
@@ -34,6 +37,8 @@ class AnytimeConfig:
                 raise ValueError(key + " must be a positive integer")
         if self.max_depth < self.initial_depth or self.max_nodes < 2:
             raise ValueError("invalid depth or node limits")
+        if type(self.growth_headroom) is not int or not 0 <= self.growth_headroom < self.max_nodes:
+            raise ValueError("growth_headroom must be an integer in [0, max_nodes)")
         if self.final_rounds > self.rounds or self.schedule not in ("alternating", "simultaneous"):
             raise ValueError("invalid final-round reserve or schedule")
         if type(self.stop_on_time) is not bool or not 0 < self.expansion_fraction < 1:

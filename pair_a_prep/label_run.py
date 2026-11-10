@@ -237,6 +237,9 @@ def main(argv=None):
     parser.add_argument("--solver-rounds", type=int, default=1024)
     parser.add_argument("--max-nodes", type=int, default=16384)
     parser.add_argument("--max-evaluator-calls", type=int, default=4096)
+    parser.add_argument("--growth-headroom", type=int, default=1024,
+                        help="nodes under --max-nodes that in-turn growth leaves free for the next turn's fresh "
+                             "roots; at native speed a move fills the cap and 0 made ~13 %% of decisions fall back")
     parser.add_argument("--no-clock", action="store_true", help="fixed rounds, reproducible; for tests")
     parser.add_argument("--commit", default="", help="source commit to record; inside a container the "
                         "worktree's .git pointer resolves to a host path git cannot read")
@@ -257,7 +260,7 @@ def main(argv=None):
     leaf = RevivingLeaf(lambda: _load_leaf(settings))
     config = AnytimeConfig(growth="one_sided", rounds=args.solver_rounds, max_nodes=args.max_nodes,
                            max_evaluator_calls=args.max_evaluator_calls, stop_on_time=not args.no_clock,
-                           expansion_fraction=args.expansion_fraction,
+                           expansion_fraction=args.expansion_fraction, growth_headroom=args.growth_headroom,
                            initial_depth=1, max_depth=2, rounds_per_stage=2, final_rounds=2,
                            schedule="alternating")
     created = datetime.now(timezone.utc).isoformat()
