@@ -23,6 +23,12 @@ round count and is for tests.
 
     python -m pair_a_prep.label_run --out runs/labels-01 --games 50 --seed 5001 \\
         --evaluator material --time-budget-ms 5000 --max-states 96000
+
+Self-play with the belief network as the leaf (no engine at play time; the records are then labels of the
+search with the network inside it, the ReBeL-style loop):
+
+    python -m pair_a_prep.label_run --out runs/selfplay-g1 --games 50 --seed 90001 \\
+        --evaluator belief_network --checkpoint pair_b/checkpoints/<run>/best.pt --device cuda
 """
 from __future__ import annotations
 
@@ -212,7 +218,9 @@ def main(argv=None):
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--games", type=int, default=50)
     parser.add_argument("--seed", type=int, default=5001)
-    parser.add_argument("--evaluator", choices=("material", "stockfish"), default="material")
+    parser.add_argument("--evaluator", choices=("material", "stockfish", "belief_network"), default="material")
+    parser.add_argument("--checkpoint", default="", help="best.pt of the belief network, for --evaluator belief_network")
+    parser.add_argument("--device", default="cpu", help="torch device of the belief network leaf (cpu, cuda)")
     parser.add_argument("--stockfish", default="/usr/games/stockfish")
     parser.add_argument("--stockfish-sha256", default="")
     parser.add_argument("--leaf-depth", type=int, default=1, help="Stockfish search depth per leaf call")
@@ -240,6 +248,12 @@ def main(argv=None):
         settings.update(leaf_depth=str(args.leaf_depth), stockfish_path=args.stockfish,
                         stockfish_sha256=args.stockfish_sha256,
                         stockfish_call_timeout_s=str(args.stockfish_call_timeout_s))
+    elif args.evaluator == "belief_network":
+        if not args.checkpoint:
+            parser.error("--evaluator belief_network requires --checkpoint")
+        # The checkpoint's sha256 enters the protocol through the leaf's handoff identity, so every
+        # generation of self-play labels gets its own config_id.
+        settings.update(checkpoint_path=args.checkpoint, device=args.device)
     leaf = RevivingLeaf(lambda: _load_leaf(settings))
     config = AnytimeConfig(growth="one_sided", rounds=args.solver_rounds, max_nodes=args.max_nodes,
                            max_evaluator_calls=args.max_evaluator_calls, stop_on_time=not args.no_clock,
