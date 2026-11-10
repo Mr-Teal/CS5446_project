@@ -175,7 +175,8 @@ struct Compensated {
 };
 
 // One root subtree's contributions to the shared per-action arrays, in the order the sequential walk makes them.
-struct Log {
+// Aligned to a cache line: neighbouring logs are written by different threads.
+struct alignas(64) Log {
     std::vector<int32_t> head;  // per entry: the walk's own fields (see each walk)
     std::vector<double> data;   // per entry: its numbers
     void clear() {
@@ -322,6 +323,18 @@ bool parallel_root(const PcfrSolver& s);
 void utility_parallel(const PcfrSolver& s, int player, const double* opponent, double* values);
 void prediction_parallel(const PcfrSolver& s, const PredictionWalk& base);
 
+// body(k) for k in [begin, end): in parallel chunks when `parallel` (the per-set updates, independent per set).
+template <class Body>
+void for_each_set(bool parallel, int begin, int end, const Body& body) {
+    if (!parallel) {
+        for (int k = begin; k < end; ++k) body(k);
+        return;
+    }
+#pragma omp parallel for schedule(dynamic, 32) num_threads(g_threads)
+    for (int k = begin; k < end; ++k) body(k);
+}
+constexpr int kParallelSets = 64;  // fewer sets per update loop stay sequential
+
 // PredictiveRMPlus.next_strategy followed by the initial-action override of PCFRPlus._publish.
 void publish(const PcfrSolver& s, int player, int set, const double* prediction, double* theta) {
     const PcfrSide& side = s.side[player];
@@ -387,13 +400,19 @@ int prepare(const PcfrSolver& s, int player) {
         }
         PredictionWalk walk{s, player, side.level_depth[level], w.in_level.data(), w.values.data(),
                             w.memo.data(), w.memo_set.data(), w.stack.data()};
-        if (parallel_root(s)) prediction_parallel(s, walk);
+        const bool parallel = parallel_root(s);
+        if (parallel) prediction_parallel(s, walk);
         else walk.visit(0, 1.0);
-        for (int k = begin; k < end; ++k) {
+        const size_t width = w.theta.size();
+        double* values = w.values.data();
+        int8_t* in_level = w.in_level.data();
+        for_each_set(parallel && end - begin >= kParallelSets, begin, end, [&](int k) {
+            Scratch& t = scratch();  // theta per thread
+            if (t.theta.size() < width) t.theta.resize(width);
             const int set = side.level_sets[k];
-            publish(s, player, set, w.values.data() + side.offset[set], w.theta.data());
-            w.in_level[set] = 0;
-        }
+            publish(s, player, set, values + side.offset[set], t.theta.data());
+            in_level[set] = 0;
+        });
     }
     return 0;
 }
@@ -405,15 +424,17 @@ int observe(const PcfrSolver& s, int player) {
     Scratch& w = scratch();
     reserve_stack(s, w);
     w.values.assign(total_actions(side) + 1, 0.0);
-    if (parallel_root(s)) {
+    const bool parallel = parallel_root(s);
+    if (parallel) {
         utility_parallel(s, player, nullptr, w.values.data());
     } else {
         UtilityWalk walk{s, player, nullptr, w.values.data(), w.stack.data()};
         walk.visit(0, 1.0);
     }
-    for (int set = 0; set < side.n_sets; ++set) {
+    const double* values = w.values.data();
+    for_each_set(parallel && side.n_sets >= kParallelSets, 0, side.n_sets, [&](int set) {
         const int offset = side.offset[set], n = side.offset[set + 1] - offset;
-        const double* utilities = w.values.data() + offset;
+        const double* utilities = values + offset;
         double* regrets = side.regrets + offset;
         const double baseline = dot(side.strategy + offset, utilities, n);
         for (int i = 0; i < n; ++i) {
@@ -422,7 +443,7 @@ int observe(const PcfrSolver& s, int player) {
             side.previous_utility[offset + i] = utilities[i];
         }
         side.pending[set] = 0;
-    }
+    });
     const PcfrSide& other = s.side[1 - player];
     for (int a = 0; a < total_actions(other); ++a) side.previous_opponent[a] = other.strategy[a];
     *side.has_previous = 1;
