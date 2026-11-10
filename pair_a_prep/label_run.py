@@ -39,6 +39,7 @@ from hashlib import sha256
 import json
 from pathlib import Path
 from random import Random
+import resource
 import sys
 
 import chess.engine
@@ -203,7 +204,10 @@ def collect(out, *, games, seed, evaluator, config, time_budget_ms, max_states, 
                        guards=sum(tracker.guards for tracker in trackers.values()),
                        winner=None if result is None or result.stopped_at_ply_limit else result.winner,
                        stopped_at_ply_limit=result is not None and result.stopped_at_ply_limit,
-                       wall_s=round(perf_counter()-started, 1), part=part.name, error=error)
+                       wall_s=round(perf_counter()-started, 1), part=part.name, error=error,
+                       # peak RSS of this process so far (Linux: KiB): a number that keeps growing from game to game
+                       # is a leak; the gen-0 run was OOM-killed at its 4000m container cap in its third game
+                       max_rss_mb=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024)
         summaries.append(summary)
         with (out / "progress.jsonl").open("a", encoding="utf-8") as stream:
             stream.write(json.dumps(summary) + "\n")
