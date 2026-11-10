@@ -587,3 +587,206 @@ expansions, rounds and moves; every move ends at the round cap), only faster:
 * Not covered by the profile (first moves only): in gadget mode `ChessGadget.expand` still builds a temporary
   `PCFRPlus` on the raw chess tree per expansion (a full native compile and `GraftIndex` walk each time), and
   batches are one round there because the controller needs the profile every round.
+
+## D2: the cross-turn gadget path (2026-11-10)
+
+Result: from a game's second move on, the subgame agent projects the saved tree and solves through the blended
+Resolve/Maxmargin gadget; that path ran in Python and took the whole 5 s clock for trees a fresh turn builds in
+0.3 s. After D2, in the arms' configuration (1,024 rounds, depth cap 2) a gadget turn takes 0.25-0.55 s instead
+of 2.7-4.5 s and every one reaches the round cap (three of six stopped at the submission reserve before); in the
+5 s configuration (16,384 rounds, depth cap 4) gadget turns run 4.4k-16.4k rounds instead of 304-683, and two
+reach the cap. Every number stays equal bit for bit to the Python reference (tests below).
+
+### Profile attribution before the change
+
+`profile_move.py --game-turns 8 --rounds 1024 --max-depth 2` (all kernels, network leaf, GPU container), turns
+2..8 profiled, 24.6 s:
+
+* `BlendedGadgetControl.update` 19.1 s cumulative (5,523 calls, one per solver round), of it
+  `Gadget.continuation_values` 17.6 s: per round and continuation `information_sets` twice (in
+  `continuation_values` and again in `behavioral_value`, 268,661 calls, 12.4 million `visit`s, 11.7 s) and
+  `_distribution` per set (174,155 calls, numpy `isclose` 2.2 s); the value walk itself 1.6 s; plus `solver.policy()`
+  dictionaries every round.
+* `project_chess` 2.5 s (0.32 s per turn): its saved-tree `visit` built an `Observation` per node and player
+  (`rules.observe` + `asdict` + json in `_extend`, 1.8 s).
+* `ChessGadget.expand` 1.57 s for 110 calls (14 ms each): a temporary `PCFRPlus` on the whole raw chess tree per
+  expansion (full index and native compile), then the whole gadget again (`roots.build` -> `build_gadget`:
+  namespace check and clone of every continuation and a second `PCFRPlus` on the gadget tree for validation).
+* Batches of one round in gadget mode (the controller needs the profile after every round).
+
+### Design as built
+
+Switch: `Gadget.FAST` = `FOW_GADGET_FAST` != "0" (default on). Off, every piece below takes the code path as it
+was before D2 (and gadget batches stay one round); that is the reference side of the tests.
+
+* Values, validated once (`gadgets.py`). `toy_games.value_walk` is `behavioral_value`'s walk factored out (same
+  expression, same order). `Gadget.round_values(profile)` validates each part of the continuations once, exactly
+  as `continuation_values` validates a continuation (information sets, profile restricted to them,
+  `behavioral_value`'s checks and errors): on a new gadget every whole continuation in order (so its first call
+  raises what `continuation_values` raises), on a gadget regrown by an expansion only the grafted subtrees; then
+  it only walks. The parts still to validate are `Gadget._unchecked` (absent = all continuations).
+  `BlendedGadgetControl.update` uses `round_values`. Why skipping is safe: a continuation never changes once
+  built (an expansion returns a new `Gadget`, path-copied), and the per-round profile is the solver's, whose
+  strategies are distributions over exactly its sets by construction.
+* Native value walk. Kernel `pcfr_behavioral_values(s, n, nodes, values)`: `value_walk` of the subtrees at flat
+  node ids under the published strategies (= `policy()`), CPython's compensated `sum()` over children in children
+  order (a chance node's probability looked up per child, since `chance_prob` follows the probabilities dict's
+  order). `Gadget.native_nodes(solver)` (blended gadget whose tree is the solver's root) validates the pending
+  parts with the solver's profile restricted to their sets and returns the continuations' node ids from the
+  root's child slots (`tree.children[root_id]` is the continuation: the same object until the first expansion,
+  after it the solver's graft of the same structure, which the tests check). `Gadget.solver_values(solver)` =
+  `round_values(solver.policy())` without the dictionaries.
+* Controller in the kernel. `BlendedGadgetControl.run(gadget, solver, rounds, record)` = `rounds` x
+  (`solver.run(1, record)` + `update_from_solver`); returns the recorded root rows and the mode after each round.
+  Native path (FAST, native solver on this gadget's tree, none of `step` / `run` / `_utilities` / `_advance` /
+  `update_from_solver` / `solver_values` / the controller's PRM+ methods replaced): one call to
+  `pcfr_run_gadget` = per round `pcfr_step`, the root trace, then `control_advance`: the continuations' value walk;
+  group means `fsum(reach * value) / fsum(reach)` with a port of CPython 3.12's `math.fsum` (exact partials and
+  the half-even correction; the denominators are Python's `fsum`, passed in); `margins = entering - alternate`;
+  per group R_J's PRM+ `observe([-entering, -alternate])` and `next_strategy()`, then the selector's on the
+  negated margins, with numpy's operation order (`(regrets + u) - dot(strategy, u)` with the A1 BLAS `dot`, the
+  pairwise sum for `theta.sum()`, `1.0 / n` when it is not positive); `p_max` = the first largest; `apply()`'s
+  probabilities `(p_max * alpha * pi_resolve + (1 - p_max) * pi_maxmargin) * reach / mass` and
+  `p_max * alpha * (1 - pi_resolve)` written into the root's `chance_prob` slots. The controller's PRM+ arrays,
+  blend, `p_max`, margins and the root's probabilities dict are written back after the call (same keys, same
+  order). Kernel codes -3 / -4 map to PredictiveRMPlus's finiteness errors. `BlendedGadgetControl.history`
+  (class attribute, default None) is a list that receives every round's numbers on both paths (tests).
+  `ChessSubgameAgent.solve` calls `control.run` and counts switches from the per-round modes; gadget batches follow
+  the ordinary batch rule (to the next growth check, at most `ROUND_BATCH` with a clock).
+* Expansion (`chess_gadgets.py`). A blended bridge keeps the raw structural solver it grew (`ChessGadget.raw_solver`,
+  `compare=False`), reused while its root is the bridge's raw root, so its `expand()` indexes only the graft
+  (GraftIndex); otherwise one is built as before. `gadgets.regrow_blended(gadget, roots, grafts, prior, tree)`
+  replaces `roots.build`: namespace check on the grafted raw subtrees, `_clone` of only those, path-copied into the
+  previous clone (`_graft_clone`; equal to cloning the grown continuation whole), untouched continuations
+  shared, `root_prior` computed as `build_gadget` does, grafted clones queued for validation. The whole-gadget
+  `PCFRPlus` validation of `build_gadget` is not repeated: the raw graft was validated on the whole raw tree
+  (action order, perfect recall), which implies both for the gadget tree (player 0's keys and histories are the
+  raw ones; player 1's are the raw ones refined by group), and the trained solver's `expand()` validates the
+  gadget graft again. Replacements are read from the regrown continuations.
+* Projection (`chess_projection.py`, not FAST-gated). The saved-tree walk extends memories with
+  `_extend_key(memory, rules.observation_key(state, p), move)`: the adapter's `observation_key` is
+  `observation_key(observe(...))` by definition on Python and equal to it on the native rules (B1).
+* Agent (not FAST-gated). The gadget-path view of the chess frontiers (a map over all frontiers) was rebuilt on
+  every growth attempt; it is now rebuilt only when `projection.tree` or `solver.root` changes. In the 16k-round
+  profile this was 6.1 s of `solve`'s own time over seven turns.
+* Build unchanged (`python -m pair_a_prep.build_pcfr_kernel`; the manifest covers the edited kernel and loader).
+
+Cached vs native: the profile validation and the per-continuation structure walks are cached (validated once
+per part); the value walk, the controller and the round loop between growth checks are native; the expansion's
+raw solver is kept and the gadget rebuilt incrementally in Python; the projection walk stays Python with the
+cheaper observation keys.
+
+### Tests
+
+`pair_a_prep/tests/test_gadget_native.py` (11 tests, ~9 s native, ~21 s under the python setting):
+
+* `round_values` and `solver_values` equal `continuation_values` (by `repr`) every round for 40 rounds of a toy
+  blended gadget (three roots in two groups, a continuation with a chance node whose probabilities dict is ordered
+  unlike its children, a cutoff continuation), both schedules; controls on a Python and a native solver agree.
+* Validation: the first call raises the `continuation_values` errors (bad distribution, missing set), a gadget
+  rebuilt by `replace` validates again, with FAST off every call validates; a regrown toy gadget (grafts at a
+  continuation's root and below a player-1 node) equals a fresh `build_gadget` (continuations by `Node ==`, order,
+  roots, alternates, `root_prior` by `repr`), shares untouched clones, queues exactly the grafts, and rejects a
+  profile without the grafted sets or with an invalid distribution there.
+* `BlendedGadgetControl.run` in the kernel against the per-round loop on the Python solver with FAST off: both
+  schedules x predictive on/off, batches 1, 3, 7, 0, 5: recorded rows, modes, PRM+ state, blend, margins, root
+  probabilities, solver policies (last and average) and the per-round history, all by `repr`; an instrumented
+  `_advance` falls back to the loop.
+* End to end: three recorded games of `solver-v2-sf8-g237`, seven consecutive own turns each, through one
+  `ChessSubgameAgent` (material leaf, 48 rounds, growth every 2, depth 1/2, no clock): the reference (Python
+  solver, FAST off, observation keys through `observation_key(observe(...))`) against the native path. Per turn:
+  move, raw root policy, all non-timing diagnostics, the final profile, the projection (root ids, groups, current
+  ids, aliases, audit, paths, frontiers, memories, boundaries with alternates, gifts, prior, audit and reach
+  masses) and the final tree (`Node ==`), and per round the controller's values, margins, `pi_resolve`,
+  `pi_maxmargin`, `p_max`, mode and root distribution. On every fast expansion the bridge equals what `roots.build`
+  makes from the same grown chess tree, the solver's grafted continuations equal the gadget's, the kept raw
+  solver's sets equal a fresh index, and every queued validation part is a subtree of its continuation. 15 of
+  the 21 turns solve through the gadget (all 720 of their rounds in the kernel), with mode switches on 11. The
+  comparison detects a one-ulp change of the native values (checked by perturbing them with `nextafter`).
+
+Everything compared equal with `repr` / `==`; nothing needed a tolerance.
+
+Whole suites (`pair_a_prep/tests` + `pair_b/tests/test_belief_evaluator.py`, the three backends switched
+together): before 888 passed, 53 failed, 33 skipped under native and under python; after 899 passed (+11),
+53 failed, 33 skipped under both. The 53 are the pre-existing `test_zs21_*` failures (library not built here).
+
+### Before / after (profile_move.py, all kernels, network leaf, GPU container, 5 s budget)
+
+"before" = 45a36db, "after" = bb6dd05. One recorded game (`...51001` as Black), eight consecutive own turns;
+turn 1 is fresh. The harness restarts a turn fresh when the label agent's recorded move had zero probability
+under this agent ("refused", a harness artifact). Module shares are own time over turns 2..8.
+
+1,024 rounds, depth cap 2 (the arms' configuration):
+
+| turn (ply) | run | wall s | nodes | rounds | expansions | switches | stop | move |
+|---|---|---|---|---|---|---|---|---|
+| 1 (5) fresh | before / after | 0.33 / 0.32 | 929 / 929 | 1,024 / 1,024 | 19 / 19 | 0 / 0 | round_limit | g8h6 / g8h6 |
+| 2 (9) | before / after | 4.33 / 0.36 | 1,145 / 1,197 | 1,024 / 1,024 | 25 / 27 | 0 / 0 | round_limit / round_limit | b8c6 / b8c6 |
+| 3 (11) | before / after | 4.52 / 0.55 | 1,775 / 2,169 | 639 / 1,024 | 25 / 40 | 0 / 0 | submission_reserve / round_limit | g7c3 / g7c3 |
+| 4 (13) | before / after | 4.52 / 0.51 | 1,495 / 1,496 | 809 / 1,024 | 29 / 29 | 0 / 0 | submission_reserve / round_limit | b5b4 / b5b4 |
+| 5 (17) | before / after | 2.72 / 0.25 | 613 / 613 | 1,024 / 1,024 | 1 / 1 | 0 / 0 | round_limit | c6b5 / c6b5 |
+| 6 (21) | before / after | 4.51 / 0.37 | 1,207 / 1,207 | 1,003 / 1,024 | 23 / 23 | 0 / 0 | submission_reserve / round_limit | h6g4 / h6g4 |
+| 7 (25) | before / after | 3.37 / 0.31 | 885 / 885 | 1,024 / 1,024 | 7 / 7 | 0 / 0 | round_limit | g4f6 / g4f6 |
+| 8 (27) refused, fresh | before / after | 0.44 / 0.47 | 2,342 / 2,342 | 1,024 / 1,024 | 49 / 49 | 0 / 0 | round_limit | d6e5 / d6e5 |
+
+Where the clock did not cut the move before (turns 5, 7) the search is identical; elsewhere the old path stopped
+growing at the growth deadline or the reserve. Same moves on every turn. Turns 2..8 profiled: 24.6 s -> 2.9 s;
+`toy_games` 12.51 s (50.9 %) -> 0.13 s (4.4 %), `chess/` 2.32 s -> 0.08 s, `pcfr` 0.93 s -> 0.02 s,
+`_pcfr_native` 0.68 s -> 0.36 s (12.5 %), `_rules_native` 0.49 s -> 0.41 s (14.3 %, now the largest). Per step
+(same profile, turns 2..8): 24.6 s; values cached + kernel walk (183e20c) 8.4 s; expansion and projection
+(e1a534b) 5.3 s; per-continuation validation and the controller in the kernel (b52c0f7, 3e1e6ee) 3.4 s; frontier view (7c26fc3) 3.0 s; grafts only (bb6dd05)
+2.9 s. Per operation: `ChessGadget.expand` 14 ms -> 4.8 ms per call (of which the leaf and rules in
+`expand_chess_tree` most), `project_chess` 0.32 s -> 0.12 s per turn (mostly `_build_roots` for fresh roots and
+the leaf), the controller 3.5 ms per round (Python, one-round batches) -> `BlendedGadgetControl.run` 0.20 ms per
+two-round batch, both PCFR+ rounds included.
+
+16,384 rounds, depth cap 4 (searches differ after turn 1: the clock ends most turns, and a larger tree gives
+other moves):
+
+| turn (ply) | run | wall s | nodes | rounds | expansions | switches | stop | move |
+|---|---|---|---|---|---|---|---|---|
+| 1 (5) fresh | before / after | 3.31 / 3.13 | 3,061 / 3,061 | 16,384 / 16,384 | 94 / 94 | 0 / 0 | round_limit | g8h6 / g8h6 |
+| 2 (9) | before / after | 4.52 / 4.56 | 1,798 / 5,930 | 683 / 15,279 | 47 / 191 | 11 / 18 | submission_reserve | b8c6 / f8g7 |
+| 3 (11) | before / after | 4.52 / 4.59 | 2,174 / 7,961 | 488 / 10,432 | 32 / 136 | 0 / 0 | submission_reserve | g7c3 / g7c3 |
+| 4 (13) | before / after | 4.53 / 3.71 | 2,630 / 2,989 | 371 / 16,384 | 64 / 76 | 0 / 0 | submission_reserve / round_limit | b5b4 / b5b4 |
+| 5 (17) | before / after | 4.53 / 3.62 | 2,232 / 3,058 | 592 / 16,384 | 47 / 70 | 10 / 8 | submission_reserve / round_limit | c6b5 / c6b5 |
+| 6 (21) | before / after | 4.54 / 4.64 | 2,956 / 12,627 | 304 / 4,386 | 74 / 357 | 0 / 0 | submission_reserve | h6g4 / h6g4 |
+| 7 (25) | before / after | 4.53 / 4.61 refused, fresh | 1,961 / 16,373 | 666 / 5,829 | 36 / 424 | 0 / 0 | submission_reserve | g4f6 / d8c7 |
+| 8 (27) | before / after | 4.60 refused, fresh / 4.65 | 16,379 / 10,888 | 5,921 / 6,403 | 427 / 270 | 0 / 0 | submission_reserve | c8b7 / c8b7 |
+
+Own time, turns 2..8 (31.5 s / 30.7 s profiled): `toy_games` 12.10 s (38.4 %) -> 0.73 s (2.4 %); `_pcfr_native`
+4.03 s (12.8 %) -> 12.67 s (41.2 %, the kernel's rounds now); `chess/` 1.95 -> 0.52 s; `_rules_native` 1.08 ->
+1.76 s (more expansions); `pcfr` 0.92 -> 0.19 s; `chess_search` 0.61 -> 1.07 s; `one_sided` 0.15 -> 0.82 s.
+
+Single positions (`--moves 3 --rounds 1024 --max-depth 2`, fresh turns only), before -> after: ply 5 0.39 ->
+0.40 s, 929 nodes, 19 expansions, g8h6; ply 28 0.32 -> 0.32 s, 1,440 nodes, 23 expansions, d4e5; ply 68 0.67 ->
+0.64 s, 2,439 nodes, 177 expansions, c5b4. Unchanged.
+
+### What is not exact, and where
+
+No deviation measured: every compared quantity is bit-equal (repr). Differences by construction, none
+reachable by the agent's inputs:
+
+* Validation timing. Per-round profiles and unchanged continuation parts are not re-validated; a malformed
+  profile passed to `round_values` after its first validation is evaluated (or raises KeyError) instead of being
+  rejected. On the expansion fast path the gadget-tree validation is left to the trained solver's `expand()`, so
+  an invalid graft would raise there, after the deadline check, instead of in `build_gadget` before it (the raw
+  graft, validated first, makes this unreachable).
+* Clock granularity. With a clock, gadget batches now hold up to `ROUND_BATCH` rounds (one before), as for fresh
+  turns since A3: the half-budget mark and the deadline are read between batches. Without a clock the rounds,
+  growth checks and results are those of the per-round loop (FAST off keeps one-round batches).
+* Kernel arithmetic reproduces numpy and CPython for finite values: `np.maximum(x, 0)` is `x >= 0 ? x : 0`
+  (they differ only for -0.0 and NaN, which the regret updates cannot produce: regrets start at +0 and `a + b`
+  is -0.0 only if both are), and the `math.fsum` port has no special-value handling (inf / NaN / overflow; the
+  values come from finite payoffs). The BLAS `dot` caveat of A1 applies.
+
+### What a gadget-mode move spends its time on now
+
+16,384-round profile, turns 2..8 (30.7 s): the kernel's PCFR+ rounds and controller 10.9 s own in
+`_pcfr_native._run`; tree growth `expand_chess_tree` 6.7 s cumulative (`_build_roots` with the leaf 4.5 s);
+`PCFRPlus.expand` 3.5 s cumulative over 2,624 calls (the trained gadget solver and the raw structural solver),
+of which `deepcopy` of the grafted subtree 2.4 s; `one_sided.select` 2.6 s (24.6k growth attempts); per-batch
+setup of the native controller (`_run_native` own 1.8 s: 24.8k batches of two rounds, arrays and the ctypes
+structure built each time); `solve`'s own loop 1.7 s; `project_chess` 2.2 s (0.31 s per turn, mostly fresh roots'
+`_build_roots`). Obvious next steps: keep the controller's arrays across batches, graft without `deepcopy` in the
+raw structural solver, and the A3 note on `next_frontiers` in `expand_chess_tree`.
