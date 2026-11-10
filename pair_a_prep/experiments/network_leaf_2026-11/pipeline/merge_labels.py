@@ -6,10 +6,13 @@ without one ("absent; accepted by the training loader"), and with one it would d
 config_id to match it. The sources are validated separately beforehand (validate_labels.py).
 
 Usage: python3 merge_labels.py <out folder> <source folder>...
-Each source's parts are copied as part-<sourcename>-NNNN.jsonl ("part-*.jsonl" still matches, which is
-what train_belief_net.py and eval_belief_net.py read by default). Empty parts are skipped. All sources
-are read first; if more than one config_id appears, nothing is copied and the script fails, because
-mixing label meanings is what label_definitions.md warns against.
+Each source's parts are copied as part-<parent>-<sourcename>-NNNN.jsonl ("part-*.jsonl" still matches,
+which is what train_belief_net.py and eval_belief_net.py read by default). The parent folder is part of
+the name because two label rounds both have task-1 .. task-N: with the task name alone the second
+round's parts silently overwrote the first round's (found 2026-11-10 on the 480-game merge). Empty parts
+are skipped. All sources are read first; if more than one config_id appears, or two parts would land on
+the same name, nothing is copied and the script fails, because mixing label meanings is what
+label_definitions.md warns against.
 """
 import json
 import shutil
@@ -32,12 +35,14 @@ for src in sources:
                     n += 1
                     cid = json.loads(line).get("config_id")
                     configs[cid] = configs.get(cid, 0) + 1
-        plan.append((part, out / f"part-{src.name}-{part.stem.split('-')[-1]}.jsonl"))
+        plan.append((part, out / f"part-{src.parent.name}-{src.name}-{part.stem.split('-')[-1]}.jsonl"))
     print(f"{src}: {len(parts)} non-empty parts, {n} records")
     total += n
 print(f"config_ids: {configs}")
 if len(configs) != 1:
     raise SystemExit("refusing to merge: more than one config_id across the sources; nothing copied")
+if len({dest for _, dest in plan}) != len(plan):
+    raise SystemExit("refusing to merge: two parts would get the same destination name; nothing copied")
 out.mkdir(parents=True, exist_ok=True)
 for part, dest in plan:
     shutil.copyfile(part, dest)
