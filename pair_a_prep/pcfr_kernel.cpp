@@ -1036,7 +1036,12 @@ int control_advance(const PcfrSolver& s, const GadgetControl& c, std::vector<dou
                     std::vector<double>& partials) {
     const int g = c.n_groups;
     behavioral_many(s, c.n_roots, c.root_node, c.values);
-    scratch.resize(static_cast<size_t>(3 * g) + 8);
+    // terms holds one group's reach-weighted values (one per root of the group), then the selector's u, theta and
+    // zeros (g each): sized by the larger of the two, the widest group can have more roots than 3 g + 8.
+    int widest = 0;
+    for (int j = 0; j < g; ++j)
+        if (c.group_begin[j + 1] - c.group_begin[j] > widest) widest = c.group_begin[j + 1] - c.group_begin[j];
+    scratch.resize(static_cast<size_t>(widest > 3 * g ? widest : 3 * g) + 8);
     double* terms = scratch.data();
     for (int j = 0; j < g; ++j) {
         int k = 0;

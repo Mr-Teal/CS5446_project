@@ -123,6 +123,39 @@ def test_control_session_follows_python_writes_between_kernel_calls(monkeypatch,
     assert runs[0] == runs[1]
 
 
+def _wide_group_roots(size):
+    """`size` roots in opponent group A and one in group B: group A has more roots than the 3 * groups + 8 terms
+    pcfr_run_gadget's controller used to have room for (control_advance wrote past them, the self-play crash)."""
+    def continuation(i):
+        return Node(player=0, infoset="mine", children={"L": terminal(i / 8 - 1.0), "R": Node(
+            player=1, infoset="theirs", children={"u": terminal(0.25 * (i % 5)), "v": terminal(-0.5 * (i % 3))})})
+    return [SubgameRoot(f"a{i}", "A", continuation(i), 1.0 + i / 16) for i in range(size)] + \
+        [SubgameRoot("b", "B", continuation(size), 1.0)]
+
+
+@native_only
+@pytest.mark.parametrize("size", [15, 64])
+def test_control_run_with_a_group_wider_than_the_controller_scratch(monkeypatch, size):
+    """A group with more roots than 3 * n_groups + 8 = 14 (two groups): the kernel's control_advance must size
+    its per-group terms by the largest group (a heap overflow before; ASan reports it as heap-buffer-overflow in
+    control_advance), and the run still equals the round loop."""
+    runs = []
+    for backend, fast in (("python", False), ("native", True)):
+        monkeypatch.setattr(Gadget, "FAST", fast)
+        gadget = build_gadget(_wide_group_roots(size), {"A": 0.1, "B": -0.2}, mode="blended",
+                              group_prior={"A": .6, "B": .4})
+        solver = PCFRPlus(gadget.tree, schedule="alternating", backend=backend)
+        control = BlendedGadgetControl(gadget, {"A": .6, "B": .4})
+        key = next(iter(solver.sets[0]))
+        rows = []
+        for n in (1, 5, 20):
+            trace, modes = control.run(gadget, solver, n, record=(0, key))
+            rows.append((trace.tolist(), modes, _state(control), repr(gadget.tree.probabilities)))
+        assert (control.__dict__.get("_native_session") is not None) == fast
+        runs.append((rows, repr(solver.policy())))
+    assert runs[0] == runs[1]
+
+
 @native_only
 def test_control_run_falls_back_to_the_round_loop_when_instrumented(monkeypatch):
     calls = []
