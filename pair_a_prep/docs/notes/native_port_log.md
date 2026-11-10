@@ -790,3 +790,214 @@ setup of the native controller (`_run_native` own 1.8 s: 24.8k batches of two ro
 structure built each time); `solve`'s own loop 1.7 s; `project_chess` 2.2 s (0.31 s per turn, mostly fresh roots'
 `_build_roots`). Obvious next steps: keep the controller's arrays across batches, graft without `deepcopy` in the
 raw structural solver, and the A3 note on `next_frontiers` in `expand_chess_tree`.
+
+## D3/C: the last glue, and the round kernel on several threads (2026-11-10)
+
+Result: the per-batch and per-expansion Python glue named at the end of D2 is gone (D3), and the PCFR+ kernel can
+walk the tree on several threads (C). Everything stays bit-equal: D3 changes no number, and the multi-threaded
+kernel gives the single-thread results bit for bit for every thread count (no tolerance was needed; see
+"Exactness"). In the arms' configuration (1,024 rounds, depth cap 2) the gadget turns are 25 % faster than after D2
+with the identical search; in the 5 s configuration the kernel's throughput on the profiled game rises 1.2x / 1.6x
+/ 1.8x with 2 / 4 / 6 threads (rounds x nodes per second of kernel time), and on fixed chess trees 2.7x (8.7k nodes)
+and 3.0x (24.9k nodes) with 6 threads. One thread is as fast as before C. Threads are opt-in: `FOW_PCFR_THREADS`
+(default 1).
+
+### D3 design (all exact)
+
+1. Controller arrays kept across batches (`subgame_boundaries.BlendedGadgetControl._session`). The fixed numbers of
+   `pcfr_run_gadget` (reach masses, groups, alternates, alpha, group masses, chance slots, the `Control` structure)
+   are built once per (gadget, compiled solver state, root distribution dict and its keys, history on/off) and
+   kept; the continuations' node ids are rewritten before every call. The R_J and selector minimizers hold views
+   of the kernel's state arrays, so after a call their state is the kernel's without copies; before a call a
+   minimizer whose array was replaced in Python (`PredictiveRMPlus.observe` / `next_strategy` assign new arrays,
+   e.g. a Python `update_from_solver` round in between) is copied in, and in-place writes go through the views.
+   Pending flags, `pi_resolve`, `pi_maxmargin`, `p_max`, margins and the root's probabilities dict are written back
+   after every call as before (`.tolist()` instead of per-element `float()`, same values). Semantic change: a
+   reference to `control.entry[J].regrets` kept across a kernel call now sees the new values (before, the call
+   replaced the array); nothing in the code keeps one.
+2. Grafts without `deepcopy` (`PCFRPlus.expand(copy=False)`; default `copy=True`). Aliasing, as verified in the
+   code: `expand_chess_tree` builds each replacement with `_build_roots` in the same call (`Node`, `terminal()`,
+   `frontier()` all create new objects; the evaluation cache holds value dicts, not nodes), and the only other
+   references are the local `ChessTree` of the temporary builder (discarded) and `initialize_best`'s read-only
+   walk; so the grafted subtree is referenced by the solver's tree alone, as the copy was. `ChessGadget.expand`'s
+   fast path grafts `regrow_blended`'s fresh clones (`_clone` creates every node and copies every probabilities
+   dict); they are also reachable from the regrown gadget's `continuations` and its pending validation parts. That
+   sharing is the one a blended gadget has from its construction (`tree.children[root_id] is continuations[root_id]`
+   until the first expansion), and no code mutates a `Node` in place (expansions path-copy; the only in-place write
+   is the controller's rewrite of the gadget root's probabilities dict, which is not inside any graft). The
+   reference path (`roots.build`) and all other callers still copy.
+3. Frontier map. `expand_chess_tree` copies the frontier dict and deletes the selected paths instead of filtering
+   every frontier through a comprehension (same keys, values and order; the given tree stays as it was). The
+   subgame agent's gadget-path view of the frontiers (`chess_subgame_agent.GadgetFrontiers`) is built once per turn
+   and then updated per expansion by the selected and the appended frontiers (`expand_chess_tree`'s frontiers are
+   the previous ones without the selected, then the new ones), instead of a rebuild over all frontiers;
+   `GadgetFrontiers.CHECK` (on in the recorded-game replay test) compares it with a rebuilt view after every update.
+4. Projection. The saved-tree walk is now `chess_projection.saved_cut`; it computes a node's private memories (two
+   `_extend_key` chains) only where they are used, at the cut and on the way to it, not for terminal children and
+   incomplete leaves (55 % of the visited nodes on the profiled game). `_extend_key` encodes with one module-level
+   `json.JSONEncoder(separators=(",", ":"))`: `json.dumps` with separators builds that encoder on every call (same
+   payload; 1.77 -> 1.32 us per key unprofiled).
+5. Larger batches: nothing to do without changing results. A batch already runs up to the next growth check
+   (`rounds_per_stage` = 2 rounds in the agents' configuration) and up to `ROUND_BATCH` once growth has stopped. A
+   growth check cannot be skipped: `OneSidedExpansion.select` draws from the sampler's RNG and reads the solver's
+   strategies at that round. The only check that is always a no-op is inside the final-rounds window, which is one
+   batch (`final_rounds` = 2). Raising `ROUND_BATCH` would change the clock granularity, so it was left.
+
+### C design
+
+* Root-parallel walks (`pcfr_kernel.cpp`, OpenMP). With more than one thread and a tree of at least
+  `FOW_PCFR_PARALLEL_NODES` nodes (default 1,024), the utilities walk (observe, `pcfr_utilities`), each level of
+  the prediction walk, the average walk and the growth-utilities walk visit the root's children as parallel tasks
+  (`schedule(dynamic, 1)`; 16 hypotheses on a fresh chess tree, roots plus exits on a gadget). A task does not add
+  into the shared per-action arrays: it appends each addition it would make (a set's offset and the products
+  `reach * action_values[i]`; for the growth walk the set, reach and signed values; for the average the first
+  visit of each set and its own reach) to a log of its own, in DFS order. After the tasks the logs are applied in
+  root order, then the root's own operations (its contribution to its set, the memo of the prediction walk), as the
+  sequential `visit(0)` does after its children. Memo entries of the prediction walk are per node and written by
+  the task that owns the node.
+* The per-set loops (observe's regret update, the publishes of a prediction level) run in parallel chunks of 32
+  sets when the walk does and there are at least 64 sets; they are independent per set. The controller's
+  continuation values and `pcfr_behavioral_values` walk their subtrees in parallel (pure functions).
+* Threads: `FOW_PCFR_THREADS` read when the library is loaded, `_pcfr_native.set_threads(n, min_nodes)` at run
+  time (`pcfr_set_threads`), default 1. With one thread, or a smaller tree, the sequential code runs.
+  `pcfr_parallel_walks()` counts root-parallel walks (tests and profiles check that the path ran). The profiles
+  set the variable inside the container's Python before the library loads (`torch_port.sh` passes no `-e`; the
+  container sees all 12 host cores); the count of parallel walks is printed with each run.
+* Build: `-fopenmp` added (`build_pcfr_kernel.py`); libgomp stays a shared library (`libgomp.so.1` exists on the
+  host and in `fow-portability:probe`). The walks are templates on `kLog`; the sequential instantiation is the code
+  as before C. With the parallel code in the unit, g++ 11's `inline-unit-growth` limit stopped inlining `dot()` into
+  the sequential prediction walk and one thread ran 10-15 % slower than the D3 kernel (8.7k-node tree 6.3k vs 7.9k
+  rounds/s); the build passes `--param inline-unit-growth=100`, which restores it (7,674 vs 7,675 and 2,102 vs
+  2,015 rounds/s on the 8.7k / 24.9k-node trees, same host run, D3 kernel built separately; `-fopenmp` alone made
+  no measurable difference). Commit 6987d79.
+* Memory: no per-thread infoset buffers. Per root child one log (cache-line aligned, reused across calls; its
+  capacity is the largest subtree contribution seen) and per thread the walk stack. On a 25,574-node chess tree:
+  utility logs 0.14 MB (player 0: 707 nodes, 16,569 actions at them) and 0.07 MB (player 1), growth log 0.22 MB in
+  total over all tasks, stack 0.20 MB per thread, `seen` flags one byte per set per thread.
+
+### Exactness
+
+* D3: bit-equal by construction (identical arithmetic; only object identity, copying and where a pure function is
+  evaluated change). Tests: `test_gadget_native.py::test_control_session_follows_python_writes_between_kernel_calls`
+  (kernel batches interleaved with a Python controller round, in-place writes and a new gadget object, against the
+  all-Python reference, both schedules; skipping the copy-in of replaced arrays fails it);
+  `test_native_loop.py::test_chess_grafts_without_copy_equal_copied_grafts` (copy-free vs copying growth on
+  recorded positions: trees, frontiers in order, counters, solver state and compiled state equal; the previous
+  tree unchanged; grafted nodes are new objects; the frontier order is the comprehension's);
+  `GadgetFrontiers.CHECK` in the recorded-game replay (appending the new frontiers in reverse order fails it);
+  `test_chess_search.py::test_extend_key_matches_json_dumps`; `test_gadget_native.py::test_saved_cut_equals_an_eager_walk`
+  (the pre-D3 eager walk against `saved_cut` on two recorded games' saved blueprints: paths, node identities,
+  states, memories, moves and incomplete counts).
+* C: bit-equal for every thread count. Why: every floating-point operation of the parallel walk is the one the
+  sequential walk performs on the same operands; only the additions into shared per-action (and per-set) arrays
+  could change order, and the logs replay them in the sequential order (root children in visit order, DFS within
+  each); the root's own operations follow, as in the sequential walk. Sums over a node's children (dot products,
+  compensated sums) stay inside one task. So the requested 1e-12 tolerance and the drift question do not arise:
+  the measured deviation is 0 in every compared quantity and round. Tests: `test_pcfr_threads.py` (9 tests: toy
+  games x both schedules, 40 rounds; the toy blended gadget through `BlendedGadgetControl.run` with history; two
+  recorded positions x both schedules grown by one-sided growth for 25 batches of 2 rounds (to 400+ nodes) with
+  the parallel path forced on every tree size: 1 thread against 2, 4 and 6, with `==` on every state array, the
+  policies, the recorded root rows, the flat growth utilities and the behavioral values, every batch). Mutation
+  checks: replaying the logs in reverse root order (utilities, prediction or growth walk) or ignoring the global
+  first-visit flag of the average fails them. The whole suite with `FOW_PCFR_THREADS=6 FOW_PCFR_PARALLEL_NODES=0`
+  (every native solver on 6 threads, every tree parallel) gives the same counts as with 1 thread. The A1 caveat
+  stays: the sequential kernel reproduces this host's OpenBLAS `ddot`; that is unchanged by threads.
+
+### Tests
+
+Whole suites (`pair_a_prep/tests` + `pair_b/tests/test_belief_evaluator.py`, the three backends switched together):
+before 899 passed, 53 failed, 33 skipped under native and under python; after D3 904 passed (+5), 53 failed, 33
+skipped under both; after C 913 passed (+9), 53 failed, 33 skipped under native, under python, and under native with
+6 threads forced on every tree. The 53 are the pre-existing `test_zs21_*` failures (library not built here).
+
+### Before / after (profile_move.py, all kernels, network leaf, GPU container, 5 s budget)
+
+"before" = b805764 (end of D2), "D3" = 44caad8, "C" = 6987d79 with `FOW_PCFR_THREADS` = 1, 2, 4, 6. Cells are nodes /
+rounds of the turn ("cap" = stopped at the round cap, else at the submission reserve; "f" = the projection was
+refused and the turn started fresh), then wall. After turn 1 the searches differ between runs (the clock decides
+growth and rounds), so compare totals and like-sized turns.
+
+16,384 rounds, depth cap 4, one game (`...51001` as Black), turns 2..8 profiled:
+
+| run | turn 1 (ply 5) | 2 (9) | 3 (11) | 4 (13) | 5 (17) | 6 (21) | 7 (25) | 8 (27) | profiled s | `_pcfr_native` own | `chess_search` | `one_sided` | `chess_projection` |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| before (b805764) | 3,061 / 16,384 cap, 3.19 s | 5,930 / 15,730, 4.56 s | 7,871 / 10,630, 4.59 s | 2,989 / 16,384 cap, 3.73 s | 3,058 / 16,384 cap, 3.59 s | 12,558 / 4,310, 4.63 s | 16,373 / 5,645 f, 4.61 s | 10,738 / 6,306, 4.66 s | 30.74 | 12.91 | 0.97 | 0.82 | 0.16 |
+| D3 (44caad8) | 3,061 / 16,384 cap, 3.24 s | 6,131 / 16,384 cap, 4.35 s | 9,330 / 11,731, 4.60 s | 16,280 / 5,369 f, 4.60 s | 3,103 / 16,384 cap, 4.09 s | 16,345 / 4,896, 4.67 s | 16,373 / 7,297 f, 4.62 s | 14,223 / 6,865, 4.68 s | 32.08 | 15.68 | 1.05 | 1.96 | 0.45 |
+| C, 1 thread | 3,061 / 16,384 cap, 3.35 s | 6,159 / 16,384 cap, 4.30 s | 11,018 / 9,978, 4.62 s | 4,696 / 16,384 cap, 4.05 s | 3,155 / 16,384 cap, 2.87 s | 16,345 / 4,800, 4.68 s | 16,373 / 7,618 f, 4.62 s | 14,027 / 6,855, 4.66 s | 29.96 | 15.83 | 1.09 | 0.95 | 0.16 |
+| C, 2 threads | 3,061 / 16,384 cap, 2.98 s | 6,798 / 16,384 cap, 4.11 s | 7,650 / 14,731, 4.59 s | 16,374 / 6,371 f, 4.61 s | 3,103 / 16,384 cap, 4.36 s | 16,345 / 6,275, 4.69 s | 16,373 / 9,539 f, 4.62 s | 14,658 / 7,948, 4.67 s | 32.20 | 15.24 | 1.22 | 2.01 | 0.40 |
+| C, 4 threads | 3,061 / 16,384 cap, 2.91 s | 6,188 / 16,384 cap, 4.26 s | 10,687 / 13,534, 4.62 s | 6,608 / 16,384 cap, 4.11 s | 3,573 / 16,384 cap, 3.31 s | 16,359 / 9,356, 4.68 s | 16,373 / 14,173 f, 4.62 s | 15,174 / 9,461, 4.69 s | 30.64 | 14.41 | 0.93 | 1.26 | 0.35 |
+| C, 6 threads | 3,061 / 16,384 cap, 2.66 s | 6,245 / 16,384 cap, 4.29 s | 12,042 / 14,101, 4.64 s | 5,477 / 16,384 cap, 3.74 s | 4,713 / 16,384 cap, 3.79 s | 16,359 / 10,177, 4.69 s | 16,373 / 16,384 cap f, 4.50 s | 15,174 / 10,109, 4.68 s | 30.27 | 14.20 | 1.14 | 1.22 | 0.26 |
+
+Per operation, before -> D3 (cumulative over turns 2..8 of one profiled run each; the D3 numbers from a second run
+of 44caad8 dumped with pstats): controller work outside the kernel call 130 us -> 44 us per batch
+(`_run_native` cumulative minus `run_gadget`: 3.25 s over 24,964 batches -> 1.13 s over 25,740); `PCFRPlus.expand`
+1.41 -> 0.44 ms per call (3.67 s / 2,604 -> 1.48 s / 3,366), `deepcopy` 2.42 -> 0.07 s (left: retained subtrees in
+the projection, `rebase_solver`); `expand_chess_tree` own 0.32 -> 0.11 ms per call; `solve` own 1.43 -> 0.43 s;
+saved-tree walk 36 -> 27 us per visited node under the profiler, memories for 45 % of the visited nodes;
+`project_chess` stays about 0.26 s per turn under the profiler (the saved-tree walk 0.17 s, of which the native
+terminal check per node, which now pays the board analysis that the parent's observation key paid before; fresh
+roots' `_build_roots` with the leaf; `reconstruct_roots`). Like-sized turns: turn 6 (16,345 nodes in every run from
+D3 on) 4,896 rounds (D3), 4,800 / 6,275 / 9,356 / 10,177 with 1 / 2 / 4 / 6 threads; turn 7 (fresh, 16,373 nodes,
+424 expansions in every run) 5,645 / 7,297 / 7,618 / 9,539 / 14,173 / 16,384 (the cap, in 4.50 s) for
+before / D3 / C x 1, 2, 4, 6.
+
+1,024 rounds, depth cap 2 (the arms' configuration): the identical search in every run (same nodes, expansions,
+rounds and moves on all eight turns, every turn at the round cap), only faster:
+
+| run | turn 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 (f) | profiled s (turns 2..8) |
+|---|---|---|---|---|---|---|---|---|---|
+| before (b805764) | 0.33 s | 0.36 s | 0.60 s | 0.53 s | 0.26 s | 0.41 s | 0.32 s | 0.49 s | 3.04 |
+| D3 (44caad8) | 0.30 s | 0.26 s | 0.45 s | 0.41 s | 0.19 s | 0.31 s | 0.24 s | 0.37 s | 2.29 |
+| C, 1 thread | 0.33 s | 0.28 s | 0.45 s | 0.42 s | 0.18 s | 0.31 s | 0.23 s | 0.36 s | 2.27 |
+| C, 6 threads | 0.33 s | 0.27 s | 0.45 s | 0.41 s | 0.18 s | 0.30 s | 0.23 s | 0.45 s | 2.28 |
+
+(nodes / expansions per turn: 929 / 19, 1,197 / 27, 2,169 / 40, 1,496 / 29, 613 / 1, 1,207 / 23, 885 / 7,
+2,342 / 49; moves g8h6, b8c6, g7c3, b5b4, c6b5, h6g4, g4f6, d6e5 in every run.) These trees are at most 2.3k nodes
+and spend little time in rounds, so threads do not help here; the 6-thread run is the same search, end to end.
+
+Single positions, `--moves 3 --rounds 16384 --max-depth 4` (nodes / rounds / stop / move):
+
+| ply | before | D3 | C, 1 thread | C, 6 threads |
+|---|---|---|---|---|
+| 5 | 3,061 / 16,384 cap, 4.02 s, g8h6 | 3,061 / 16,384 cap, 3.94 s, g8h6 | 3,061 / 16,384 cap, 3.95 s, g8h6 | 3,061 / 16,384 cap, 3.75 s, g8h6 |
+| 28 | 16,367 / 6,026, c3d5 | 16,367 / 7,078, c3d5 | 16,367 / 7,299, c3d5 | 16,367 / 16,327, c3d5 |
+| 68 | 14,730 / 4,647, c5b4 | 16,377 / 4,951, c5b4 | 16,377 / 4,542, c5b4 | 16,377 / 9,980, c5b4 |
+
+### Thread scaling
+
+Kernel only, outside the profiler (`/home/dev/d3c-work/bench.py`, not committed): native solver on recorded chess
+trees (material leaf, 16 hypotheses), alternating schedule, best of three runs of 300 rounds, host Python, other
+jobs using 2-3 of the 12 cores. "equal" = the state arrays after the runs compared bit-equal across thread counts.
+
+| tree | nodes | 1 thread | 2 threads | 4 threads | 6 threads |
+|---|---|---|---|---|---|
+| depth 1 | 369 | 337k rounds/s | sequential (below 1,024 nodes) | | |
+| depth 1, a quarter of the frontiers grown | 2,450 | 26.6k | 30.1k (1.13x) | 39.5k (1.49x) | 44.6k (1.68x) |
+| depth 2 | 8,666 | 7.52k | 10.8k (1.44x) | 16.7k (2.23x) | 20.1k (2.68x) |
+| depth 2, a twelfth of the frontiers grown | 24,883 | 1.99k | 2.91k (1.46x) | 4.59k (2.30x) | 6.01k (3.01x) |
+
+In the profiled game (16k-round profile above, kernel time = `_pcfr_native._run` own time, which holds the kernel
+calls), rounds x nodes per second of kernel time: 46.2M (1 thread), 56.0M (2, 1.21x), 76.0M (4, 1.65x), 84.6M (6,
+1.83x); rounds over turns 2..8: 78.4k, 77.6k, 95.7k, 99.9k. Parallel walks counted in the container: 0, 836k,
+1.01M, 1.04M (the variable reached the kernel). Same tree, same clock: ply 28 of the single positions 7,299 rounds
+(1 thread) vs 16,327 (6 threads); ply 68 4,542 vs 9,980.
+
+Why not more: a walk on these trees takes 30-100 us, so a task (one hypothesis subtree) is a few microseconds; the
+replay of the logs and the root's own operations are sequential (the replay alone 3.5 of 57 ms per 300 rounds, 6 %,
+of a 6-thread run on the 25k-node tree in an instrumented build); the root has 16 children, unevenly sized (397-877 nodes on the depth-2 tree); prediction levels are
+sequential by construction. The hardware is not the limit (a compute-bound OpenMP loop scales 5.9x on 6 threads
+here) and an OpenMP region costs 0.4-0.7 us.
+
+### What remains
+
+* Kernel scaling: write directly (no log) for information sets confined to one root subtree (most opponent sets);
+  apply the logs in parallel over disjoint action ranges; one parallel region per `pcfr_run` with barriers
+  between phases instead of a region per walk. Each keeps the results exact if the addition order is kept.
+* `project_chess` about 0.26 s per profiled turn (saved-tree walk with a board analysis per node, fresh roots'
+  `_build_roots` with the leaf): the next step would be the saved-tree walk in the rules kernel.
+* `OneSidedExpansion.distribution` (variance bonus, 1.2-2.7 s cumulative per profiled game): its
+  incremental form changes the floating-point order (A3/A4 note), so it needs an exactness decision first.
+* The anytime agent's per-growth scans over all frontiers (`anytime_agent.py`, lines 166 and 186) were not
+  touched (not on the profiled path).
+* Threads and torch: the kernel's libgomp is the system's, torch brings its own; they coexist in the profiles. With
+  threads on, the kernel's idle workers spin briefly after each region (libgomp's default wait policy).
