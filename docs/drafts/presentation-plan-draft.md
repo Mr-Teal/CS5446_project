@@ -244,11 +244,11 @@ Invite a prediction before revealing the ranking example or the game finding. Pa
 
 **Presenter:** Colin
 
-**Purpose:** Introduce the real comparison and keep the model identity explicit. Timing pending rehearsal.
+**Purpose:** Introduce the correction experiment through its practical question: do closer scores lead to better play? Timing pending rehearsal.
 
-**Say:** For this test, we used a separate neural correction model, not the belief network Bryan described. A fast chess engine scores a position, and the correction tries to bring that score closer to a deeper engine's evaluation. We compared the same agent with and without that correction, using matched openings played with both colours. The question was whether closer scores actually helped it play.
+**Say:** Can we turn a fast engine's rough judgement into better moves? We trained a correction to bring its scores closer to a deeper engine's evaluation. Then we tested the part that matters: playing games. We compared the same agent with and without the correction, using matched openings and playing both colours. That lets us ask whether better-looking scores actually translate into better play.
 
-**Transition:** First, did it learn to match the teacher more closely?
+**Transition:** First, did the correction make the scores more accurate?
 
 **Delivery cues (not spoken):** Trace the two evaluator choices into the same move-selection procedure. The deeper engine is the teacher, not a second playing opponent in this diagram. This is the archived Network 1 study. Keep the 19-plane correction and 32-plane belief network distinct.
 
