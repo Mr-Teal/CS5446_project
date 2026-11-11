@@ -36,19 +36,21 @@ Our questions are: RQ1, does a learned correction to a fast engine improve value
 
 We model a sequential zero-sum game with terminal utility +1/0/-1 for win/draw/loss. An information set groups histories indistinguishable from a player's private evidence; its strategy must use the same action distribution throughout that set [4].
 
-The referee state includes pieces, side to move, castling/en-passant rights, counters and repetition history. An observation contains visible squares and their pieces or explicit emptiness, side to move, ply, legal-action feedback, own-piece capture notice and terminal outcome. Unseen squares are unknown, not empty; the current Pair A adapter hides the halfmove clock. Legal actions are evidence, not merely an output constraint.
+The referee state s_t comprises piece placement, side to move, castling/en-passant rights, clocks, repetition history and last-capture metadata. These determine rule transitions and feedback; a FEN alone omits repetition history. The player's observation o_t = g_i(s_t) contains visible squares and their pieces or explicit emptiness, side to move, ply, legal-action feedback, own-piece capture notice and terminal outcome. Unseen squares are unknown, not empty; Pair A hides the halfmove clock. Legal actions are evidence, not merely an output constraint.
 
-A private history records one's observations after every ply and one's own actions, excluding hidden opponent moves. Current observations or equal FENs can conceal different past evidence, repetition paths and opponent memories. Let H_i(e) denote histories consistent with private evidence e. This support specifies possibility; a posterior b_i(h | e) additionally requires a probability model. Our interface returns hypotheses with positive weights summing to one within the sample. Pair A can attach complete candidate paths; synthetic/rebuilt board hypotheses have weaker guarantees.
+A private history e_t records one's observations after every ply and one's own actions, excluding hidden opponent moves. Equal current views/FENs can conceal different past evidence or opponent memories. Let H_i(e_t) be consistent complete histories. This support specifies possibility; a posterior b_i(h | e_t) additionally requires a probability model. Pair A can return complete paths; synthetic/rebuilt board hypotheses have weaker guarantees.
+
+Our implemented belief is a discrete empirical distribution over K returned hypotheses: b_hat_t(h) = (1/K) Σ_k 1[h = h_k]. Initially all mass is on the public starting history. The untruncated Pair A tracker samples uniformly from H_i(e_t); bounded mode samples retained histories, not complete support. A board's mass sums weights of all sampled histories ending there. Piece-occupancy planes are marginals of these joint hypotheses, not independent probabilities for each piece. Weights are normalized within the sample and are not inferred opponent-policy likelihoods.
 
 The archived one-ply planner maximizes weighted successor value from the root player's perspective. Independently valuing full boards can imply different future actions in indistinguishable states (strategy fusion), so it is a controlled baseline rather than a complete imperfect-information solution [5].
 
-### 2.2 Relation to POMDP belief updates
+### 2.2 Why the player's view is not an MDP state
 
-The course's MDP formulation specifies state, action, transition, reward and policy [6]. Given transition model T and observation model O, POMDP filtering is b′(s′) = η O(o′ | s′, a) Σ_s T(s′ | s, a) b(s); primes denote the next step and η normalizes [7]. Prediction propagates prior mass; observation likelihood corrects it. Our observation function is deterministic, giving an indicator of matching feedback.
+An MDP requires P(s_(t+1) | s_0, a_0, ..., s_t, a_t) = P(s_(t+1) | s_t, a_t) [6]. Our rule state satisfies this for physical transitions given the mover's action, but the players alternate decisions. A player's view is neither fully observed state nor generally Markov: Figure 1 has identical observations but different capture consequences. Earlier private evidence changes which hidden histories are possible. Consequently we cannot simply use the masked board as an ordinary fully observed MDP state.
 
-A fixed opponent policy, with enough hidden state to determine it, induces a single-player partially observable process. Strategic interaction is instead naturally an imperfect-information game or partially observable stochastic game [8]. If the opponent uses private memory, piece placement alone cannot specify that induced transition model.
+A single-player POMDP can be induced by fixing the opponent policy. Its actions are our legal moves; T includes that policy's responses, O is private feedback, and rewards are zero until terminal +1/0/-1, with undiscounted episodic returns. If the opponent uses private memory, the hidden state must include it. Given T and O, filtering is b′(s′) = η O(o′ | s′, a) Σ_s T(s′ | s, a) b(s), with η normalizing and primes denoting the next step [7]. A model-correct posterior over sufficient hidden state yields a belief-state MDP; our finite samples are an approximation. Without a fixed opponent model, strategic interaction is an imperfect-information game or partially observable stochastic game [8]. Thus MDP formulation is conditional, not categorically impossible.
 
-Our trackers enumerate feasible successors, filter observations and sample uniformly, without estimating opponent action probabilities. Uniform feasible histories are not generally the posterior under uniform actions: different branching factors produce different path probabilities. Exact support enumeration therefore does not mean an exact posterior. Neither the latest view nor a feature tensor is automatically a sufficient Markov state.
+Our deterministic observation likelihood indicates matching feedback. Trackers enumerate feasible successors and filter against it, but do not weight paths by opponent action probabilities. Uniform feasible histories are not generally the posterior under uniform actions: branching factors change path probabilities. Exact support therefore does not imply an exact posterior, and the 32-plane features are not proven sufficient Markov statistics.
 
 ### 2.3 Search and learned continuation values
 
@@ -88,7 +90,7 @@ A hash of game identity assigns 80% of games to training, 10% to validation and 
 
 ### 4.2 Evaluators and learning targets
 
-Piece values use conventional material weights 1, 3, 3, 5 and 9 as a simple floor. The linear correction adds a ridge-regression adjustment from 1,217 board features to quick Stockfish's value v1. A second parameterization keeps the prediction bounded: v = tanh(atanh(clip(v1)) + w·x + b), with the input clipped inside (-1, 1). Network 1 replaces the linear adjustment with a convolutional network of approximately 521,000 parameters. These models learn to match careful Stockfish by regression. They still require quick Stockfish, so their inference cost is additional to the engine call [14].
+Material uses weights 1/3/3/5/9. Ridge correction uses 1,217 board features and D1 value v1; its bounded version is v = tanh(atanh(clip(v1)) + w·x + b), clipping inside (-1, 1). Network 1 substitutes a 521,000-parameter CNN correction. Both regress toward D11 and still incur the D1 engine call [14].
 
 The 562,000-parameter belief network combines board embeddings with weighted belief context. Its architecture can vary a board's prediction with context, but practice labels are each board's belief-independent careful-Stockfish value. Synthetic candidates have the limitations in Section 3 [14].
 
@@ -102,7 +104,7 @@ Mean absolute error measures agreement with careful Stockfish. Same top move all
 
 ### 5.2 Archived one-ply matches
 
-Each candidate faces quick Stockfish on 100 random openings of two to eight plies, repeated with colours swapped. Win/draw/loss scores are 1/0.5/0; averages use complete colour pairs. We retain the archive's pair-bootstrap and approximate Wilson intervals. This protocol counts a 200-ply cap as a draw [16, 19].
+Each candidate faces the D1-evaluator agent on 100 random openings of two to eight plies, repeated with colours swapped. D1 scores hypothetical full boards; its agent still receives only private observations and tracked hypotheses, not an omniscient view. Win/draw/loss scores are 1/0.5/0; averages use complete colour pairs. We retain pair-bootstrap and approximate Wilson intervals. This protocol counts a 200-ply cap as a draw [16, 19].
 
 Evaluator agents share one-ply planning, particle and hypothesis counts; random selects actions directly. Total work differs. Decision latency excludes tracking. Stockfish uses one thread, 16 MB hash, clears between games and retains state within games; its 60-second call watchdog is not an equal-time move budget.
 
@@ -118,7 +120,7 @@ Runtime aaa000a uses native tracking, Stockfish 19 (one thread, 16 MiB hash) and
 
 ### 6.1 Better value estimates do not establish better moves
 
-**Table 1.** Development check results against careful Stockfish on 94,963 eligible children from 3,818 decisions in 959 games. Cost is median CPU time to evaluate a parent's children, measured separately on 300 sampled parent positions [14].
+**Table 1.** Development check against D11: 94,963 eligible children, 3,818 decisions, 959 games. Cost: median CPU time per parent's children, separately timed on 300 parents [14].
 
 | Evaluator | Value error | Same top move | Value lost | ms per parent |
 |---|---|---|---|---|
@@ -128,11 +130,11 @@ Runtime aaa000a uses native tracking, Stockfish 19 (one thread, 16 MiB hash) and
 | Linear inside tanh | 0.079 | 43.5% | 0.0348 | not timed |
 | Network 1 | 0.076 | 42.4% | 0.0352 | 12.2 |
 
-Network 1 reduces value error by about 20%. Its paired difference from quick Stockfish is -0.019, with a 95% interval [-0.021, -0.018]. The value-lost difference is -0.0003 [-0.0017, +0.0011]. That interval includes zero, so improved move selection is not established; statistical equivalence is not established either.
+Network 1 reduces error about 20%: paired difference -0.019, 95% interval [-0.021, -0.018]. Value-lost difference is -0.0003 [-0.0017, +0.0011]; neither improved selection nor equivalence is established.
 
 ![Value error by position category](../../pair_b/experiments/tanh_linear/value-error-by-band.png)
 
-**Figure 3.** Value error on the development check set, grouped by careful Stockfish's assessment. Learned corrections improve errors in positions that already favour one side, but lose accuracy in close positions. The original analysis and bin definitions are retained in the evaluator archive [14].
+**Figure 3.** Development error by teacher assessment. Corrections improve decided positions but worsen close ones; bin definitions and analysis remain archived [14].
 
 Errors in decided positions may not change actions, whereas small errors in close positions can reverse rankings. Figure 3 suggests this explanation, but a targeted ablation is needed for causality.
 
@@ -142,7 +144,7 @@ Linear correction captures 56% of Network 1's error reduction, or 83% with bound
 
 Distillation fits 638,451 child rows from 6,414 training games. MC/TD drop 175 unfinished training games and use 722,500 trajectory positions from 6,239 finished games. Thus the target and training-row distribution both change. MC and TD never receive careful Stockfish's values [18].
 
-**Table 2.** The same bounded linear model trained on different targets. Teacher metrics use the Table 1 population. Outcome error uses 106,971 trajectory positions from 929 finished check games, after excluding 32 unfinished games from 961 replayed games [18].
+**Table 2.** Bounded linear model, different targets. Teacher population: Table 1. Outcome MSE: 106,971 positions/929 finished check games; 32 unfinished excluded from 961 replayed games [18].
 
 | Training target | Value error | Outcome MSE | Same top move | Value lost |
 |---|---|---|---|---|
@@ -152,7 +154,7 @@ Distillation fits 638,451 child rows from 6,414 training games. MC/TD drop 175 u
 | TD(λ) with λ = 0.8 | 0.208 | 0.476 | 41.5% | 0.0415 |
 | Quick Stockfish without learning | 0.095 | 0.497 | 42.9% | 0.0355 |
 
-Outcome-trained models predict the practice games' results better than distillation, while agreeing less with the stronger engine and losing more teacher value through their selected moves. TD(0)'s outcome MSE is lower than MC's by 0.0053 [0.0010, 0.0097]. The data describe how a weak, partly random policy converts positions into outcomes. Predicting that policy's returns is a different task from approximating stronger continuation play. Better performance on one target need not transfer to the other.
+Outcome-trained models better predict practice returns but worsen teacher agreement/action value. TD(0)'s outcome MSE improves over MC by 0.0053 [0.0010, 0.0097]. Predicting a weak, partly random policy's returns differs from approximating stronger continuation play.
 
 Both TD methods reach 15 rounds. A 40-round diagnostic barely changes outcome MSE and worsens teacher error; the cap alone does not explain the gap. This dataset/model result does not establish general inferiority of outcome-based RL [18].
 
@@ -164,7 +166,7 @@ Each board's target is belief-independent. Context can denoise predictions witho
 
 ### 6.4 Game outcomes under a common outer planner
 
-**Table 3.** Separate comparisons against quick Stockfish. Each row schedules 200 games. Scores and intervals use complete colour pairs: 100 per row, except random with 99. W/D/L includes all finished games, including random's unpaired survivor. Cost is candidate median decision latency, excluding tracking [16, 19].
+**Table 3.** Against D1, 200 games/row. Scores/intervals: complete colour pairs (100/row; random 99). W/D/L: all finished games, including random's unpaired survivor. Cost: candidate median decision latency, excluding tracking [16, 19].
 
 | Evaluator | Score | Bootstrap 95% | Wilson 95% | W/D/L | ms per move |
 |---|---|---|---|---|---|
@@ -186,9 +188,9 @@ Network 1, belief network and D11 take respectively three, thirteen and 220 time
 
 All 100 planned games were attempted: 93 reached a terminal result and seven failed, with none capped, missing or unplayed. Failures affected six pairs, leaving 44 clean pairs (88 games). On those pairs, Network 1 recorded 41 wins, 47 losses and no draws: a paired score of 46.59%, with a whole-pair bootstrap 95% interval of 36.36%–56.82%. The analysis uses 20,000 whole-pair resamples. It establishes neither a Network 1 advantage nor statistical equivalence [20].
 
-Four failures report no consistent full path after bounded-history replay, two exhaust the tracker update allowance, and one exceeds the pruning allowance. The excluded pair seeds are 1002, 1031, 1032, 1034, 1036 and 1043. Outcomes from surviving partners are excluded from the paired score. The estimate is conditional on joint clean completion and cannot be generalized to all scheduled seeds. Failed attempts remain evidence about system reliability. Opening/readiness checks on seeds 17 and 18 are not pooled into this batch [20].
+Failures comprise four replay-support losses, two update timeouts and one pruning timeout. Six excluded pair seeds and raw failures remain in the archive. Surviving partners do not enter paired scoring: the estimate conditions on joint completion, not all scheduled seeds. Seed 17/18 checks are separate [20].
 
-This tests evaluator replacement inside sampled search, not ZS21 versus Obscuro, PCFR+ versus one-ply, or optional gadget contributions. Table 3 uses a different planner.
+Against the same search agent using D1 leaves, the Network 1 variant has a 46.59% clean-pair score, not an established improvement. Completion is 93% of attempts; this is a separate reliability measure. Table 3's random/material controls establish a performance floor for the older one-ply system, not for this search batch. Neither study compares our search to a POMDP-optimal agent, the original closed-source ZS21/Obscuro, or one-ply under matched whole-turn compute. We therefore report measured baseline-relative performance, without claiming published strength or a search-algorithm advantage.
 
 ## 7 Discussion and limitations
 
@@ -202,11 +204,11 @@ Next steps are equal whole-turn-resource comparisons, actual-work/depth reportin
 
 ## 8 Responsible practice and team contributions
 
-The referee-player boundary prevents unfair access to hidden true-board data. Separate offline generation and online inference paths help enforce it. Archiving configurations, seeds and failed attempts supports reproducibility; reporting null findings and unequal costs avoids overstating strength. No human study was conducted. Future human matches should identify the bot and obtain consent.
+Private referee-player boundaries and separate offline labeling prevent hidden-board access. Archived configs, seeds and failures support reproducibility; null findings and unequal costs remain explicit. No human study was conducted; future matches should disclose the bot and obtain consent.
 
-Work was divided across search, learning and evaluation. Ding Chiyu developed rules and observation interfaces, PCFR+/gadget search prototypes, growth and diagnostics, and later evaluation integration with bounded-history replay recovery. Pei Shengxin's workstream covers belief tracking and ZS21. Colin developed evaluators, practice-data training, the particle bot, match runner and Fog Lab, and operated the batch. Bryan developed the linear baseline and state-preserving expansion API, audited the games, and contributed integration checks, reviews and reporting. Wang Zhijian's workstream covers Pair C evaluation and provenance. Lin Tzu-Chun's proposal responsibility covers environment and belief representation. Shared interfaces and reviews connect these workstreams [21].
+Ding Chiyu developed rules/observations, PCFR+/gadget search, growth/diagnostics and evaluation integration with bounded-history replay. Pei Shengxin covers tracking and ZS21. Colin developed evaluators, training/data, particle bot, runner and Fog Lab, and operated the batch. Bryan developed linear correction and expansion API, audited games, and contributed integration/reviews/reporting. Wang Zhijian covers evaluation/provenance. Lin Tzu-Chun's proposal responsibility is environment/belief representation, not certification of unverified implementation [21].
 
-Bryan reported GitHub Copilot and Codex assistance for inspection, probes, artifact checks and earlier report drafting. Ding used Codex for implementation and validation, and for this report's clarification, source checks and document regeneration. The proposal disclosed Claude-assisted drafting. The team supplied design, implementation, experiments, archive review and interpretation. AI-generated text and code remain the authors' responsibility; they are not experimental evidence.
+Bryan reported Copilot/Codex assistance for inspection, probes, artifact checks and earlier drafting. Ding used Codex for implementation/validation and this report's clarification, source checks and regeneration. The proposal disclosed Claude-assisted drafting. The authors remain responsible for design, code, experiments and interpretation; AI output is not experimental evidence.
 
 ## 9 Conclusion
 
