@@ -65,6 +65,28 @@
     "number": 6,
     "display_url": ""
   },
+  "pomdp": {
+    "number": 7,
+    "author": "Kaelbling LP, Littman ML, Cassandra AR",
+    "title": "Planning and acting in partially observable stochastic domains",
+    "year": "1998",
+    "details": "Artif Intell. 1998;101(1-2):99-134.",
+    "url": "https://www.cassandra.org/arc/papers/aij98.pdf",
+    "display_url": "https://www.cassandra.org/arc/papers/aij98.pdf",
+    "label": "Planning and acting in partially observable stochastic domains",
+    "kind": "JournalArticle"
+  },
+  "posg": {
+    "number": 8,
+    "author": "Hansen EA, Bernstein DS, Zilberstein S",
+    "title": "Dynamic programming for partially observable stochastic games",
+    "year": "2004",
+    "details": "In: Proceedings of AAAI-04. 2004. p. 709-15.",
+    "url": "https://cdn.aaai.org/AAAI/2004/AAAI04-112.pdf",
+    "display_url": "https://cdn.aaai.org/AAAI/2004/AAAI04-112.pdf",
+    "label": "Dynamic programming for partially observable stochastic games",
+    "kind": "ConferenceProceedings"
+  },
   "course-guided": {
     "title": "Guided sequential decision making: decision-time and demonstration-based planning",
     "author": "National University of Singapore School of Computing",
@@ -73,7 +95,7 @@
     "url": "",
     "label": "Source",
     "kind": "Report",
-    "number": 7,
+    "number": 9,
     "display_url": ""
   },
   "deepstack": {
@@ -84,7 +106,7 @@
     "url": "https://doi.org/10.1126/science.aam6960",
     "label": "doi:10.1126/science.aam6960",
     "kind": "JournalArticle",
-    "number": 8,
+    "number": 10,
     "display_url": "doi:10.1126/science.aam6960"
   },
   "rebel": {
@@ -95,7 +117,7 @@
     "url": "https://arxiv.org/abs/2007.13544",
     "label": "arXiv:2007.13544",
     "kind": "ConferenceProceedings",
-    "number": 9,
+    "number": 11,
     "display_url": "https://arxiv.org/abs/2007.13544"
   },
   "course-mf": {
@@ -106,7 +128,7 @@
     "url": "",
     "label": "Source",
     "kind": "Report",
-    "number": 10,
+    "number": 12,
     "display_url": ""
   },
   "system": {
@@ -117,8 +139,30 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/tree/3335723852ad59ccbe5e999dbe0ce2773f7e56d0",
     "label": "Pinned repository and implementation documentation",
     "kind": "Report",
-    "number": 11,
+    "number": 13,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/tree/3335723852ad59ccbe5e999dbe0ce2773f7e56d0"
+  },
+  "evaluators": {
+    "title": "Leaf evaluators and practice-data results",
+    "author": "Quek HC, Kuah JHB, CS5446_project contributors",
+    "year": "2026",
+    "details": "[Internet]. 2026 [cited 2026 Nov 8]. Snapshot 3335723; linked data manifests, checkpoints and ablations.",
+    "url": "https://github.com/Mr-Teal/CS5446_project/blob/3335723852ad59ccbe5e999dbe0ce2773f7e56d0/pair_b/README.md",
+    "label": "Pinned evaluator documentation and artifacts",
+    "kind": "Report",
+    "number": 14,
+    "display_url": "https://github.com/Mr-Teal/CS5446_project/blob/3335723852ad59ccbe5e999dbe0ce2773f7e56d0/pair_b/README.md"
+  },
+  "bounded-history": {
+    "number": 15,
+    "author": "CS5446_project contributors",
+    "title": "Bounded history inference with private-stream replay recovery",
+    "year": "2026",
+    "details": "[software on the Internet]. 2026 [cited 2026 Nov 11]. Measured runtime aaa000a.",
+    "url": "https://github.com/Mr-Teal/CS5446_project/blob/aaa000a034ae5275afe981402891596e660312a4/pair_a_prep/bounded_tracking.py",
+    "display_url": "https://github.com/Mr-Teal/CS5446_project/blob/aaa000a034ae5275afe981402891596e660312a4/pair_a_prep/bounded_tracking.py",
+    "label": "Bounded history inference with private-stream replay recovery",
+    "kind": "Report"
   },
   "methods": {
     "title": "Evaluation methods and batch validation",
@@ -128,7 +172,7 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md",
     "label": "Pinned methods and archive audit",
     "kind": "Report",
-    "number": 13,
+    "number": 16,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md"
   },
   "verification": {
@@ -139,19 +183,8 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/blob/bryankuah/report-presentation-drafts/docs/drafts/report-evidence-notes.md",
     "label": "Report evidence notes and linked original records",
     "kind": "Report",
-    "number": 14,
+    "number": 17,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/blob/bryankuah/report-presentation-drafts/docs/drafts/report-evidence-notes.md"
-  },
-  "evaluators": {
-    "title": "Leaf evaluators and practice-data results",
-    "author": "Quek HC, Kuah JHB, CS5446_project contributors",
-    "year": "2026",
-    "details": "[Internet]. 2026 [cited 2026 Nov 8]. Snapshot 3335723; linked data manifests, checkpoints and ablations.",
-    "url": "https://github.com/Mr-Teal/CS5446_project/blob/3335723852ad59ccbe5e999dbe0ce2773f7e56d0/pair_b/README.md",
-    "label": "Pinned evaluator documentation and artifacts",
-    "kind": "Report",
-    "number": 12,
-    "display_url": "https://github.com/Mr-Teal/CS5446_project/blob/3335723852ad59ccbe5e999dbe0ce2773f7e56d0/pair_b/README.md"
   },
   "mc-td": {
     "title": "Monte Carlo and temporal-difference target comparison",
@@ -161,7 +194,7 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md",
     "label": "Pinned setup results and exclusions",
     "kind": "Report",
-    "number": 15,
+    "number": 18,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md"
   },
   "batch": {
@@ -172,8 +205,19 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27",
     "label": "Pinned records manifests and aggregate tables",
     "kind": "Report",
-    "number": 16,
+    "number": 19,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27"
+  },
+  "later-search": {
+    "number": 20,
+    "author": "CS5446_project contributors",
+    "title": "Network 1 vs Stockfish D1 evaluation",
+    "year": "2026",
+    "details": "[dataset on the Internet]. 2026 Nov 10 [cited 2026 Nov 11]. 100 attempted games; pinned returned archive.",
+    "url": "https://github.com/Mr-Teal/CS5446_project/blob/8c7baf758e40f8a23c09b273903cff0aee38d2cb/pair_c/evaluation_20261110/README.md",
+    "display_url": "https://github.com/Mr-Teal/CS5446_project/blob/8c7baf758e40f8a23c09b273903cff0aee38d2cb/pair_c/evaluation_20261110/README.md",
+    "label": "Network 1 vs Stockfish D1 evaluation",
+    "kind": "Report"
   },
   "contributions": {
     "title": "Project contribution records",
@@ -183,7 +227,7 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/pull/33",
     "label": "Report discussion and contribution statements",
     "kind": "Report",
-    "number": 17,
+    "number": 21,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/pull/33"
   }
 }

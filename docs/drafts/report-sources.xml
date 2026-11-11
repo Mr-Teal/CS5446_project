@@ -113,6 +113,34 @@
     <b:Comments>6. National University of Singapore School of Computing. Sequential decision making under uncertainty. CS4246/CS5446 course slides. Version 1.0. Semester 1, AY2026/27.</b:Comments>
   </b:Source>
   <b:Source>
+    <b:Tag>pomdp</b:Tag>
+    <b:SourceType>JournalArticle</b:SourceType>
+    <b:Guid>{7D31B7C4-BF24-55F0-93F8-E766DDE0384D}</b:Guid>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>Kaelbling LP, Littman ML, Cassandra AR</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Planning and acting in partially observable stochastic domains</b:Title>
+    <b:Year>1998</b:Year>
+    <b:URL>https://www.cassandra.org/arc/papers/aij98.pdf</b:URL>
+    <b:Comments>Artif Intell. 1998;101(1-2):99-134.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>posg</b:Tag>
+    <b:SourceType>ConferenceProceedings</b:SourceType>
+    <b:Guid>{143BCF91-96E0-50DC-8717-16E05E4E0184}</b:Guid>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>Hansen EA, Bernstein DS, Zilberstein S</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Dynamic programming for partially observable stochastic games</b:Title>
+    <b:Year>2004</b:Year>
+    <b:URL>https://cdn.aaai.org/AAAI/2004/AAAI04-112.pdf</b:URL>
+    <b:Comments>In: Proceedings of AAAI-04. 2004. p. 709-15.</b:Comments>
+  </b:Source>
+  <b:Source>
     <b:Tag>course-guided</b:Tag>
     <b:SourceType>Report</b:SourceType>
     <b:Guid>{473E1145-0468-58F3-AD16-C0E35033178F}</b:Guid>
@@ -266,6 +294,20 @@
     <b:Comments>12. Quek HC, Kuah JHB, CS5446_project contributors. Leaf evaluators and practice-data results. [Internet]. 2026 [cited 2026 Nov 8]. Snapshot 3335723; linked data manifests, checkpoints and ablations. Available from: https://github.com/Mr-Teal/CS5446_project/blob/3335723852ad59ccbe5e999dbe0ce2773f7e56d0/pair_b/README.md.</b:Comments>
   </b:Source>
   <b:Source>
+    <b:Tag>bounded-history</b:Tag>
+    <b:SourceType>Report</b:SourceType>
+    <b:Guid>{254FB31A-2E64-5D66-A4A4-DB2C0B60C91F}</b:Guid>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>CS5446_project contributors</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Bounded history inference with private-stream replay recovery</b:Title>
+    <b:Year>2026</b:Year>
+    <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/aaa000a034ae5275afe981402891596e660312a4/pair_a_prep/bounded_tracking.py</b:URL>
+    <b:Comments>[software on the Internet]. 2026 [cited 2026 Nov 11]. Measured runtime aaa000a.</b:Comments>
+  </b:Source>
+  <b:Source>
     <b:Tag>methods</b:Tag>
     <b:SourceType>Report</b:SourceType>
     <b:Guid>{05B0129D-46FA-5BDD-9CD3-88B74EFC754E}</b:Guid>
@@ -330,6 +372,20 @@
     <b:Year>2026</b:Year>
     <b:URL>https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27</b:URL>
     <b:Comments>16. Quek HC, CS5446_project contributors. Seven-row match batch. [dataset on the Internet]. 2026 Oct 27 [cited 2026 Nov 8]. Execution a5c5fb6; reviewed archive 5e9393a. Available from: https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>later-search</b:Tag>
+    <b:SourceType>Report</b:SourceType>
+    <b:Guid>{86846FC9-CB58-59C3-9476-714B65F020CA}</b:Guid>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>CS5446_project contributors</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Network 1 vs Stockfish D1 evaluation</b:Title>
+    <b:Year>2026</b:Year>
+    <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/8c7baf758e40f8a23c09b273903cff0aee38d2cb/pair_c/evaluation_20261110/README.md</b:URL>
+    <b:Comments>[dataset on the Internet]. 2026 Nov 10 [cited 2026 Nov 11]. 100 attempted games; pinned returned archive.</b:Comments>
   </b:Source>
   <b:Source>
     <b:Tag>contributions</b:Tag>
