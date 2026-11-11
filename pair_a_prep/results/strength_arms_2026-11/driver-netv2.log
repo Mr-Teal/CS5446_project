@@ -1,0 +1,218 @@
+[2026-11-09T17:12:17+00:00] repo=/home/dev/cs5446-review/wt-net commit=d63de87 arms=netv2-fe-s16 netv2-vs-fe-s16 mem=8000m ckpt=48251445d554afce
+[2026-11-09T17:12:17+00:00] WARNING: wt-net has uncommitted source changes (network-leaf factory)
+[2026-11-09T17:12:17+00:00] starting netv2-fe-s16-c1
+[2026-11-09T17:17:08+00:00] netv2-fe-s16-c1 exit=0 elapsed=291s
+[2026-11-09T17:17:08+00:00] starting netv2-vs-fe-s16-c1
+[2026-11-09T18:18:32+00:00] repo=/home/dev/cs5446-review/wt-net commit=d63de87 arms=netv2-fe-s16 netv2-vs-fe-s16 mem=8000m ckpt=48251445d554afce
+[2026-11-09T18:18:32+00:00] WARNING: wt-net has uncommitted source changes (network-leaf factory)
+[2026-11-09T18:18:32+00:00] netv2-fe-s16-c1 already done, skipping
+[2026-11-09T18:18:32+00:00] netv2-vs-fe-s16-c1 already done, skipping
+[2026-11-09T18:18:32+00:00] starting netv2-fe-s16-c2
+[2026-11-09T18:20:46+00:00] netv2-fe-s16-c2 exit=0 elapsed=134s
+[2026-11-09T18:20:46+00:00] starting netv2-vs-fe-s16-c2
+[2026-11-09T18:43:29+00:00] netv2-vs-fe-s16-c2 exit=137 elapsed=1363s
+[2026-11-09T18:43:29+00:00] starting netv2-fe-s16-c3
+[2026-11-09T18:45:56+00:00] netv2-fe-s16-c3 exit=0 elapsed=147s
+[2026-11-09T18:45:56+00:00] starting netv2-vs-fe-s16-c3
+[2026-11-09T19:23:22+00:00] netv2-vs-fe-s16-c3 exit=137 elapsed=2246s
+[2026-11-09T19:23:22+00:00] starting netv2-fe-s16-c4
+[2026-11-09T19:33:34+00:00] netv2-fe-s16-c4 exit=0 elapsed=612s
+[2026-11-09T19:33:34+00:00] starting netv2-vs-fe-s16-c4
+[2026-11-09T20:14:29+00:00] repo=/home/dev/cs5446-review/wt-net commit=14502df arms=netv2-fe-s16 netv2-vs-fe-guard-s16 mem=8000m ckpt=48251445d554afce
+[2026-11-09T20:14:29+00:00] netv2-fe-s16-c1 already done, skipping
+[2026-11-09T20:14:29+00:00] starting netv2-vs-fe-guard-s16-c1
+[2026-11-09T20:47:08+00:00] netv2-vs-fe-guard-s16-c1 exit=0 elapsed=1959s
+[2026-11-09T20:47:08+00:00] netv2-fe-s16-c2 already done, skipping
+[2026-11-09T20:47:08+00:00] starting netv2-vs-fe-guard-s16-c2
+[2026-11-09T21:43:00+00:00] netv2-vs-fe-guard-s16-c2 exit=0 elapsed=3352s
+[2026-11-09T21:43:00+00:00] netv2-fe-s16-c3 already done, skipping
+[2026-11-09T21:43:00+00:00] starting netv2-vs-fe-guard-s16-c3
+[2026-11-09T22:17:31+00:00] netv2-vs-fe-guard-s16-c3 exit=1 elapsed=2071s
+[2026-11-09T22:17:31+00:00] netv2-fe-s16-c4 already done, skipping
+[2026-11-09T22:17:31+00:00] starting netv2-vs-fe-guard-s16-c4
+[2026-11-09T23:04:22+00:00] netv2-vs-fe-guard-s16-c4 exit=0 elapsed=2811s
+[2026-11-09T23:04:22+00:00] starting netv2-fe-s16-c5
+[2026-11-09T23:13:23+00:00] netv2-fe-s16-c5 exit=0 elapsed=541s
+[2026-11-09T23:13:23+00:00] starting netv2-vs-fe-guard-s16-c5
+[2026-11-09T23:39:36+00:00] netv2-vs-fe-guard-s16-c5 exit=1 elapsed=1573s
+[2026-11-09T23:39:36+00:00] starting netv2-fe-s16-c6
+[2026-11-09T23:50:20+00:00] netv2-fe-s16-c6 exit=0 elapsed=644s
+[2026-11-09T23:50:20+00:00] starting netv2-vs-fe-guard-s16-c6
+[2026-11-10T00:09:17+00:00] netv2-vs-fe-guard-s16-c6 exit=0 elapsed=1137s
+[2026-11-10T00:09:17+00:00] starting netv2-fe-s16-c7
+[2026-11-10T00:17:59+00:00] netv2-fe-s16-c7 exit=0 elapsed=522s
+[2026-11-10T00:17:59+00:00] starting netv2-vs-fe-guard-s16-c7
+[2026-11-10T00:50:32+00:00] netv2-vs-fe-guard-s16-c7 exit=0 elapsed=1953s
+[2026-11-10T00:50:32+00:00] starting netv2-fe-s16-c8
+[2026-11-10T00:53:46+00:00] netv2-fe-s16-c8 exit=0 elapsed=194s
+[2026-11-10T00:53:46+00:00] starting netv2-vs-fe-guard-s16-c8
+[2026-11-10T01:25:43+00:00] netv2-vs-fe-guard-s16-c8 exit=0 elapsed=1917s
+[2026-11-10T01:25:43+00:00] starting netv2-fe-s16-c9
+[2026-11-10T01:30:57+00:00] netv2-fe-s16-c9 exit=0 elapsed=314s
+[2026-11-10T01:30:57+00:00] starting netv2-vs-fe-guard-s16-c9
+[2026-11-10T01:59:13+00:00] netv2-vs-fe-guard-s16-c9 exit=0 elapsed=1696s
+[2026-11-10T01:59:13+00:00] starting netv2-fe-s16-c10
+[2026-11-10T02:01:46+00:00] netv2-fe-s16-c10 exit=0 elapsed=153s
+[2026-11-10T02:01:46+00:00] starting netv2-vs-fe-guard-s16-c10
+[2026-11-10T02:14:48+00:00] netv2-vs-fe-guard-s16-c10 exit=0 elapsed=782s
+[2026-11-10T02:14:48+00:00] starting netv2-fe-s16-c11
+[2026-11-10T02:21:04+00:00] netv2-fe-s16-c11 exit=0 elapsed=376s
+[2026-11-10T02:21:04+00:00] starting netv2-vs-fe-guard-s16-c11
+[2026-11-10T02:57:06+00:00] netv2-vs-fe-guard-s16-c11 exit=0 elapsed=2162s
+[2026-11-10T02:57:06+00:00] starting netv2-fe-s16-c12
+[2026-11-10T03:00:21+00:00] netv2-fe-s16-c12 exit=0 elapsed=195s
+[2026-11-10T03:00:21+00:00] starting netv2-vs-fe-guard-s16-c12
+[2026-11-10T03:43:29+00:00] netv2-vs-fe-guard-s16-c12 exit=1 elapsed=2588s
+[2026-11-10T03:43:29+00:00] starting netv2-fe-s16-c13
+[2026-11-10T03:45:30+00:00] netv2-fe-s16-c13 exit=0 elapsed=121s
+[2026-11-10T03:45:30+00:00] starting netv2-vs-fe-guard-s16-c13
+[2026-11-10T04:30:46+00:00] netv2-vs-fe-guard-s16-c13 exit=0 elapsed=2716s
+[2026-11-10T04:30:46+00:00] starting netv2-fe-s16-c14
+[2026-11-10T04:37:56+00:00] netv2-fe-s16-c14 exit=0 elapsed=430s
+[2026-11-10T04:37:56+00:00] starting netv2-vs-fe-guard-s16-c14
+[2026-11-10T05:13:23+00:00] netv2-vs-fe-guard-s16-c14 exit=0 elapsed=2127s
+[2026-11-10T05:13:23+00:00] starting netv2-fe-s16-c15
+[2026-11-10T05:22:01+00:00] netv2-fe-s16-c15 exit=0 elapsed=518s
+[2026-11-10T05:22:01+00:00] starting netv2-vs-fe-guard-s16-c15
+[2026-11-10T05:51:40+00:00] netv2-vs-fe-guard-s16-c15 exit=0 elapsed=1779s
+[2026-11-10T05:51:40+00:00] starting netv2-fe-s16-c16
+[2026-11-10T05:57:46+00:00] netv2-fe-s16-c16 exit=0 elapsed=366s
+[2026-11-10T05:57:46+00:00] starting netv2-vs-fe-guard-s16-c16
+[2026-11-10T06:46:58+00:00] netv2-vs-fe-guard-s16-c16 exit=0 elapsed=2952s
+[2026-11-10T06:46:58+00:00] starting netv2-fe-s16-c17
+[2026-11-10T06:51:44+00:00] netv2-fe-s16-c17 exit=0 elapsed=286s
+[2026-11-10T06:51:44+00:00] starting netv2-vs-fe-guard-s16-c17
+[2026-11-10T07:44:24+00:00] netv2-vs-fe-guard-s16-c17 exit=0 elapsed=3160s
+[2026-11-10T07:44:24+00:00] starting netv2-fe-s16-c18
+[2026-11-10T07:47:52+00:00] netv2-fe-s16-c18 exit=0 elapsed=208s
+[2026-11-10T07:47:52+00:00] starting netv2-vs-fe-guard-s16-c18
+[2026-11-10T08:37:35+00:00] netv2-vs-fe-guard-s16-c18 exit=0 elapsed=2983s
+[2026-11-10T08:37:35+00:00] starting netv2-fe-s16-c19
+[2026-11-10T08:44:26+00:00] netv2-fe-s16-c19 exit=0 elapsed=411s
+[2026-11-10T08:44:26+00:00] starting netv2-vs-fe-guard-s16-c19
+[2026-11-10T09:03:30+00:00] netv2-vs-fe-guard-s16-c19 exit=0 elapsed=1144s
+[2026-11-10T09:03:30+00:00] starting netv2-fe-s16-c20
+[2026-11-10T09:07:56+00:00] netv2-fe-s16-c20 exit=0 elapsed=266s
+[2026-11-10T09:07:56+00:00] starting netv2-vs-fe-guard-s16-c20
+[2026-11-10T09:59:29+00:00] netv2-vs-fe-guard-s16-c20 exit=1 elapsed=3093s
+[2026-11-10T09:59:29+00:00] starting netv2-fe-s16-c21
+[2026-11-10T10:08:54+00:00] netv2-fe-s16-c21 exit=0 elapsed=565s
+[2026-11-10T10:08:54+00:00] starting netv2-vs-fe-guard-s16-c21
+[2026-11-10T10:27:46+00:00] netv2-vs-fe-guard-s16-c21 exit=1 elapsed=1132s
+[2026-11-10T10:27:46+00:00] starting netv2-fe-s16-c22
+[2026-11-10T10:37:58+00:00] netv2-fe-s16-c22 exit=0 elapsed=612s
+[2026-11-10T10:37:58+00:00] starting netv2-vs-fe-guard-s16-c22
+[2026-11-10T10:52:13+00:00] netv2-vs-fe-guard-s16-c22 exit=0 elapsed=855s
+[2026-11-10T10:52:13+00:00] starting netv2-fe-s16-c23
+[2026-11-10T10:55:31+00:00] netv2-fe-s16-c23 exit=0 elapsed=198s
+[2026-11-10T10:55:31+00:00] starting netv2-vs-fe-guard-s16-c23
+[2026-11-10T11:09:02+00:00] netv2-vs-fe-guard-s16-c23 exit=0 elapsed=811s
+[2026-11-10T11:09:02+00:00] starting netv2-fe-s16-c24
+[2026-11-10T11:12:46+00:00] netv2-fe-s16-c24 exit=0 elapsed=224s
+[2026-11-10T11:12:46+00:00] starting netv2-vs-fe-guard-s16-c24
+[2026-11-10T11:49:42+00:00] netv2-vs-fe-guard-s16-c24 exit=0 elapsed=2216s
+[2026-11-10T11:49:42+00:00] starting netv2-fe-s16-c25
+[2026-11-10T11:54:11+00:00] netv2-fe-s16-c25 exit=0 elapsed=269s
+[2026-11-10T11:54:11+00:00] starting netv2-vs-fe-guard-s16-c25
+[2026-11-10T12:09:59+00:00] netv2-vs-fe-guard-s16-c25 exit=1 elapsed=948s
+[2026-11-10T12:09:59+00:00] starting netv2-fe-s16-c26
+[2026-11-10T12:16:35+00:00] netv2-fe-s16-c26 exit=0 elapsed=396s
+[2026-11-10T12:16:35+00:00] starting netv2-vs-fe-guard-s16-c26
+[2026-11-10T12:42:55+00:00] netv2-vs-fe-guard-s16-c26 exit=0 elapsed=1580s
+[2026-11-10T12:42:55+00:00] starting netv2-fe-s16-c27
+[2026-11-10T12:49:50+00:00] netv2-fe-s16-c27 exit=0 elapsed=415s
+[2026-11-10T12:49:50+00:00] starting netv2-vs-fe-guard-s16-c27
+[2026-11-10T13:12:10+00:00] netv2-vs-fe-guard-s16-c27 exit=0 elapsed=1340s
+[2026-11-10T13:12:10+00:00] starting netv2-fe-s16-c28
+[2026-11-10T13:18:43+00:00] netv2-fe-s16-c28 exit=0 elapsed=393s
+[2026-11-10T13:18:43+00:00] starting netv2-vs-fe-guard-s16-c28
+[2026-11-10T13:44:16+00:00] netv2-vs-fe-guard-s16-c28 exit=0 elapsed=1533s
+[2026-11-10T13:44:16+00:00] starting netv2-fe-s16-c29
+[2026-11-10T14:06:11+00:00] netv2-fe-s16-c29 exit=0 elapsed=1315s
+[2026-11-10T14:06:11+00:00] starting netv2-vs-fe-guard-s16-c29
+[2026-11-10T14:27:39+00:00] netv2-vs-fe-guard-s16-c29 exit=0 elapsed=1288s
+[2026-11-10T14:27:39+00:00] starting netv2-fe-s16-c30
+[2026-11-10T14:30:21+00:00] netv2-fe-s16-c30 exit=0 elapsed=162s
+[2026-11-10T14:30:21+00:00] starting netv2-vs-fe-guard-s16-c30
+[2026-11-10T14:54:44+00:00] netv2-vs-fe-guard-s16-c30 exit=0 elapsed=1463s
+[2026-11-10T14:54:44+00:00] starting netv2-fe-s16-c31
+[2026-11-10T15:01:14+00:00] netv2-fe-s16-c31 exit=0 elapsed=390s
+[2026-11-10T15:01:14+00:00] starting netv2-vs-fe-guard-s16-c31
+[2026-11-10T15:28:30+00:00] netv2-vs-fe-guard-s16-c31 exit=0 elapsed=1637s
+[2026-11-10T15:28:31+00:00] starting netv2-fe-s16-c32
+[2026-11-10T15:30:30+00:00] netv2-fe-s16-c32 exit=0 elapsed=119s
+[2026-11-10T15:30:30+00:00] starting netv2-vs-fe-guard-s16-c32
+[2026-11-10T15:52:46+00:00] netv2-vs-fe-guard-s16-c32 exit=0 elapsed=1336s
+[2026-11-10T15:52:46+00:00] starting netv2-fe-s16-c33
+[2026-11-10T15:55:31+00:00] netv2-fe-s16-c33 exit=1 elapsed=165s
+[2026-11-10T15:55:31+00:00] starting netv2-vs-fe-guard-s16-c33
+[2026-11-10T16:14:02+00:00] netv2-vs-fe-guard-s16-c33 exit=0 elapsed=1111s
+[2026-11-10T16:14:02+00:00] starting netv2-fe-s16-c34
+[2026-11-10T16:21:11+00:00] netv2-fe-s16-c34 exit=0 elapsed=429s
+[2026-11-10T16:21:11+00:00] starting netv2-vs-fe-guard-s16-c34
+[2026-11-10T17:14:56+00:00] netv2-vs-fe-guard-s16-c34 exit=0 elapsed=3225s
+[2026-11-10T17:14:56+00:00] starting netv2-fe-s16-c35
+[2026-11-10T17:17:18+00:00] netv2-fe-s16-c35 exit=0 elapsed=142s
+[2026-11-10T17:17:18+00:00] starting netv2-vs-fe-guard-s16-c35
+[2026-11-10T17:42:27+00:00] netv2-vs-fe-guard-s16-c35 exit=0 elapsed=1509s
+[2026-11-10T17:42:27+00:00] starting netv2-fe-s16-c36
+[2026-11-10T17:44:35+00:00] netv2-fe-s16-c36 exit=0 elapsed=128s
+[2026-11-10T17:44:35+00:00] starting netv2-vs-fe-guard-s16-c36
+[2026-11-10T18:17:06+00:00] netv2-vs-fe-guard-s16-c36 exit=0 elapsed=1951s
+[2026-11-10T18:17:06+00:00] starting netv2-fe-s16-c37
+[2026-11-10T18:20:33+00:00] netv2-fe-s16-c37 exit=0 elapsed=207s
+[2026-11-10T18:20:33+00:00] starting netv2-vs-fe-guard-s16-c37
+[2026-11-10T18:44:26+00:00] netv2-vs-fe-guard-s16-c37 exit=0 elapsed=1433s
+[2026-11-10T18:44:26+00:00] starting netv2-fe-s16-c38
+[2026-11-10T19:00:39+00:00] netv2-fe-s16-c38 exit=0 elapsed=973s
+[2026-11-10T19:00:39+00:00] starting netv2-vs-fe-guard-s16-c38
+[2026-11-10T19:28:24+00:00] netv2-vs-fe-guard-s16-c38 exit=0 elapsed=1665s
+[2026-11-10T19:28:24+00:00] starting netv2-fe-s16-c39
+[2026-11-10T19:37:32+00:00] netv2-fe-s16-c39 exit=0 elapsed=548s
+[2026-11-10T19:37:32+00:00] starting netv2-vs-fe-guard-s16-c39
+[2026-11-10T19:48:21+00:00] netv2-vs-fe-guard-s16-c39 exit=1 elapsed=649s
+[2026-11-10T19:48:21+00:00] starting netv2-fe-s16-c40
+[2026-11-10T19:54:23+00:00] netv2-fe-s16-c40 exit=0 elapsed=362s
+[2026-11-10T19:54:23+00:00] starting netv2-vs-fe-guard-s16-c40
+[2026-11-10T20:39:02+00:00] netv2-vs-fe-guard-s16-c40 exit=0 elapsed=2679s
+[2026-11-10T20:39:02+00:00] starting netv2-fe-s16-c41
+[2026-11-10T20:44:31+00:00] netv2-fe-s16-c41 exit=0 elapsed=329s
+[2026-11-10T20:44:31+00:00] starting netv2-vs-fe-guard-s16-c41
+[2026-11-10T21:26:37+00:00] netv2-vs-fe-guard-s16-c41 exit=137 elapsed=2526s
+[2026-11-10T21:26:37+00:00] starting netv2-fe-s16-c42
+[2026-11-10T21:47:04+00:00] netv2-fe-s16-c42 exit=0 elapsed=1227s
+[2026-11-10T21:47:04+00:00] starting netv2-vs-fe-guard-s16-c42
+[2026-11-10T22:30:57+00:00] netv2-vs-fe-guard-s16-c42 exit=0 elapsed=2633s
+[2026-11-10T22:30:57+00:00] starting netv2-fe-s16-c43
+[2026-11-10T22:36:28+00:00] netv2-fe-s16-c43 exit=0 elapsed=331s
+[2026-11-10T22:36:28+00:00] starting netv2-vs-fe-guard-s16-c43
+[2026-11-10T22:54:32+00:00] netv2-vs-fe-guard-s16-c43 exit=0 elapsed=1084s
+[2026-11-10T22:54:32+00:00] starting netv2-fe-s16-c44
+[2026-11-10T22:59:34+00:00] netv2-fe-s16-c44 exit=0 elapsed=302s
+[2026-11-10T22:59:34+00:00] starting netv2-vs-fe-guard-s16-c44
+[2026-11-10T23:15:23+00:00] netv2-vs-fe-guard-s16-c44 exit=0 elapsed=949s
+[2026-11-10T23:15:23+00:00] starting netv2-fe-s16-c45
+[2026-11-10T23:18:41+00:00] netv2-fe-s16-c45 exit=0 elapsed=198s
+[2026-11-10T23:18:41+00:00] starting netv2-vs-fe-guard-s16-c45
+[2026-11-10T23:57:50+00:00] netv2-vs-fe-guard-s16-c45 exit=0 elapsed=2349s
+[2026-11-10T23:57:50+00:00] starting netv2-fe-s16-c46
+[2026-11-11T00:03:58+00:00] netv2-fe-s16-c46 exit=0 elapsed=368s
+[2026-11-11T00:03:58+00:00] starting netv2-vs-fe-guard-s16-c46
+[2026-11-11T01:24:37+00:00] netv2-vs-fe-guard-s16-c46 exit=0 elapsed=4839s
+[2026-11-11T01:24:37+00:00] starting netv2-fe-s16-c47
+[2026-11-11T01:32:32+00:00] netv2-fe-s16-c47 exit=0 elapsed=475s
+[2026-11-11T01:32:32+00:00] starting netv2-vs-fe-guard-s16-c47
+[2026-11-11T01:52:37+00:00] netv2-vs-fe-guard-s16-c47 exit=137 elapsed=1205s
+[2026-11-11T01:52:37+00:00] starting netv2-fe-s16-c48
+[2026-11-11T01:54:45+00:00] netv2-fe-s16-c48 exit=0 elapsed=128s
+[2026-11-11T01:54:45+00:00] starting netv2-vs-fe-guard-s16-c48
+[2026-11-11T02:15:18+00:00] netv2-vs-fe-guard-s16-c48 exit=1 elapsed=1233s
+[2026-11-11T02:15:18+00:00] starting netv2-fe-s16-c49
+[2026-11-11T02:20:37+00:00] netv2-fe-s16-c49 exit=0 elapsed=319s
+[2026-11-11T02:20:37+00:00] starting netv2-vs-fe-guard-s16-c49
+[2026-11-11T03:00:43+00:00] netv2-vs-fe-guard-s16-c49 exit=0 elapsed=2406s
+[2026-11-11T03:00:43+00:00] starting netv2-fe-s16-c50
+[2026-11-11T03:04:21+00:00] netv2-fe-s16-c50 exit=0 elapsed=218s
+[2026-11-11T03:04:21+00:00] starting netv2-vs-fe-guard-s16-c50
+[2026-11-11T03:34:03+00:00] netv2-vs-fe-guard-s16-c50 exit=0 elapsed=1782s
+[2026-11-11T03:34:03+00:00] network arm: all chunks attempted
