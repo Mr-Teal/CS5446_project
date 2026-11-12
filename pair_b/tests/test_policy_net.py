@@ -20,10 +20,10 @@ torch = pytest.importorskip("torch")  # Intel Macs have no torch build: skip thi
 from fow_shared.recording import write_records
 from pairb.belief_data import build_arrays
 from pairb.data import split_of
-from pairb.moves import N_MOVES, policy_vector
-from pairb.policy_data import dense_targets, load_positions, move_position
+from pairb.moves import N_MOVES, legal_mask, move_index, policy_vector
+from pairb.policy_data import dense_targets, game_subset, load_positions, move_position
 from pairb.policy_metrics import label_kinds, pure_teacher_metrics, teacher_metrics, uniform_teacher_metrics
-from pairb.policy_net import PolicyNetwork
+from pairb.policy_net import MOVE_TYPES, PolicyNetwork, conv_slots
 from pairb.standin_beliefs import make_turn, record_for
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -185,9 +185,10 @@ def two_beliefs():
 
 # Catches: a pooled network that answers per board, leaks probability onto illegal slots, or depends on the
 # order in which a belief's boards arrive.
-def test_pooled_gives_one_legal_distribution_per_belief_whatever_the_board_order():
+@pytest.mark.parametrize("design", ["pooled", "pooled-conv"])
+def test_pooled_gives_one_legal_distribution_per_belief_whatever_the_board_order(design):
     planes, weights, belief, legal = two_beliefs()
-    m = nudged("pooled")
+    m = nudged(design)
     p = m.belief_probs(planes, weights, belief, 2, legal)
     assert p.shape == (2, N_MOVES) and m(planes, weights, belief, 2, legal).shape == (2, N_MOVES)
     assert torch.allclose(p.sum(1), torch.ones(2), atol=1e-6) and (p[~legal] == 0).all()
@@ -198,9 +199,10 @@ def test_pooled_gives_one_legal_distribution_per_belief_whatever_the_board_order
 
 # Catches: per-board boards influencing each other, or a belief distribution other than the weighted mean of
 # each board's own softmax.
-def test_per_board_belief_distribution_is_the_weight_averaged_softmax_of_its_boards():
+@pytest.mark.parametrize("design", ["per-board", "per-board-conv"])
+def test_per_board_belief_distribution_is_the_weight_averaged_softmax_of_its_boards(design):
     planes, weights, belief, legal = two_beliefs()
-    m = nudged("per-board")
+    m = nudged(design)
     raw = 2 * weights  # not normalised: the network must normalise within each belief
     alone = torch.stack([m.belief_probs(planes[i:i + 1], raw[i:i + 1], torch.zeros(1, dtype=torch.long), 1,
                                         legal[belief[i]][None])[0] for i in range(5)])
@@ -210,7 +212,7 @@ def test_per_board_belief_distribution_is_the_weight_averaged_softmax_of_its_boa
     assert m(planes, raw, belief, 2, legal).shape == (5, N_MOVES)
 
 
-@pytest.mark.parametrize("design", ["pooled", "per-board"])
+@pytest.mark.parametrize("design", ["pooled", "per-board", "pooled-conv"])
 def test_a_two_epoch_run_trains_on_train_and_validation_positions_only(tmp_path, design):
     records, true = fixture(tmp_path)
     out = tmp_path / "run"
@@ -380,3 +382,61 @@ def test_init_starts_from_the_checkpoint_and_refuses_a_mismatch(tmp_path):
     assert summary["best_epoch"] == 1  # epoch 0 is logged, never kept as the run's own result
     wrong = train(tmp_path, tmp_path / "wrong", "--epochs", "1", "--hidden", "16", "--init", str(base / "best.pt"))
     assert wrong.returncode != 0 and "do not match" in wrong.stderr and not (tmp_path / "wrong").exists()
+
+
+def every_chess_move_slot() -> set:
+    """The slot of every from-to pair any chess move can make, for both colours: queen and knight moves from every
+    square of an empty board (rook, bishop, king and pawn moves, promotions included, are queen moves), and
+    castling."""
+    slots = set()
+    for player in ("white", "black"):
+        for square in chess.SQUARES:
+            for piece in (chess.QUEEN, chess.KNIGHT):
+                board = chess.Board(None)
+                board.set_piece_at(square, chess.Piece(piece, chess.WHITE))
+                for target in board.attacks(square):
+                    slots.add(move_index(chess.square_name(square) + chess.square_name(target), player))
+        for uci in ("e1g1", "e1c1", "e8g8", "e8c8"):
+            slots.add(move_index(uci, player))
+    return slots
+
+
+# Catches: a convolutional output that cannot express some legal move (a missing or off-by-one offset, a frame
+# that is not the mirrored one), or one that writes two logits into the same slot.
+def test_the_convolutional_output_reaches_every_move_slot_exactly_once():
+    src, dst = conv_slots()
+    assert len(MOVE_TYPES) == 64 and len(set(MOVE_TYPES)) == 64
+    assert len(set(src.tolist())) == len(src) and len(set(dst.tolist())) == len(dst)
+    assert set(dst.tolist()) == every_chess_move_slot()  # 1,456 queen and 336 knight from-to pairs, nothing else
+    rng = random.Random(3)
+    for _ in range(20):  # legal moves of real positions, both colours, through pairb.moves' own mask
+        board = chess.Board()
+        for _ in range(rng.randrange(1, 60)):
+            moves = list(board.legal_moves)
+            if not moves:
+                break
+            board.push(rng.choice(moves))
+        player = "white" if board.turn == chess.WHITE else "black"
+        legal = legal_mask([m.uci() for m in board.legal_moves], player)
+        assert set(np.flatnonzero(legal).tolist()) <= set(dst.tolist())
+
+
+# Catches: learning-curve subsets that are not nested (a 25 % run seeing games the 50 % run lacks) or not the
+# share asked for.
+def test_game_subsets_are_nested_and_of_the_asked_size():
+    games = [f"g-{i:06d}" for i in range(392)]
+    quarter, half, everything = (game_subset(games, f) for f in (0.25, 0.5, 1.0))
+    assert len(quarter) == 98 and len(half) == 196 and everything == set(games)
+    assert quarter <= half <= everything and game_subset(list(reversed(games)), 0.25) == quarter
+    with pytest.raises(ValueError):
+        game_subset(games, 0)
+
+
+def test_train_fraction_trains_on_a_share_of_the_training_games_only(tmp_path):
+    _, good = subset_fixture(tmp_path)
+    done = train(tmp_path, tmp_path / "half", "--epochs", "1", "--train-fraction", "0.5")
+    assert done.returncode == 0, done.stderr
+    n = json.loads((tmp_path / "half" / "summary.json").read_text())["n"]
+    train_games = {g for (g, _), row in good.items() if row["split"] == "train"}
+    assert n["train"]["games"] == len(game_subset(train_games, 0.5)) < len(train_games)
+    assert n["val"]["positions"] == sum(row["split"] == "val" for row in good.values())

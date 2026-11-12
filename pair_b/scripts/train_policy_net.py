@@ -25,7 +25,7 @@ import numpy as np
 import torch
 
 from pairb.belief_data import ENCODING, belief_batches, rows_of
-from pairb.policy_data import TARGETS, counts_of, dense_targets, load_positions
+from pairb.policy_data import TARGETS, counts_of, dense_targets, game_subset, load_positions
 from pairb.policy_net import DESIGNS, PolicyNetwork, cross_entropy, policy_loss, predict
 from pairb.provenance import runtime, sha256_of
 
@@ -50,6 +50,9 @@ def main():
                     help="refuse a (game_id, ply) that appears twice among the target rows, instead of the later row winning")
     ap.add_argument("--init", default=None,
                     help="start from this checkpoint's weights (a best.pt of this script with the same design and sizes)")
+    ap.add_argument("--train-fraction", type=float, default=1.0,
+                    help="train on this share of the training games (a fixed nested subset, policy_data.game_subset); "
+                         "validation is unchanged")
     ap.add_argument("--cache-dir", default="/labels/policy/cache")
     ap.add_argument("--blocks", type=int, default=6)
     ap.add_argument("--channels", type=int, default=64)
@@ -89,6 +92,10 @@ def main():
     ids = {s: np.flatnonzero(arrays["split"] == s) for s in ("train", "val")}
     if set(np.unique(arrays["split"])) - {"train", "val"}:
         raise SystemExit("positions outside the training and validation splits")
+    if args.train_fraction < 1:
+        keep = game_subset(arrays["game_id"][ids["train"]], args.train_fraction)
+        ids["train"] = ids["train"][np.isin(arrays["game_id"][ids["train"]], sorted(keep))]
+        print(f"training on {args.train_fraction:.0%} of the training games: {len(keep)} games", flush=True)
     if not len(ids["train"]) or not len(ids["val"]):
         raise SystemExit(f"need training and validation positions, have {len(ids['train'])} and {len(ids['val'])}")
     sizes = np.bincount(arrays["belief"])

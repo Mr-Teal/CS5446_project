@@ -19,6 +19,11 @@ Stage 3 (fine-tuning), with the stage-1 checkpoints used as they are (zero-shot)
         zero-shot=/labels/policy/runs:pooled-last-s* zero-shot=/labels/policy/runs:perboard-mean-s* \\
         --pairs finetune --out /labels/policy/eval-depth-ft.json
 adds each fine-tuned run minus the stage-1 checkpoint it started from (pair_list).
+
+Stage 4 (convolutional output) on the stage-1 targets, whose validation rows sit in one folder:
+    ... --sets sf8=/labels/afterstate/val-sf8 --runs /labels/policy/runs-conv \\
+        '/labels/policy/runs:pooled-last-s*' '/labels/policy/runs:perboard-mean-s*' --pairs conv \\
+        --out /labels/policy/eval-conv.json
 """
 import argparse
 import json
@@ -68,6 +73,10 @@ def pair_list(kind: str, name: str, sets: dict) -> list[tuple[str, str]]:
     minus d2-trained. finetune (stage 3): the same among the fine-tuned runs, and each fine-tuned run minus the
     stage-1 checkpoint it started from, used without fine-tuning (zero-shot)."""
     seeds = [f"-s{k}" for k in range(3)] + [" (mean of 3 seeds)"]
+    if kind == "conv":  # stage 4: the output-layer effect, the belief effect with the new output, the lookahead
+        return ([(f"pooled-conv{s}", f"pooled-last{s}") for s in seeds] +
+                [(f"pooled-conv{s}", f"per-board-conv{s}") for s in seeds] +
+                [(f"pooled-conv{s}", LOOKAHEAD) for s in seeds])
     ft = "fine-tuned " if kind == "finetune" else ""
     pairs = [(f"{ft}{name}-pooled{s}", f"{ft}{name}-per-board{s}") for s in seeds]
     if name == "d6" and "d2" in sets:
@@ -82,8 +91,9 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--runs", nargs="+", default=["/labels/policy/runs-depth"],
                     help="[NAME=]FOLDER[:GLOB] of run folders (GLOB default *); a run is called 'NAME run' when NAME is given")
-    ap.add_argument("--pairs", choices=("depth", "finetune"), default="depth",
-                    help="depth: stage 2's paired differences; finetune: stage 3's (runs named fine-tuned and zero-shot)")
+    ap.add_argument("--pairs", choices=("depth", "finetune", "conv"), default="depth",
+                    help="depth: stage 2's paired differences; finetune: stage 3's (runs named fine-tuned and zero-shot); "
+                         "conv: stage 4's (pooled-conv against pooled-last, per-board-conv and the lookahead)")
     ap.add_argument("--sets", nargs="+", default=["d2=/labels/policy/depthlabels/d2", "d6=/labels/policy/depthlabels/d6"])
     ap.add_argument("--out", default="/labels/policy/eval-depth.json")
     ap.add_argument("--records", default="/labels/solver-v2-sf8-480")

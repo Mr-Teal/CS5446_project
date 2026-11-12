@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from collections import Counter
 from functools import partial
 from multiprocessing import Pool
@@ -242,6 +243,15 @@ def load_positions(records, train_targets, val_targets, cache_dir, workers: int 
 
 def counts_of(arrays: dict) -> dict:
     return json.loads(str(arrays["counts"]))
+
+
+def game_subset(game_ids, fraction: float) -> set:
+    """A fixed share of the given games: the first ceil(fraction x their number) in the order of their SHA-256, so
+    the games of a smaller fraction are always among those of a larger one (nested learning-curve subsets)."""
+    if not 0 < fraction <= 1:
+        raise ValueError("fraction must be in (0, 1]")
+    games = sorted(set(game_ids), key=lambda g: hashlib.sha256(g.encode()).hexdigest())
+    return set(games[:math.ceil(fraction * len(games))])
 
 
 def move_position(arrays: dict) -> np.ndarray:
