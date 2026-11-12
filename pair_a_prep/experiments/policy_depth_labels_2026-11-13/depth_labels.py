@@ -3,9 +3,10 @@
 For each selected train/val position of the 480-game label set (test games never read): two fresh solves by the
 search agent with value network v2 g237 as the leaf (cuda), native kernels, cap 262,144 nodes and leaf calls:
 depth limit 2 at 2 s (its tree is solved completely well inside 2 s; 2, 5 and 15 s gave identical statistics) and
-depth limit 6 at 5 s. Rows use the afterstate-q-v1 fields the policy-network loader reads (moves, weights,
+depth limit 6 at 2 s (same one-hot rate as at 5 s in the depth measurement, half the tree, half the memory). Rows use the afterstate-q-v1 fields the policy-network loader reads (moves, weights,
 action_values per board and move, policy_last, policy_mean, played, ...). policy_mean is set equal to policy_last:
-this branch does not export the average strategy. Extra fields: depth_limit, the purification test, tree size.
+this branch does not export the average strategy. Extra fields: depth_limit, tree size, and the purification
+test on val positions only (null on train rows).
 
 Selection: every 2nd position of every val game, every 4th of every train game; game k (sorted ids) goes to shard
 k % shards; within a shard all val positions come first. Resume: rows already written for (game, ply, depth) are
@@ -27,7 +28,7 @@ spec = importlib.util.spec_from_file_location(
 dm = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(dm)
 
-SETTINGS = {2: 2000, 6: 5000}   # depth limit -> clock in ms
+SETTINGS = {2: 2000, 6: 2000}   # depth limit -> clock in ms (depth 6 at 2 s mixes as at 5 s: 56 % vs 54 % one-hot)
 
 
 def per_board_values(agent, turn, moves):
@@ -120,7 +121,8 @@ def main():
                            diag=dict(search_nodes=d.get("search_nodes"), solver_rounds_this_turn=d.get("solver_rounds_this_turn"),
                                      evaluator_calls=d.get("evaluator_calls"), expansions=d.get("expansions"),
                                      elapsed_ms=d.get("elapsed_ms"), nash_gap=d.get("solver_nash_gap")),
-                           **dm.purification_test(agent, policy))
+                           **(dm.purification_test(agent, policy) if row["split"] == "val" else
+                              dict(br_mixed=None, br_pure=None, purify_loss=None)))
             except Exception as exc:
                 row.update(error=f"{type(exc).__name__}: {exc}")
             files[depth].write(json.dumps(row) + "\n")
