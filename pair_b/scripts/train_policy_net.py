@@ -14,6 +14,8 @@ A label set covering a subset of the positions, both splits in one folder (the s
     ... --target last --targets /labels/policy/depthlabels/d6 --subset --unique
 Fine-tuning (stage 3): --init a best.pt of this script with the same design and sizes; its weights are loaded
 before training, its path and SHA-256 go into summary.json, and its validation cross-entropy is logged as epoch 0.
+Move-value target (13 Nov): --target value --tau T trains toward softmax(Q* / T) over the moves instead of the
+solver's strategy (policy_data.value_distribution); the second validation cross-entropy is then against policy_last.
 """
 import argparse
 import datetime
@@ -35,7 +37,8 @@ A = "/labels/afterstate"
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--design", choices=DESIGNS, required=True)
-    ap.add_argument("--target", choices=TARGETS, required=True)
+    ap.add_argument("--target", choices=(*TARGETS, "value"), required=True)
+    ap.add_argument("--tau", type=float, default=None, help="temperature of --target value")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", required=True)
     ap.add_argument("--records", default="/labels/solver-v2-sf8-480")
@@ -66,6 +69,8 @@ def main():
     ap.add_argument("--device", default="auto", help="auto, cuda or cpu")
     ap.add_argument("--workers", type=int, default=6, help="processes encoding the records")
     args = ap.parse_args()
+    if (args.target == "value") != (args.tau is not None):
+        raise SystemExit("--tau goes with --target value, and only with it")
 
     init = None
     if args.init:
@@ -106,8 +111,8 @@ def main():
     planes = torch.from_numpy(arrays.pop("planes")).to(device)  # float16; float32 per batch
     w_all = torch.from_numpy(arrays["weight"]).to(device)
     legal_all = torch.from_numpy(arrays["legal"]).to(device)
-    target_all = torch.from_numpy(dense_targets(arrays, args.target)).to(device)
-    other = "last" if args.target == "mean" else "mean"
+    target_all = torch.from_numpy(dense_targets(arrays, args.target, tau=args.tau)).to(device)
+    other = "mean" if args.target == "last" else "last"
     val_other = torch.from_numpy(dense_targets(arrays, other, ids["val"])).to(device)
     val_ids_t = torch.from_numpy(ids["val"]).to(device)
 

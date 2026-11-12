@@ -259,11 +259,32 @@ def move_position(arrays: dict) -> np.ndarray:
     return np.repeat(np.arange(len(arrays["move_start"]) - 1), np.diff(arrays["move_start"]))
 
 
-def dense_targets(arrays: dict, kind: str, positions: np.ndarray | None = None) -> np.ndarray:
+def value_distribution(arrays: dict, tau: float) -> np.ndarray:
+    """(M,) softmax(Q* / tau) over each position's moves: the move-value target (13 Nov 2026). Its top move is
+    argmax Q* for every tau; tau sets how much probability moves close to the best keep."""
+    if not tau or tau <= 0:
+        raise ValueError("the value target needs tau > 0")
+    n = len(arrays["move_start"]) - 1
+    pos = move_position(arrays)
+    z = arrays["q"] / tau
+    top = np.full(n, -np.inf)
+    np.maximum.at(top, pos, z)
+    e = np.exp(z - top[pos])
+    total = np.zeros(n)
+    np.add.at(total, pos, e)
+    return e / total[pos]
+
+
+def dense_targets(arrays: dict, kind: str, positions: np.ndarray | None = None,
+                  tau: float | None = None) -> np.ndarray:
     """(len(positions), 4096) float32 target distributions in the mirrored slots (promotion variants of one
-    pawn move add up, as pairb.moves.policy_vector does)."""
-    if kind not in TARGETS:
-        raise ValueError(f"target must be one of {TARGETS}")
+    pawn move add up, as pairb.moves.policy_vector does). kind "value": softmax(Q* / tau) (value_distribution)."""
+    if kind == "value":
+        values = value_distribution(arrays, tau)
+    elif kind in TARGETS:
+        values = arrays[kind]
+    else:
+        raise ValueError(f"target must be one of {(*TARGETS, 'value')}")
     n = len(arrays["move_start"]) - 1
     positions = np.arange(n) if positions is None else np.asarray(positions)
     local = np.full(n, -1, dtype=np.int64)
@@ -271,5 +292,5 @@ def dense_targets(arrays: dict, kind: str, positions: np.ndarray | None = None) 
     pos = local[move_position(arrays)]
     keep = pos >= 0
     out = np.zeros((len(positions), N_MOVES), dtype=np.float32)
-    np.add.at(out, (pos[keep], arrays["slot"][keep]), arrays[kind][keep].astype(np.float32))
+    np.add.at(out, (pos[keep], arrays["slot"][keep]), values[keep].astype(np.float32))
     return out

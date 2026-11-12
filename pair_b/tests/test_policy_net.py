@@ -163,6 +163,26 @@ def test_mirrored_targets_sit_on_legal_slots_and_sum_to_one_for_both_colours(tmp
     assert len(move_position(a)) == len(a["move"])
 
 
+# Catches: a value target that is not softmax(Q* / tau) over the position's own moves (values of another position,
+# wrong sign or scale, Black not mirrored), or one built without a temperature.
+def test_value_target_is_the_softmax_of_the_move_values_on_legal_slots(tmp_path):
+    _, true = fixture(tmp_path)
+    a = load(tmp_path)
+    for tau in (0.01, 0.1):
+        dense = dense_targets(a, "value", tau=tau)
+        assert (dense[~a["legal"]] == 0).all()
+        np.testing.assert_allclose(dense.sum(1), 1.0, atol=1e-5)
+        for i, (g, ply) in enumerate(zip(a["game_id"], a["ply"])):
+            row = true[(g, int(ply))]
+            q = q_of(row)
+            p = np.exp((q - q.max()) / tau)
+            p /= p.sum()
+            np.testing.assert_allclose(dense[i], policy_vector(dict(zip(row["moves"], p)), a["player"][i]), atol=1e-6)
+            assert row["moves"][int(np.argmax(p))] == row["moves"][int(np.argmax(q))]
+    with pytest.raises(ValueError, match="tau"):
+        dense_targets(a, "value")
+
+
 def nudged(design):
     torch.manual_seed(0)
     m = PolicyNetwork(design, blocks=1, channels=8, embed=16, hidden=32)
@@ -382,6 +402,21 @@ def test_init_starts_from_the_checkpoint_and_refuses_a_mismatch(tmp_path):
     assert summary["best_epoch"] == 1  # epoch 0 is logged, never kept as the run's own result
     wrong = train(tmp_path, tmp_path / "wrong", "--epochs", "1", "--hidden", "16", "--init", str(base / "best.pt"))
     assert wrong.returncode != 0 and "do not match" in wrong.stderr and not (tmp_path / "wrong").exists()
+
+
+# Catches: --target value training toward something other than its softmax target, or --tau accepted where it does
+# nothing (with the solver's strategy as target) or missing where it is needed.
+def test_a_value_target_run_logs_both_cross_entropies_and_needs_tau(tmp_path):
+    subset_fixture(tmp_path)
+    done = train(tmp_path, tmp_path / "v", "--epochs", "1", "--target", "value", "--tau", "0.05")
+    assert done.returncode == 0, done.stderr
+    row = json.loads((tmp_path / "v" / "metrics.jsonl").read_text().splitlines()[0])
+    assert {"val_ce_value", "val_ce_last"} <= set(row)
+    summary = json.loads((tmp_path / "v" / "summary.json").read_text())
+    assert summary["target"] == "value" and summary["args"]["tau"] == 0.05
+    for extra in (("--tau", "0.05"), ("--target", "value")):
+        bad = train(tmp_path, tmp_path / f"bad{len(extra[1])}", "--epochs", "1", *extra)
+        assert bad.returncode != 0 and "--tau goes with --target value" in bad.stderr
 
 
 def every_chess_move_slot() -> set:

@@ -44,6 +44,7 @@ METRICS = ("regret", "top1_q", "top1_teacher", "top3_q", "ce_teacher", "tv_teach
 GROUPS = ("all", "mixing_works", "one_hot")
 LOOKAHEAD = "one-ply lookahead (value network v2 g237)"
 DIGITS = {"regret": 4}
+VALUE_TAUS = ("0.01", "0.02", "0.05", "0.1")  # temperatures of the move-value runs, as in their folder names
 
 
 def renamed(m: dict) -> dict:
@@ -73,6 +74,9 @@ def pair_list(kind: str, name: str, sets: dict) -> list[tuple[str, str]]:
     minus d2-trained. finetune (stage 3): the same among the fine-tuned runs, and each fine-tuned run minus the
     stage-1 checkpoint it started from, used without fine-tuning (zero-shot)."""
     seeds = [f"-s{k}" for k in range(3)] + [" (mean of 3 seeds)"]
+    if kind == "value":  # move-value targets (13 Nov): against the conv runs trained on the solver's strategy, the lookahead
+        return [(f"pooled-conv-value-t{t}{s}", other) for t in VALUE_TAUS for s in seeds
+                for other in (f"pooled-conv{s}", LOOKAHEAD)]
     if kind == "conv":  # stage 4: the output-layer effect, the belief effect with the new output, the lookahead
         return ([(f"pooled-conv{s}", f"pooled-last{s}") for s in seeds] +
                 [(f"pooled-conv{s}", f"per-board-conv{s}") for s in seeds] +
@@ -97,11 +101,12 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--runs", nargs="+", default=["/labels/policy/runs-depth"],
                     help="[NAME=]FOLDER[:GLOB] of run folders (GLOB default *); a run is called 'NAME run' when NAME is given")
-    ap.add_argument("--pairs", choices=("depth", "finetune", "conv", "finetune-conv"), default="depth",
+    ap.add_argument("--pairs", choices=("depth", "finetune", "conv", "finetune-conv", "value"), default="depth",
                     help="depth: stage 2's paired differences; finetune: stage 3's (runs named fine-tuned and zero-shot); "
                          "conv: stage 4's (pooled-conv against pooled-last, per-board-conv and the lookahead); "
                          "finetune-conv: stage 5's (fine-tuned conv runs: pooled-conv minus per-board-conv, d6 minus d2, "
-                         "conv minus the fully connected fine-tuned runs)")
+                         "conv minus the fully connected fine-tuned runs); value: move-value runs "
+                         "(pooled-conv-value-tT) minus pooled-conv and minus the lookahead")
     ap.add_argument("--sets", nargs="+", default=["d2=/labels/policy/depthlabels/d2", "d6=/labels/policy/depthlabels/d6"])
     ap.add_argument("--out", default="/labels/policy/eval-depth.json")
     ap.add_argument("--records", default="/labels/solver-v2-sf8-480")
