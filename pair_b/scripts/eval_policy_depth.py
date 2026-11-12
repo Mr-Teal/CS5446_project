@@ -77,6 +77,12 @@ def pair_list(kind: str, name: str, sets: dict) -> list[tuple[str, str]]:
         return ([(f"pooled-conv{s}", f"pooled-last{s}") for s in seeds] +
                 [(f"pooled-conv{s}", f"per-board-conv{s}") for s in seeds] +
                 [(f"pooled-conv{s}", LOOKAHEAD) for s in seeds])
+    if kind == "finetune-conv":  # stage 5: the stage-3 comparisons with the convolutional output
+        ft = "fine-tuned "
+        pairs = [(f"{ft}{name}-pooled-conv{s}", f"{ft}{name}-per-board-conv{s}") for s in seeds]
+        if name == "d6" and "d2" in sets:
+            pairs += [(f"{ft}d6-{d}{s}", f"{ft}d2-{d}{s}") for d in ("pooled-conv", "per-board-conv") for s in seeds]
+        return pairs + [(f"{ft}{name}-{d}-conv{s}", f"{ft}{name}-{d}{s}") for d in ("pooled", "per-board") for s in seeds]
     ft = "fine-tuned " if kind == "finetune" else ""
     pairs = [(f"{ft}{name}-pooled{s}", f"{ft}{name}-per-board{s}") for s in seeds]
     if name == "d6" and "d2" in sets:
@@ -91,9 +97,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--runs", nargs="+", default=["/labels/policy/runs-depth"],
                     help="[NAME=]FOLDER[:GLOB] of run folders (GLOB default *); a run is called 'NAME run' when NAME is given")
-    ap.add_argument("--pairs", choices=("depth", "finetune", "conv"), default="depth",
+    ap.add_argument("--pairs", choices=("depth", "finetune", "conv", "finetune-conv"), default="depth",
                     help="depth: stage 2's paired differences; finetune: stage 3's (runs named fine-tuned and zero-shot); "
-                         "conv: stage 4's (pooled-conv against pooled-last, per-board-conv and the lookahead)")
+                         "conv: stage 4's (pooled-conv against pooled-last, per-board-conv and the lookahead); "
+                         "finetune-conv: stage 5's (fine-tuned conv runs: pooled-conv minus per-board-conv, d6 minus d2, "
+                         "conv minus the fully connected fine-tuned runs)")
     ap.add_argument("--sets", nargs="+", default=["d2=/labels/policy/depthlabels/d2", "d6=/labels/policy/depthlabels/d6"])
     ap.add_argument("--out", default="/labels/policy/eval-depth.json")
     ap.add_argument("--records", default="/labels/solver-v2-sf8-480")
@@ -194,9 +202,9 @@ def main():
         for g, table in r["tables"].items():
             print(f"\n--- {name} labels, {g} positions ({r['val_positions'][g]}); mean [95 % interval over "
                   f"{args.resamples} game resamples]")
-            print(f"{'mover':44s} " + " ".join(f"{k:>24s}" for k in METRICS))
+            print(f"{'mover':48s} " + " ".join(f"{k:>24s}" for k in METRICS))
             for mover, row in table.items():
-                print(f"{mover:44s} " + " ".join(f"{fmt(row.get(k), DIGITS.get(k, 3)):>24s}" for k in METRICS))
+                print(f"{mover:48s} " + " ".join(f"{fmt(row.get(k), DIGITS.get(k, 3)):>24s}" for k in METRICS))
         for g, rows in r["paired"].items():
             print(f"\n--- {name} labels, {g} positions: paired differences (left minus right)")
             for pair, row in rows.items():
