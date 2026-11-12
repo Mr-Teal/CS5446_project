@@ -11,7 +11,9 @@ one. The validation cross-entropy is that of the belief distribution (for per-bo
 of its boards). Writes best.pt, metrics.jsonl and summary.json into --out, which must not exist yet.
 
 A label set covering a subset of the positions, both splits in one folder (the stage-2 depth labels):
-    ... --target last --targets /labels/policy/depthlabels/d6 --subset
+    ... --target last --targets /labels/policy/depthlabels/d6 --subset --unique
+Fine-tuning (stage 3): --init a best.pt of this script with the same design and sizes; its weights are loaded
+before training, its path and SHA-256 go into summary.json, and its validation cross-entropy is logged as epoch 0.
 """
 import argparse
 import datetime
@@ -44,6 +46,10 @@ def main():
                          "and --val-targets")
     ap.add_argument("--subset", action="store_true",
                     help="use only the positions that have a good target row, instead of refusing the others")
+    ap.add_argument("--unique", action="store_true",
+                    help="refuse a (game_id, ply) that appears twice among the target rows, instead of the later row winning")
+    ap.add_argument("--init", default=None,
+                    help="start from this checkpoint's weights (a best.pt of this script with the same design and sizes)")
     ap.add_argument("--cache-dir", default="/labels/policy/cache")
     ap.add_argument("--blocks", type=int, default=6)
     ap.add_argument("--channels", type=int, default=64)
@@ -58,6 +64,13 @@ def main():
     ap.add_argument("--workers", type=int, default=6, help="processes encoding the records")
     args = ap.parse_args()
 
+    init = None
+    if args.init:
+        init = torch.load(args.init, map_location="cpu", weights_only=True)
+        want = PolicyNetwork(args.design, args.blocks, args.channels, args.embed, args.hidden).config
+        if init.get("config") != want or init.get("encoding") != ENCODING:
+            raise SystemExit(f"--init {args.init}: config {init.get('config')} and encoding {init.get('encoding')!r} "
+                             f"do not match this run's {want} and {ENCODING!r}")
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=False)
     device = torch.device(("cuda" if torch.cuda.is_available() else "cpu") if args.device == "auto" else args.device)
@@ -65,7 +78,8 @@ def main():
     started = time.time()
 
     train_targets, val_targets = (args.targets, None) if args.targets else (args.train_targets, args.val_targets)
-    arrays = load_positions(args.records, train_targets, val_targets, args.cache_dir, args.workers, subset=args.subset)
+    arrays = load_positions(args.records, train_targets, val_targets, args.cache_dir, args.workers, subset=args.subset,
+                            unique=args.unique)
     counts = counts_of(arrays)
     print(f"data: {json.dumps(counts)}", flush=True)
     print(f"test games skipped: {counts['test_games_skipped']} ({counts['test_records_skipped']} records)", flush=True)
@@ -91,12 +105,24 @@ def main():
     val_ids_t = torch.from_numpy(ids["val"]).to(device)
 
     net = PolicyNetwork(args.design, args.blocks, args.channels, args.embed, args.hidden).to(device)
+    if init is not None:
+        net.load_state_dict(init["state_dict"])
     params = sum(p.numel() for p in net.parameters())
     opt = torch.optim.AdamW(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     rng = np.random.default_rng(args.seed)
 
+    def validate():
+        probs = predict(net, arrays, ids["val"], device, planes, legal_all)
+        return float(cross_entropy(probs, target_all[val_ids_t]).mean()), float(cross_entropy(probs, val_other).mean())
+
     best, best_epoch, waited, epoch = None, 0, 0, 0
     with open(out / "metrics.jsonl", "w") as log:
+        if init is not None:  # where fine-tuning starts; epoch 0 is logged, not a candidate for best.pt
+            val_ce, val_ce_other = validate()
+            row = {"epoch": 0, "init": args.init, f"val_ce_{args.target}": round(val_ce, 6),
+                   f"val_ce_{other}": round(val_ce_other, 6)}
+            log.write(json.dumps(row) + "\n")
+            print(json.dumps(row), flush=True)
         for epoch in range(1, args.epochs + 1):
             net.train()
             total, seen = 0.0, 0
@@ -112,9 +138,7 @@ def main():
                 opt.step()
                 total += loss.item() * len(chunk)
                 seen += len(chunk)
-            probs = predict(net, arrays, ids["val"], device, planes, legal_all)
-            val_ce = float(cross_entropy(probs, target_all[val_ids_t]).mean())
-            val_ce_other = float(cross_entropy(probs, val_other).mean())
+            val_ce, val_ce_other = validate()
             row = {"epoch": epoch, "train_ce": round(total / seen, 6), f"val_ce_{args.target}": round(val_ce, 6),
                    f"val_ce_{other}": round(val_ce_other, 6), "seconds": round(time.time() - started, 1)}
             log.write(json.dumps(row) + "\n")
@@ -134,6 +158,8 @@ def main():
     summary = {"design": args.design, "target": args.target, "seed": args.seed, "best_epoch": best_epoch,
                "val": best, "epochs_run": epoch, "seconds": round(time.time() - started, 1), "n": n, "data": counts,
                "params": params, "config": net.config, "encoding": ENCODING, "args": vars(args),
+               "init": None if init is None else {"checkpoint": args.init, "sha256": sha256_of(args.init),
+                                                  "epoch": init.get("epoch"), "target": init.get("target")},
                "created": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
                "checkpoint_sha256": sha256_of(out / "best.pt"), "runtime": {**runtime(), "torch": torch.__version__}}
     (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")

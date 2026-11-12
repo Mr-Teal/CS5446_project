@@ -341,3 +341,42 @@ def test_label_kinds_use_the_top_probability_and_the_purification_loss():
     kinds = label_kinds(arrays, np.array([0, 1, 2]))
     assert kinds["one_hot"].tolist() == [True, False, False]
     assert kinds["mixing_works"].tolist() == [False, True, False]
+
+
+# Catches: a position labelled twice across a shard's part files (one solve silently replacing another) when the
+# label set is meant to hold each position once.
+def test_unique_refuses_a_position_that_appears_twice_across_part_files(tmp_path):
+    _, good = subset_fixture(tmp_path)
+    again = next(iter(good.values()))
+    write_rows(tmp_path / "labels" / "resolve-0-of-1-p0.jsonl", [{**again, "error": "solver crashed"}])
+    args = (tmp_path / "records", [tmp_path / "labels"], None, tmp_path / "cache")
+    with pytest.raises(ValueError, match="appears twice"):
+        load_positions(*args, workers=1, subset=True, unique=True)
+    assert len(load_positions(*args, workers=1, subset=True)["game_id"]) == len(good)  # default: the good row stays
+
+
+def train(tmp: Path, out: Path, *extra):
+    return subprocess.run([sys.executable, str(ROOT / "scripts" / "train_policy_net.py"), "--design", "pooled",
+                           "--target", "last", "--out", str(out), "--records", str(tmp / "records"),
+                           "--targets", str(tmp / "labels"), "--subset", "--unique", "--cache-dir", str(tmp / "cache"),
+                           "--blocks", "1", "--channels", "8", "--embed", "16", "--hidden", "32", "--batch", "4",
+                           "--device", "cpu", "--workers", "1", *extra], capture_output=True, text=True)
+
+
+# Catches: --init ignored (fine-tuning silently from scratch), a checkpoint of another design or size accepted, or
+# the starting checkpoint missing from the run's record.
+def test_init_starts_from_the_checkpoint_and_refuses_a_mismatch(tmp_path):
+    subset_fixture(tmp_path)
+    base = tmp_path / "base"
+    assert train(tmp_path, base, "--epochs", "2").returncode == 0
+    ckpt = torch.load(base / "best.pt", map_location="cpu", weights_only=True)
+    done = train(tmp_path, tmp_path / "ft", "--epochs", "1", "--lr", "3e-4", "--init", str(base / "best.pt"))
+    assert done.returncode == 0, done.stderr
+    first = json.loads((tmp_path / "ft" / "metrics.jsonl").read_text().splitlines()[0])
+    assert first["epoch"] == 0 and first["val_ce_last"] == pytest.approx(ckpt["val"]["val_ce"], abs=1e-5)
+    summary = json.loads((tmp_path / "ft" / "summary.json").read_text())
+    assert summary["init"]["checkpoint"] == str(base / "best.pt") and summary["init"]["epoch"] == ckpt["epoch"]
+    assert summary["init"]["sha256"] == json.loads((base / "summary.json").read_text())["checkpoint_sha256"]
+    assert summary["best_epoch"] == 1  # epoch 0 is logged, never kept as the run's own result
+    wrong = train(tmp_path, tmp_path / "wrong", "--epochs", "1", "--hidden", "16", "--init", str(base / "best.pt"))
+    assert wrong.returncode != 0 and "do not match" in wrong.stderr and not (tmp_path / "wrong").exists()

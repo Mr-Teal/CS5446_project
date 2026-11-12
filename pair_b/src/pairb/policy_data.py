@@ -58,11 +58,11 @@ def _reduce(row: dict) -> dict:
             "purify": np.nan if row.get("purify_loss") is None else float(row["purify_loss"])}
 
 
-def read_target_rows(folders) -> tuple[dict, Counter]:
+def read_target_rows(folders, unique: bool = False) -> tuple[dict, Counter]:
     """The good rows of each folder's resolve-*.jsonl, by (game_id, ply); a later good row replaces an earlier
-    one. Rows of test games are skipped (counted, never kept); a line cut short (a writer killed mid-line) is
-    counted and skipped."""
-    rows, counts = {}, Counter()
+    one, or with `unique` any (game_id, ply) met twice (good or error rows) is refused. Rows of test games are
+    skipped (counted, never kept); a line cut short (a writer killed mid-line) is counted and skipped."""
+    rows, counts, seen = {}, Counter(), set()
     for folder in folders:
         for path in sorted(Path(folder).glob("resolve-*.jsonl")):
             with open(path, encoding="utf-8") as stream:
@@ -83,11 +83,14 @@ def read_target_rows(folders) -> tuple[dict, Counter]:
                         raise ValueError(f"{path}: schema {row.get('schema')!r}, expected {SCHEMA!r}")
                     if row.get("split") != split:
                         raise ValueError(f"{path}: {row['game_id']} row split {row.get('split')!r}, split_of {split!r}")
+                    key = (row["game_id"], int(row["ply"]))
+                    if unique and key in seen:
+                        raise ValueError(f"{path}: {key[0]} ply {key[1]} appears twice in {list(map(str, folders))}")
+                    seen.add(key)
                     if row.get("error") is not None:
                         counts["error_rows"] += 1
                         counts[f"error_rows_{split}"] += 1
                         continue
-                    key = (row["game_id"], int(row["ply"]))
                     counts["replaced_rows"] += key in rows
                     rows[key] = _reduce(row)
     return rows, counts
@@ -122,16 +125,17 @@ def _encode_part(path, keys: set | None = None) -> dict:
 
 
 def build_positions(records, train_targets, val_targets=None, workers: int = 6, pattern: str = "part-*.jsonl",
-                    subset: bool = False) -> dict:
-    """val_targets None: the train_targets folders hold both splits. subset: only records with a good row."""
+                    subset: bool = False, unique: bool = False) -> dict:
+    """val_targets None: the train_targets folders hold both splits. subset: only records with a good row.
+    unique: refuse a (game_id, ply) that appears twice among the target rows (read_target_rows)."""
     parts = sorted(Path(records).glob(pattern))
     if not parts:
         raise ValueError(f"no record files in {records} matching {pattern!r}")
-    train_rows, train_counts = read_target_rows(train_targets)
+    train_rows, train_counts = read_target_rows(train_targets, unique)
     if val_targets is None:
         val_rows, sources = train_rows, (("targets", train_counts),)
     else:
-        val_rows, val_counts = read_target_rows([val_targets])
+        val_rows, val_counts = read_target_rows([val_targets], unique)
         sources = (("train_folders", train_counts), ("val_folder", val_counts))
     keys = None
     if subset:
@@ -214,7 +218,7 @@ def build_positions(records, train_targets, val_targets=None, workers: int = 6, 
 
 
 def load_positions(records, train_targets, val_targets, cache_dir, workers: int = 6,
-                   pattern: str = "part-*.jsonl", subset: bool = False) -> dict:
+                   pattern: str = "part-*.jsonl", subset: bool = False, unique: bool = False) -> dict:
     """build_positions, cached in cache_dir under a key covering every input file's name, size and mtime, the
     target folders and the options; the file name also carries the first target folder's name."""
     folders = [*train_targets] + ([val_targets] if val_targets is not None else [])
@@ -224,12 +228,13 @@ def load_positions(records, train_targets, val_targets, cache_dir, workers: int 
     stamp = "|".join(f"{p.resolve()}:{p.stat().st_size}:{p.stat().st_mtime_ns}" for p in files)
     order = "|".join(str(Path(f).resolve()) for f in train_targets) + "|val:" + (
         str(Path(val_targets).resolve()) if val_targets is not None else "-")
-    key = hashlib.sha1(f"{stamp}|{order}|{pattern}|subset={subset}|{ENCODING}|{CACHE_VERSION}".encode()).hexdigest()[:12]
+    options = f"subset={subset}" + ("|unique" if unique else "")
+    key = hashlib.sha1(f"{stamp}|{order}|{pattern}|{options}|{ENCODING}|{CACHE_VERSION}".encode()).hexdigest()[:12]
     path = Path(cache_dir) / f"positions-{Path(records).name}-{Path(train_targets[0]).name}-{key}.npz"
     if path.exists():
         with np.load(path) as z:
             return {k: z[k] for k in z.files}
-    arrays = build_positions(records, train_targets, val_targets, workers, pattern, subset)
+    arrays = build_positions(records, train_targets, val_targets, workers, pattern, subset, unique)
     path.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(path, **arrays)
     return arrays

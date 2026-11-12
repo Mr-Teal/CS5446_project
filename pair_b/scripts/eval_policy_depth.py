@@ -11,7 +11,14 @@ uniformly random move (expected values), the teacher's argmax, the move played i
 with value network v2 g237. Position groups: all, genuinely mixed (purify_loss > 0.005) and one-hot. Means come with
 95 % intervals from resampling whole validation games, one resampling per set and group shared by every mover, so
 paired differences use the same resamples: pooled minus per-board within each set (all and genuinely mixed), and on
-the d6 labels the d6-trained minus the d2-trained runs. Writes --out and prints the tables.
+the d6 labels the d6-trained minus the d2-trained runs. A (game_id, ply) appearing twice in a set is refused.
+Writes --out and prints the tables.
+
+Stage 3 (fine-tuning), with the stage-1 checkpoints used as they are (zero-shot) and the stage-2 runs:
+    ... --runs fine-tuned=/labels/policy/runs-depth-ft from-scratch=/labels/policy/runs-depth \\
+        zero-shot=/labels/policy/runs:pooled-last-s* zero-shot=/labels/policy/runs:perboard-mean-s* \\
+        --pairs finetune --out /labels/policy/eval-depth-ft.json
+adds each fine-tuned run minus the stage-1 checkpoint it started from (pair_list).
 """
 import argparse
 import json
@@ -55,9 +62,28 @@ def label_stats(arrays: dict) -> dict:
     return out
 
 
+def pair_list(kind: str, name: str, sets: dict) -> list[tuple[str, str]]:
+    """The (left, right) movers whose paired differences are reported on label set `name`, seed by seed and for
+    the mean over seeds. depth (stage 2): pooled minus per-board of the runs trained on this set; on d6, d6-trained
+    minus d2-trained. finetune (stage 3): the same among the fine-tuned runs, and each fine-tuned run minus the
+    stage-1 checkpoint it started from, used without fine-tuning (zero-shot)."""
+    seeds = [f"-s{k}" for k in range(3)] + [" (mean of 3 seeds)"]
+    ft = "fine-tuned " if kind == "finetune" else ""
+    pairs = [(f"{ft}{name}-pooled{s}", f"{ft}{name}-per-board{s}") for s in seeds]
+    if name == "d6" and "d2" in sets:
+        pairs += [(f"{ft}d6-{design}{s}", f"{ft}d2-{design}{s}") for design in ("pooled", "per-board") for s in seeds]
+    if kind == "finetune":
+        start = {"pooled": "pooled-last", "per-board": "perboard-mean"}  # the stage-1 runs each design starts from
+        pairs += [(f"{ft}{name}-{design}{s}", f"zero-shot {start[design]}{s}") for design in start for s in seeds]
+    return pairs
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--runs", default="/labels/policy/runs-depth")
+    ap.add_argument("--runs", nargs="+", default=["/labels/policy/runs-depth"],
+                    help="[NAME=]FOLDER[:GLOB] of run folders (GLOB default *); a run is called 'NAME run' when NAME is given")
+    ap.add_argument("--pairs", choices=("depth", "finetune"), default="depth",
+                    help="depth: stage 2's paired differences; finetune: stage 3's (runs named fine-tuned and zero-shot)")
     ap.add_argument("--sets", nargs="+", default=["d2=/labels/policy/depthlabels/d2", "d6=/labels/policy/depthlabels/d6"])
     ap.add_argument("--out", default="/labels/policy/eval-depth.json")
     ap.add_argument("--records", default="/labels/solver-v2-sf8-480")
@@ -72,7 +98,7 @@ def main():
     started = time.time()
     sets = dict(s.split("=", 1) for s in args.sets)
 
-    data = {name: load_positions(args.records, [folder], None, args.cache_dir, args.workers, subset=True)
+    data = {name: load_positions(args.records, [folder], None, args.cache_dir, args.workers, subset=True, unique=True)
             for name, folder in sets.items()}
     vals = {name: np.flatnonzero(a["split"] == "val") for name, a in data.items()}
     keys = {(g, int(p)) for name, a in data.items() for g, p in zip(a["game_id"][vals[name]], a["ply"][vals[name]])}
@@ -82,17 +108,21 @@ def main():
     chosen, backend = lookahead_choices([found[k] for k in order], args.value_checkpoint, args.device)
     lookahead = dict(zip(order, chosen.tolist()))
 
-    nets = {}
-    for ckpt_path in sorted(Path(args.runs).glob("*/best.pt")):
-        ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=True)
-        net = PolicyNetwork(**ckpt["config"])
-        net.load_state_dict(ckpt["state_dict"])
-        nets[ckpt_path.parent.name] = net.to(device)
-    runs = {}
-    for name in nets:
-        s = json.loads((Path(args.runs) / name / "summary.json").read_text())
-        runs[name] = {"best_epoch": s["best_epoch"], "epochs_run": s["epochs_run"], "val_ce": s["val"]["val_ce"],
-                      "seconds": s["seconds"], "n": s["n"]}
+    nets, runs = {}, {}
+    for spec in args.runs:
+        prefix, _, rest = spec.rpartition("=")
+        folder, _, pattern = rest.partition(":")
+        for ckpt_path in sorted(Path(folder).glob(f"{pattern or '*'}/best.pt")):
+            name = f"{prefix} {ckpt_path.parent.name}" if prefix else ckpt_path.parent.name
+            if name in nets:
+                raise SystemExit(f"two runs named {name!r}: give the folders different NAME= prefixes")
+            ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=True)
+            net = PolicyNetwork(**ckpt["config"])
+            net.load_state_dict(ckpt["state_dict"])
+            nets[name] = net.to(device)
+            s = json.loads((ckpt_path.parent / "summary.json").read_text())
+            runs[name] = {"folder": str(ckpt_path.parent), "best_epoch": s["best_epoch"], "epochs_run": s["epochs_run"],
+                          "val_ce": s["val"]["val_ce"], "seconds": s["seconds"], "n": s["n"], "init": s.get("init")}
 
     report = {"metrics": METRICS, "groups": GROUPS, "thresholds": {"support": SUPPORT, "one_hot": ONE_HOT,
               "mixing_works": MIXING_WORKS}, "resamples": args.resamples, "bootstrap_seed": args.seed,
@@ -130,14 +160,11 @@ def main():
         boots = {g: Bootstrap(games[m], args.resamples, args.seed) for g, m in masks.items() if m.any()}
         tables = {g: {mover: {k: boots[g](m[k][masks[g]]) for k in METRICS if k in m} for mover, m in per_position.items()}
                   for g in boots}
-        pairs = []
-        for s in [f"-s{k}" for k in range(3)] + [" (mean of 3 seeds)"]:
-            pairs.append((f"{name}-pooled{s}", f"{name}-per-board{s}"))
-        if name == "d6" and "d2" in sets:
-            for design in ("pooled", "per-board"):
-                for s in [f"-s{k}" for k in range(3)] + [" (mean of 3 seeds)"]:
-                    pairs.append((f"d6-{design}{s}", f"d2-{design}{s}"))
-        paired = {g: {f"{a} minus {b}": {k: boots[g](per_position[a][k][masks[g]] - per_position[b][k][masks[g]])
+        pairs = pair_list(args.pairs, name, sets)
+        missing = [f"{a} minus {b}" for a, b in pairs if a not in per_position or b not in per_position]
+        if missing:
+            print(f"{name}: pairs without both movers, not reported: {missing}", flush=True)
+        paired ={g: {f"{a} minus {b}": {k: boots[g](per_position[a][k][masks[g]] - per_position[b][k][masks[g]])
                                          for k in METRICS if k in per_position[a] and k in per_position[b]}
                       for a, b in pairs if a in per_position and b in per_position}
                   for g in ("all", "mixing_works") if g in boots}
@@ -145,7 +172,7 @@ def main():
             "folder": sets[name], "counts": counts_of(arrays), "label_stats": label_stats(arrays),
             "val_positions": {g: int(m.sum()) for g, m in masks.items()},
             "val_games": {g: int(len(set(games[m].tolist()))) for g, m in masks.items()},
-            "tables": tables, "paired": paired}
+            "tables": tables, "paired": paired, "missing_pairs": missing}
     report["seconds"] = round(time.time() - started, 1)
     Path(args.out).write_text(json.dumps(report, indent=2) + "\n")
 
