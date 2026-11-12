@@ -77,6 +77,36 @@ def tree_stats(root):
     return per_depth, deepest, root_move_depth
 
 
+def root_move_values(agent, turn):
+    """Q*(a): the belief-weighted value of each root move under the final solved profile, computed from the tree the
+    agent kept (same walk as the solver's own hypothesis values; fresh solves have no gadget)."""
+    from pair_a_prep.toy_games import information_sets, value_walk
+    projection, profile = agent.last_projection, agent.last_solver.policy()
+    by_id = {}
+    for identity, root in zip(projection.root_ids, projection.tree.continuations):
+        sets = information_sets(root)
+        local = tuple({key: profile[p][key] for key in sets[p]} for p in (0, 1))
+        by_id[identity] = {a: value_walk(child, local) for a, child in root.children.items()}
+    ids = [projection.aliases.get(k, k) for k in projection.current_ids]
+    weights = [h.weight for h in turn.belief.hypotheses]
+    total = sum(weights)
+    return {a: sum(w * by_id[i][a] for w, i in zip(weights, ids)) / total for a in by_id[ids[0]]}
+
+
+def purification_test(agent, policy):
+    """Does the mixing do work? Our value when the opponent best-responds to (a) the solved strategy and (b) the same
+    strategy with our root move made pure (the argmax). With trivial ties (b) equals (a); when the mix hides our
+    choice, (b) is lower. Values from our side, on [-1, 1]."""
+    from pair_a_prep.toy_games import _best_response_value
+    root, infoset = agent.last_solver.root, agent.last_projection.tree.root_infoset
+    profile = agent.last_solver.policy()
+    best = max(policy, key=policy.get)
+    ours = dict(profile[0]); ours[infoset] = {a: float(a == best) for a in profile[0][infoset]}
+    mixed = _best_response_value(root, profile, 1)
+    pure = _best_response_value(root, (ours, profile[1]), 1)
+    return dict(br_mixed=mixed, br_pure=pure, purify_loss=mixed - pure)
+
+
 def rss_mb():
     for line in open("/proc/self/status"):
         if line.startswith("VmRSS:"):
@@ -130,6 +160,21 @@ def measure(args):
                 d = result.decision.diagnostics
                 policy = result.decision.root_policy
                 per_depth, deepest, root_move_depth = tree_stats(agent.last_projection.tree.root)
+                try:
+                    q = root_move_values(agent, turn)
+                    best = max(q.values())
+                    supported = [q[a] for a, pa in policy.items() if pa > 0.01]
+                    mixing = dict(q_best=best, q_second=sorted(q.values())[-2] if len(q) > 1 else best,
+                                  support_q_spread=max(supported) - min(supported),
+                                  mass_below_best=sum(pa for a, pa in policy.items() if best - q[a] > 0.01),
+                                  policy_value_check=abs(sum(pa * q[a] for a, pa in policy.items())
+                                                         - (d.get("solver_root_value") or 0)))
+                except Exception as exc:
+                    mixing = dict(q_error=f"{type(exc).__name__}: {exc}")
+                try:
+                    mixing.update(purification_test(agent, policy))
+                except Exception as exc:
+                    mixing.update(br_error=f"{type(exc).__name__}: {exc}")
                 row.update(
                     wall_ms=1000 * (time.perf_counter() - started), elapsed_ms=d.get("elapsed_ms"),
                     nodes=d.get("search_nodes"), iterations=d.get("solver_rounds_this_turn"),
@@ -140,7 +185,7 @@ def measure(args):
                     decisions_per_depth={str(k): v for k, v in sorted(per_depth.items())}, deepest=deepest,
                     root_moves_by_depth=dict(Counter(str(v) for v in root_move_depth.values())),
                     top_prob=max(policy.values()), support=sum(1 for p in policy.values() if p > 0.01),
-                    argmax=max(policy, key=policy.get), rss_mb=rss_mb(), stop_reason=agent.last_stop_reason)
+                    argmax=max(policy, key=policy.get), rss_mb=rss_mb(), stop_reason=agent.last_stop_reason, **mixing)
                 f.write(json.dumps(row) + "\n"); f.flush()
             if (k + 1) % 20 == 0:
                 print(f"{k + 1} positions done", flush=True)
@@ -174,6 +219,17 @@ def summary(paths):
                   f"{sum(same) / max(1, len(same)):.2f}  "
                   f"{st.median(r.get('rss_mb') or 0 for r in ok):.0f}/{max(r.get('rss_mb') or 0 for r in ok)}")
             print("       growth stop reasons:", dict(Counter(s for r in ok for s in r["growth_stop"])))
+            withq = [r for r in ok if "support_q_spread" in r]
+            if withq:
+                mixed = [r for r in withq if r["top_prob"] < 0.999]
+                work = [r for r in mixed if r.get("purify_loss", 0) > 0.005]
+                losses = [r["purify_loss"] for r in withq if "purify_loss" in r]
+                print(f"       of {len(withq)} solves: one-hot {len(withq) - len(mixed)}, mixed {len(mixed)}, of which "
+                      f"playing the top move outright loses > 0.005 against a best response: {len(work)}"
+                      + (f" (mean loss over all solves {st.mean(losses):.4f}, max {max(losses):.4f})" if losses else "")
+                      + "; "
+                      f"mass on moves 0.01+ below the best: mean {st.mean(r['mass_below_best'] for r in withq):.4f}; "
+                      f"|policy . Q* - root value| max {max(r['policy_value_check'] for r in withq):.2e}")
 
 
 if __name__ == "__main__":
