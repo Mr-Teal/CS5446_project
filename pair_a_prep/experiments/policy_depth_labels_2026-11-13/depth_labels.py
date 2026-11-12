@@ -95,7 +95,8 @@ def main():
     for d, path in outs.items():
         path.parent.mkdir(parents=True, exist_ok=True)
         for old in path.parent.glob(f"resolve-{args.shard}-of-{args.shards}*.jsonl"):  # every part of this shard
-            done |= {(r["game_id"], r["ply"], d) for r in map(json.loads, old.read_text().splitlines()) if r.strip()}
+            done |= {(r["game_id"], r["ply"], d)
+                     for r in (json.loads(line) for line in old.read_text().splitlines() if line.strip())}
     files = {d: path.open("a") for d, path in outs.items()}
     started, n = time.time(), 0
     for gid, rec in work:
