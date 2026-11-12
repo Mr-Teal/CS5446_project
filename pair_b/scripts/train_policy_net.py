@@ -9,6 +9,9 @@ iteration (policy_last). Batches hold whole beliefs (--batch of them). Keeps the
 validation cross-entropy against the run's own target type, stopping after --patience epochs without a better
 one. The validation cross-entropy is that of the belief distribution (for per-board, the weight-averaged softmax
 of its boards). Writes best.pt, metrics.jsonl and summary.json into --out, which must not exist yet.
+
+A label set covering a subset of the positions, both splits in one folder (the stage-2 depth labels):
+    ... --target last --targets /labels/policy/depthlabels/d6 --subset
 """
 import argparse
 import datetime
@@ -36,6 +39,11 @@ def main():
     ap.add_argument("--records", default="/labels/solver-v2-sf8-480")
     ap.add_argument("--train-targets", nargs="+", default=[f"{A}/atlas-sf8", f"{A}/train-sf8-vm"])
     ap.add_argument("--val-targets", default=f"{A}/val-sf8")
+    ap.add_argument("--targets", nargs="+", default=None,
+                    help="folders holding both splits' rows (filtered by each row's split); replaces --train-targets "
+                         "and --val-targets")
+    ap.add_argument("--subset", action="store_true",
+                    help="use only the positions that have a good target row, instead of refusing the others")
     ap.add_argument("--cache-dir", default="/labels/policy/cache")
     ap.add_argument("--blocks", type=int, default=6)
     ap.add_argument("--channels", type=int, default=64)
@@ -56,13 +64,19 @@ def main():
     torch.manual_seed(args.seed)
     started = time.time()
 
-    arrays = load_positions(args.records, args.train_targets, args.val_targets, args.cache_dir, args.workers)
+    train_targets, val_targets = (args.targets, None) if args.targets else (args.train_targets, args.val_targets)
+    arrays = load_positions(args.records, train_targets, val_targets, args.cache_dir, args.workers, subset=args.subset)
     counts = counts_of(arrays)
     print(f"data: {json.dumps(counts)}", flush=True)
     print(f"test games skipped: {counts['test_games_skipped']} ({counts['test_records_skipped']} records)", flush=True)
+    if args.subset:
+        print("positions without a good row skipped: " + ", ".join(
+            f"{s} {counts[f'{s}_positions_without_good_row_skipped']}" for s in ("train", "val")), flush=True)
     ids = {s: np.flatnonzero(arrays["split"] == s) for s in ("train", "val")}
     if set(np.unique(arrays["split"])) - {"train", "val"}:
         raise SystemExit("positions outside the training and validation splits")
+    if not len(ids["train"]) or not len(ids["val"]):
+        raise SystemExit(f"need training and validation positions, have {len(ids['train'])} and {len(ids['val'])}")
     sizes = np.bincount(arrays["belief"])
     n = {s: {"positions": int(len(ids[s])), "boards": int(sizes[ids[s]].sum()),
              "games": int(len(set(arrays["game_id"][ids[s]].tolist())))} for s in ids}

@@ -1,4 +1,5 @@
-"""The policy network (stage 1): its data join, its mirrored targets, its two designs and a short training run.
+"""The policy network: its data join, its mirrored targets, its two designs and a short training run (stage 1);
+label sets covering a subset of the positions in one folder, and the metrics against a mixing teacher (stage 2).
 
 The fixture needs no solver: positions from seeded random games, beliefs from pairb.standin_beliefs, and
 afterstate-q-v1 rows with random action values and strategies over each record's legal moves.
@@ -21,6 +22,7 @@ from pairb.belief_data import build_arrays
 from pairb.data import split_of
 from pairb.moves import N_MOVES, policy_vector
 from pairb.policy_data import dense_targets, load_positions, move_position
+from pairb.policy_metrics import label_kinds, pure_teacher_metrics, teacher_metrics, uniform_teacher_metrics
 from pairb.policy_net import PolicyNetwork
 from pairb.standin_beliefs import make_turn, record_for
 
@@ -230,3 +232,112 @@ def test_a_two_epoch_run_trains_on_train_and_validation_positions_only(tmp_path,
     net.load_state_dict(ckpt["state_dict"])
     planes, weights, belief, legal = two_beliefs()
     assert torch.allclose(net.eval().belief_probs(planes, weights, belief, 2, legal).sum(1), torch.ones(2), atol=1e-5)
+
+
+def subset_fixture(tmp: Path):
+    """Records as above; one folder holding rows of both splits for every second training and validation record
+    (validation rows carry a purification test, training rows a null one), one validation position whose only row
+    is an error row, and a test row. Returns the records and the good rows by key."""
+    records = records_of()
+    (tmp / "records").mkdir()
+    write_records(tmp / "records" / "part-00.jsonl", records)
+    kept = [r for r in records if split_of(r.game_id) != "test"][::2]
+    good = {}
+    for i, r in enumerate(kept):
+        row = row_for(r, i)
+        row["purify_loss"] = (0.02 if i % 4 == 0 else 0.0) if row["split"] == "val" else None
+        good[(r.game_id, r.agent_input.observation.ply)] = row
+    errored = next(r for r in records if split_of(r.game_id) == "val" and (r.game_id, r.agent_input.observation.ply) not in good)
+    rows = list(good.values()) + [{**row_for(errored, 50), "action_values": None, "error": "solver crashed"},
+                                  row_for(next(r for r in records if split_of(r.game_id) == "test"), 99)]
+    write_rows(tmp / "labels" / "resolve-0-of-1.jsonl", rows)
+    return records, good
+
+
+# Catches: a label set covering part of the positions refused (or silently padded), the wrong positions kept, the
+# skipped ones not counted per split, and the purification test lost or invented.
+def test_subset_keeps_exactly_the_positions_with_a_good_row_from_one_folder_of_both_splits(tmp_path):
+    records, good = subset_fixture(tmp_path)
+    with pytest.raises(ValueError, match="no good target row"):
+        load_positions(tmp_path / "records", [tmp_path / "labels"], None, tmp_path / "cache", workers=1)
+    a = load_positions(tmp_path / "records", [tmp_path / "labels"], None, tmp_path / "cache", workers=1, subset=True)
+    assert {(g, int(p)) for g, p in zip(a["game_id"], a["ply"])} == set(good)
+    assert set(a["split"].tolist()) == {"train", "val"}
+    counts = json.loads(str(a["counts"]))
+    for s in ("train", "val"):
+        n = sum(split_of(r.game_id) == s for r in records)
+        assert counts[f"{s}_positions_without_good_row_skipped"] == n - sum(row["split"] == s for row in good.values())
+    assert counts["targets_error_rows_val"] == 1 and counts["targets_test_rows_skipped"] == 1
+    assert counts["test_games_skipped"] == 1
+    for i, (g, p) in enumerate(zip(a["game_id"], a["ply"])):
+        row = good[(g, int(p))]
+        if row["purify_loss"] is None:
+            assert np.isnan(a["purify"][i])
+        else:
+            assert a["purify"][i] == row["purify_loss"]
+        np.testing.assert_allclose(a["q"][a["move_start"][i]:a["move_start"][i + 1]], q_of(row))
+    kinds = label_kinds(a, np.arange(len(a["game_id"])))
+    assert kinds["mixing_works"].tolist() == [bool(row["purify_loss"]) for row in
+                                              (good[(g, int(p))] for g, p in zip(a["game_id"], a["ply"]))]
+
+
+# Catches: a row whose split field disagrees with its game's split (a validation game trained on).
+def test_a_row_with_the_wrong_split_is_refused(tmp_path):
+    _, good = subset_fixture(tmp_path)
+    rows = [{**row, "split": "train" if row["split"] == "val" else row["split"]} for row in good.values()]
+    write_rows(tmp_path / "labels" / "resolve-0-of-1.jsonl", rows)
+    with pytest.raises(ValueError, match="split"):
+        load_positions(tmp_path / "records", [tmp_path / "labels"], None, tmp_path / "cache", workers=1, subset=True)
+
+
+def test_a_two_epoch_run_on_a_subset_label_folder(tmp_path):
+    _, good = subset_fixture(tmp_path)
+    out = tmp_path / "run"
+    done = subprocess.run([sys.executable, str(ROOT / "scripts" / "train_policy_net.py"), "--design", "pooled",
+                           "--target", "last", "--out", str(out), "--records", str(tmp_path / "records"),
+                           "--targets", str(tmp_path / "labels"), "--subset", "--cache-dir", str(tmp_path / "cache"),
+                           "--blocks", "1", "--channels", "8", "--embed", "16", "--hidden", "32", "--epochs", "2",
+                           "--batch", "4", "--device", "cpu", "--workers", "1"], capture_output=True, text=True)
+    assert done.returncode == 0, done.stderr
+    assert "positions without a good row skipped: train" in done.stdout
+    summary = json.loads((out / "summary.json").read_text())
+    for split in ("train", "val"):
+        assert summary["n"][split]["positions"] == sum(row["split"] == split for row in good.values())
+
+
+# Catches: metrics that reward the wrong thing: support counted from the prediction instead of the teacher, a top
+# move taken from the teacher, total variation off by the factor 1/2.
+def test_teacher_metrics_on_hand_computed_cases():
+    teacher = np.zeros((2, N_MOVES))
+    teacher[:, [0, 1]] = [0.6, 0.4]
+    teacher[1, 5] = 0.005  # below the support threshold
+    teacher[1, :2] = [0.6, 0.395]
+    probs = np.zeros((2, N_MOVES))
+    probs[0, [0, 1, 2]] = [0.5, 0.1, 0.4]
+    probs[1, [0, 1, 5]] = [0.2, 0.1, 0.7]
+    m = teacher_metrics(probs, teacher)
+    np.testing.assert_allclose(m["ce_teacher"][0], -(0.6 * np.log(0.5) + 0.4 * np.log(0.1)))
+    np.testing.assert_allclose(m["tv_teacher"], [0.4, 0.5 * (0.4 + 0.295 + 0.695)])
+    np.testing.assert_allclose(m["mass_on_support"], [0.6, 0.3])
+    assert m["top_in_support"].tolist() == [1.0, 0.0]
+    pure = pure_teacher_metrics(np.array([1, 5]), teacher)
+    np.testing.assert_allclose(pure["tv_teacher"], [0.6, 0.995])
+    assert pure["top_in_support"].tolist() == [1.0, 0.0] and pure["mass_on_support"].tolist() == [1.0, 0.0]
+    legal = np.zeros((2, N_MOVES), dtype=bool)
+    legal[:, :4] = True
+    legal[1, 5] = True
+    uni = uniform_teacher_metrics(legal, teacher)
+    np.testing.assert_allclose(uni["mass_on_support"], [0.5, 0.4])
+    np.testing.assert_allclose(uni["top_in_support"], [0.5, 0.4])
+    np.testing.assert_allclose(uni["ce_teacher"], [np.log(4), np.log(5)])
+    np.testing.assert_allclose(uni["tv_teacher"][0], 0.5 * (0.35 + 0.15 + 0.25 + 0.25))
+
+
+# Catches: one-hot and genuinely mixed labels told apart by the wrong field or threshold, or a missing
+# purification test counted as mixing.
+def test_label_kinds_use_the_top_probability_and_the_purification_loss():
+    arrays = {"move_start": np.array([0, 2, 4, 6]), "last": np.array([0.9995, 0.0005, 0.6, 0.4, 0.5, 0.5]),
+              "purify": np.array([0.0, 0.02, np.nan])}
+    kinds = label_kinds(arrays, np.array([0, 1, 2]))
+    assert kinds["one_hot"].tolist() == [True, False, False]
+    assert kinds["mixing_works"].tolist() == [False, True, False]

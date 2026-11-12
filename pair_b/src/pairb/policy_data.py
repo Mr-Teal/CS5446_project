@@ -8,20 +8,25 @@ Q*, the solver's value of each move for the whole belief: sum over boards of nor
 Test-split games are skipped before anything is encoded or joined, and only counted.
 
 Rows join records by (game_id, ply). Rows with an error are ignored and a later good row wins (folders in the
-order given, files by name). Validation positions take their row from the validation folder only. Every joined
-row must list the record's legal moves in the same order, its played move, player, split and weights.
+order given, files by name); a row's split must be its game's split_of. Validation positions take their row from
+the validation folder only; with no validation folder (val_targets None) the target folders hold both splits.
+Every joined row must list the record's legal moves in the same order, its played move, player and weights.
+By default every training and validation record must have a good row; with subset=True only the records that
+have one are encoded, and the others are counted per split.
 
 Arrays (N positions, H boards, M moves over all positions):
   planes (H, 32, 8, 8) float16, weight (H,), belief (H,) position index of each board, sorted;
   game_id, player ("white"/"black"), split (N,), ply (N,), legal (N, 4096) bool, played (N,) index of the
-  played move within the position's moves; move_start (N + 1,) offsets into the move arrays move (M,) UCI,
-  slot (M,) pairb.moves slot, q, mean, last (M,); counts (JSON text).
+  played move within the position's moves; purify (N,) the row's purify_loss (NaN when it has none);
+  move_start (N + 1,) offsets into the move arrays move (M,) UCI, slot (M,) pairb.moves slot, q, mean, last (M,);
+  counts (JSON text).
 """
 from __future__ import annotations
 
 import hashlib
 import json
 from collections import Counter
+from functools import partial
 from multiprocessing import Pool
 from pathlib import Path
 
@@ -35,7 +40,7 @@ from .data import split_of
 from .moves import N_MOVES, legal_mask, move_index, policy_vector
 
 SCHEMA = "afterstate-q-v1"
-CACHE_VERSION = 1
+CACHE_VERSION = 2  # 2: purify, subset and one-folder options
 TARGETS = ("mean", "last")  # average strategy (policy_mean), last iteration (policy_last)
 
 
@@ -49,12 +54,14 @@ def _reduce(row: dict) -> dict:
     w = w / w.sum()
     return {"moves": list(row["moves"]), "played": row["played"], "player": row["player"], "split": row["split"],
             "weights": w, "q": w @ values, "mean": np.asarray(row["policy_mean"], dtype=np.float64),
-            "last": np.asarray(row["policy_last"], dtype=np.float64)}
+            "last": np.asarray(row["policy_last"], dtype=np.float64),
+            "purify": np.nan if row.get("purify_loss") is None else float(row["purify_loss"])}
 
 
 def read_target_rows(folders) -> tuple[dict, Counter]:
     """The good rows of each folder's resolve-*.jsonl, by (game_id, ply); a later good row replaces an earlier
-    one. Rows of test games are skipped (counted, never kept)."""
+    one. Rows of test games are skipped (counted, never kept); a line cut short (a writer killed mid-line) is
+    counted and skipped."""
     rows, counts = {}, Counter()
     for folder in folders:
         for path in sorted(Path(folder).glob("resolve-*.jsonl")):
@@ -62,15 +69,23 @@ def read_target_rows(folders) -> tuple[dict, Counter]:
                 for line in stream:
                     if not line.strip():
                         continue
-                    row = json.loads(line)
+                    try:
+                        row = json.loads(line)
+                    except json.JSONDecodeError:
+                        counts["malformed_lines"] += 1
+                        continue
                     counts["lines"] += 1
-                    if split_of(row["game_id"]) == "test":
+                    split = split_of(row["game_id"])
+                    if split == "test":
                         counts["test_rows_skipped"] += 1
                         continue
                     if row.get("schema") != SCHEMA:
                         raise ValueError(f"{path}: schema {row.get('schema')!r}, expected {SCHEMA!r}")
+                    if row.get("split") != split:
+                        raise ValueError(f"{path}: {row['game_id']} row split {row.get('split')!r}, split_of {split!r}")
                     if row.get("error") is not None:
                         counts["error_rows"] += 1
+                        counts[f"error_rows_{split}"] += 1
                         continue
                     key = (row["game_id"], int(row["ply"]))
                     counts["replaced_rows"] += key in rows
@@ -78,37 +93,56 @@ def read_target_rows(folders) -> tuple[dict, Counter]:
     return rows, counts
 
 
-def _encode_part(path) -> dict:
-    """Planes and facts of one record file's training and validation records; test records only counted."""
+def _encode_part(path, keys: set | None = None) -> dict:
+    """Planes and facts of one record file's training and validation records; test records only counted. With
+    `keys`, only the records whose (game_id, ply) is in it; the others are counted per split."""
     planes, weight, size, facts = [], [], [], []
-    test_games, test_records = set(), 0
+    test_games, test_records, without_row = set(), 0, Counter()
     for r in read_records(path):
         if not r.game_id:
             raise ValueError(f"{path}: a record without game_id cannot be split")
-        if split_of(r.game_id) == "test":
+        split = split_of(r.game_id)
+        if split == "test":
             test_games.add(r.game_id)
             test_records += 1
             continue
-        p, w = encode_belief(r.agent_input, opponent_visible)
         obs = r.agent_input.observation
+        if keys is not None and (r.game_id, obs.ply) not in keys:
+            without_row[split] += 1
+            continue
+        p, w = encode_belief(r.agent_input, opponent_visible)
         planes.append(p.astype(np.float16))
         weight.append(w.astype(np.float32))
         size.append(len(w))
         facts.append((r.game_id, obs.ply, obs.player, list(obs.legal_moves), r.decision.move))
     return {"planes": np.concatenate(planes) if planes else np.zeros((0, 32, 8, 8), np.float16),
             "weight": np.concatenate(weight) if weight else np.zeros(0, np.float32),
-            "size": size, "facts": facts, "test_games": test_games, "test_records": test_records}
+            "size": size, "facts": facts, "test_games": test_games, "test_records": test_records,
+            "without_row": without_row}
 
 
-def build_positions(records, train_targets, val_targets, workers: int = 6, pattern: str = "part-*.jsonl") -> dict:
+def build_positions(records, train_targets, val_targets=None, workers: int = 6, pattern: str = "part-*.jsonl",
+                    subset: bool = False) -> dict:
+    """val_targets None: the train_targets folders hold both splits. subset: only records with a good row."""
     parts = sorted(Path(records).glob(pattern))
     if not parts:
         raise ValueError(f"no record files in {records} matching {pattern!r}")
+    train_rows, train_counts = read_target_rows(train_targets)
+    if val_targets is None:
+        val_rows, sources = train_rows, (("targets", train_counts),)
+    else:
+        val_rows, val_counts = read_target_rows([val_targets])
+        sources = (("train_folders", train_counts), ("val_folder", val_counts))
+    keys = None
+    if subset:
+        keys = ({k for k in train_rows if split_of(k[0]) == "train"} |
+                {k for k in val_rows if split_of(k[0]) == "val"})
+    encode = partial(_encode_part, keys=keys)
     if workers > 1 and len(parts) > 1:
         with Pool(min(workers, len(parts))) as pool:
-            pieces = list(pool.imap(_encode_part, parts))
+            pieces = list(pool.imap(encode, parts))
     else:
-        pieces = [_encode_part(p) for p in parts]
+        pieces = [encode(p) for p in parts]
     planes = np.concatenate([p.pop("planes") for p in pieces])
     weight = np.concatenate([p.pop("weight") for p in pieces])
     sizes = [n for p in pieces for n in p["size"]]
@@ -116,11 +150,11 @@ def build_positions(records, train_targets, val_targets, workers: int = 6, patte
     test_games = set().union(*(p["test_games"] for p in pieces))
     counts = Counter({"record_files": len(parts), "test_games_skipped": len(test_games),
                       "test_records_skipped": sum(p["test_records"] for p in pieces)})
+    if subset:
+        for s in ("train", "val"):
+            counts[f"{s}_positions_without_good_row_skipped"] = sum(p["without_row"][s] for p in pieces)
     del pieces
-
-    train_rows, train_counts = read_target_rows(train_targets)
-    val_rows, val_counts = read_target_rows([val_targets])
-    for name, c in (("train_folders", train_counts), ("val_folder", val_counts)):
+    for name, c in sources:
         for k, v in c.items():
             counts[f"{name}_{k}"] = v
 
@@ -129,6 +163,7 @@ def build_positions(records, train_targets, val_targets, workers: int = 6, patte
     player = np.empty(n, dtype="U5")
     split = np.empty(n, dtype="U5")
     played = np.zeros(n, dtype=np.int64)
+    purify = np.full(n, np.nan)
     move_start = np.zeros(n + 1, dtype=np.int64)
     move, slot, q, mean, last = [], [], [], [], []
     offset = 0
@@ -153,7 +188,7 @@ def build_positions(records, train_targets, val_targets, workers: int = 6, patte
             vec = policy_vector(dict(zip(legal_moves, row[kind])), colour)
             if (row[kind] < 0).any() or vec[~legal[i]].any() or abs(vec.sum() - 1.0) > 1e-6:
                 raise ValueError(f"{where}: {kind} target is not a distribution on the legal slots")
-        player[i], split[i] = colour, s
+        player[i], split[i], purify[i] = colour, s, row["purify"]
         played[i] = legal_moves.index(played_move)
         move_start[i + 1] = move_start[i] + len(legal_moves)
         move += legal_moves
@@ -161,7 +196,7 @@ def build_positions(records, train_targets, val_targets, workers: int = 6, patte
         q.append(row["q"])
         mean.append(row["mean"])
         last.append(row["last"])
-    for name, rows in (("train_folders", train_rows), ("val_folder", val_rows)):
+    for (name, _), rows in zip(sources, (train_rows, val_rows)):
         left = Counter(split_of(g) for g, _ in rows)
         for s, c in left.items():
             counts[f"{name}_unused_{s}_rows"] = c
@@ -171,26 +206,30 @@ def build_positions(records, train_targets, val_targets, workers: int = 6, patte
     return {"planes": planes, "weight": weight,
             "belief": np.repeat(np.arange(n), sizes).astype(np.int64),
             "game_id": np.array([f[0] for f in facts]), "ply": np.array([f[1] for f in facts], dtype=np.int32),
-            "player": player, "split": split, "legal": legal, "played": played, "move_start": move_start,
+            "player": player, "split": split, "legal": legal, "played": played, "purify": purify,
+            "move_start": move_start,
             "move": np.array(move), "slot": np.array(slot, dtype=np.int64),
             "q": np.concatenate(q), "mean": np.concatenate(mean), "last": np.concatenate(last),
             "counts": np.array(json.dumps(dict(sorted(counts.items()))))}
 
 
 def load_positions(records, train_targets, val_targets, cache_dir, workers: int = 6,
-                   pattern: str = "part-*.jsonl") -> dict:
-    """build_positions, cached in cache_dir under a key covering every input file's name, size and mtime."""
+                   pattern: str = "part-*.jsonl", subset: bool = False) -> dict:
+    """build_positions, cached in cache_dir under a key covering every input file's name, size and mtime, the
+    target folders and the options; the file name also carries the first target folder's name."""
+    folders = [*train_targets] + ([val_targets] if val_targets is not None else [])
     files = sorted(Path(records).glob(pattern))
-    for folder in [*train_targets, val_targets]:
+    for folder in folders:
         files += sorted(Path(folder).glob("resolve-*.jsonl"))
     stamp = "|".join(f"{p.resolve()}:{p.stat().st_size}:{p.stat().st_mtime_ns}" for p in files)
-    order = "|".join(str(Path(f).resolve()) for f in [*train_targets, "val:", val_targets])
-    key = hashlib.sha1(f"{stamp}|{order}|{pattern}|{ENCODING}|{CACHE_VERSION}".encode()).hexdigest()[:12]
-    path = Path(cache_dir) / f"positions-{Path(records).name}-{key}.npz"
+    order = "|".join(str(Path(f).resolve()) for f in train_targets) + "|val:" + (
+        str(Path(val_targets).resolve()) if val_targets is not None else "-")
+    key = hashlib.sha1(f"{stamp}|{order}|{pattern}|subset={subset}|{ENCODING}|{CACHE_VERSION}".encode()).hexdigest()[:12]
+    path = Path(cache_dir) / f"positions-{Path(records).name}-{Path(train_targets[0]).name}-{key}.npz"
     if path.exists():
         with np.load(path) as z:
             return {k: z[k] for k in z.files}
-    arrays = build_positions(records, train_targets, val_targets, workers, pattern)
+    arrays = build_positions(records, train_targets, val_targets, workers, pattern, subset)
     path.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(path, **arrays)
     return arrays
