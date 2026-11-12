@@ -7,6 +7,7 @@ iterations (so the clock binds), 16,384 nodes, 4,096 leaf calls, growth until 70
 v2, checkpoint g237, on cuda. For every position the depth limits run back to back with the same seed.
 
 usage: depth_measure.py --budget-ms 2000 --depths 2 4 6 --positions 200 --out /labels/policy/depth/pass-2000.jsonl
+       depth_measure.py ... --max-nodes 65536 --max-leaf-calls 16384   (raise the node and leaf-call caps)
        depth_measure.py --summary /labels/policy/depth/pass-2000.jsonl [...]
 """
 import argparse
@@ -76,6 +77,13 @@ def tree_stats(root):
     return per_depth, deepest, root_move_depth
 
 
+def rss_mb():
+    for line in open("/proc/self/status"):
+        if line.startswith("VmRSS:"):
+            return int(line.split()[1]) // 1024
+    return None
+
+
 def measure(args):
     from pair_a_prep.anytime_agent import AnytimeConfig
     from pair_a_prep.chess_subgame_agent import ChessSubgameAgent
@@ -90,24 +98,27 @@ def measure(args):
     out.parent.mkdir(parents=True, exist_ok=True)
     done = set()
     if out.exists():
-        done = {(r["game_id"], r["ply"], r["depth_limit"]) for r in map(json.loads, out.read_text().splitlines()) if r}
+        done = {(r["game_id"], r["ply"], r["depth_limit"], r.get("max_nodes", 16384))
+                for r in map(json.loads, out.read_text().splitlines()) if r}
     positions = val_positions(args.positions)
     with out.open("a") as f:
         for k, (game_id, turn) in enumerate(positions):
             turn = replace(turn, time_budget_ms=args.budget_ms)
             seed = int(hashlib.sha256(f"{game_id}:{turn.observation.ply}".encode()).hexdigest()[:8], 16)
             for depth in args.depths:
-                key = (game_id, turn.observation.ply, depth)
+                key = (game_id, turn.observation.ply, depth, args.max_nodes)
                 if key in done:
                     continue
-                config = AnytimeConfig(growth="one_sided", rounds=65536, max_nodes=16384, max_evaluator_calls=4096,
+                config = AnytimeConfig(growth="one_sided", rounds=65536, max_nodes=args.max_nodes,
+                                       max_evaluator_calls=args.max_leaf_calls,
                                        stop_on_time=True, expansion_fraction=0.7, growth_headroom=0,
                                        initial_depth=1, max_depth=depth, rounds_per_stage=2, final_rounds=2,
                                        schedule="alternating")
                 agent = ChessSubgameAgent(leaf, config, None)
                 agent.reset(turn.observation.player, seed)
                 row = dict(game_id=game_id, ply=turn.observation.ply, player=turn.observation.player,
-                           depth_limit=depth, budget_ms=args.budget_ms, legal_moves=len(turn.observation.legal_moves),
+                           depth_limit=depth, max_nodes=args.max_nodes, max_leaf_calls=args.max_leaf_calls,
+                           budget_ms=args.budget_ms, legal_moves=len(turn.observation.legal_moves),
                            boards=len(turn.belief.hypotheses), error=None)
                 started = time.perf_counter()
                 try:
@@ -129,7 +140,7 @@ def measure(args):
                     decisions_per_depth={str(k): v for k, v in sorted(per_depth.items())}, deepest=deepest,
                     root_moves_by_depth=dict(Counter(str(v) for v in root_move_depth.values())),
                     top_prob=max(policy.values()), support=sum(1 for p in policy.values() if p > 0.01),
-                    argmax=max(policy, key=policy.get))
+                    argmax=max(policy, key=policy.get), rss_mb=rss_mb(), stop_reason=agent.last_stop_reason)
                 f.write(json.dumps(row) + "\n"); f.flush()
             if (k + 1) % 20 == 0:
                 print(f"{k + 1} positions done", flush=True)
@@ -140,26 +151,28 @@ def summary(paths):
         rows = [json.loads(l) for l in open(path) if l.strip()]
         by = {}
         for r in rows:
-            by.setdefault(r["depth_limit"], []).append(r)
+            by.setdefault((r["depth_limit"], r.get("max_nodes", 16384)), []).append(r)
         base = {(r["game_id"], r["ply"]): r for r in by.get(min(by), []) if not r["error"]}
         print(f"=== {path}: {len({(r['game_id'], r['ply']) for r in rows})} positions")
-        print("limit  ok/err  nodes(med)  iters(med)  expans(med)  deepest: share>=3  >=4  >=5  max  "
-              "root moves below depth 2 (mean share)  one-hot  top-prob(mean)  nash-gap(med)  same move as lowest limit")
+        print("limit/cap  ok/err  nodes(med)  iters(med)  expans(med)  deepest: share>=3  >=4  >=5  max  "
+              "root moves below depth 2 (mean share)  one-hot  top-prob(mean)  nash-gap(med)  same move as first row  "
+              "rss MB med/max")
         for depth in sorted(by):
             ok = [r for r in by[depth] if not r["error"]]
             if not ok:
-                print(f"{depth:5d}  0/{len(by[depth])}")
+                print(f"{depth}  0/{len(by[depth])}")
                 continue
             share_deep = st.mean(sum(v for k, v in r["root_moves_by_depth"].items() if int(k) >= 3)
                                  / max(1, r["legal_moves"]) for r in ok)
             same = [r["argmax"] == base[(r["game_id"], r["ply"])]["argmax"] for r in ok if (r["game_id"], r["ply"]) in base]
-            print(f"{depth:5d}  {len(ok)}/{len(by[depth]) - len(ok)}  {st.median(r['nodes'] for r in ok):10.0f}  "
+            print(f"{str(depth):>12}  {len(ok)}/{len(by[depth]) - len(ok)}  {st.median(r['nodes'] for r in ok):10.0f}  "
                   f"{st.median(r['iterations'] for r in ok):10.0f}  {st.median(r['expansions'] for r in ok):11.0f}  "
                   f"{sum(r['deepest'] >= 3 for r in ok) / len(ok):16.2f}  {sum(r['deepest'] >= 4 for r in ok) / len(ok):4.2f}  "
                   f"{sum(r['deepest'] >= 5 for r in ok) / len(ok):4.2f}  {max(r['deepest'] for r in ok):3d}  "
                   f"{share_deep:36.3f}  {sum(r['top_prob'] >= 0.999 for r in ok) / len(ok):7.2f}  "
                   f"{st.mean(r['top_prob'] for r in ok):14.3f}  {st.median(r['nash_gap'] for r in ok):13.4f}  "
-                  f"{sum(same) / max(1, len(same)):.2f}")
+                  f"{sum(same) / max(1, len(same)):.2f}  "
+                  f"{st.median(r.get('rss_mb') or 0 for r in ok):.0f}/{max(r.get('rss_mb') or 0 for r in ok)}")
             print("       growth stop reasons:", dict(Counter(s for r in ok for s in r["growth_stop"])))
 
 
@@ -168,6 +181,8 @@ if __name__ == "__main__":
     ap.add_argument("--budget-ms", type=int, default=2000)
     ap.add_argument("--depths", type=int, nargs="+", default=[2, 4, 6])
     ap.add_argument("--positions", type=int, default=200)
+    ap.add_argument("--max-nodes", type=int, default=16384)
+    ap.add_argument("--max-leaf-calls", type=int, default=4096)
     ap.add_argument("--out")
     ap.add_argument("--summary", nargs="+")
     a = ap.parse_args()
