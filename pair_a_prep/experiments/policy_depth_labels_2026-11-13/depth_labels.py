@@ -72,6 +72,8 @@ def main():
     ap.add_argument("--shards", type=int, required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--limit", type=int, default=None, help="stop after this many positions (smoke)")
+    ap.add_argument("--part", type=int, nargs=2, default=None, metavar=("J", "M"),
+                    help="take only every M-th position of this shard's work list, starting at J (parallel resume)")
     args = ap.parse_args()
     from pair_a_prep.anytime_agent import AnytimeConfig
     from pair_a_prep.chess_subgame_agent import ChessSubgameAgent
@@ -85,12 +87,15 @@ def main():
     work = [(gid, r) for split in ("val", "train") for gid in mine if games[gid][0] == split for r in games[gid][1]]
     print(f"shard {args.shard}/{args.shards}: {len(mine)} games, {len(work)} positions "
           f"({sum(1 for g in mine if games[g][0] == 'val')} val games first)", flush=True)
-    outs = {d: Path(args.out) / f"d{d}" / f"resolve-{args.shard}-of-{args.shards}.jsonl" for d in SETTINGS}
+    suffix = f"-p{args.part[0]}" if args.part else ""
+    if args.part:
+        work = work[args.part[0]::args.part[1]]
+    outs = {d: Path(args.out) / f"d{d}" / f"resolve-{args.shard}-of-{args.shards}{suffix}.jsonl" for d in SETTINGS}
     done = set()
     for d, path in outs.items():
         path.parent.mkdir(parents=True, exist_ok=True)
-        if path.exists():
-            done |= {(r["game_id"], r["ply"], d) for r in map(json.loads, path.read_text().splitlines()) if r}
+        for old in path.parent.glob(f"resolve-{args.shard}-of-{args.shards}*.jsonl"):  # every part of this shard
+            done |= {(r["game_id"], r["ply"], d) for r in map(json.loads, old.read_text().splitlines()) if r.strip()}
     files = {d: path.open("a") for d, path in outs.items()}
     started, n = time.time(), 0
     for gid, rec in work:
