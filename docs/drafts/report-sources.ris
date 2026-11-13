@@ -212,3 +212,21 @@ AU  - CS5446_project team,
 N1  - [Internet]. 2026 [cited 2026 Nov 8]. Contribution statements and proposal work allocation; see report evidence notes.
 UR  - https://github.com/Mr-Teal/CS5446_project/pull/33
 ER  -
+
+TY  - CONF
+ID  - qmdp
+TI  - Learning policies for partially observable environments: scaling up
+PY  - 1995
+AU  - Littman ML, Cassandra AR, Kaelbling LP
+N1  - In: Machine Learning Proceedings 1995. San Francisco (CA): Morgan Kaufmann; 1995. p. 362-70.
+UR  - https://doi.org/10.1016/B978-1-55860-377-6.50052-9
+ER  - 
+
+TY  - JOUR
+ID  - pimc
+TI  - Understanding the success of perfect information Monte Carlo sampling in game tree search
+PY  - 2010
+AU  - Long J, Sturtevant NR, Buro M, Furtak T
+N1  - Proc AAAI Conf Artif Intell. 2010;24(1):134-40.
+UR  - https://doi.org/10.1609/aaai.v24i1.7562
+ER  - 
