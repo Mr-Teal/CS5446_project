@@ -99,7 +99,7 @@ Mean absolute error measures agreement with D11. Same top move allows teacher ti
 
 Each candidate faces the D1-evaluator agent on 100 random openings of two to eight plies, repeated with colours swapped. D1 scores hypothetical full boards; its agent still receives only private observations and tracked hypotheses, not an omniscient view. Win/draw/loss scores are 1/0.5/0; averages use complete colour pairs. We retain pair-bootstrap and approximate Wilson intervals. This protocol counts a 200-ply cap as a draw [14, 21].
 
-Evaluator agents share one-ply planning and particle and hypothesis counts, but total work differs; decision latency excludes tracking. Stockfish uses one thread and a 16 MB hash; its 60-second call watchdog is not an equal-time budget.
+Evaluator agents share one-ply planning, particle and hypothesis counts; random selects actions directly. Total work differs. Decision latency excludes tracking. Stockfish uses one thread, 16 MB hash, clears between games and retains state within games; its 60-second call watchdog is not an equal-time move budget.
 
 The one-ply batch ran on 26–27 October with an earlier rule implementation, before later no-move-draw and en-passant-repetition fixes. No no-move endings occurred, but child values need not match later rules. Its seven comparisons remain separate from later games [14, 21].
 
@@ -171,7 +171,7 @@ Each board's target is belief-independent. Context can denoise predictions witho
 | Belief network | 0.563 | 0.495-0.630 | 0.465-0.656 | 111/3/86 | 149.8 |
 | Careful Stockfish | 0.585 | 0.513-0.660 | 0.487-0.677 | 114/6/80 | 2,452 |
 
-There are 1,399 finished games and 699 complete colour pairs. One random-row game failed when quick Stockfish's tracker found no consistent board; its partner stays in W/D/L but not in paired estimates. Random's bootstrap is withheld because every pair scores zero. Six draws reached the 200-ply cap (two linear, four careful Stockfish); the rest were repetitions.
+There are 1,399 finished games and 699 complete colour pairs. One random-row game failed because quick Stockfish's tracker found no board consistent with its observations. Its surviving partner remains in W/D/L but is excluded from paired estimates. Random's bootstrap is withheld because every complete pair scores zero. Six draws reached the 200-ply cap: two linear and four careful-Stockfish games. All other draws were repetitions.
 
 Random/material controls score poorly and self-play includes 0.5. Network 1/linear gains are unestablished. Belief-network intervals include 0.5. Careful Stockfish's bootstrap interval narrowly excludes 0.5, but Wilson includes it and seven-comparison adjustment removes the nominal finding. These separate matches against D1 are not a head-to-head ranking.
 
@@ -181,9 +181,9 @@ Network 1, belief network and D11 take respectively three, thirteen and 220 time
 
 All 100 planned games were attempted: 93 reached a terminal result and seven failed, with none capped, missing or unplayed. Failures affected six pairs, leaving 44 clean pairs (88 games). On those pairs, Network 1 recorded 41 wins, 47 losses and no draws: a paired score of 46.59%, with a whole-pair bootstrap 95% interval of 36.36%–56.82%. The analysis uses 20,000 whole-pair resamples. It establishes neither a Network 1 advantage nor statistical equivalence [22].
 
-Failures comprise four replay-support losses, two update timeouts and one pruning timeout. Surviving partners do not enter paired scoring: the estimate conditions on joint completion, not all scheduled seeds. Six of the seven failures occurred in the D1-leaf agent's tracker; scoring all 93 terminal games instead gives 46.24%. [22].
+Failures comprise four replay-support losses, two update timeouts and one pruning timeout. Six excluded pair seeds and raw failures remain in the archive. Surviving partners do not enter paired scoring: the estimate conditions on joint completion, not all scheduled seeds. Six of the seven failures occurred in the D1-leaf agent's tracker; scoring all 93 terminal games instead gives 46.24%. Earlier readiness games on two other seeds are reported separately [22].
 
-Completion (93% of attempts) is a separate reliability measure, and Table 4's random and material controls set a performance floor only for the one-ply system. Section 7 lists the comparisons neither study makes.
+Against the same search agent using D1 leaves, the Network 1 variant has a 46.59% clean-pair score, not an established improvement. Completion is 93% of attempts; this is a separate reliability measure. Table 4's random/material controls establish a performance floor for the older one-ply system, not for this search batch. Neither study compares our search to a POMDP-optimal agent, the published Obscuro agent, or one-ply under matched whole-turn compute. We therefore report measured baseline-relative performance, without claiming published strength or a search-algorithm advantage.
 
 ## 7 Discussion and limitations
 
@@ -205,7 +205,7 @@ Bryan used GitHub Copilot and Codex for inspection, probes, artifact checks, dra
 
 ## 9 Conclusion
 
-Against a fixed opponent, Fog of War chess is a POMDP; we studied the common simplification of averaging full-board values over boards consistent with the player's observations. Network 1 cut value error by 20% without improving move-level value or game score, outcome targets predicted results better but chose moves that lose more deep-engine value, and a search agent using Network 1 scored 46.59% against its depth-1 counterpart. Average prediction error is the wrong yardstick here: decision-relevant errors and belief-dependent values matter, and the averaging approximation itself limits what better full-board values can achieve.
+Against a fixed opponent, Fog of War chess is a POMDP. We studied a common simplification, averaging full-board values over boards consistent with the player's observations, and asked whether better value prediction yields better decisions. It did not, measurably. Network 1 cut value error by 20% without improving move-level value or game score; a linear correction recovered most of that gain more cheaply; outcome-trained targets predicted results better but agreed less with deep-engine move values; and a search agent using Network 1 scored 46.59% against its depth-1 counterpart. Under partial observability, average prediction error is the wrong yardstick for a value function: decision-relevant errors and belief-dependent values matter, and the averaging approximation itself limits what better full-board values can achieve.
 
 ## References
 
