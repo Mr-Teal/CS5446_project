@@ -20,11 +20,7 @@ We study whether better leaf values improve Fog of War chess decisions. Our syst
 
 ## 1 Introduction
 
-Fog of War chess combines strategic interaction with hidden information: players see their own pieces and reachable squares, and moves change both the position and future information. In Figure 1, White's king on d4 can be captured after a step left if the hidden rook is on c6, or right if it is on e6. A rook on d6 threatens the remaining destinations. All three selected histories give White the same observations and eight legal moves.
-
-![Same observation with three possible hidden rook positions](report-assets/hidden-rook.png)
-
-**Figure 1.** Replay-checked possibilities, not a complete posterior. The crop shows files c-e and ranks 3-6; Black's king at a8 is omitted. Grey dots mark legal destinations and red rings permit immediate capture. Check does not restrict moves [1].
+Fog of War chess keeps the moves of chess but hides information. Each player sees only their own pieces and the squares those pieces can reach, and a game is won by capturing the opponent's king. Players therefore choose moves without seeing the opponent's position, and one view can be consistent with several hidden positions in which the same move is safe in one and loses the game in another [1]. Every move also changes what each side will observe next. Good play therefore requires tracking which hidden positions remain possible and judging moves across them, rather than evaluating a single known board.
 
 Zhang and Sandholm's knowledge-limited subgame solving [2] and later Obscuro system [3] motivate our prototypes. Their published playing strength does not transfer to our selected mechanisms. We contribute rules/interfaces, tracking and search prototypes, evaluators and audited match records.
 
@@ -46,7 +42,7 @@ The archived one-ply planner maximizes weighted successor value from the root pl
 
 ### 2.2 Why the player's view is not an MDP state
 
-An MDP requires P(s_(t+1) | s_0, a_0, ..., s_t, a_t) = P(s_(t+1) | s_t, a_t) [6]. Our rule state satisfies this for physical transitions given the mover's action, but the players alternate decisions. A player's view is neither fully observed state nor generally Markov: Figure 1 has identical observations but different capture consequences. Earlier private evidence changes which hidden histories are possible. Consequently we cannot simply use the masked board as an ordinary fully observed MDP state.
+An MDP requires P(s_(t+1) | s_0, a_0, ..., s_t, a_t) = P(s_(t+1) | s_t, a_t) [6]. Our rule state satisfies this for physical transitions given the mover's action, but the players alternate decisions. A player's view is neither fully observed state nor generally Markov: identical observations can hide different capture consequences. Earlier private evidence changes which hidden histories are possible. Consequently we cannot simply use the masked board as an ordinary fully observed MDP state.
 
 A single-player POMDP can be induced by fixing the opponent policy. Its actions are our legal moves; T includes that policy's responses, O is private feedback, and rewards are zero until terminal +1/0/-1, with undiscounted episodic returns. If the opponent uses private memory, the hidden state must include it. Given T and O, filtering is b′(s′) = η O(o′ | s′, a) Σ_s T(s′ | s, a) b(s), with η normalizing and primes denoting the next step [7]. A model-correct posterior over sufficient hidden state yields a belief-state MDP; our finite samples are an approximation. Without a fixed opponent model, strategic interaction is an imperfect-information game or partially observable stochastic game [8]. Thus MDP formulation is conditional, not categorically impossible.
 
@@ -64,7 +60,7 @@ The referee owns the actual hidden board; agents receive private observations an
 
 ![Agent information flow and replaceable leaf evaluator](report-assets/agent-pipeline.png)
 
-**Figure 2.** Private evidence feeds tracking and decision making; an evaluator scores the frontier. Both planners share this boundary, but an evaluator swap does not equalise computation [13, 14].
+**Figure 1.** Private evidence feeds tracking and decision making; an evaluator scores the frontier. Both planners share this boundary, but an evaluator swap does not equalise computation [13, 14].
 
 Fog rules allow king capture and remove king-safety restrictions. Rule-decided values precede engine/network calls. Fixtures check specified visibility, castling, en-passant and draw cases, not every external implementation.
 
@@ -134,9 +130,9 @@ Network 1 reduces error about 20%: paired difference -0.019, 95% interval [-0.02
 
 ![Value error by position category](../../pair_b/experiments/tanh_linear/value-error-by-band.png)
 
-**Figure 3.** Development error by teacher assessment. Corrections improve decided positions but worsen close ones; bin definitions and analysis remain archived [14].
+**Figure 2.** Development error by teacher assessment. Corrections improve decided positions but worsen close ones; bin definitions and analysis remain archived [14].
 
-Errors in decided positions may not change actions, whereas small errors in close positions can reverse rankings. Figure 3 suggests this explanation, but a targeted ablation is needed for causality.
+Errors in decided positions may not change actions, whereas small errors in close positions can reverse rankings. Figure 2 suggests this explanation, but a targeted ablation is needed for causality.
 
 Linear correction captures 56% of Network 1's error reduction, or 83% with bounded parameterization. Network 1 costs nine times D1 on CPU; Apple-GPU latency is 4.4 ms per parent, still three times D1.
 
