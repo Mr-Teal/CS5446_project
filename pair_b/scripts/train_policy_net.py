@@ -41,7 +41,8 @@ def main():
     ap.add_argument("--tau", type=float, default=None, help="temperature of --target value")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--records", default="/labels/solver-v2-sf8-480")
+    ap.add_argument("--records", nargs="+", default=["/labels/solver-v2-sf8-480"],
+                    help="record folders (the 480 set, plus self-play folders whose re-solve rows are in the targets)")
     ap.add_argument("--train-targets", nargs="+", default=[f"{A}/atlas-sf8", f"{A}/train-sf8-vm"])
     ap.add_argument("--val-targets", default=f"{A}/val-sf8")
     ap.add_argument("--targets", nargs="+", default=None,

@@ -125,11 +125,18 @@ def _encode_part(path, keys: set | None = None) -> dict:
             "without_row": without_row}
 
 
+def record_files(records, pattern: str = "part-*.jsonl") -> list:
+    """The record files of one folder or of several (13 Nov: the 480 set plus self-play games), sorted by path."""
+    folders = [records] if isinstance(records, (str, Path)) else list(records)
+    return sorted(p for folder in folders for p in Path(folder).glob(pattern))
+
+
 def build_positions(records, train_targets, val_targets=None, workers: int = 6, pattern: str = "part-*.jsonl",
                     subset: bool = False, unique: bool = False) -> dict:
-    """val_targets None: the train_targets folders hold both splits. subset: only records with a good row.
-    unique: refuse a (game_id, ply) that appears twice among the target rows (read_target_rows)."""
-    parts = sorted(Path(records).glob(pattern))
+    """records: one folder or a list of folders. val_targets None: the train_targets folders hold both splits.
+    subset: only records with a good row. unique: refuse a (game_id, ply) that appears twice among the target rows
+    (read_target_rows)."""
+    parts = record_files(records, pattern)
     if not parts:
         raise ValueError(f"no record files in {records} matching {pattern!r}")
     train_rows, train_counts = read_target_rows(train_targets, unique)
@@ -223,7 +230,8 @@ def load_positions(records, train_targets, val_targets, cache_dir, workers: int 
     """build_positions, cached in cache_dir under a key covering every input file's name, size and mtime, the
     target folders and the options; the file name also carries the first target folder's name."""
     folders = [*train_targets] + ([val_targets] if val_targets is not None else [])
-    files = sorted(Path(records).glob(pattern))
+    files = record_files(records, pattern)
+    first_records = records if isinstance(records, (str, Path)) else records[0]
     for folder in folders:
         files += sorted(Path(folder).glob("resolve-*.jsonl"))
     stamp = "|".join(f"{p.resolve()}:{p.stat().st_size}:{p.stat().st_mtime_ns}" for p in files)
@@ -231,7 +239,7 @@ def load_positions(records, train_targets, val_targets, cache_dir, workers: int 
         str(Path(val_targets).resolve()) if val_targets is not None else "-")
     options = f"subset={subset}" + ("|unique" if unique else "")
     key = hashlib.sha1(f"{stamp}|{order}|{pattern}|{options}|{ENCODING}|{CACHE_VERSION}".encode()).hexdigest()[:12]
-    path = Path(cache_dir) / f"positions-{Path(records).name}-{Path(train_targets[0]).name}-{key}.npz"
+    path = Path(cache_dir) / f"positions-{Path(first_records).name}-{Path(train_targets[0]).name}-{key}.npz"
     if path.exists():
         with np.load(path) as z:
             return {k: z[k] for k in z.files}

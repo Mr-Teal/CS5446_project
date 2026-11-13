@@ -303,6 +303,22 @@ def test_subset_keeps_exactly_the_positions_with_a_good_row_from_one_folder_of_b
                                               (good[(g, int(p))] for g, p in zip(a["game_id"], a["ply"]))]
 
 
+# Catches: records of a second folder ignored, or a two-folder load cached under a one-folder key.
+def test_records_split_over_two_folders_load_like_one_folder(tmp_path):
+    records, _ = subset_fixture(tmp_path)
+    half = len(records) // 2
+    for name, part in (("r1", records[:half]), ("r2", records[half:])):
+        (tmp_path / name).mkdir()
+        write_records(tmp_path / name / "part-00.jsonl", part)
+    args = ([tmp_path / "labels"], None, tmp_path / "cache")
+    one = load_positions(tmp_path / "records", *args, workers=1, subset=True)
+    two = load_positions([tmp_path / "r1", tmp_path / "r2"], *args, workers=1, subset=True)
+    for k in ("game_id", "ply", "planes", "weight", "legal", "q", "last"):
+        np.testing.assert_array_equal(one[k], two[k])
+    first_only = load_positions([tmp_path / "r1"], *args, workers=1, subset=True)
+    assert 0 < len(first_only["game_id"]) < len(one["game_id"])
+
+
 # Catches: a row whose split field disagrees with its game's split (a validation game trained on).
 def test_a_row_with_the_wrong_split_is_refused(tmp_path):
     _, good = subset_fixture(tmp_path)
