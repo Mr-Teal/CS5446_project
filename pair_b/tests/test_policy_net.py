@@ -303,6 +303,35 @@ def test_subset_keeps_exactly_the_positions_with_a_good_row_from_one_folder_of_b
                                               (good[(g, int(p))] for g, p in zip(a["game_id"], a["ply"]))]
 
 
+# Catches: the player choosing something other than the network's top legal slot (another encoding, Black not
+# mirrored), a policy that misses a legal move or does not sum to 1, an under-promotion played, a foreign checkpoint.
+@pytest.mark.parametrize("fen", [chess.STARTING_FEN, "4k3/1P6/8/8/8/8/6p1/4K3 b - - 0 1",
+                                 "4k3/1P6/8/8/8/8/6p1/4K3 w - - 0 1"])
+def test_policy_agent_plays_the_networks_top_legal_move(tmp_path, fen):
+    from fow_shared.features import encode_belief
+    from pairb.belief_data import ENCODING, opponent_visible
+    from pairb.policy_agent import PolicyFactory
+    torch.manual_seed(0)
+    net = PolicyNetwork("pooled-conv", blocks=1, channels=8, embed=16, hidden=32)
+    torch.save({"state_dict": net.state_dict(), "config": net.config, "encoding": ENCODING}, tmp_path / "best.pt")
+    agent = PolicyFactory({"checkpoint_path": str(tmp_path / "best.pt"), "device": "cpu"}).load_model()
+    turn = make_turn(chess.Board(fen), random.Random(3), n_hypotheses=4, ply=9)
+    moves, player = turn.observation.legal_moves, turn.observation.player
+    agent.reset(player, 5)
+    d = agent.act(turn)
+    assert d.move in moves and set(d.root_policy) == set(moves)
+    assert sum(d.root_policy.values()) == pytest.approx(1.0)
+    planes, w = encode_belief(turn, opponent_visible)
+    probs = net.eval().belief_probs(torch.from_numpy(np.asarray(planes, np.float32)), torch.from_numpy(w),
+                                    torch.zeros(len(w), dtype=torch.long), 1,
+                                    torch.from_numpy(legal_mask(moves, player)[None]))[0].detach().numpy()
+    assert probs[move_index(d.move, player)] == pytest.approx(max(probs[move_index(m, player)] for m in moves))
+    assert all(d.root_policy[m] == 0.0 for m in moves if len(m) == 5 and not m.endswith("q"))
+    torch.save({"state_dict": net.state_dict(), "config": net.config, "encoding": "other"}, tmp_path / "bad.pt")
+    with pytest.raises(ValueError, match="encoding"):
+        PolicyFactory({"checkpoint_path": str(tmp_path / "bad.pt"), "device": "cpu"}).load_model()
+
+
 # Catches: records of a second folder ignored, or a two-folder load cached under a one-folder key.
 def test_records_split_over_two_folders_load_like_one_folder(tmp_path):
     records, _ = subset_fixture(tmp_path)

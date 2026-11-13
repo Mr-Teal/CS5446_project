@@ -1,0 +1,99 @@
+{
+  "design": "pooled-conv",
+  "target": "last",
+  "seed": 0,
+  "best_epoch": 3,
+  "val": {
+    "val_ce": 2.156925,
+    "val_ce_mean": 2.157397
+  },
+  "epochs_run": 8,
+  "seconds": 109.1,
+  "n": {
+    "train": {
+      "positions": 41013,
+      "boards": 631648,
+      "games": 698
+    },
+    "val": {
+      "positions": 2256,
+      "boards": 34169,
+      "games": 46
+    }
+  },
+  "data": {
+    "record_files": 862,
+    "test_games_skipped": 73,
+    "test_records_skipped": 4667,
+    "train_folders_error_rows": 2,
+    "train_folders_error_rows_train": 2,
+    "train_folders_lines": 41601,
+    "train_folders_replaced_rows": 0,
+    "train_folders_unused_val_rows": 586,
+    "train_games": 698,
+    "train_positions": 41013,
+    "train_positions_without_good_row_skipped": 2,
+    "val_folder_lines": 2256,
+    "val_folder_replaced_rows": 0,
+    "val_games": 46,
+    "val_positions": 2256,
+    "val_positions_without_good_row_skipped": 2830
+  },
+  "params": 503552,
+  "config": {
+    "design": "pooled-conv",
+    "blocks": 6,
+    "channels": 64,
+    "embed": 128,
+    "hidden": 256,
+    "in_planes": 32
+  },
+  "encoding": "fow-shared-features-32+pairb-observe-v1",
+  "args": {
+    "design": "pooled-conv",
+    "target": "last",
+    "tau": null,
+    "seed": 0,
+    "out": "/labels/policy/runs-data/pooled-conv-plus-gen0-s0",
+    "records": [
+      "/labels/solver-v2-sf8-480",
+      "/labels/selfplay/gen0-vm",
+      "/labels/selfplay/gen0-atlas-flat"
+    ],
+    "train_targets": [
+      "/labels/afterstate/atlas-sf8",
+      "/labels/afterstate/train-sf8-vm",
+      "/labels/afterstate/gen0-vm-sf8",
+      "/labels/afterstate/gen0-atlas-sf8"
+    ],
+    "val_targets": "/labels/afterstate/val-sf8",
+    "targets": null,
+    "subset": true,
+    "unique": false,
+    "init": null,
+    "train_fraction": 1.0,
+    "cache_dir": "/labels/policy/cache",
+    "blocks": 6,
+    "channels": 64,
+    "embed": 128,
+    "hidden": 256,
+    "epochs": 40,
+    "patience": 5,
+    "batch": 64,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "device": "auto",
+    "workers": 6
+  },
+  "init": null,
+  "created": "2026-11-13T14:32:43+00:00",
+  "checkpoint_sha256": "f648aad1da927fe445d6273a5c5f6b5cf87871e6ded08ce4e0829b3b90021ecf",
+  "runtime": {
+    "python": "3.12.14",
+    "platform": "Linux-5.15.0-191-generic-x86_64-with-glibc2.41",
+    "numpy": "2.5.3",
+    "python_chess": "1.11.2",
+    "source_sha256": "939d5e0fbda422f62cc9364bcf8d06b029dc03c1f364ef46eab4e45ebad54e11",
+    "torch": "2.11.0+cu128"
+  }
+}
