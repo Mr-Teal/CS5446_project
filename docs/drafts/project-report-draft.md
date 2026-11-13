@@ -8,9 +8,9 @@ National University of Singapore School of Computing
 
 Semester 1 AY2026/27
 
-11 November 2026
+13 November 2026
 
-DING Chiyu; PEI Shengxin; QUEK Hongqiang Colin; Kuah Jun Hong Bryan; WANG Zhijian; LIN Tzu-Chun.
+DING Chiyu; PEI Shengxin; QUEK Hongqiang Colin; KUAH Jun Hong Bryan; WANG Zhijian; LIN Tzu-Chun.
 
 ---
 
@@ -188,7 +188,7 @@ Network 1, belief network and D11 take respectively three, thirteen and 220 time
 
 All 100 planned games were attempted: 93 reached a terminal result and seven failed, with none capped, missing or unplayed. Failures affected six pairs, leaving 44 clean pairs (88 games). On those pairs, Network 1 recorded 41 wins, 47 losses and no draws: a paired score of 46.59%, with a whole-pair bootstrap 95% interval of 36.36%–56.82%. The analysis uses 20,000 whole-pair resamples. It establishes neither a Network 1 advantage nor statistical equivalence [20].
 
-Failures comprise four replay-support losses, two update timeouts and one pruning timeout. Six excluded pair seeds and raw failures remain in the archive. Surviving partners do not enter paired scoring: the estimate conditions on joint completion, not all scheduled seeds. Seed 17/18 checks are separate [20].
+Failures comprise four replay-support losses, two update timeouts and one pruning timeout. Six excluded pair seeds and raw failures remain in the archive. Surviving partners do not enter paired scoring: the estimate conditions on joint completion, not all scheduled seeds. Six of the seven failures occurred in the D1-leaf agent's tracker; scoring all 93 terminal games instead gives 46.24%. Seed 17/18 checks are separate [20].
 
 Against the same search agent using D1 leaves, the Network 1 variant has a 46.59% clean-pair score, not an established improvement. Completion is 93% of attempts; this is a separate reliability measure. Table 3's random/material controls establish a performance floor for the older one-ply system, not for this search batch. Neither study compares our search to a POMDP-optimal agent, the original closed-source ZS21/Obscuro, or one-ply under matched whole-turn compute. We therefore report measured baseline-relative performance, without claiming published strength or a search-algorithm advantage.
 
@@ -206,9 +206,9 @@ Next steps are equal whole-turn-resource comparisons, actual-work/depth reportin
 
 Private referee-player boundaries and separate offline labeling prevent hidden-board access. Archived configs, seeds and failures support reproducibility; null findings and unequal costs remain explicit. No human study was conducted; future matches should disclose the bot and obtain consent.
 
-Ding Chiyu developed rules/observations, PCFR+/gadget search, growth/diagnostics and evaluation integration with bounded-history replay. Pei Shengxin covers tracking and ZS21. Colin developed evaluators, training/data, particle bot, runner and Fog Lab, and operated the batch. Bryan developed linear correction and expansion API, audited games, and contributed integration/reviews/reporting. Wang Zhijian covers evaluation/provenance. Lin Tzu-Chun's proposal responsibility is environment/belief representation, not certification of unverified implementation [21].
+Ding Chiyu developed rules/observations, PCFR+/gadget search, growth/diagnostics and evaluation integration with bounded-history replay. Pei Shengxin covers tracking and ZS21. Colin developed evaluators, training/data, particle bot, runner and Fog Lab, and operated the batch. Bryan developed linear correction and expansion API, audited games, and contributed integration/reviews/reporting. Wang Zhijian covers evaluation/provenance. Lin Tzu-Chun's proposal responsibility covers environment/belief representation [21].
 
-Bryan reported Copilot/Codex assistance for inspection, probes, artifact checks and earlier drafting. Ding used Codex for implementation/validation and this report's clarification, source checks and regeneration. The proposal disclosed Claude-assisted drafting. The authors remain responsible for design, code, experiments and interpretation; AI output is not experimental evidence.
+Bryan used GitHub Copilot and Codex for inspection, probes, artifact checks, drafting, synthesis, references and layout across revisions. Ding used Codex for implementation/validation and this report's clarification, source checks and regeneration. The proposal disclosed Claude-assisted drafting. The authors remain responsible for design, code, experiments and interpretation; AI output is not experimental evidence.
 
 ## 9 Conclusion
 
@@ -248,7 +248,7 @@ More accurate full-board values need not improve hidden-information decisions. N
 
 16. Kuah JHB, CS5446_project contributors. Evaluation methods and batch validation. [Internet]. 2026 Oct 28 [cited 2026 Nov 8]. Revision 7c292af. Archive recomputation and historical rule boundaries. Available from: [https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md](https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md).
 
-17. CS5446_project contributors. Search verification and integration evidence. [Internet]. 2026 [cited 2026 Nov 8]. Historical source identities and pilot limitations. Available from: [https://github.com/Mr-Teal/CS5446_project/blob/bryankuah/report-presentation-drafts/docs/drafts/report-evidence-notes.md](https://github.com/Mr-Teal/CS5446_project/blob/bryankuah/report-presentation-drafts/docs/drafts/report-evidence-notes.md).
+17. CS5446_project contributors. Search verification and integration evidence. [Internet]. 2026 [cited 2026 Nov 8]. Historical source identities and pilot limitations. Available from: [https://github.com/Mr-Teal/CS5446_project/blob/92af3ce1ee3a9fb52c6ec9db5d7a88a92b4c0531/docs/drafts/report-evidence-notes.md](https://github.com/Mr-Teal/CS5446_project/blob/92af3ce1ee3a9fb52c6ec9db5d7a88a92b4c0531/docs/drafts/report-evidence-notes.md).
 
 18. CS5446_project contributors. Monte Carlo and temporal-difference target comparison. [Internet]. 2026 [cited 2026 Nov 8]. Revision 1db35d6. Available from: [https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md](https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md).
 
