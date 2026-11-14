@@ -45,7 +45,8 @@ GROUPS = ("all", "mixing_works", "one_hot")
 LOOKAHEAD = "one-ply lookahead (value network v2 g237)"
 DIGITS = {"regret": 4}
 VALUE_TAUS = ("0.01", "0.02", "0.05", "0.1")  # temperatures of the move-value runs, as in their folder names
-DATA_STEMS = ("pooled-conv-plus-gen0vm", "pooled-conv-plus-gen0")  # runs with the VM / all gen-0 positions added
+DATA_STEMS = ("pooled-conv-plus-gen0vm", "pooled-conv-plus-gen0",  # runs with the VM / all gen-0 positions added,
+              "pooled-conv-plus-gen0r2")  # and with the round-2 gen-0 games (14 Nov)
 
 
 def renamed(m: dict) -> dict:
