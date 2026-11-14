@@ -34,7 +34,7 @@ import numpy as np
 import torch
 
 from eval_policy_net import Bootstrap, Val, fmt, lookahead_choices, val_records
-from pairb.policy_data import counts_of, load_positions
+from pairb.policy_data import counts_of, fuzzy_positions, load_positions
 from pairb.policy_metrics import (MIXING_WORKS, ONE_HOT, SUPPORT, label_kinds, pure_teacher_metrics,
                                   teacher_metrics, uniform_teacher_metrics)
 from pairb.policy_net import PolicyNetwork, predict
@@ -76,6 +76,9 @@ def pair_list(kind: str, name: str, sets: dict) -> list[tuple[str, str]]:
     minus d2-trained. finetune (stage 3): the same among the fine-tuned runs, and each fine-tuned run minus the
     stage-1 checkpoint it started from, used without fine-tuning (zero-shot)."""
     seeds = [f"-s{k}" for k in range(3)] + [" (mean of 3 seeds)"]
+    if kind == "fuzzy":  # fuzzy-board input (14 Nov): against the same data and network with every board, the lookahead
+        return [(f"pooled-conv-fuzzy-r2{s}", other) for s in seeds
+                for other in (f"pooled-conv-plus-gen0r2{s}", LOOKAHEAD)]
     if kind == "data":  # more training positions (13 Nov): the same conv runs with self-play positions added
         return [(f"{stem}{s}", other) for stem in DATA_STEMS for s in seeds for other in (f"pooled-conv{s}", LOOKAHEAD)]
     if kind == "value":  # move-value targets (13 Nov): against the conv runs trained on the solver's strategy, the lookahead
@@ -105,7 +108,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--runs", nargs="+", default=["/labels/policy/runs-depth"],
                     help="[NAME=]FOLDER[:GLOB] of run folders (GLOB default *); a run is called 'NAME run' when NAME is given")
-    ap.add_argument("--pairs", choices=("depth", "finetune", "conv", "finetune-conv", "value", "data"), default="depth",
+    ap.add_argument("--pairs", choices=("depth", "finetune", "conv", "finetune-conv", "value", "data", "fuzzy"),
+                    default="depth",
                     help="depth: stage 2's paired differences; finetune: stage 3's (runs named fine-tuned and zero-shot); "
                          "conv: stage 4's (pooled-conv against pooled-last, per-board-conv and the lookahead); "
                          "finetune-conv: stage 5's (fine-tuned conv runs: pooled-conv minus per-board-conv, d6 minus d2, "
@@ -150,7 +154,8 @@ def main():
             nets[name] = net.to(device)
             s = json.loads((ckpt_path.parent / "summary.json").read_text())
             runs[name] = {"folder": str(ckpt_path.parent), "best_epoch": s["best_epoch"], "epochs_run": s["epochs_run"],
-                          "val_ce": s["val"]["val_ce"], "seconds": s["seconds"], "n": s["n"], "init": s.get("init")}
+                          "val_ce": s["val"]["val_ce"], "seconds": s["seconds"], "n": s["n"], "init": s.get("init"),
+                          "input": ckpt.get("input", "full")}
 
     report = {"metrics": METRICS, "groups": GROUPS, "thresholds": {"support": SUPPORT, "one_hot": ONE_HOT,
               "mixing_works": MIXING_WORKS}, "resamples": args.resamples, "bootstrap_seed": args.seed,
@@ -161,9 +166,11 @@ def main():
         val = Val(arrays, ids)
         teacher = val.dense["last"]
         legal = arrays["legal"][ids]
-        per_position = {}
+        per_position, fuzzy = {}, None
         for run, net in nets.items():
-            probs = predict(net, arrays, ids, device).cpu().numpy()
+            if runs[run]["input"] == "marginals" and fuzzy is None:
+                fuzzy = fuzzy_positions(arrays)  # the same positions, one fuzzy picture each
+            probs = predict(net, fuzzy if runs[run]["input"] == "marginals" else arrays, ids, device).cpu().numpy()
             per_position[run] = {**renamed(val.distribution_metrics(probs)), **teacher_metrics(probs, teacher)}
         stems = {}
         for run in nets:

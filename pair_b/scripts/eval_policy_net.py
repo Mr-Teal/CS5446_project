@@ -235,6 +235,8 @@ def main():
     per_position, notes, info = {}, [], {}
     for ckpt_path in sorted(Path(args.runs).glob("*/best.pt")):
         ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=True)
+        if ckpt.get("input", "full") != "full":
+            raise SystemExit(f"{ckpt_path}: input {ckpt['input']!r}; this script feeds every board (use eval_policy_depth.py)")
         net = PolicyNetwork(**ckpt["config"])
         net.load_state_dict(ckpt["state_dict"])
         probs = predict(net.to(device), arrays, ids, device, planes, legal).cpu().numpy()

@@ -267,6 +267,24 @@ def move_position(arrays: dict) -> np.ndarray:
     return np.repeat(np.arange(len(arrays["move_start"]) - 1), np.diff(arrays["move_start"]))
 
 
+INPUTS = ("full", "marginals")  # every board of the belief / the fuzzy board (one picture per position)
+
+
+def fuzzy_positions(arrays: dict) -> dict:
+    """The arrays with the fuzzy board as the input (14 Nov 2026): each position's boards replaced by ONE picture,
+    built by pairb.belief_ablation.collapse in its "marginals" mode (the same collapse as the fuzzy-board value
+    network): planes known to us kept, enemy pieces only on squares we see, the enemy-piece probability planes
+    14-19 kept, the per-board planes 21, 22, 28, 29, 31 averaged with the board weights. Weight 1 per picture;
+    every per-position field (moves, targets, legal mask, ...) is unchanged."""
+    from .belief_ablation import collapse
+    n = len(arrays["move_start"]) - 1
+    shim = {"belief": arrays["belief"], "planes": arrays["planes"], "weight": arrays["weight"],
+            "root": np.zeros(n, dtype=np.float32), "rule": np.ones(n, dtype=bool), "game_id": arrays["game_id"]}
+    planes = collapse(shim, "marginals")["planes"]
+    return {**arrays, "planes": planes, "weight": np.ones(n, dtype=np.float32),
+            "belief": np.arange(n, dtype=np.int64)}
+
+
 def value_distribution(arrays: dict, tau: float) -> np.ndarray:
     """(M,) softmax(Q* / tau) over each position's moves: the move-value target (13 Nov 2026). Its top move is
     argmax Q* for every tau; tau sets how much probability moves close to the best keep."""

@@ -16,6 +16,9 @@ Fine-tuning (stage 3): --init a best.pt of this script with the same design and 
 before training, its path and SHA-256 go into summary.json, and its validation cross-entropy is logged as epoch 0.
 Move-value target (13 Nov): --target value --tau T trains toward softmax(Q* / T) over the moves instead of the
 solver's strategy (policy_data.value_distribution); the second validation cross-entropy is then against policy_last.
+Fuzzy-board input (14 Nov): --input marginals replaces each position's boards by one fuzzy picture
+(policy_data.fuzzy_positions) before training; the checkpoint records the input so the player and the
+evaluation build the same picture.
 """
 import argparse
 import datetime
@@ -27,7 +30,7 @@ import numpy as np
 import torch
 
 from pairb.belief_data import ENCODING, belief_batches, rows_of
-from pairb.policy_data import TARGETS, counts_of, dense_targets, game_subset, load_positions
+from pairb.policy_data import INPUTS, TARGETS, counts_of, dense_targets, fuzzy_positions, game_subset, load_positions
 from pairb.policy_net import DESIGNS, PolicyNetwork, cross_entropy, policy_loss, predict
 from pairb.provenance import runtime, sha256_of
 
@@ -39,6 +42,8 @@ def main():
     ap.add_argument("--design", choices=DESIGNS, required=True)
     ap.add_argument("--target", choices=(*TARGETS, "value"), required=True)
     ap.add_argument("--tau", type=float, default=None, help="temperature of --target value")
+    ap.add_argument("--input", choices=INPUTS, default="full",
+                    help="full: every board of the belief; marginals: one fuzzy picture per position")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", required=True)
     ap.add_argument("--records", nargs="+", default=["/labels/solver-v2-sf8-480"],
@@ -77,7 +82,7 @@ def main():
     if args.init:
         init = torch.load(args.init, map_location="cpu", weights_only=True)
         want = PolicyNetwork(args.design, args.blocks, args.channels, args.embed, args.hidden).config
-        if init.get("config") != want or init.get("encoding") != ENCODING:
+        if init.get("config") != want or init.get("encoding") != ENCODING or init.get("input", "full") != args.input:
             raise SystemExit(f"--init {args.init}: config {init.get('config')} and encoding {init.get('encoding')!r} "
                              f"do not match this run's {want} and {ENCODING!r}")
     out = Path(args.out)
@@ -90,6 +95,8 @@ def main():
     arrays = load_positions(args.records, train_targets, val_targets, args.cache_dir, args.workers, subset=args.subset,
                             unique=args.unique)
     counts = counts_of(arrays)
+    if args.input == "marginals":
+        arrays = fuzzy_positions(arrays)
     print(f"data: {json.dumps(counts)}", flush=True)
     print(f"test games skipped: {counts['test_games_skipped']} ({counts['test_records_skipped']} records)", flush=True)
     if args.subset:
@@ -161,7 +168,8 @@ def main():
                 best = {"val_ce": round(val_ce, 6), f"val_ce_{other}": round(val_ce_other, 6)}
                 best_epoch, waited = epoch, 0
                 torch.save({"state_dict": {k: v.cpu() for k, v in net.state_dict().items()}, "config": net.config,
-                            "encoding": ENCODING, "target": args.target, "epoch": epoch, "val": best},
+                            "encoding": ENCODING, "input": args.input, "target": args.target, "epoch": epoch,
+                            "val": best},
                            out / "best.pt")
             else:
                 waited += 1

@@ -332,6 +332,70 @@ def test_policy_agent_plays_the_networks_top_legal_move(tmp_path, fen):
         PolicyFactory({"checkpoint_path": str(tmp_path / "bad.pt"), "device": "cpu"}).load_model()
 
 
+# Catches: a fuzzy picture that is not the fuzzy board (shared planes changed, hidden enemy pieces kept, per-board
+# planes not weight-averaged), more than one picture per position, or per-position fields disturbed.
+def test_fuzzy_positions_give_one_fuzzy_board_per_position(tmp_path):
+    from pairb.policy_data import fuzzy_positions
+    fixture(tmp_path)
+    a = load(tmp_path)
+    f = fuzzy_positions(a)
+    n = len(a["move_start"]) - 1
+    assert f["planes"].shape == (n, 32, 8, 8) and f["planes"].dtype == a["planes"].dtype
+    assert (f["weight"] == 1).all() and (f["belief"] == np.arange(n)).all()
+    for k in ("move_start", "move", "slot", "q", "last", "legal", "game_id", "split", "played"):
+        np.testing.assert_array_equal(f[k], a[k])
+    for i in range(n):
+        boards = a["planes"][a["belief"] == i].astype(np.float32)
+        w = a["weight"][a["belief"] == i].astype(np.float32)
+        got = f["planes"][i].astype(np.float32)
+        for p in (0, 1, 2, 3, 4, 5, 12, 13, 14, 15, 16, 17, 18, 19, 20, 23, 24, 25, 26, 27, 30):  # same on every board
+            np.testing.assert_allclose(got[p], boards[0][p], atol=1e-3)
+        np.testing.assert_allclose(got[6:12], boards[0][6:12] * boards[0][12][None], atol=1e-3)  # seen squares only
+        for p in (21, 22, 28, 29, 31):  # per-board planes: weighted average
+            np.testing.assert_allclose(got[p], np.tensordot(w, boards[:, p], axes=(0, 0)), atol=2e-3)
+
+
+# Catches: --input marginals ignored (training on every board), or a checkpoint that does not say which input it needs.
+def test_a_fuzzy_input_run_trains_on_one_picture_per_position_and_records_it(tmp_path):
+    subset_fixture(tmp_path)
+    done = train(tmp_path, tmp_path / "f", "--epochs", "1", "--input", "marginals")
+    assert done.returncode == 0, done.stderr
+    summary = json.loads((tmp_path / "f" / "summary.json").read_text())
+    assert summary["args"]["input"] == "marginals"
+    for s in ("train", "val"):
+        assert summary["n"][s]["boards"] == summary["n"][s]["positions"]
+    assert torch.load(tmp_path / "f" / "best.pt", map_location="cpu", weights_only=True)["input"] == "marginals"
+
+
+# Catches: a fuzzy-board checkpoint played on every board (the input it was not trained on).
+def test_policy_agent_builds_the_fuzzy_picture_for_a_fuzzy_checkpoint(tmp_path):
+    from fow_shared.features import encode_belief
+    from pairb.belief_data import ENCODING, opponent_visible
+    from pairb.policy_agent import PolicyFactory
+    from pairb.policy_data import fuzzy_positions
+    torch.manual_seed(1)
+    net = PolicyNetwork("pooled-conv", blocks=1, channels=8, embed=16, hidden=32)
+    torch.save({"state_dict": net.state_dict(), "config": net.config, "encoding": ENCODING, "input": "marginals"},
+               tmp_path / "best.pt")
+    agent = PolicyFactory({"checkpoint_path": str(tmp_path / "best.pt"), "device": "cpu"}).load_model()
+    board = chess.Board()
+    for m in ("e2e4", "e7e5", "g1f3", "b8c6"):
+        board.push_uci(m)
+    turn = make_turn(board, random.Random(4), n_hypotheses=4, ply=4)
+    moves, player = turn.observation.legal_moves, turn.observation.player
+    planes, w = encode_belief(turn, opponent_visible)
+    want = fuzzy_positions({"planes": planes.astype(np.float16), "weight": w, "belief": np.zeros(len(w), dtype=np.int64),
+                            "move_start": np.array([0, 1]), "game_id": np.array(["g"])})["planes"].astype(np.float32)
+    got, weights = agent.network_input(turn)
+    assert len(w) > 1 and got.shape == (1, 32, 8, 8) and weights.tolist() == [1.0]
+    np.testing.assert_array_equal(got, want)
+    agent.reset(player, 2)
+    d = agent.act(turn)
+    probs = net.eval().belief_probs(torch.from_numpy(want), torch.ones(1), torch.zeros(1, dtype=torch.long), 1,
+                                    torch.from_numpy(legal_mask(moves, player)[None]))[0].detach().numpy()
+    assert probs[move_index(d.move, player)] == pytest.approx(max(probs[move_index(m, player)] for m in moves))
+
+
 # Catches: records of a second folder ignored, or a two-folder load cached under a one-folder key.
 def test_records_split_over_two_folders_load_like_one_folder(tmp_path):
     records, _ = subset_fixture(tmp_path)
