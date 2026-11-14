@@ -212,3 +212,78 @@ AU  - CS5446_project team,
 N1  - [Internet]. 2026 [cited 2026 Nov 8]. Contribution statements and proposal work allocation; see report evidence notes.
 UR  - https://github.com/Mr-Teal/CS5446_project/pull/33
 ER  -
+
+TY  - CONF
+ID  - qmdp
+TI  - Learning policies for partially observable environments: scaling up
+PY  - 1995
+AU  - Littman ML, Cassandra AR, Kaelbling LP
+N1  - In: Machine Learning Proceedings 1995. San Francisco (CA): Morgan Kaufmann; 1995. p. 362-70.
+UR  - https://doi.org/10.1016/B978-1-55860-377-6.50052-9
+ER  - 
+
+TY  - JOUR
+ID  - pimc
+TI  - Understanding the success of perfect information Monte Carlo sampling in game tree search
+PY  - 2010
+AU  - Long J, Sturtevant NR, Buro M, Furtak T
+N1  - Proc AAAI Conf Artif Intell. 2010;24(1):134-40.
+UR  - https://doi.org/10.1609/aaai.v24i1.7562
+ER  - 
+
+TY  - BOOK
+ID  - rn4
+TI  - Artificial intelligence: a modern approach
+PY  - 2021
+AU  - Russell S, Norvig P
+N1  - 4th ed., global ed. Harlow (UK): Pearson; 2021. Chapter 17, Making complex decisions.
+ER  - 
+
+TY  - SLIDE
+ID  - cutility
+TI  - Rational decision making: decision theory, utility theory, and game theory
+PY  - 2026
+AU  - National University of Singapore School of Computing
+N1  - CS4246/CS5446 course slides. Version 3.0. Semester 1, AY2026/27.
+ER  - 
+
+TY  - SLIDE
+ID  - cmbrl
+TI  - Reinforcement learning model-based techniques
+PY  - 2026
+AU  - National University of Singapore School of Computing
+N1  - CS4246/CS5446 course slides. Semester 1, AY2026/27.
+ER  - 
+
+TY  - CONF
+ID  - sarsop
+TI  - SARSOP: efficient point-based POMDP planning by approximating optimally reachable belief spaces
+PY  - 2008
+AU  - Kurniawati H, Hsu D, Lee WS
+N1  - In: Robotics: Science and Systems IV; 2008.
+ER  - 
+
+TY  - CONF
+ID  - pomcp
+TI  - Monte-Carlo planning in large POMDPs
+PY  - 2010
+AU  - Silver D, Veness J
+N1  - In: Advances in Neural Information Processing Systems 23; 2010. p. 2164-72.
+ER  - 
+
+TY  - CONF
+ID  - despot
+TI  - DESPOT: online POMDP planning with regularization
+PY  - 2013
+AU  - Somani A, Ye N, Hsu D, Lee WS
+N1  - In: Advances in Neural Information Processing Systems 26; 2013. p. 1772-80.
+ER  - 
+
+TY  - ELEC
+ID  - handover1112
+TI  - Pair A handover: results and status up to generation-0 self-play
+PY  - 2026
+AU  - CS5446_project contributors
+N1  - 2026 Nov 12 [cited 2026 Nov 14]. Branch pair-a/handover-20261112, commit db28b6a; not yet reviewed.
+UR  - https://github.com/Mr-Teal/CS5446_project/blob/db28b6a6d3ce0a7314c0dafabf290c1eb666b92f/pair_a_prep/docs/handover_2026-11-12.md
+ER  - 

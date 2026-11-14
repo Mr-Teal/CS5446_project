@@ -401,4 +401,121 @@
     <b:URL>https://github.com/Mr-Teal/CS5446_project/pull/33</b:URL>
     <b:Comments>17. CS5446_project team. Project contribution records. [Internet]. 2026 [cited 2026 Nov 8]. Contribution statements and proposal work allocation; see report evidence notes. Available from: https://github.com/Mr-Teal/CS5446_project/pull/33.</b:Comments>
   </b:Source>
+  <b:Source>
+    <b:Tag>qmdp</b:Tag>
+    <b:SourceType>ConferenceProceedings</b:SourceType>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>Littman ML, Cassandra AR, Kaelbling LP</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Learning policies for partially observable environments: scaling up</b:Title>
+    <b:Year>1995</b:Year>
+    <b:URL>https://doi.org/10.1016/B978-1-55860-377-6.50052-9</b:URL>
+    <b:Comments>In: Machine Learning Proceedings 1995. San Francisco (CA): Morgan Kaufmann; 1995. p. 362-70.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>pimc</b:Tag>
+    <b:SourceType>JournalArticle</b:SourceType>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>Long J, Sturtevant NR, Buro M, Furtak T</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Understanding the success of perfect information Monte Carlo sampling in game tree search</b:Title>
+    <b:Year>2010</b:Year>
+    <b:URL>https://doi.org/10.1609/aaai.v24i1.7562</b:URL>
+    <b:Comments>Proc AAAI Conf Artif Intell. 2010;24(1):134-40.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>rn4</b:Tag>
+    <b:SourceType>Book</b:SourceType>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>Russell S, Norvig P</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Artificial intelligence: a modern approach</b:Title>
+    <b:Year>2021</b:Year>
+    <b:URL></b:URL>
+    <b:Comments>4th ed., global ed. Harlow (UK): Pearson; 2021. Chapter 17, Making complex decisions.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>cutility</b:Tag>
+    <b:SourceType>Misc</b:SourceType>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>National University of Singapore School of Computing</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Rational decision making: decision theory, utility theory, and game theory</b:Title>
+    <b:Year>2026</b:Year>
+    <b:URL></b:URL>
+    <b:Comments>CS4246/CS5446 course slides. Version 3.0. Semester 1, AY2026/27.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>cmbrl</b:Tag>
+    <b:SourceType>Misc</b:SourceType>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>National University of Singapore School of Computing</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Reinforcement learning model-based techniques</b:Title>
+    <b:Year>2026</b:Year>
+    <b:URL></b:URL>
+    <b:Comments>CS4246/CS5446 course slides. Semester 1, AY2026/27.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>sarsop</b:Tag>
+    <b:SourceType>ConferenceProceedings</b:SourceType>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>Kurniawati H, Hsu D, Lee WS</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>SARSOP: efficient point-based POMDP planning by approximating optimally reachable belief spaces</b:Title>
+    <b:Year>2008</b:Year>
+    <b:URL></b:URL>
+    <b:Comments>In: Robotics: Science and Systems IV; 2008.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>pomcp</b:Tag>
+    <b:SourceType>ConferenceProceedings</b:SourceType>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>Silver D, Veness J</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Monte-Carlo planning in large POMDPs</b:Title>
+    <b:Year>2010</b:Year>
+    <b:URL></b:URL>
+    <b:Comments>In: Advances in Neural Information Processing Systems 23; 2010. p. 2164-72.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>despot</b:Tag>
+    <b:SourceType>ConferenceProceedings</b:SourceType>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>Somani A, Ye N, Hsu D, Lee WS</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>DESPOT: online POMDP planning with regularization</b:Title>
+    <b:Year>2013</b:Year>
+    <b:URL></b:URL>
+    <b:Comments>In: Advances in Neural Information Processing Systems 26; 2013. p. 1772-80.</b:Comments>
+  </b:Source>
+  <b:Source>
+    <b:Tag>handover1112</b:Tag>
+    <b:SourceType>InternetSite</b:SourceType>
+    <b:Author>
+      <b:Author>
+        <b:Corporate>CS5446_project contributors</b:Corporate>
+      </b:Author>
+    </b:Author>
+    <b:Title>Pair A handover: results and status up to generation-0 self-play</b:Title>
+    <b:Year>2026</b:Year>
+    <b:URL>https://github.com/Mr-Teal/CS5446_project/blob/db28b6a6d3ce0a7314c0dafabf290c1eb666b92f/pair_a_prep/docs/handover_2026-11-12.md</b:URL>
+    <b:Comments>2026 Nov 12 [cited 2026 Nov 14]. Branch pair-a/handover-20261112, commit db28b6a; not yet reviewed.</b:Comments>
+  </b:Source>
 </b:Sources>
