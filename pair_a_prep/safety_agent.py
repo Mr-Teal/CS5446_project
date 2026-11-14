@@ -18,8 +18,9 @@ SearchFactory, same settings) and wraps it. Extra settings:
   wrapper_reserve_ms (default 150)   time kept back from the inner search for the wrapper's own work; the prior's
       time is also taken out of the inner search's budget, so the whole move stays within the turn's budget.
 
-Diagnostics added (floats): safety_override, safety_unsafe_moves, safety_value_from_solver, prior_applied,
-prior_max_weight, wrapper_ms.
+Diagnostics added (floats): safety_override, safety_unsafe_moves, safety_value_from_solver,
+safety_blueprint_dropped, prior_applied, prior_max_weight, wrapper_ms.
+After an override the inner agent's saved blueprint is discarded, so the next turn is built as a fresh tree.
 """
 from __future__ import annotations
 
@@ -140,7 +141,8 @@ class SafeSearchAgent:
         spent = (perf_counter() - started) * 1000
         inner_turn = replace(inner_turn, time_budget_ms=max(1, int(turn.time_budget_ms - spent - self.reserve_ms)))
         decision = self.inner.act(inner_turn)
-        extra.update(safety_override=0.0, safety_unsafe_moves=float(len(unsafe)), safety_value_from_solver=0.0)
+        extra.update(safety_override=0.0, safety_unsafe_moves=float(len(unsafe)), safety_value_from_solver=0.0,
+                     safety_blueprint_dropped=0.0)
         if self.safety and decision.move in unsafe and len(unsafe) < len(moves):
             values = solver_values(self.inner, inner_turn, moves)
             extra["safety_value_from_solver"] = float(values is not None)
@@ -149,6 +151,12 @@ class SafeSearchAgent:
             move = max((a for a in moves if a not in unsafe), key=lambda a: values[a])
             decision = Decision(move, {a: float(a == move) for a in moves}, dict(decision.diagnostics))
             extra["safety_override"] = 1.0
+            # The played move may have zero probability in the solved strategy, and the saved blueprint would then
+            # carry zero reach into the next turn's gadget ("zero counterfactual reach at boundary"). Discard it, as
+            # ChessSubgameAgent.fallback_decision does when it plays a move the blueprint did not choose.
+            if getattr(self.inner, "saved", None) is not None:
+                self.inner.saved = None
+                extra["safety_blueprint_dropped"] = 1.0
         extra["wrapper_ms"] = (perf_counter() - started) * 1000
         decision = Decision(decision.move, decision.root_policy, {**decision.diagnostics, **extra})
         decision.validate_for(turn.observation)

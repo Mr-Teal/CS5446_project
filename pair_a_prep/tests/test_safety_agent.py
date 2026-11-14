@@ -81,6 +81,19 @@ def test_an_unsafe_choice_is_replaced_by_the_best_safe_move():
     assert inner.seen.time_budget_ms < turn.time_budget_ms  # the wrapper's time comes out of the search's budget
 
 
+# Catches: an override that keeps the inner agent's saved blueprint (the next turn's gadget would then carry zero
+# reach for the move played: "zero counterfactual reach at boundary"), or a blueprint dropped without an override.
+def test_an_override_discards_the_saved_blueprint_and_only_then():
+    turn = qa4_turn()
+    unsafe, safe = FakeInner("d5c4", {"c8d7": 0.2}), FakeInner("c8d7", {})
+    unsafe.saved = safe.saved = "blueprint"
+    d = SafeSearchAgent(unsafe, True, None, 150).act(turn)
+    assert d.diagnostics["safety_override"] == 1.0 and unsafe.saved is None
+    assert d.diagnostics["safety_blueprint_dropped"] == 1.0
+    d = SafeSearchAgent(safe, True, None, 150).act(turn)
+    assert safe.saved == "blueprint" and d.diagnostics["safety_blueprint_dropped"] == 0.0
+
+
 # Catches: a safe choice overridden, the rule active when switched off, or a move forced when every move is unsafe.
 def test_safe_choices_pass_and_the_rule_yields_when_nothing_is_safe(monkeypatch):
     turn = qa4_turn()
