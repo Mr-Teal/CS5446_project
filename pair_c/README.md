@@ -6,7 +6,9 @@ This runner plays a configurable number of complete Fog-of-War chess games betwe
 
 For the replacement of PR74's fixed depth-2 readiness configuration, see
 [Network 1 anytime readiness](configs/network1-anytime-readiness.md). This is
-a candidate two-game check, not a validated strength batch.
+a historical exact-tracker check that subsequently timed out on Pair C's host.
+The [bounded-history follow-up](configs/network1-bounded-readiness.md) adds
+explicit approximation and private-stream recovery for continued testing.
 
 Pair A's history tracker supports an opt-in `tracker_policy=budgeted-exact`.
 It resumes interrupted inference and output within an explicit per-update total

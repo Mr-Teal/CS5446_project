@@ -1,0 +1,58 @@
+[
+  {
+    "seed": 17,
+    "game": 1,
+    "phase": "initial-prune",
+    "status": "completed",
+    "plies": 67,
+    "winner": "white",
+    "fallbacks": 0.0,
+    "search_overruns": 0,
+    "max_update_ms": 12699.919099919498,
+    "max_retained": 8192,
+    "prunes": 5,
+    "rebuilds": 1
+  },
+  {
+    "seed": 17,
+    "game": 2,
+    "phase": "initial-prune",
+    "status": "completed",
+    "plies": 14,
+    "winner": "black",
+    "fallbacks": 0.0,
+    "search_overruns": 0,
+    "max_update_ms": 2135.520299896598,
+    "max_retained": 8192,
+    "prunes": 1,
+    "rebuilds": 0
+  },
+  {
+    "seed": 18,
+    "game": 1,
+    "phase": "optimized-prune",
+    "status": "completed",
+    "plies": 61,
+    "winner": "white",
+    "fallbacks": 0.0,
+    "search_overruns": 0,
+    "max_update_ms": 12504.082799889147,
+    "max_retained": 8192,
+    "prunes": 12,
+    "rebuilds": 2
+  },
+  {
+    "seed": 18,
+    "game": 2,
+    "phase": "optimized-prune",
+    "status": "completed",
+    "plies": 35,
+    "winner": "white",
+    "fallbacks": 0.0,
+    "search_overruns": 0,
+    "max_update_ms": 73.00080033019185,
+    "max_retained": 1707,
+    "prunes": 0,
+    "rebuilds": 0
+  }
+]

@@ -211,6 +211,17 @@ class HistoryTrackerFactory:
         from .evaluation_tracking import BudgetedExactTracker
 
         policy = self.settings.get("tracker_policy", "exact").strip()
+        if policy == "bounded-history":
+            from .bounded_tracking import BoundedHistoryTracker
+            if any(key in self.settings for key in ("tracker_slice_ms", "tracker_memory_mb",
+                                                    "tracker_max_resumes")):
+                raise ValueError("bounded-history uses tracker_total_ms and history/rebuild caps only")
+            return BoundedHistoryTracker(initial_fen,
+                sample_size=_positive(self.settings, "sample_size", 4),
+                max_histories=_positive(self.settings, "tracker_max_histories", 8192),
+                backend=self.settings.get("tracker_backend", "native").strip(),
+                total_ms=float(self.settings.get("tracker_total_ms", "16000")),
+                rebuild_attempts=int(self.settings.get("tracker_rebuild_attempts", "4")))
         if policy not in ("exact", "budgeted-exact"):
             raise ValueError("tracker_policy must be exact or budgeted-exact")
         budget_keys = ("tracker_slice_ms", "tracker_total_ms", "tracker_memory_mb", "tracker_max_resumes")

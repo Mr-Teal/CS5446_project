@@ -362,7 +362,6 @@ class BeliefTracker:
         the default exact mode. Repetition graphs are rebuilt from selected
         hypothetical paths, never from a referee FEN or an opponent move log.
         """
-        import chess
         _positive("max_histories", max_histories, integer=True)
         if self._previous is None:
             raise ValueError("prune requires a current observation")
@@ -380,26 +379,40 @@ class BeliefTracker:
             while rank >= offset + self._nodes[index].paths.count:
                 offset += self._nodes[index].paths.count
                 index += 1
-            selected.append(self._nodes[index].paths.path_at(rank - offset))
+            source = self._nodes[index]
+            cursor, local_rank, entries = source.paths, rank - offset, []
+            while cursor.incoming:
+                for parent, move in cursor.incoming:
+                    if local_rank < parent.count:
+                        entries.append((move, cursor.position, cursor.recent))
+                        cursor = parent
+                        break
+                    local_rank -= parent.count
+                else:
+                    raise AssertionError("invalid path multiplicity")
+            selected.append((source, tuple(reversed(entries))))
         board = self._rules.initial_state(self._game_fen).board_copy()
         root_key = position_key(board)
         root = PathNode([], 1, root_key, position_bit(root_key))
         prefixes = {}
         nodes = {}
-        for moves in selected:
-            board = self._rules.initial_state(self._game_fen).board_copy()
+        for source, entries in selected:
             path = root
-            for move in moves:
-                board.push(chess.Move.from_uci(move))
+            for move, key, source_recent in entries:
                 prefix = (path, move)
                 child = prefixes.get(prefix)
                 if child is None:
-                    key = position_key(board)
-                    recent = position_bit(key) | (path.recent if board.halfmove_clock else 0)
+                    bit = position_bit(key)
+                    # Irreversible moves reset the original Bloom mask to bit.
+                    # A singleton caused only by collisions gives the same mask.
+                    recent = bit | (path.recent if source_recent != bit else 0)
                     child = PathNode([(path, move)], 1, key, recent)
                     prefixes[prefix] = child
                 path = child
-            node = StateNode(board.copy(stack=False), path)
+            # Prefix positions already exist in the history DAG. Replaying
+            # every selected path through python-chess wastes O(cap * ply)
+            # board pushes; the endpoint's full counters are already retained.
+            node = StateNode(source.board.copy(stack=False), path)
             key = node.key()
             existing = nodes.get(key)
             if existing is None:
@@ -414,6 +427,16 @@ class BeliefTracker:
         self._pending = None
         self._complete = False
         self.last_update = None
+
+    def sample_current(self):
+        """Sample the committed support, including after explicit pruning."""
+        if self._previous is None or self._pending is not None:
+            raise ValueError("sample_current requires a completed observation")
+        belief, _ = self._make_belief(self._nodes, self._previous.ply,
+                                    self._complete, self._rng, None, None, 0)
+        if belief is None:
+            raise ValueError("no retained history")
+        return belief
 
     def _make_belief(self, nodes, ply, complete, rng, deadline, cap, accounted):
         count = sum(n.paths.count for n in nodes)
