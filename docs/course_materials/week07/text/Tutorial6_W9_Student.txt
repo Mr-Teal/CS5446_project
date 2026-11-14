@@ -1,0 +1,110 @@
+                               National University of Singapore
+                                    School of Computing
+                                        Semester 1, AY2026-27
+
+CS4246/CS5446                              Reinforcement Learning and Sequential Decision Making
+
+Issued: 7 Oct 2026
+
+             Tutorial 6 Week 9: Guided Sequential Decision Making:
+                    Decision-Time and Demo-Based Planning
+
+
+Guidelines
+You may discuss the content of the questions with your classmates. But everyone should work on
+and be ready to present ALL the solutions.
+
+Problem 1: Persy the Mars Rover uses Rollouts
+Persy the Mars Rover is exploring Mars and reaches a junction (state s0 ). Persy must decide to go
+Left (aL ) or Right (aR ).
+    Because the full terrain map is unknown and too large to plan over, Persy uses a rollout algo-
+rithm to make a one-step decision:
+
+    • For each action a ∈ {aL , aR }, Persy simulates N = 3 random trajectories of horizon H = 2
+      steps using a simple random policy π.
+
+    • Persy records the cumulative discounted return G from each simulated trajectory.
+
+    • It then estimates the action value by averaging returns:
+                                                         N
+                                                        1 X (i)
+                                           Q̂(s0 , a) =       G .
+                                                        N i=1
+
+
+    • Persy selects the action with the highest Q̂.
+
+   Suppose the sampled returns are:
+
+                                 aL :   G(1) = 4, G(2) = 6, G(3) = 5
+                                aR :    G(1) = 3, G(2) = 8, G(3) = 2
+
+  (a) Compute Q̂(s0 , aL ) and Q̂(s0 , aR ).
+Tutorial 6 Week 9: Guided Sequential Decision Making:Decision-Time and Demo-Based Planning2
+
+
+  (b) Which action will Persy choose? Why?
+
+  (c) Rollouts only plan one step ahead and do not reuse past simulations. Briefly suggest one
+      way to improve on this method — this will lead into the Monte Carlo Tree Search (MCTS)
+      method.
+
+Problem 2: Persy the Mars Rover uses MCTS
+Mission context. Persy the Mars Rover is exploring a Martian delta to search for hydrated minerals.
+The state is described by M variables (e.g., soil type, slope, dust load, battery), each with n possible
+values. At each step, Persy can either:
+
+    • Move to an adjacent grid cell, or
+
+    • Scan the current location
+
+Each action leads to two possible stochastic outcomes.
+
+a) What is the size of the state space of this MDP? Can this MDP be solved efficiently with value
+   iteration as M grows?
+
+b) A search tree of depth D (i.e., D actions from root to leaf) is built from an initial state. Each
+   action has two possible outcomes. What is the size of this tree (number of nodes and edges) in
+   big-O notation? Why is online search more feasible if D is a small fixed constant?
+
+c) Instead of expanding the full tree, Persy uses Monte Carlo Tree Search (MCTS) up to depth
+   D for T trials. What is the typical size of the grown search tree and the number of simulation
+   steps?
+
+d) Describe the four phases of MCTS (selection, expansion, simulation, backpropagation) when
+   used on an MDP. Which phase applies an exploration–exploitation rule, and which phase reuses
+   past statistics?
+
+e) At one state, Persy can Move or Scan. After 16 MCTS trials:
+
+       • Move: tried 8 times, reward 1 in 4 trials (4/8)
+       • Scan: tried 8 times, reward 1 in all 8 trials (8/8)
+
+   Using the UCT formula with c = 1 and log base 2, compute the selection scores for each action.
+   Which action will be chosen?
+
+f) Suppose Scan is selected and one new rollout from its child state returns G = 0.6. Before the
+   new trial, N (s, Scan) = 8 and Q̂(s, Scan) = 1.0. Show the updated visit count and average
+   return estimate after backpropagation.
+Tutorial 6 Week 9: Guided Sequential Decision Making:Decision-Time and Demo-Based Planning3
+
+
+Problem 3: Imitation Learning with Persy the Mars Rover
+Persy the Mars Rover is learning to navigate safely on the Martian surface. We are given a set of
+expert demonstrations from human teleoperators showing how to choose actions (move, turn,
+sample, wait) in various states of the terrain (slope, rock density, battery level, etc.).
+    We want to train Persy using imitation learning (behavioral cloning) so it can act autonomously.
+    We define a feature vector f (s) for each state s and represent the policy as a softmax distribu-
+tion:
+
+                                     π(a | s) ∝ exp(θa · f (s))
+
+  (a) Why might we want to use this feature-based softmax approach over a tabular policy estima-
+      tion approach that directly estimates a separate probability Pr(a | s) for every state–action
+      pair?
+
+  (b) Behavioral cloning often suffers from compounding errors when deployed. Explain why this
+      happens, and how the DAgger (Dataset Aggregation) algorithm helps address it.
+
+  (c) Do you think human demonstration is a good approach in this case? Why or why not?
+

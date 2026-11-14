@@ -1,0 +1,113 @@
+                               National University of Singapore
+                                    School of Computing
+                                         Semester 1, AY2026-27
+
+CS4246/CS5446                              Reinforcement Learning and Sequential Decision Making
+
+Issued: 26 Aug 2026
+
+         Tutorial 4 Week 6: Function Approximation and Policy Search
+
+Guidelines
+You may discuss the content of the questions with your classmates. But everyone should work on
+and be ready to present ALL the solutions.
+
+Problem 1: Review
+Briefly explain the following concepts.
+(a) Linear regression and loss-function optimization.
+(b) Gradient descent.
+(c) Deep learning in neural networks.
+
+Problem 2: Approximating TD Learning
+In a navigation task, the agent’s state is its position s = (x, y), and the goal is at (xg , yg ). When the
+set of possible positions is large or continuous, storing a separate utility for every state is impracti-
+cal. We therefore approximate state utility using the coordinates and the Euclidean distance to the
+goal as features. After observing a transition (s, r, s′ ), the agent applies one-step TD learning with
+learning rate α and discount factor γ.
+    Write out the parameter update equations for temporal-difference (TD) learning with
+                                                         q
+                      Ûθ (x, y) = θ0 + θ1 x + θ2 y + θ3 (x − xg )2 + (y − yg )2 .
+
+Problem 3: Approximating Q-Learning
+Q-learning is a model-free, off-policy TD control method. It does not need a model of the envi-
+ronment’s transition dynamics. Instead, each observed transition (s, a, r, s′ ) is used to update the
+sampled state-action pair toward a target containing the immediate reward and the best estimated
+action value at the next state. This problem first applies the tabular update, then replaces the table
+with a simple function approximator.
+Tutorial 4 Week 6: Function Approximation and Policy Search                                        2
+
+
+   Consider a system with a single state variable x ∈ {0, 1} and actions a1 and a2 . An agent
+observes the state and reward. Assume γ = 0.9.
+(a) Perform two steps of tabular Q-learning. Use α = 0.5 and initialize all entries to zero.
+Show the table after each step.
+    Use                                 h                               i
+                                                       ′ ′
+                   Q(s, a) ← Q(s, a) + α r + γ max
+                                                 ′
+                                                   Q(s  , a ) − Q(s, a)   .
+                                                      a
+
+   (i) First transition: x = 0, reward r = 10, action a1 , next state x′ = 1.
+   (ii) Second transition: x = 1, reward r = −5, action a2 , next state x′ = 0.
+(b) Now use Q(x, a1 ) = β1 x and Q(x, a2 ) = β2 x. Let α = 0.5 and initialize β1 = β2 = 0. Show
+the parameters after each step.
+    Use
+                              ∂Q(x, a)
+              βi ← βi + αδ             ,     δ = r + γ max  Q(x′ , a′ ) − Q(x, a).
+                                ∂βi                      a′
+
+
+   (i) First transition: x = 1, reward r = 10, action a1 , next state x′ = 1.
+   (ii) Second transition: x = 1, reward r = −5, action a2 , next state x′ = 0.
+(c) After enough data is observed, which method should perform better here? Why? How
+can the poorer representation be improved?
+
+Problem 4: Persy the Mars Rover Learns by REINFORCE
+Persy is a Mars rover that must learn to navigate from camera observations without being given
+the correct action for each image. At each time step, it observes a camera state s and samples a
+drive command (forward, left, right, or stop). The environment supplies rewards, and the return
+from an episode indicates how well the resulting trajectory performed. Persy’s stochastic softmax
+policy πθ (a | s), parameterised by network weights θ, gives the probability of choosing action a in
+state s. It is trained using REINFORCE, a Monte Carlo policy-gradient algorithm that learns from
+completed episodes.
+    Let rt be the reward received after taking action at in state st . For an episode with T actions,
+define the discounted return by
+                                               T −1
+                                               X
+                                          Gt =      γ k−t rk ,
+                                                k=t
+
+where γ is the discount factor.
+(a) Why does REINFORCE use ∇θ log πθ (at | st )Gt ? Explain each part.
+(b) Baseline and state value. A baseline b(st ) is a state-dependent reference value that does not
+depend on the action sampled at that state. REINFORCE can use Gt −b(st ) in place of Gt to weight
+the policy gradient. The state-value function Vπ (s) is the expected discounted return starting from
+state s and following the current policy π = πθ . Thus Gt is the return from one sampled episode,
+whereas Vπ (st ) is an average over possible future trajectories.
+    How does subtracting a baseline help, and why is b(st ) = Vπ (st ) a good choice?
+Tutorial 4 Week 6: Function Approximation and Policy Search                                3
+
+
+(c) An episode terminates after three actions, with rewards r0 = 1, r1 = 0, r2 = 2, and
+γ = 0.9. Compute G0 and G1 .
+
+Problem 5: PPO and the Spacecraft Attitude Controller
+A spacecraft controller is trained with PPO. Let
+
+                                                      πθ (at | st )
+                                          rt (θ) =                   .
+                                                     πold (at | st )
+
+(a) Policy ratio meaning. What does the probability ratio rt (θ) mean?
+(b) Advantage sign. What does the sign of the estimated advantage Ât mean?
+(c) Clipping calculation. Let ϵ = 0.2 and rt = 1.3. Compute clip(rt , 1 − ϵ, 1 + ϵ).
+(d) Objective calculation. Now let Ât = 2.0. Compute the unclipped and clipped terms
+
+                           u = rt Ât ,       c = clip(rt , 1 − ϵ, 1 + ϵ)Ât .
+
+Then compute the per-sample PPO objective Lclip   t   = min(u, c). The minimum is taken after
+multiplying by the advantage, whether Ât is positive or negative.
+(e) Conceptual benefit. How does PPO clipping compare with the KL-divergence constraint in
+TRPO?
+

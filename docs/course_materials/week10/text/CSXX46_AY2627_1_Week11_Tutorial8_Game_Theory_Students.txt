@@ -1,0 +1,117 @@
+                              National University of Singapore
+                                   School of Computing
+                                       Semester 1, AY2026-27
+
+CS4246/CS5446                            Reinforcement Learning and Sequential Decision Making
+
+Issued: 21 Oct 2026
+
+                            Tutorial 8 Week 11: Game Theory
+
+
+Guidelines
+You may discuss the content of the questions with your classmates. But everyone should work on
+and be ready to present ALL the solutions.
+
+Problem 1: Playing Games
+Which of the following is a game?
+
+1. The Organization of the Petroleum Exporting Countries (OPEC) members choose their annual
+   output.
+
+2. Apple purchasing Organic Light-Emitting Diode (OLED) displays from Samsung.
+
+3. Two manufacturers, one of the nuts and one of the bolts, decide whether to use metric or Amer-
+   ican standards. Customers who purchase nuts and bolts for use together prefer products that
+   can be fitted together.
+
+4. A board of directors setting up a stock option plan for the chief executive officer.
+
+5. Singapore Airlines (SIA) hiring cabin crew.
+
+6. The government deciding whether to build a nuclear plant given its estimate of demand for
+   electricity in ten years.
+
+Problem 2: Nash Equilibria and Pareto Optima
+Instructions. For each game below:
+
+   1. Identify all pure-strategy Nash equilibria (NE).
+
+   2. Identify all Pareto-optimal outcomes, where no other outcome makes one player strictly
+      better off without making the other worse off.
+Tutorial 8 Week 11: Game Theory                                                         2
+
+
+  3. Where indicated, find the mixed-strategy NE.
+
+
+Part A: Classic Games
+
+a) Prisoner’s Dilemma (Row = Bo, Column = Al). Actions: Testify (T) or Refuse (R).
+
+                                             Al: T    Al: R
+                                   Bo: T    (−5, −5) (0, −10)
+                                   Bo: R    (−10, 0) (−1, −1)
+
+b) Astro vs. Bolt (Coordination) (Row = Astro, Column = Bolt). Actions: Blu-ray (B) or DVD
+   (D).
+
+                                              Bolt: B  Bolt: D
+                                 Astro: B      (9, 9) (−1, −4)
+                                 Astro: D    (−1, −3)   (5, 5)
+
+c) Matching Pennies (Zero-Sum) (Row wants to match, Column wants to mismatch).
+
+                                           Col: H Col: T
+                                    Row: H (1, −1) (−1, 1)
+                                    Row: T (−1, 1) (1, −1)
+
+   Also: find the mixed-strategy NE.
+
+
+Part B: Extended Practice
+
+d) Stag Hunt (coordination with risk). Actions: Stag (S) or Hare (H).
+
+                                              Col: S Col: H
+                                    Row: S    (4, 4) (0, 3)
+                                    Row: H    (3, 0) (2, 2)
+
+e) Chicken (Hawk–Dove). Actions: Straight (St) or Swerve (Sw).
+
+                                          Col: St         Col: Sw
+                                Row: St (−10, −10)         (3, 1)
+                                Row: Sw    (1, 3)          (0, 0)
+Tutorial 8 Week 11: Game Theory                                                                     3
+
+
+Problem 3: Battle of the Sexes
+Husband and wife would like to go on a date-night out and there are only two venues for entertain-
+ment that night: an F-1 Race and a K-pop Concert. The wife wants to see the F-1 while the husband
+wants to see the Concert. But both of them prefer being together than being alone. Out of love
+for each other, they do not explicitly tell each other their own preferences (Bad idea!). The payoff
+matrix is shown below where the husband is the Row player and the wife is the Column player.
+Payoff matrix:
+
+                                               F −1     Concert
+                                   F −1         1, 2      0, 0
+                                   Concert      0, 0      2, 1
+
+a) Argue that both ⟨F − 1, F − 1⟩ and ⟨Concert, Concert⟩ are Nash equilibria.
+
+b) Find a mixed-strategy Nash equilibrium.
+
+c) Compute the expected utility at all three equilibria for the husband and for the wife.
+
+d) Compute the utility if each does their preferred activity (mismatch), and the expected utilities
+   if both randomize uniformly.
+
+
+
+
+Problem 4: Three Finger Morra
+A three-finger Morra game is a game in which two players E and O simultaneously show one, two,
+or three fingers at each round. Let the total number of fingers be f ∈ {2, 3, 4, 5, 6}: if f is odd, O
+collect $f dollars from E, while if f is even, E collect $f dollars from O. Show the payoff matrix
+and solve this game of three-finger Morra.
+

@@ -1,0 +1,317 @@
+  Human Factors
+
+  CS4246/5446
+  Reinforcement Learning and Sequential Decision Making
+  Version 4.0
+
+
+
+© Copyright National University of Singapore. All Rights Reserved.
+Topics
+• Human Cognition Models
+• Human AI Value Alignment
+
+
+
+
+Human Factors                2
+Types of Decision Theory
+• Normative decision theory
+    • Describes how ideal, rational agents should behave
+         • Explains how a rational agent should make decisions
+         • Proposes models of preference and rational decision making
+         • Preference ordering, maximum expected utility
+• Descriptive decision theory
+    • Describes how actual agents (humans) really behave
+         • Explains how we make decisions
+         • Identify potential pitfalls and biases
+         • Prospect Theory, Naturalistic decision making
+• Prescriptive decision theory
+    • Prescribes guidelines for agents to behave rationally
+         • Explains how we should make rational decisions
+         • Provides guidelines and tools to support decision making
+         • Decision analysis and modeling
+Human Factors                                                           3
+Values vs Prestige
+• Option 1: Eco-Conscious Startup
+    • Average pay, impact-driven opportunity
+    • Direct contribution to sustainable technology
+    • Financially risky; startup's longevity uncertain
+• Option 2: Controversial Corporation
+    • High salary and excellent career advancement
+    • Resume-boosting with global opportunities
+    • Company has known ethical controversies, conflicting with personal values
+• What will you do?
+
+Human Factors                                                                4
+Convenience vs Integrity
+• Option 1: Use AI Tools to Do Your Assignments Faster
+    • May save time and improve presentation.
+    • Boosts short-term grades and efficiency
+    • Risks losing real learning and raises ethical concerns
+• Option 2: Do All Work Independently
+    • Slower process, requires discipline and effort
+    • Builds genuine understanding and skill
+    • No shortcuts — but satisfaction in authentic achievement
+• What will you do?
+Human Factors                                                    5
+Rational Decision Making: Myth?
+• Are we rational?
+    • Why is rational decision making difficult?
+    • Will rational decisions and approaches always lead to good outcomes?
+    • Are we usually rational?
+         • Humans are “predictively irrational!”
+         • Why?
+
+
+
+
+Human Factors                                                           6
+Human Cognitive Models
+How do humans make decisions?
+
+
+
+
+Human Factors                   7
+    Understanding Human Cognition
+    • Dual Process Theory
+           • Human cognition operates through two distinct systems of thinking
+           • These systems influence how we perceive, process information, and make decisions
+           • Recognizing these systems helps us understand cognitive biases and improve decision-making
+    • System 1 Thinking: (Heuristic Processes)                                                                             Everyday decision making
+           • Fast, automatic, effortless, implicit, and emotional
+           • Provides speedy, efficient, and often quite accurate responses
+                                                                                                                               Complex problem-
+    • System 2 Thinking: (Analytic Processes)                                                                             solving and critical thinking
+           • Slower, conscious, effortful, explicit, and logical
+           • Requires deliberate reasoning, time, and attention
+
+Stanovich, K. E., & West, R. F. (2000). Individual differences in reasoning: Implications for the rationality debate. Behavioral and Brain Sciences, 23(5), 645-665.
+Kahneman, D. (2011). Thinking, Fast and Slow. New York: Farrar, Straus and Giroux.
+    Human Factors                                                                                                                                            14
+Judgmental Heuristics
+                                                                    Types of judgment:
+                                                                          Prediction
+• What are heuristics?                                                    Evaluation
+    • Simplifying strategies or rules of thumb                            Determination
+                                                                          Likelihood
+    • Simple ways of dealing with complex world
+    • Usually provide acceptable results
+• Common judgmental heuristics
+    • Availability
+    • Representativeness
+    • Anchoring and adjustments
+• Pitfalls:
+    • Adopt heuristics without being aware of them
+    • Misapplication to inappropriate situations leading to wrong/bad solutions
+Human Factors                                                                             15
+The Availability Heuristic
+• Assesses the likelihood or frequency of an event based on how easily
+  examples come to mind (readily “available” in memory)
+• Examples:
+    • Do you fear that crime is increasing after hearing about a few local burglaries?
+    • The media just reported a few severe airplane turbulences, do you think flying is more
+      dangerous than driving?
+    • Would you buy more tickets if you hear that your neighbor has just won the lottery?
+    • In an arbitrary English word, is it more likely to find the letter R in the first position or
+      in the third position?
+• Questions:
+    • Why is it a good heuristic? Why is it fallible?
+
+Human Factors                                                                                     16
+The Representativeness Heuristic
+• Assesses the likelihood of an event or situation based on how
+  closely it resembles the existing stereotypes or prototypes.
+• Examples:
+    • My friend Mo is outgoing, outspoken, adventurous, and hopes to become
+      an Air-Force pilot. Do you think Mo is a man or a woman?
+    • What is the likely diagnosis of a patient with fever, running nose, cough
+      and sore throat?
+• Questions:
+    • Why is it a good heuristic?
+    • Why is it fallible?
+Human Factors                                                                17
+The Anchoring and Adjustment Heuristic
+• Relies on an initial piece of information (the "anchor") when
+  making decisions, and adjust from that starting point to reach
+  their final conclusion.
+• Other Examples:
+    • If you had a good meal at a new restaurant, would you go back again?
+    • “Love at first sight,”
+• Questions:
+    • Why is it a good heuristic?
+    • Why is it fallible?
+Human Factors                                                                22
+Cognitive Biases and Psychological Traps
+• Our minds sometimes play tricks on us.
+• These traps are hardwired into our thinking process
+    • We fail to recognize them, even when falling right into them
+• By being aware of them, we can learn to understand and
+  compensate for them.
+
+
+
+
+Human Factors                                                        25
+Notes: List of Cognitive Biases
+• Biases Emanating from the Availability           • Biases Emanating from Anchoring and
+  Heuristic                                          Availability
+    • 1. Ease of recall                               • 9. Insufficient anchor adjustment
+    • 2. Retrievability                               • 10. Conjunctive and disjunctive events bias
+    • 3. Presumed associations                        • 11. Overconfidence
+• Biases Emanating from the                        • Two More General Biases
+  Representativeness Heuristic                        • 12. The confirmation trap
+    • 4. Insensitivity to base rates                  • 13. Hindsight and the curse of knowledge
+    • 5. Insensitivity to sample size
+    • 6. Misconceptions of chance
+    • 7. Insensitivity to regression to the mean
+    • 8. The conjunction fallacy
+
+
+
+Human Factors                                                                                      26
+Prospect Theory
+                                                    1.      Reference- or framing-dependent utility functions
+                                                          • Choices influenced by a reference point
+           U(x)                   Risk                    • Changes, not levels, in measures of “goodness” wrt reference
+                                 averse             2.      Gains are different from losses
+                                                          • Different reactions to potential gains and losses
+                                                          • Loss aversion
+                                                    3.      Risk preferences
+                                        x
+                                                          • Risk aversion over gains
+                                                          • Risk seeking over losses
+                          Risk
+                        seeking                     4.      Diminishing sensitivity
+                                                          • Change impact diminishes wrt distance from reference point.
+                                                    5.      Probability weighting
+       Source: RN Figure 16.2b                            • Overweighting lower probability
+                                                          • Underweighting medium to high probability
+      Kahneman, D. and A. Tversky, Prospect Theory: An Analysis of Decision under Risk. Econometrica, 1979. 47(2): p. 263-291.
+Human Factors                                                                                                                    27
+Bounded Rationality
+• People try to make rational decisions but face limits
+• Constraints:
+    • Incomplete information
+    • Time and cost pressures
+    • Limited memory and cognitive capacity
+• Humans often satisfice rather than optimize
+    • Choose acceptable, not perfect, solutions
+    • Stop searching once minimum criteria are met
+                    1.Simon, H. A. (1957). Models of man; social and rational. Oxford, England, Wiley.
+                2.Kahneman, D. (2011). Thinking, fast and slow. New York, NY, US, Farrar, Straus and Giroux.
+Human Factors                                                                                                  28
+Human-Guided AI Decision Making
+• Human Judgment & Expertise
+    • Combine evidence-based reasoning with human values, context, and expertise.
+    • Recognize cognitive biases and bounded rationality.
+• Applications
+    • Prediction, diagnosis, intervention, management, policy, and communication.
+    • Human feedback guides AI learning (e.g., RLHF) and reasoning (e.g., process supervision).
+• Values & Governance
+    • Balance individual, societal, and ethical priorities.
+    • Ensure fairness, safety, accountability, and human oversight.
+• Improving Decisions
+    • Support informed human judgment and mitigate cognitive biases.
+    • Strengthen human–AI collaboration through continuous feedback.
+
+Human Factors                                                                                     29
+Human-AI Value Alignment
+Human Factors in AI Decision Making
+
+
+
+
+Human Factors                         30
+Recall: Human Alignment in Agentic AI
+• Learning and Alignment
+    • Human-guided learning: SFT, RLHF, DPO
+    • AI-guided feedback and evaluation: RLAIF, Self-Rewarding LMs
+    • Policy optimization: PPO, GRPO
+• Reasoning and Planning
+    • Decision-time reasoning: CoT, self-consistency, PoT
+    • Process alignment: Step-level supervision and feedback
+    • Planning/action alignment: Constraints, verification, authorization, human oversight
+• Key question: How can human judgment and preferences shape these
+  processes reliably?
+Human Factors                                                                         31
+                How to mitigate cognitive and process biases?
+
+
+
+
+Human Factors                                                   32
+Human Factors   33
+What You Have       AI Sequential Decision Making Landscape
+Learned in CSxx46   Advanced Classical Planning – Logic-Based Reasoning
+
+                    Foundations of Rational Decision Making – Utility Theory
+
+                    Markov Decision Process and Intro to Reinforcement Learning
+
+                    Model Free-Reinforcement Learning and Reward Shaping
+
+                    Decision-Time and Demonstration-Based Learning
+
+                    Model-Based Reinforcement Learning
+
+                    Game Theory – Introduction to Strategic Decision Making
+
+                    Agentic AI – Large Foundational Model-Based Decision Making
+
+                    Human-Factors – Human AI Alignment
+
+Human Factors                                                                  35
+Toward Human Aware, Cooperative AI
+• AI in Society
+    • Responsible AI integrates with society through social understanding
+      and cooperative intelligence
+    • Responsible AI interacts with each other and with humans through
+      preference optimization and action co-ordination
+    • Responsible AI develops through social interactions to define
+      constraints, learn skills and formulate strategies
+
+
+                                                         Ref: Dafoe et al 2021
+
+Human Factors                                                                    36
+Homework
+• Readings:
+    • RN: 16.3.4 (Human judgment and irrationality)
+    • Optional: RN: 16.7.2 (The off-switch game), 18.2.5 (the assistance game)
+    • RN 22.6 (Apprenticeship Learning)
+
+• References on Human Cognition and Judgment:
+          (Journal articles publicly available online or through NUS Library e-Resources)
+    •   Tversky, A. and D. Kahneman, Judgment under Uncertainty: Heuristics and Biases. Science, 1974. 185(4157): p. 1124-1131
+    •   Kahneman, D. and A. Tversky, Prospect Theory: An Analysis of Decision under Risk. Econometrica, 1979. 47(2): p. 263-291.
+    •   Tversky, A., & Kahneman, D. (1981). The framing of decisions and the psychology of choice. Science, 211(4481), 453–458.
+    •   Hammond, J. S., et al. (1999). Smart choices: A practical guide to making better decisions. Kindle ed, Harvard Business
+        Review Press.
+    •   Kahneman, D. (2011). Thinking, fast and slow. New York, NY, US, Farrar, Straus and Giroux.
+    •   Bazerman, M.H. and D.A. Moore, Judgment in Managerial Decision Making, 8th Edition. 2013: John Wiley & Sons.
+
+Human Factors                                                                                                           39
+References
+• References on Human Values in AI and Value Alignment
+    • Buçinca, Z., M. B. Malaya and K. Z. Gajos (2021). To trust or to think: Cognitive forcing functions can reduce overreliance on ai
+      in ai-assisted decision-making. Proc. ACM Hum.-Comput. Interact. 5(CSCW1): Article 188. 10.1145/3449287
+      https://doi.org/10.1145/3449287
+    • Kim, S. S. Y., et al. (2025). Fostering Appropriate Reliance on Large Language Models: The Role of Explanations, Sources, and
+      Inconsistencies. CHI 2025. https://dl.acm.org/doi/10.1145/3706598.3714020
+    • Yu, K.-H., E. Healey, T.-Y. Leong, I. S. Kohane and A. K. Manrai (2024). Medical artificial intelligence and human values. New
+      England Journal of Medicine 390(20): 1895-1904. doi:10.1056/NEJMra2214183 NUS access: https://www-nejm-
+      org.libproxy1.nus.edu.sg/doi/full/10.1056/NEJMra2214183
+    • Glickman, M., & Sharot, T. (2025). How human–AI feedback loops alter human perceptual, emotional and social judgements.
+      Nature Human Behaviour, 9, 345–359. https://www.nature.com/articles/s41562-024-02077-2
+    • Russell, S. (2021). Human compatible artificial intelligence. Human-like machine intelligence. S. Muggleton and N. Chater,
+      Oxford University Press: 3-23
+    • Dafoe, A., et al., (2021) Cooperative AI: machines must learn to find common ground. Nature:593(7857): p. 33-36.
+      https://www.nature.com/articles/d41586-021-01170-0
+
+
+
+
+Human Factors                                                                                                                          40
+

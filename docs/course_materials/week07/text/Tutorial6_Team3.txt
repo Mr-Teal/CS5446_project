@@ -1,0 +1,190 @@
+CS5446_Tutorial6_Team 3
+
+Group Member
+
+        Name             Student ID
+
+  WANG ZHUO             A0355343E
+
+  LIU ZHIFEI            A0355017J
+
+  LIU MINGDA            A0353240R
+
+  HU CHENGCHENG         A0353671B
+
+
+Problem 1: Persy the Mars Rover uses Rollouts
+
+(a)
+The action values are estimated by averaging the three sampled returns:
+
+                                                  4+6+5
+                                  Q(s0 , aL ) =         =5
+                                                    3
+
+and
+
+                                          3+8+2   13
+                          Q(s0 , aR ) =         =    ≈ 4.3333.
+                                            3      3
+
+(b)
+Persy will choose Left, because
+
+                                                                13
+                             Q(s0 , aL ) = 5 > Q(s0 , aR ) =       .
+                                                                 3
+Left has the higher estimated expected return.
+
+
+(c)
+Build and incrementally expand a search tree that stores visit counts and estimated action
+values. Reuse these statistics to guide later simulations, balancing exploration of less-visited
+actions with exploitation of promising actions at multiple decision depths. This leads to Monte
+Carlo Tree Search (MCTS).
+Problem 2: Persy the Mars Rover uses MCTS
+
+(a)
+Assuming all combinations of variable values are valid, the state space contains
+
+                                            ∣S∣ = nM
+
+states.
+
+Tabular value iteration must update every state. Since each action has two possible successor
+outcomes, one Bellman sweep costs O(AnM ), and the value table requires O(nM ) memory.
+
+For fixed n > 1, these costs grow exponentially with M .
+
+Thus, ordinary tabular value iteration is generally not efficient as M grows.
+
+
+(b)
+Let A be the number of available actions. Each action has two possible outcomes, giving an
+effective branching factor of b = 2A per decision step. In a state-node representation, the full
+tree has
+
+                                                D
+                                         V = ∑(2A)d
+                                               d=0
+
+nodes and E = V − 1 edges. Hence both counts are
+
+                                           O((2A)D )
+
+If Move and Scan are the two actions, A = 2, so both counts are O(4D ). Explicit action/chance
+nodes change the counts but not their asymptotic order.
+
+When D is a small fixed constant and A is bounded, online search examines only a limited
+reachable subtree from the current state, rather than the entire nM -state MDP. This makes it
+more feasible than global tabular planning.
+
+
+(c)
+Each trial performs at most D simulated transitions, so T trials require
+
+                                              O(T D)
+
+simulation steps in total.
+Under the usual rule of adding at most one new state node per trial, the stored search tree has
+at most T + 1 state nodes, so its node and edge counts are O(T ).
+
+If an implementation inserts every new node encountered along each sampled path, the tree-
+size upper bound is instead O(T D). Therefore, tree storage depends on the expansion rule,
+while the total number of simulated transitions s bounded by T D .
+
+
+(d)
+  1. Selection: Traverse the existing tree from the root using a tree policy such as UCT. Choose
+      actions using stored statistics and sample stochastic outcomes from the MDP transition
+      model.
+
+  2. Expansion: Add a new child for an unexplored action or outcome branch
+
+  3. Simulation: Follow a default rollout policy from the new node until termination or the depth
+     limit, obtaining a return sample
+
+  4. Backpropagation: Update visit counts and average return estimates along the selected path,
+     using the appropriate return from each depth
+
+The selection phase applies the exploration-exploitation rule and reuses past statistics to guide
+search. Backpropagation updates those accumulated statistics for later trials.
+
+
+(e)
+Using the convention
+
+                                                           log2 N (s)
+                           UCT(s, a) = Q(s, a) + c
+                                                            N (s, a)
+
+with c = 1, N (s) = 16, N (s, a) = 8,the scores are
+
+                                      4       log2 16
+                U CT (s, M ove) =       +             = 0.5 +      0.5 ≈ 1.2071
+                                      8          8
+                                      8        log2 16
+                  U CT (s, Scan) =      +              =1+        0.5 ≈ 1.7071
+                                      8           8
+Therefore, Scan will be selected. Both actions have the same exploration bonus, but Scan has the
+higher estimated mean reward.
+
+
+(f)
+Treating G = 0.6 as the return sample backed up to (s, Scan), the updated visit count is
+                                      Nnew (s, Scan) = 9
+
+The updated average return is
+
+                                              8 + 0.6   43
+                           Qnew (s, Scan) =           =    ≈ 0.9556
+                                                 9      45
+Equivalently, the incremental update is 1.0 + (0.6 − 1.0)/9. The parent state's visit count also
+increases from 16 to 17.
+
+
+Problem 3: Imitation Learning with Persy the Mars Rover
+
+(a)
+A feature-based softmax policy is preferable when the state space is large or continuous. With d
+features, it uses O(d∣A∣) weights, whereas a tabular policy requires O(∣S∣∣A∣) storage. Shared
+weights also allow demonstrations in one state to inform decisions in other states with similar
+features, improving sample efficiency and generalization.
+
+The normalized policy is
+
+                                               exp(θa⊤ f (s))
+                                πθ (a ∣ s) =                     .
+                                             ∑b∈A exp(θb⊤ f (s))
+
+Softmax produces a valid action distribution and can be trained by minimizing the negative log-
+likelihood of expert actions. Its effectiveness depends on whether the features and model class
+adequately represent the expert's behavior.
+
+
+(b)
+Behavioral cloning is trained on expert-visited states, but deployment produces states visited by
+the learned policy. An early mistake can move Persy into unfamiliar terrain, increasing
+subsequent errors.
+
+DAgger repeatedly executes the current policy, queries the expert for actions at the visited
+states, aggregates these labeled examples with earlier data, and retrains. Training therefore
+covers states the learner actually encounters, including states reached after mistakes, reducing
+distribution shift. Expert labels, rather than the learner's own actions, provide the targets.
+
+
+(c)
+No. Human demonstrations are a useful starting point, because they provide expert guidance for
+safe navigation and reduce the need for potentially dangerous trial and error. However, I would
+not rely on behavioral cloning from Earth-based demonstrations alone. Differences in terrain,
+gravity, and rover–soil interactions may cause a domain shift between training on Earth and
+deployment on Mars. Persy may therefore encounter out-of-distribution states for which it has
+not learned reliable actions. Besides, the same action may have different consequences in the
+two environments, so good performance on the training data does not guarantee safe
+navigation on Mars.
+
+Therefore, human demonstrations should be supplemented with training and evaluation in
+environments that closely approximate Martian conditions, as well as additional expert feedback
+on unfamiliar states. Overall, imitation learning is a reasonable initial approach, but its usefulness
+depends on how representative the demonstrations are of the deployment environment.
+

@@ -1,0 +1,702 @@
+             CS4246/5446 Reinforcement Learning and Sequential Decision Making
+
+                                     Sem 1, AY2026-27
+
+                             Mid-Term Examination (Main Exam)
+                                     Solution Sketches
+
+
+
+
+Total Exam Points: 50.00
+
+
+
+
+                                                                                 1
+Question #: 1
+
+[1 mark]
+A robot’s state records only its position. At the same position, different remaining battery levels
+can lead to different action outcomes. Which change best addresses this missing state
+information?
+
+
+   A. Reduce the discount factor.
+  ✓B. Include the remaining battery level in the state.
+    C. Store more value estimates for each position, with no new state variables.
+    D. Always choose the action with the highest estimated value.
+
+Item Weight: 1.0
+
+
+
+
+                                                                                                      2
+Question #: 2
+
+[1 mark]
+True or false: Using a linear value-function approximator guarantees stable off-policy temporal
+difference (TD) learning.
+
+
+   A. True
+  ✓B. False
+
+Item Weight: 1.0
+
+
+
+
+                                                                                                  3
+Question #: 3
+
+[1 mark]
+A value-function approximator is updated from one observed sample. Its estimate changes at
+another state that has never been visited. What best explains this?
+
+
+   A. The update has implicitly sampled a transition from the unvisited state.
+   B. The approximator must contain an explicit transition model.
+   C. The value at the unvisited state has now become exact.
+  ✓D. Shared parameters generalise across states; this can help or harm accuracy.
+
+Item Weight: 1.0
+
+
+
+
+                                                                                             4
+Question #: 4
+
+[1 mark]
+In a stochastic Markov decision process (MDP) with finite state and action spaces, Q-learning
+visits every state–action pair infinitely often. It uses a constant positive learning rate. Which of
+the following claims is justified?
+
+
+   A. Infinite exploration alone guarantees convergence to the exact optimal action values.
+   B. Q-learning must diverge because the learning rate is constant.
+  ✓C. Estimates may keep fluctuating; the usual convergence condition requiring a decreasing learning
+      rate is not met.
+   D. A constant learning rate makes Q-learning an on-policy method.
+
+Item Weight: 1.0
+
+
+
+
+                                                                                                       5
+Question #: 5
+
+[1 mark]
+True or false: The discount factor γ controls how quickly a temporal difference (TD) learner
+incorporates new observations into its estimates.
+
+
+   A. True
+  ✓B. False
+
+Item Weight: 1.0
+
+
+
+
+                                                                                               6
+Question #: 6
+
+[1 mark]
+True or false: A risk-averse expected-utility maximiser can rationally prefer a lottery to a
+particular guaranteed outcome.
+
+
+  ✓A. True
+   B. False
+
+Item Weight: 1.0
+
+
+
+
+                                                                                               7
+Question #: 7
+
+[1 mark]
+Two agents rank all certain monetary outcomes in the same order and agree on the probabilities in the
+lotteries being compared. In a decision situation, they disagree about which lottery to choose. Which of
+the following best describes the situation?
+
+
+   A. At least one agent must violate the axioms of rational preferences.
+  ✓B. Different attitudes to risk can explain the disagreement without violating the axioms of rational
+      preferences.
+   C. Their utility functions must be related by a positive affine transformation.
+   D. One agent must be maximising expected monetary value.
+
+Item Weight: 1.0
+
+
+
+
+                                                                                                           8
+Question #: 8
+
+[1 mark]
+True or false: An agent’s choice between refinements of a high-level action is the same as the
+environment choosing a nondeterministic action outcome.
+
+
+   A. True
+  ✓B. False
+
+Item Weight: 1.0
+
+
+
+
+                                                                                                 9
+Question #: 9
+
+[1 mark]
+A fast planning heuristic sometimes overestimates the remaining cost. Which claim is justified?
+
+
+   A. It cannot help a search algorithm find a valid plan.
+   B. It guarantees a cheapest plan if all action costs are positive.
+  ✓C. It may guide search well, but the usual optimality guarantee based on admissibility is lost.
+    D. It becomes admissible if the search runs for long enough.
+
+Item Weight: 1.0
+
+
+
+
+                                                                                                     10
+Question #: 10
+
+[1 mark]
+In MCTS for a stochastic MDP, the decision maker Persy the Mars Rover has already chosen
+an action. That action can lead to several possible next states.
+How should the values of these possible outcomes be combined when estimating the value of
+the chosen action?
+
+
+
+   A. Take the maximum, because Persy will choose the best next state.
+  ✓B. Average the sampled returns, because the next state is determined by the environment.
+   C. Take the minimum, because planning should assume the worst possible outcome.
+   D. Use only the most recently sampled return.
+
+Item Weight: 1.0
+
+
+
+
+                                                                                              11
+Question #: 11
+
+[10 marks]
+
+Persy prepares a data transmission
+
+Persy the Mars rover is preparing to send scientific data.
+•      Initial State: {Charged, AntennaKit}
+
+•      Goal: {DataSent}
+
+All action preconditions and goals are positive. Unlisted fluents are false. Unlisted effects leave
+fluents unchanged.
+The actions are as follows:
+
+                  Action          Preconditions    Add effects               Delete effects
+             BoostSignal        Charged         LinkReady                  Charged
+             DeployAntenna      AntennaKit      LinkReady                  AntennaKit
+                                LinkReady,                                 None
+             Transmit                           DataSent
+                                Charged
+
+The high-level action EstablishLink has two refinements:
+•     [BoostSignal] or [DeployAntenna].
+
+The proposed high-level plan is [EstablishLink, Transmit].
+(a) Which refinement makes the proposed plan executable and successful?
+A. [BoostSignal, Transmit]
+B. [DeployAntenna, Transmit]
+C. [BoostSignal, DeployAntenna, Transmit]
+D. [Transmit, DeployAntenna]
+E. None of the above.
+
+Ans:     1
+
+(b) For another high-level plan, assume the reachable-set bounds are sound:
+•      the optimistic reachable set contains every truly reachable state;
+
+•      the pessimistic reachable set contains only truly reachable states.
+
+If the optimistic reachable set contains a goal state, but the pessimistic reachable set does not, which
+conclusion is justified?
+
+A. Reject the high-level plan.
+B. Accept the high-level plan, as success has been established.
+C. Further refinement is required.
+
+Ans:     2
+
+                                                                                                           12
+(c) A planner solving the delete-relaxed problem, in which all delete effects are ignored, returns
+[BoostSignal, Transmit].
+
+Which statements are correct? Select all that apply.
+
+I. The sequence should be checked using the original action effects before execution.
+II. The heuristic value obtained from a greedily extracted relaxed plan is guaranteed to be
+admissible.
+III. If this sequence fails in the original problem, the original problem has no solution.
+IV. Any plan that is valid in the original problem remains valid in the delete-relaxed problem.
+
+Ans:     3
+
+(d) A large language model (LLM)-generated planning model omits a real precondition:
+“Transmit is allowed only when Earth is visible.” A validator accepts a plan using the incomplete
+model. What should the team do? Select all that apply.
+
+A. Treat validation as proof that the plan can be executed safely.
+B. Add the missing precondition, verify the relevant state information, then replan and validate.
+C. Change only the search heuristic to account for the missing precondition.
+D. Generate more plans using the unchanged model and execute the most common one.
+
+Ans:     4
+
+(e) The same task is considered in two ways. A classical planner, using the primitive actions
+directly, finds a valid plan. A hierarchical planner, restricted to the refinements in the current
+high-level action (HLA) method library, cannot produce any valid primitive-action plan. What is
+the best conclusion?
+
+A. The primitive planning problem is unsolvable.
+B. Primitive preconditions should be ignored during refinement.
+C. The method library restricts the available plans and may need to be extended.
+D. The failure shows that the environment is nondeterministic.
+E. None of the above.
+
+Ans:     5
+
+[Solutions]:
+
+     1. Correct Answer:B. [DeployAntenna, Transmit]
+     2. Correct Answer:C. Further refinement is required.
+     3. Correct Answer:I and IV
+     4. Correct Answer:B. Add the missing precondition, verify the relevant state information, then replan
+        and validate.
+     5. Correct Answer:C. The method library restricts the available plans and may need to be extended.
+
+Item Weight: 10.0
+                                                                                                        13
+Question #: 12
+
+[10 marks]
+
+Evacuating an island seed bank
+
+An island seed bank must move its collection to a safe archive before a storm. A truck can travel
+by either the North Road or the South Road. Exactly one road is open, and each road is open
+with probability 0.5.
+•      Taking the open road preserves the entire collection.
+
+•      Taking the closed road loses the entire collection because there is no time to turn back.
+
+•      As a safe alternative, a ferry preserves half of the collection with certainty.
+
+•      The bank can perform a road scan that reports which road is open.
+
+Unless stated otherwise, the scan is perfect, free, and does not change the roads or the
+available actions.
+Assume the bank evaluates uncertain outcomes using expected utility. It strictly prefers
+
+                            entire collection     half of collection     nothing,
+
+but its numerical utilities are not given.
+
+(a) The bank must decide whether to scan before choosing a road. Which statements are
+correct? Select all that apply.
+I. Choosing North without scanning guarantees that the entire collection is preserved.
+II. If the bank scans first and then takes the road reported open, the entire collection is
+guaranteed to be preserved.
+III. Without scanning, each fixed road choice preserves the entire collection with probability 0.5.
+IV. Scanning is unnecessary because the bank already knows that one of the roads is open.
+
+Ans:     1
+
+(b) A planner is restricted to the following method in its method library:
+
+             Commit to North or South → Scan the roads → Travel on the committed road
+
+The road choice cannot be changed after the scan. Does this method guarantee preservation of the
+entire collection?
+
+A. Yes. Preserving the entire collection is always possible with the scan.
+B. Yes. The scan always reveals which road is open.
+C. No. The road choice is fixed before the scan result is available.
+D. No. The planner needs more accurate prior probabilities for the roads.
+E. None of the above.
+
+Ans:    2
+
+
+                                                                                                   14
+(c) Suppose the bank does not scan. Compare choosing North with taking the ferry. What follows from
+the stated preferences alone?
+
+A. North is preferred because preserving the entire collection is the best possible outcome.
+B. The ferry is preferred because a certain outcome always maximises expected utility.
+C. They are equally preferred because North preserves half of the collection on average.
+D. The better choice cannot be determined without knowing how the bank values preserving half the
+collection.
+E. None of the above.
+
+Ans:    3
+
+(d) The scan is now imperfect. After either scan report, each road still has a nonzero probability of being
+open.
+
+The bank also imposes a hard rule:
+
+"Losing the entire collection must be impossible."
+
+Which policy satisfies this rule?
+
+A. Always take the road reported open by the scan.
+B. Take whichever road is more likely to be open after seeing the scan report.
+C. Take the ferry regardless of the scan report.
+D. Randomise equally between North and South.
+E. None of the above.
+
+Ans:    4
+
+(e) Suppose the bank can perform an imperfect scan before deciding how to evacuate the collection. If
+the scan reports North, North is actually open with probability 0.8 and South with probability 0.2. The
+same applies in reverse if the scan reports South.
+
+The scan is free. It does not close either road or remove the ferry. After seeing the scan result, the bank
+can still choose North, South, or the ferry. There is no requirement that the bank eliminate all risk of
+losing the collection.
+
+Which statements are correct? Select all that apply.
+
+I. After a North report, North must be preferred to the ferry.
+II. After a North report, North is preferred to South.
+III. The bank can ignore the scan result and make the same choice it would have made without scanning.
+IV. Because the scan may be wrong, having the scan available can reduce the bank’s best expected
+utility.
+V. The scan may change the bank’s best choice, but it does not have to.
+
+Ans:    5
+
+
+
+
+                                                                                                          15
+[Solutions]:
+
+     1. Correct Answer:II and III
+[Notes:
+Without scanning, North succeeds only when North is open and South succeeds only when South is
+open. Since each road is open with probability 0.5, either fixed road choice succeeds with probability 0.5.
+A perfect scan reveals which road is open before the bank chooses, so scanning first and then taking the
+reported open road preserves the entire collection.]
+
+       2. Correct Answer:C. No. The road choice is fixed before the scan result is available.
+       3. Correct Answer:D. The better choice cannot be determined without knowing how the bank values
+          preserving half the collection.
+       4. Correct Answer:C. Take the ferry regardless of the scan report.
+       5. Correct Answer:II, III and V
+[Notes:
+After a North report,
+                                   𝐸𝑈(North) = 0.8𝑈(entire) + 0.2𝑈(nothing),
+while
+                                   𝐸𝑈(South) = 0.2𝑈(entire) + 0.8𝑈(nothing).
+II is correct. Because the bank prefers preserving the entire collection to losing it, North is preferred to
+South.
+III is correct. The scan does not remove any choices. After scanning, the bank can still choose North,
+South, or the ferry. If the scan does not help, it can ignore the result and make the same choice it would
+have made without scanning.
+V is correct. The scan may make the reported road preferable to the bank’s previous choice. But it need
+not. For example, depending on the bank’s utility for preserving half the collection, the ferry may remain
+the preferred choice even after the scan.]
+
+
+
+Item Weight: 10.0
+
+
+
+
+                                                                                                         16
+Question #: 13
+
+[10 marks]
+
+Persy learns a route on Mars
+
+
+Persy the Mars Rover learns routes in a finite episodic Markov decision process (MDP) with
+unknown transitions. Each episode ends when Persy reaches the station or encounters a
+terminal hazard. During learning, Persy uses an
+
+ -greedy behaviour policy with           .
+
+(a)
+
+The team wants a one-step temporal difference (TD) method whose target uses the exploratory
+action that Persy actually selects next. Which method best fits this case?
+
+A. Q-learning, using the highest estimated next-state action value.
+B. SARSA, using the value of the next action selected by the behaviour policy.
+C. Monte Carlo control, using only the complete episode return.
+D. Active ADP, learning a transition and reward model and planning with it.
+E. None of the above.
+
+Ans:    1
+
+(b)
+Persy observes a transition with reward -2   into state J.
+
+Let Q(s,a) denote the current action-value estimate for action a   in state s. At state J:
+
+Q(J, shortcut)=4,      Q(J, detour)=1.
+
+The e-greedy behaviour policy selects detour. Let γ=0.8.
+
+Using the current Q-values, what are the one-step targets for SARSA and Q-learning?
+
+A. -1.2 and -1.2
+B. -1.2 and 1.2
+C. 1.2 and 1.2
+D. 0.8 and 3.2
+E. None of the above
+
+Ans:    2
+
+
+
+
+                                                                                             17
+(c)
+
+A terminal hazard gives reward -20. The simulator then resets Persy to Start for a new episode. What is
+the correct Q-learning target for the terminal transition?
+
+A. -20, with no future-value term.
+B. -20 plus the discounted value of the best action at Start.
+C. 0, because terminal states have no value.
+D. The value of Start, because the simulator resets there.
+E. None of the above.
+
+Ans:    3
+
+(d)
+
+Another rover, Curry, works similarly to Persy. Curry estimates transition probabilities from observed
+counts and rewards from experience. It then replans using the learned model.
+
+Which statements are correct about Curry? Select all that apply.
+
+I. The method is model-free because the transition and reward estimates are learned from experience.
+II. This is a model-based method of the Active ADP type.
+III. One observation of each state–action pair is enough to guarantee the correct transition probabilities in
+a stochastic MDP.
+IV. After the learned model is updated from an observed transition, replanning can change the value
+estimates or preferred actions in states beyond the state just observed.
+
+Ans:    4
+
+(e)
+
+Persy is now switched to pure exploitation. A new route becomes available, but Persy never tries it and
+continues choosing the old route.
+
+Which statements are justified? Select all that apply.
+
+I. The unchanged greedy choice proves that the old route remains optimal.
+II. The value of the new route may be poorly estimated because Persy has gathered no experience with it.
+III. Reintroducing some exploration can provide evidence needed to compare the new route's long-term
+value with the known alternatives.
+IV. If Persy uses Q-learning, its off-policy updates remove the need to ever try the new route.
+V. Persy should permanently switch to the new route simply because it has not been tried.
+
+Ans:    5
+
+
+
+
+                                                                                                          18
+[Solutions]:
+
+     1. Correct Answer:B. SARSA, using the value of the next action selected by the behaviour policy.
+     2. Correct Answer:B. -1.2 and 1.2
+     3. Correct Answer:A. -20, with no future-value term.
+[Notes:
+The reward is received on the transition into the terminal state. The terminal state's future value is zero.
+Resetting the simulator begins a new episode.]
+
+     4. Correct Answer:II and IV
+[Notes:
+Active ADP is model-based: it learns transition and reward models from experience and plans using the
+learned MDP. Updating the model from one observation can, through replanning, affect value estimates
+or preferred actions in multiple states. One observation of a state–action pair is not sufficient to
+determine stochastic transition probabilities exactly.]
+
+    5. Correct Answer:II and III
+Item Weight: 10.0
+
+
+
+
+                                                                                                           19
+Question #: 14
+[10 marks]
+
+Persy learns to steer across rough terrain
+
+Persy is a Mars rover learning to drive from a field base to a science site across uneven terrain.
+During each drive, Persy repeatedly observes a continuous state s, including:
+•      heading error x: how far its current heading differs from the desired direction; and
+•      terrain slope z, which can affect future driving outcomes.
+
+At each step, Persy chooses a steering command such as Left, Straight, or Right. Rewards
+encourage progress toward the science site and staying on course. An episode ends when
+Persy reaches the site or the drive is terminated.
+Persy does not use a transition model. The team trains a parameterized stochastic policy
+
+
+
+from sampled drives. When a critic is used,
+
+
+
+approximates the state value under the current policy.
+
+The following parts consider different aspects of function approximation and policy search for
+this task.
+(a)The first critic uses only heading error:
+
+
+
+Under the same policy, two states can have the same heading error x but different terrain slopes
+z and different state values. What best addresses this limitation?
+
+A. Collect unlimited data while keeping exactly the same critic features.
+B. Add relevant terrain features and enough representational capacity to distinguish the values.
+C. Increase the learning rate until the predictions separate.
+D. Increase the discount factor without changing the critic representation.
+E. None of the above.
+
+Ans:    1
+
+
+(b) Which statements about policy search are correct? Select all that apply.
+I. It can directly optimise the parameters of an action distribution.
+II. It must first compute the exact optimal Q-value at every state.
+III. A policy gradient can be estimated from sampled episodes without differentiating the environment
+dynamics.
+IV. A stochastic policy can assign nonzero probability to several actions in the same state.
+V. Replacing a stochastic policy by a hard argmax automatically makes the policy differentiable.
+
+Ans.    2
+
+                                                                                                        20
+(c)
+
+On one sampled drive, Persy uses REINFORCE with a state-dependent baseline
+
+       . Suppose the return        but
+
+The baseline is held fixed when computing the actor gradient. Which statements are correct? Select all
+that apply.
+
+I. This proves that the action's true advantage is negative.
+II. This sample performed below the baseline and gives a negative weight to its log-policy gradient.
+III. The baseline-adjusted return equals the true advantage on every episode.
+IV. A suitable state baseline can reduce variance without changing the expected policy gradient.
+
+Ans:     3
+
+(d)
+
+Persy now uses a one-step actor–critic update, with the temporal difference (TD) error
+as an advantage estimate. For one nonterminal transition, with reward r and discount factor γ
+
+                                                              .
+
+Using                                       ,which statement is correct?
+
+
+A.             , so this sample tends to decrease the probability of the selected action.
+
+B.            , so this sample tends to increase the probability of the selected action.
+
+C.            , so this sample tends to decrease the probability of the selected action.
+
+D.          , so this sample tends to increase the probability of the selected action.
+E. None of the above.
+
+Ans:     4
+
+
+(e)
+
+Persy's actor is now updated using PPO-Clip. During one actor update, the old policy and the estimated
+
+
+advantage        are held fixed. Let
+
+
+
+
+                                                                                                       21
+and consider the sample surrogate contribution
+
+
+
+
+For one sample,              and              .
+
+Which statement is correct?
+A. Further reducing ρ continues to improve this sample's surrogate contribution.
+B. Such a ratio is impossible because PPO imposes a hard bound on ρ.
+C. PPO must also clip the critic's TD target to the same interval.
+D. This sample's surrogate contribution is flat for further decreases in ρ; the actual probability ratio can
+still lie below the clipping interval.
+E. None of the above.
+
+Ans:      5
+
+
+
+
+[Solutions]:
+
+      1. Correct Answer:B. Add relevant terrain features and enough representational capacity to
+         distinguish the values.
+      2. Correct Answer:I and III and IV
+[Notes:
+Policy search directly optimises a parameterized policy. Policy-gradient estimates can be obtained from
+sampled experience without differentiating the environment dynamics. A stochastic policy can assign
+nonzero probability to several actions in the same state. A hard argmax over discrete actions is not
+differentiable and therefore does not automatically support gradient-based policy learning.]
+
+     3. Correct Answer:II and IV
+[Notes:
+𝐺! − 𝐵(𝑠! ) is a sample-level advantage estimate. A negative value means that this sampled return was
+below the baseline; it does not prove that the true advantage
+                                                 𝐴"! (𝑠! , 𝑎! )
+is negative. Its negative sign gives this sample a negative weight in the log-policy-gradient update. A
+suitable state-dependent baseline can reduce variance without changing the expected policy gradient]
+
+       4. Correct Answer:A.δ_t= -1.1 , so this sample tends to decrease the probability of the selected
+          action.
+       5. Correct Answer:D. This sample's surrogate contribution is flat for further decreases in ρ; the
+          actual probability ratio can still lie below the clipping interval.
+
+Item Weight: 10.0
+                                                                                                               22
+

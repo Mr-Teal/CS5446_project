@@ -1,0 +1,109 @@
+                             National University of Singapore
+                                  School of Computing
+                                        Semester 1, AY2026-27
+
+CS4246/CS5446                             Reinforcement Learning and Sequential Decision Making
+
+Issued: 7 Oct 2026
+             Tutorial 7 Week 10: Model Based Reinforcement Learning
+
+Guidelines
+You may discuss the content of the questions with your classmates. But everyone should work on
+and be ready to present ALL the solutions.
+
+Problem 1: One Learned Model, Different Uses
+A Mars rover has learned a model for taking action a in state s:
+
+                          Pη (s1 | s, a) = 0.75,        Pη (s2 | s, a) = 0.25.
+
+   The learned transition rewards are
+
+                             Rη (s, a, s1 ) = 2,       Rη (s, a, s2 ) = −2.
+
+   Suppose
+                  U (s1 ) = max
+                             ′
+                                Q(s1 , a′ ) = 6,        U (s2 ) = max
+                                                                   ′
+                                                                      Q(s2 , a′ ) = 2,
+                             a                                     a
+with discount factor γ = 0.9. The current estimate is
+
+                                             Q(s, a) = 3,
+
+and the learning rate is α = 0.5.
+
+(a) Using the full learned model, compute the expected Bellman target for Q(s, a). Then perform
+    one update step toward this target.
+(b) Instead, suppose Q-planning samples the transition
+                                                     a,−2
+                                                   s −−→ s2 .
+
+    Perform one Q-planning update using this simulated transition.
+(c) Why can the updates in parts (a) and (b) be quite different even though they use the same
+    learned model?
+(d) How does Dyna-Q extend the idea in part (b)?
+Tutorial 7 Week 10: Model Based Reinforcement Learning                                           2
+
+
+Problem 2: When the Conditional Mean Is Misleading
+An autonomous vehicle must pass an obstacle. From the same state-action pair (s, a), the true next
+lateral position is either
+                                 s′L = −1 or s′R = +1,
+with probability 0.5 each. Position 0 lies inside the obstacle.
+
+  (a) If a deterministic dynamics model is trained with squared-error loss, what next position will
+      it tend to predict? Why can this be problematic?
+
+  (b) A probabilistic model instead represents both outcomes. Suppose both transitions give re-
+      ward 1, U (s′L ) = 4, U (s′R ) = 8, and γ = 0.9. Compute the expected one-step backup for
+      taking action a.
+
+  (c) If sampling-based planning draws just one next state from the model, what backup value is
+      obtained for each possible sample? What is their expectation?
+
+  (d) What does this example show about deterministic and stochastic dynamics models?
+
+Problem 3: Background and Decision-Time Planning
+A rover has learned a model of its environment. Consider three ways to use it: Q-planning, Monte
+Carlo Tree Search (MCTS), and Model Predictive Control (MPC).
+
+  (a) Which method is primarily background planning, and which are decision-time planning?
+      Briefly explain the distinction.
+
+  (b) At the current state, an MPC planner considers two action sequences over horizon H = 2.
+      Their predicted rewards are
+                                      A : (3, 4),    B : (4, 2),
+      with γ = 0.9. Which sequence has the larger predicted discounted return?
+
+  (c) Why does MPC execute only the first action of the selected sequence and then replan?
+
+  (d) MuZero uses MCTS in a learned latent state space and does not reconstruct future observa-
+      tions. Why can such a model still be useful for planning?
+
+Problem 4: DreamerV3 and TD-MPC2
+DreamerV3 and TD-MPC2 both use learned latent world models, but they use them differently.
+
+  (a) State the main difference in how DreamerV3 and TD-MPC2 use their learned world models.
+Tutorial 7 Week 10: Model Based Reinforcement Learning                                3
+
+
+ (b) A TD-MPC2 planner evaluates two candidate sequences with horizon H = 2 and γ = 0.9.
+     The predicted rewards and terminal Q-values are
+
+                                      A : (2, 2),        Q̂terminal = 6,
+
+                                      B : (3, 3),        Q̂terminal = 1.
+     Using
+                                            H−1
+                                            X
+                                    Ĝt =         γ h r̂t+h + γ H Q̂terminal ,
+                                            h=0
+
+     which sequence is preferred?
+
+ (c) What role does the terminal Q-value play in TD-MPC2?
+
+ (d) Give one way model error can harm DreamerV3 and one way it can harm TD-MPC2. Give
+     one relevant mitigation for each.
+

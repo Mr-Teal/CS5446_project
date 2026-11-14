@@ -1,0 +1,834 @@
+  Real World Planning and Acting
+
+  CS4246/CS5446
+  Reinforcement Learning and Sequential Decision Making
+  Version 4.0
+
+
+
+© Copyright National University of Singapore. All Rights Reserved.
+Types of AI Agents
+
+
+
+
+Classical Planning   2
+Example: Air Cargo Transport Planning
+                                   SIN)           SIN)
+
+
+                       (SIN)
+                     SIN)
+
+
+
+
+        Planning Domain        Planning Problem   Adapted from source: RN Figure 11.1
+Classical Planning                                                                  3
+Example: Planning Domain in PDDL
+(define (domain air-cargo)
+  (:requirements :strips :typing)
+  (:types plane airport cargo)
+  (:predicates
+    (At ?x - (either plane cargo) ?a - airport)
+    (In ?c - cargo ?p - plane)
+    (Cargo ?c - cargo)
+    (Plane ?p - plane)
+    (Airport ?a - airport))
+ (:action Load
+    :parameters (?c - cargo ?p - plane ?a - airport)
+    :precondition (and (At ?c ?a) (At ?p ?a) (Cargo ?c) (Plane ?p) (Airport ?a))
+    :effect (and (not (At ?c ?a)) (In ?c ?p)))
+  (:action Unload
+    :parameters (?c - cargo ?p - plane ?a - airport)
+    :precondition (and (In ?c ?p) (At ?p ?a) (Cargo ?c) (Plane ?p) (Airport ?a))
+    :effect (and (At ?c ?a) (not (In ?c ?p))))
+  (:action Fly
+    :parameters (?p - plane ?from - airport ?to - airport)
+    :precondition (and (At ?p ?from) (Plane ?p) (Airport ?from) (Airport ?to))
+    :effect (and (not (At ?p ?from)) (At ?p ?to))))
+Classical Planning                                                                 4
+Example: Planning Problem in PDDL
+(define (problem air-cargo-problem)
+  (:domain air-cargo)
+
+   (:objects
+     C1 C2 - cargo
+     P1 P2 - plane
+     SFO SIN - airport)
+
+   (:init
+     (At C1 SFO)
+     (At C2 SIN)
+     (At P1 SFO)
+     (At P2 SIN)
+     (Cargo C1)
+     (Cargo C2)
+     (Plane P1)
+     (Plane P2)
+     (Airport SFO)
+     (Airport SIN))
+
+   (:goal
+     (and (At C1 SIN) (At C2 SFO))))
+Classical Planning                     5
+A Possible Plan
+• A solution – How to find it?
+        𝐿𝑜𝑎𝑑(𝐶1, 𝑃x1, 𝑆𝐹𝑂)
+        𝐹𝑙𝑦(𝑃1, 𝑆𝐹𝑂, 𝑆𝐼𝑁)
+        𝑈𝑛𝑙𝑜𝑎𝑑(𝐶1, 𝑃1, 𝑆𝐼𝑁)
+        𝐿𝑜𝑎𝑑(𝐶2, 𝑃2, 𝑆𝐼𝑁)
+        𝐹𝑙𝑦(𝑃2, 𝑆𝐼𝑁, 𝑆𝐹𝑂)
+        𝑈𝑛𝑙𝑜𝑎𝑑(𝐶2, 𝑃2, 𝑆𝐹𝑂)
+• Some caveats
+     • What to do with spurious actions like 𝐹𝑙𝑦(𝑃1, 𝑆𝐼𝑁, 𝑆𝐼𝑁)?
+
+Classical Planning                                                6
+Classical Planning Summary
+• Goal-directed planning             • Other approaches
+     • STRIPS, PDDL                    • Planning graph – encodes
+                                         constraints, derives heuristics
+• Search-based approaches:
+                                       • Situation calculus – FOL
+     • Forward (progression)             representation of actions
+     • Backward (regression)           • CSP formulation – bounded
+• SAT-based approaches:                  planning problems
+     • Encode as SAT (CNF)             • Partial-order planning – plans
+     • Solved by SATPlan and other       as graphs; supports
+       SAT planners                      parallelism and explainability
+
+Classical Planning                                                         7
+From Classical to Modern Planning
+• Classical planning remains highly relevant
+     • Crucial in robotics, logistics, space mission planning, game AI, and
+       multi-agent coordination, etc.
+• Scaled via:
+     • Heuristics from relaxed models and abstractions
+     • Hierarchical decomposition (HTNs, HLAs)
+     • Emerging LLM-assisted methods for PDDL model generation, subgoal
+       planning, and heuristic learning
+
+                       heuristic e.g.
+Classical Planning     anchoring & adjustment (e.g. food poisoning from a restaurant, wont go back again)   8
+Topics
+• Enhance Efficiency
+     • Heuristics for planning
+     • Problem relaxation & admissible heuristics
+     • Domain-independent approaches
+• Reduce Complexity
+     • State abstraction and Goal decomposition
+     • Hierarchical planning
+          • Hierarchical Task Networks (HTN)
+          • High-level actions (HLAs)
+• Scale with LLM-Assisted Planning
+     • Planning model (PDDL) creation & refinement
+     • Task decomposition + subgoal planning
+     • Heuristic generation
+
+
+Real World Planning and Acting                       9
+Heuristics for Search-Based Planning
+Enhancing efficiency
+
+
+
+
+Real World Planning and Acting         10
+Heuristics for Classical Planning Paradigms
+• Why use heuristics?                • Search-based planning (A*, GBFS, etc.)
+     • Reduce search space              • Explicit heuristic function ℎ 𝑠
+     • Prune irrelevant branches        • Estimates cost from state → goal
+     • Find solutions faster            • Guides node expansion to reduce search
+                                     • Logical inference planning (SAT-based, CSP, etc.)
+                                        • No explicit heuristic function ℎ 𝑠
+   Heuristics are:
+                                        • Relies on solver-internal heuristics:
+   explicit in search, implicit in
+                                            • Variable / clause selection
+   inference-based methods.
+                                            • Branching & propagation strategies
+                                        • Guides proof/search order indirectly
+
+Real World Planning and Acting                                                     11
+Planning as Search Overview
+• Definitions
+     • States (nodes): Represent world configurations.
+     • Actions (edges): Change state.
+     • Goal: find a path from initial state to goal state
+     • Heuristic ℎ(𝑠) : Estimates cost from state 𝑠 to goal 𝑔
+
+             S1              A1   S2      A2
+                                                  …        An   G
+
+        h(S1) = 550                            h(Sn) = 1
+
+Real World Planning and Acting                                      12
+Improving Efficiency in Search-Based Planning
+• Admissible heuristics
+     • Never overestimate → guarantee optimality (with optimal search, e.g., A*)
+• Domain-independent heuristics                                E.g., ignore some action
+                                                              conditions and/or effects
+     • From relaxed problems → derive optimistic estimates
+• Domain-independent pruning
+     • Reduce redundant or less promising branches in search space
+• Domain-specific heuristics
+     • Tailored, (human-)designed for a given domain
+
+Real World Planning and Acting                                                  13
+Planning as Path Search
+                                                    Initial        Goal
+• Example: 8-Puzzle
+                                                     2   3         1 2 3
+                                                     1 8 4         8   4
+                                                     7 6 5         7 6 5
+• Game objective:
+     • Rearrange eight numbered tiles on a 3×3 board from a given start state
+       to a specified goal state.
+
+       𝐴𝑐𝑡𝑖𝑜𝑛(𝑆𝑙𝑖𝑑𝑒(𝑡, 𝑠1, 𝑠2)
+        Precond: 𝑂𝑛(𝑡, 𝑠1) ∧ 𝑇𝑖𝑙𝑒(𝑡) ∧ 𝐵𝑙𝑎𝑛𝑘(𝑠2) ∧ 𝐴𝑑𝑗𝑎𝑐𝑒𝑛𝑡(𝑠1, 𝑠2)
+        Effect:   𝑂𝑛(𝑡, 𝑠2) ∧ 𝐵𝑙𝑎𝑛𝑘(𝑠1) ∧ ¬𝑂𝑛(𝑡, 𝑠1) ∧ ¬𝐵𝑙𝑎𝑛𝑘(𝑠2)
+
+Real World Planning and Acting                                                  14
+Example: 8-Puzzle as Planning
+                                                                       Initial               Goal
+• States                            e.g., On(“2”, <3,1>)
+                                                                       2   3                 1 2 3
+     • A (state description) describes the                             1 8 4                 8   4
+       position of each tile in the grid                               7 6 5                 7 6 5
+• Actions or operators
+     • Tiles slide left, right, up, or down
+                                                              2 3        2 8 3        2 3
+• Goal test                                                 1 8 4        1   4        1 8 4
+     • The tiles match the target arrangement.              7 6 5        7 6 5        7 6 5
+
+• Path cost
+     • Each move adds 1 to the path length            𝐴𝑐𝑡𝑖𝑜𝑛(𝑆𝑙𝑖𝑑𝑒(𝑡, 𝑠1, 𝑠2)
+                                                        Precond: 𝑂𝑛 𝑡, 𝑠1 ∧ 𝑇𝑖𝑙𝑒 𝑡 ∧ 𝐵𝑙𝑎𝑛𝑘 𝑠2 ∧ 𝐴𝑑𝑗𝑎𝑐𝑒𝑛𝑡 𝑠1, 𝑠2
+                                                        Effect: 𝑂𝑛(𝑡, 𝑠2) ∧ 𝐵𝑙𝑎𝑛𝑘(𝑠1) ∧ ¬𝑂𝑛(𝑡, 𝑠1) ∧ ¬𝐵𝑙𝑎𝑛𝑘(𝑠2)
+
+Real World Planning and Acting                                                                          15
+Ignore Selected Preconditions Heuristic
+                                                             Initial               Goal
+• Remove Preconditions                                       2   3                1 2 3
+     • 𝐵𝑙𝑎𝑛𝑘(𝑠2) ∧ 𝐴𝑑𝑗𝑎𝑐𝑒𝑛𝑡(𝑠1, 𝑠2)                          1 8 4                8   4
+                                                             7 6 5                7 6 5
+• What is the heuristic?
+     • No. of misplaced tiles heuristic
+• What are the estimates?                          2 3
+                                                 1 8 4
+                                                              2 1 3
+                                                                8 4
+                                                                          1,2   3
+                                                                              8 4
+                                                 7 6 5        7 6 5         7 6 5
+
+• Challenge:
+     • Unclear which preconditions can     𝐴𝑐𝑡𝑖𝑜𝑛(𝑆𝑙𝑖𝑑𝑒(𝑡, 𝑠1, 𝑠2)
+       be selectively ignored in general     Precond: 𝑂𝑛 𝑡, 𝑠1 ∧ 𝑇𝑖𝑙𝑒 𝑡 ∧ 𝐵𝑙𝑎𝑛𝑘 𝑠2 ∧ 𝐴𝑑𝑗𝑎𝑐𝑒𝑛𝑡 𝑠1, 𝑠2
+                                             Effect: 𝑂𝑛(𝑡, 𝑠2) ∧ 𝐵𝑙𝑎𝑛𝑘(𝑠1) ∧ ¬𝑂𝑛(𝑡, 𝑠1) ∧ ¬𝐵𝑙𝑎𝑛𝑘(𝑠2)
+
+Real World Planning and Acting                                                                16
+Ignore Delete Effects Heuristic
+                                                                      Initial                   Goal
+• Ignore delete effects                                 ℎ#$$ =3
+                                                                         2   3                  1 2 3
+     • ¬𝑂𝑛 𝑡, 𝑠1 ∧ ¬𝐵𝑙𝑎𝑛𝑘 𝑠2                                             1 8 4                  8   4
+• Manhattan distances: (min over copies)                                 7 6 5                  7 6 5
+     • E.g. Tile 1 = 1 Tile 2 = 1 Tile 8 = 1
+     • Others = 0
+                                                          2
+                                                          2 3          2 8 3          2 3 3
+• (Domain-independent) Heuristics:
+                                                      1 8 4           1 8 4     1 8 4
+    • ℎ!"# : max{1,1,1} = 1                           7 6 5            7 6 5    7 6 5
+       (admissible, weak)
+    • ℎ"$$ : 1 + 1 + 1 = 3
+      (more informative, not always admissible)
+                                                𝐴𝑐𝑡𝑖𝑜𝑛(𝑆𝑙𝑖𝑑𝑒(𝑡, 𝑠1, 𝑠2)
+    • ℎ%% : ?                                     Precond: 𝑂𝑛 𝑡, 𝑠 ∧ 𝑇𝑖𝑙𝑒 𝑡 ∧ 𝐵𝑙𝑎𝑛𝑘 𝑠 ∧ 𝐴𝑑𝑗𝑎𝑐𝑒𝑛𝑡 𝑠 , 𝑠
+                                                                     1                      2                 1   2
+
+• What are the estimates?                             Effect: 𝑂𝑛(𝑡, 𝑠2) ∧ 𝐵𝑙𝑎𝑛𝑘(𝑠1) ∧ ¬𝑂𝑛(𝑡, 𝑠1) ∧ ¬𝐵𝑙𝑎𝑛𝑘(𝑠2)
+
+Real World Planning and Acting                                                                           18
+Notes: ℎ!! : The Fast Forward Heuristic
+• How it works (Hoffmann & Nebel, 2001)
+     • Ignore delete effects → build a relaxed problem where facts never become false.
+     • Compute relaxed plan → greedily select actions to achieve remaining goals.
+     • Heuristic value → ℎ99 𝑠 = number of actions in this relaxed plan.
+• Key properties
+     • Highly informed → more accurate than simpler heuristics like ℎ:;< .
+     • Inadmissible → may overestimate cost because greedy extraction can give longer-than-
+       optimal relaxed plans.
+     • Effective in practice → widely used in satisficing planning (e.g. greedy best-first search).
+
+Real World Planning and Acting                                                              19
+  Summary: Improving Efficiency
+                                                                       How to find preferred action(s)?
+
+• Relaxation-based heuristics                      • Domain-independent pruning
+   • Provide optimistic lower bounds;                • Symmetry reduction: skip equivalent
+     admissible heuristics ensure optimality           branches (e.g., Towers of Hanoi)
+• Limitations:                                       • Forward pruning: prefer promising
+                                                       actions, may miss optimality (e.g., Fast
+   • Relaxed problems remain NP-hard;
+                                                       Downward)
+   • Trade-off informativeness vs admissibility;
+                                                     • Serializable subgoals: plan goals in
+   • Plans may be redundant or costly to               sequence, avoid undoing earlier ones
+     compute                                           (e.g., Sussman anomaly)
+• Key points
+    •    Heuristics guide search; pruning reduces it.
+    •    Combined (e.g., Fast Downward), they make planning more scalable and often optimal.
+  Real World Planning and Acting                                                              20
+State Abstraction and Goal Decomposition
+Reducing complexity
+
+
+
+
+Real World Planning and Acting             21
+ State Abstraction for Simplicity
+• Key idea
+     • Group states into abstract states → search in smaller space, then refine
+• Steps
+     • Define abstraction
+     • Search abstract space
+     • Map back to original space
+• Challenge
+     • Abstractions must reduce cost while preserving useful structure
+• Examples:
+     • Pattern databases: high setup cost but reusable across problems
+     • Maze abstraction: rooms as states, refined to cell-level moves
+
+
+Real World Planning and Acting                                                    22
+Example: Air Cargo Transportation
+• Original problem:
+     • 10 airports, 50 planes and 200 cargos
+     • Total no. of states = 1050 × (50 + 10)200 ≈ 10405
+• Assumption:
+     • All cargos are just in 5 airports, instead of 10, and all cargos in the same airport have
+       the same destination.
+• Reformulation:
+     • Drop all the irrelevant 𝐴𝑡 fluents (What are the relevant ones?)
+     • Total no. of states = 105 × (5 + 10)5 ≈ 1011
+• Solution:
+     • Shorter than that for original problem (admissible heuristic)
+     • Extensible by adding relevant actions
+
+Real World Planning and Acting                                                                     23
+Goal Decomposition for Efficiency
+• Key idea                                                 Key strategy in defining heuristics
+     • Break goal 𝐺 into subgoals 𝐺= , . . . , 𝐺>
+     • For each subgoal 𝐺? ,compute a plan 𝑃? with cost 𝐶𝑜𝑠𝑡 𝑃?
+     • Use these costs to estimate the overall plan cost
+• Heuristic rules
+     • Max(Cost(𝑃ᵢ)) → admissible, but weak
+     • Sum(Cost(𝑃ᵢ)) → admissible if subgoals are independent, more informative
+• Interactions:                                       What if there is subgoal dependence?
+     • Positive → one action helps multiple subgoals → may overestimate
+     • Negative → one action undoes another → may underestimate
+
+Real World Planning and Acting                                                          24
+Example                           A        B        C       D
+
+• Initial State: All four blocks A, B, C and D are on the table.
+• Goal G: Put block A on block B and block C on block D
+     • Subgoal G₁: A on B → Cost(P₁) = 2 steps (pickup and put)              A          C
+     • Subgoal G₂: C on D → Cost(P₂) = 2 steps                                          D
+                                                                             B
+     • Subgoals are independent (plans do not interfere)
+• Heuristic Estimates:
+   • Max(Cost) =
+   • Sum(Cost) =
+• Why Sum is Better:
+     • In the actual problem, both subgoals must be achieved, so the true cost is 4 steps
+     • Max underestimates badly here
+     • Sum matches the true cost (and is still admissible under independence)
+Real World Planning and Acting                                                              25
+Abstraction-Based Approaches
+• State Abstraction
+     • Group states into abstract ones → smaller search space
+     • Example: Air Cargo with fewer airports / grouped cargos
+     • Benefit: improves efficiency, admissible heuristics possible
+• Goal Decomposition
+     • Split complex goal into subgoals, estimate costs separately
+     • Example: Blocksworld, A on B and C on D
+     • Benefit: more informative heuristics, especially under independence
+• Key Insight
+• Both simplify planning:
+     • State abstraction → fewer states to explore
+     • Goal decomposition → clearer, stronger heuristic estimates
+Real World Planning and Acting                                               26
+Hierarchical Planning and Acting
+Manage complexity
+
+
+
+
+Real World Planning and Acting     27
+Examples
+• Example 1:
+     How to go to CS4246/5446 lecture from home?
+     • Solution: Go to COM2 from home, find lecture hall
+     • Solution: take MRT, change to internal bus, get off, find LT16.
+     • Solution: Switch on laptop, launch Zoom, join lecture
+• Example 2:
+     How to land on the Jezero Crater of Mars from X space station?
+• Example 3:
+     How to get from home to Changi airport?
+Real World Planning and Acting                                           28
+     Example: Going to Changi Airport
+                                                                              High-level action (HLA)
+                                                    Go(Home, SIN)
+                          Refinement (1)
+                                              High-level action (HLA)
+                                Drive(Home, SIN)
+               Steps
+                 Drive(Home,                                                   Refinement (2)
+                                         Shuttle(OvernightParking, SIN)
+               OvernightParking)
+                                                                                                High-level action (HLA)
+
+                                                                          Taxi(Home, SIN)
+                                                   Steps
+SIN: Airport Code for Changi Airport              Call-Taxi(Home)         Ride(Home, SIN)       Pay-Taxi(Home, SIN)
+
+
+
+     Real World Planning and Acting                                                                            29
+Managing Complexity in Planning
+• Hierarchical decomposition:
+     • Break tasks into smaller subtasks
+     • Handle only a few at each level to reduce computation
+• Deferred planning:
+     • Plan partly in advance
+     • Keep some actions abstract until execution
+
+
+
+
+Real World Planning and Acting                                 30
+Hierarchical Task Networks (HTNs)
+• Hierarchical decomposition planning
+     • Built on High-Level Actions (HLAs)
+     • Assumptions: full observability, determinism, primitive actions with
+       preconditions/effects
+     • Applications: planning, problem-solving, decision-making
+• High-Level Actions (HLAs)
+     • Refinable into sub-HLAs or primitive actions (recursive)
+     • Encode procedural knowledge, support multi-level planning
+     • HLA achieves a goal if at least one refinement succeeds (agent chooses)
+     • Different from nondeterminism: choice is deliberate, not uncertain
+     • Example: Go(Home, SIN) → Drive / Taxi / MRT → primitive steps
+
+Real World Planning and Acting                                                   31
+HTN Planning
+• Main idea
+     • Start with top-level task/action, refine until primitive actions only
+• Algorithm
+     • Select an HLA in the current plan
+     • Replace with one refinement
+     • Repeat until plan is primitive and satisfies goal
+• Search strategies
+     • Breadth-first (by refinement depth)
+     • Depth-first, iterative deepening
+     • Graph search
+
+Real World Planning and Acting                                                 32
+Example: Going to Changi Airport
+  Initial task:                                Go(Home,SIN)                                          I am at home, I have $30,
+            Refinement (1)                                          Refinement (2)
+                                                                                                     I want to go to airport
+                Drive(Home, SIN)                        Taxi(Home, SIN)
+             Precond: Have(Car)                    Precond: Cash(30)
+             Precondition fails                       Precondition succeeds                         Decomposition into
+                                                                                                    subtasks
+                                                                                                             Final state
+ Initial state
+                       s0        Call-Taxi(Home)   s1     Ride(Home, SIN)   s2             Pay-Taxi(Home, SIN)                   s3
+                                  Precond: …                Precond: …                    Precond: …
+                                  Effects: …                Effects: …                    Effects: At(Me, SIN) …
+
+
+           s0 = {At(Me, Home), Cash(30)}
+           s1 = {At(Me, Home), At(Taxi,Home), Cash(30)}
+           s2 = {At(Me, SIN), At(Taxi,SIN), Cash(30)}
+           s3 = {At(Me, SIN), At(Taxi,SIN), Cash(0)}                             Adapted from: Dana Nau: Lecture slides for Automated Planning
+
+Real World Planning and Acting                                                                                                           33
+Complexity Analysis
+• Non-hierarchical planner:
+     • Branching factor (actions) 𝑏 → cost 𝑂 𝑏! for plan length 𝑑.
+• HTN planner:
+     • Each non-primitive action has 𝑟 refinements into 𝑘 actions →
+       ≈ 𝑟 !"# / %"# decompositions.
+• Insight:
+     • Small 𝑟, large 𝑘 → compact HLA library (fewer refinements, longer
+       sequences) → harder to design but more efficient.
+
+Real World Planning and Acting                                             36
+Proving Plan Properties
+Searching for Abstract Solutions
+
+
+
+
+Real World Planning and Acting     37
+Motivation
+• Example:
+     • Decide if a high-level plan achieves the goal (e.g., reach airport) without low-
+       level details like route or terminal:
+     • [Call-Taxi(Home), Ride(Home, SIN), Pay-Taxi(SIN)]
+     Initial                                                                                  Final
+     state                                                                                    state
+               s0      Call-Taxi(Home)   s1   Ride(Home, SIN)   s2    Pay-Taxi(Home, SIN)           s3
+
+                        Precond: …             Precond: …            Precond: …
+                        Effects: …             Effects: …            Effects: Location(Me, SIN) …
+
+                    Route(Home, AYE, SIN)         Route(Home, PIE, SIN)
+
+
+Real World Planning and Acting                                                                           38
+High-Level Planning with HLAs
+• Goal
+     • Decide if a high-level plan (HLA sequence) can achieve the goal without
+       detailing all primitive steps
+• Approach
+     • Represent HLAs with preconditions & effects
+     • Search over HLAs → commit when reachable set intersects goal states
+     • Refine committed plan into primitive actions
+• Benefit
+     • Smaller search space → exponential reduction in complexity
+
+Real World Planning and Acting                                                   39
+Example: Reachable Sets
+
+
+             s                              s
+
+
+
+
+                           𝑅𝐸𝐴𝐶𝐻(𝑠, [ℎ1])       𝑅𝐸𝐴𝐶𝐻(𝑠, [ℎ1, ℎ2])
+                                                      Source: RN: Fig 11.6
+Real World Planning and Acting                                               40
+Reachable Sets
+• Definition
+     • 𝑅𝐸𝐴𝐶𝐻(𝑠, ℎ): all states reachable from state 𝑠 by any implementation of
+       HLA ℎ
+• Sequences
+     • 𝑅𝐸𝐴𝐶𝐻 𝑠, ℎ1, ℎ2           = ∪&’∈)*+,-(&,0!) 𝑅𝐸𝐴𝐶𝐻 (𝑠’, ℎ2)
+• Key property
+     • Downward refinement: if a high-level plan reaches the goal, then at least
+       one of its refinements (into primitive actions) will also achieve the goal.
+     • Each HLA must be defined with complete and correct implementations
+Real World Planning and Acting                                                   41
+Representing Reachable Set
+• Notations:
+     • ~ means possibly, if the agent chooses
+             0 𝐴 means “possibly add 𝐴”, i.e., either leave 𝐴 unchanged or make it True
+     • E.g., +
+• Questions:
+     • What do −       3 𝐴 mean?
+               0 𝐴 and ±
+• Example
+     𝐺𝑜(𝐻𝑜𝑚𝑒, 𝑆𝐼𝑁) with two refinements
+     • 𝐷𝑟𝑖𝑣𝑒(𝐻𝑜𝑚𝑒, 𝑆𝐼𝑁) and 𝑇𝑎𝑥𝑖(𝐻𝑜𝑚𝑒, 𝑆𝐼𝑁)
+     • Possibly delete 𝐶𝑎𝑠ℎ (if agent decides to take a taxi)
+     • So should have effect −
+                             0 𝐶𝑎𝑠ℎ
+
+Real World Planning and Acting                                                      42
+Example
+                                                                                          A
+• Consider:
+    • Schemas for HLAs h1 and h2:
+    • Action (h1, Precond: ¬A, Effect: A Ù −
+                                           ! B)
+                                       !A Ù ±
+    • Action (h2, Precond: ¬B, Effect: +     % C)       B                                  C
+• Meaning:
+   • h1 adds A and possibly delete B
+   • h2 possibly adds A and has full control over C
+• Exercise:
+    • If only B is true in the initial state and goal is A Ù C
+    • What sequence of HLAs will achieve the goal?
+    • [h1, h2] achieves the goal
+    • Choose an implementation of h1 that makes B false, then choose an implementation of h2
+      that leaves A true and makes C true
+Real World Planning and Acting                                                                 43
+Approximate Reachable Sets
+• Why approximate?
+     • HLAs may have infinitely many refinements
+       → approximation keeps reasoning tractable and prunes early
+• Types
+     • Optimistic (𝑅𝐸𝐴𝐶𝐻' ): overestimates → may miss failures
+     • Pessimistic 𝑅𝐸𝐴𝐶𝐻( : underestimates → may miss successes
+• General rule
+     • 𝑅𝐸𝐴𝐶𝐻( (𝑠, ℎ) ⊆ 𝑅𝐸𝐴𝐶𝐻(𝑠, ℎ) ⊆ 𝑅𝐸𝐴𝐶𝐻' (𝑠, ℎ).
+• Key insight                                                   Safe for pruning failures
+     • If 𝑅𝐸𝐴𝐶𝐻' ∩ Goal = ∅ → plan fails
+     • If 𝑅𝐸𝐴𝐶𝐻( ∩ Goal ≠ ∅ → plan succeeds
+                                                               Safe for certifying success
+     • Otherwise → refine
+Real World Planning and Acting                                                               44
+    High-Level Planning with Approximate Descriptions
+Reachable sets:                       Definitely achieves goal   Needs refinement
+pessimistic
+(solid lines, light blue)
+optimistic
+(dashed lines, light green)
+
+
+
+
+            Definitely NOT achieves goal
+                                                                   Source: RN: Fig 11.10
+    Real World Planning and Acting                                                         46
+Summary
+• Hierarchical decomposition:
+     • Tasks → subtasks → primitives
+• Abstraction & refinement
+     • Reduce complexity, with downward refinement ensuring correctness
+• Reachable sets
+     • Guide correctness checks, with approximations (𝑅𝐸𝐴𝐶𝐻 & ,𝑅𝐸𝐴𝐶𝐻 ' )
+• Pipeline:
+     • Abstract Plan → Reachable Sets → Refinement → Primitive Plan
+• HTN planning today:
+     • Method libraries, learning & reuse, applied in planning, RL, robotics,
+     • Now integrated with LLMs
+Real World Planning and Acting                                                  47
+LLM-Assisted Planning
+Modeling
+Task decomposition
+Search optimization
+
+
+Real World Planning and Acting   48
+LLM-Guided PDDL Creation and Refinement
+• Goal
+     • Automate PDDL domain/problem generation and refine models with feedback.
+• Approach
+     • LLM drafts initial PDDL from natural language goals domain and task descriptions
+     • Evaluate generated PDDL in environment.
+     • Iterative refinement via environment testing.
+     • Planner executes final PDDL models.
+• Example
+     • Mahdavi et al., NeurIPS 2024 NeurIPS | GitHub
+     • LLM + feedback loop solves 66% tasks vs GPT-4’s 29% intrinsic planning with CoT
+     • Environment feedback greatly boosts planning success over LLM-only approaches
+     • Planner: Fast Downward (with TextWorld modifications); plans validated with VAL.
+
+Classical Planning                                                                        49
+    LLM-assisted PDDL Creation
+                                          Domain checking
+
+
+
+Main task
+                                                                              Translate into PDDL
+
+
+Subproblems
+                                                                      Domain refinement
+
+
+
+
+             Planning and Decomposition   LLM- Planner Loop
+                                             Source: Figure 3: Madhavi et. Al. NeurIPS 2024
+    Classical Planning                                                                        50
+Task Decomposition & Subgoal Planning
+• Goal
+     • Combine LLM commonsense reasoning with symbolic planners for complex tasks.
+• Approach
+     • LLM decomposes high-level goals into subgoals.
+     • Subgoals encoded in PDDL and solved by planners.
+     • Complex subgoals handled by Monte Carlo Tree Search (MCTS) with LLM policy.
+• Example
+     • Kwon et al., ICRA 2025 ArXiv | Github
+     • Hybrid symbolic + MCTS planning reduces time and boosts scalability (reduces planning
+       time while maintaining competitive success rates vs. baseline).
+     • Planner: PDDL-based symbolic planner (Fast Downward as baseline) + MCTS-based LLM
+       planner for complex subgoals.
+Real World Planning and Acting                                                            51
+Notes: Symbolic + MCTS with LLM
+• Symbolic Planner (Baseline)
+     • For moderately complex subgoals, the system uses Fast Downward
+• When to Switch
+     • If a sub-problem 𝑃? is deemed too complex (e.g., by estimated Minimum
+       Description Length or planning time), system switches from the symbolic planner
+       to the Monte Carlo Tress Search (MCTS)-based LLM planner. ArXiv
+• How it Works
+     • LLM (GPT-4) acts as rollout policy (L-Policy), sampling 𝑛@ candidate plans for 𝑃? .
+     • Candidates define a state tree 𝑇? ,with states as nodes and actions as edges.
+     • MCTS explores this tree via selection, simulation, and backpropagation to find a
+                                                           ∗
+       valid plan that reaches the next desired subgoal 𝑆?A=  .
+
+Real World Planning and Acting                                                               52
+Heuristic Generation via LLMs
+• Goal
+     • Leverage LLMs to create domain-specific heuristics for classical planners.
+• Approach
+     • LLM synthesizes Python-coded heuristics from domain specs.
+     • Heuristics plugged into classical planners to guide search.
+• Example
+     • Corrêa et al., 2025 ArXiv
+     • LLM-generated heuristics reduce explored states significantly
+     • Approach outperforms standard domain-independent heuristics.
+     • Planner: Pyperplan using Greedy Best-First Search (GBFS)
+
+
+Real World Planning and Acting                                                      53
+Generalized Planning in PDDL Domains with LLMs
+• Goal
+     • Leverage LLMs as generalized planners to learn reusable strategies across PDDL domains.
+• Approach
+     • LLM (GPT-4) prompted with PDDL domain descriptions and two training tasks.
+     • LLM + Chain-of-Thought extracts domain rules and strategies.
+     • LLM generates domain-specific Python programs for new tasks.
+     • Automated debugging refines outputs via re-prompting.
+• Example
+     • Silver et al., AAAI 2024 AAAI
+     • No classical planner used — LLM generated programs directly, compared against classical baselines.
+     • LLM (GPT-4) generalized across 7 PDDL domains with only 2 training tasks; often rivaling or
+       surpassing classical baselines when automated debugging was applied.
+
+Real World Planning and Acting                                                                   54
+Example: Generalized Planning in PDDL Domains with
+Pretrained Large Language Models (LLMs)
+
+
+
+
+      Source: Silver, T., S. Dan, K. Srinivas, J. B. Tenenbaum, L. Kaelbling and M. Katz (2024). Generalized planning in PDDL domains with
+      pretrained large language models. Proceedings of the AAAI Conference on Artificial Intelligence.
+      https://ojs.aaai.org/index.php/AAAI/article/view/30006
+
+Overview                                                                                                                                     55
+From Classical to Modern Planning: Next Steps
+• Classical planning remains highly relevant
+     • Crucial in robotics, logistics, space mission planning, game AI, and multi-agent coordination, etc.
+• • Scaled via:
+     • Heuristics from relaxed models and abstractions
+     • Hierarchical decomposition (HTNs, HLAs)
+     • Emerging LLM-assisted methods for PDDL model generation, subgoal planning, and heuristic learning
+• Yet real world environments involve uncertainty
+     • Noisy sensors, incomplete information, and stochastic dynamics
+     • Goals often involve trade-offs among preferences, risk, and utility
+• Next Topics:
+     • Modeling and planning and sequential decision making under uncertainty
+     • → Utility Theory, Markov Decision Processes (MDPs), Reinforcement Learning
+
+Real World Planning and Acting                                                                               56
+Homework
+• Readings:
+     • Heuristics: RN: 11.3
+     • Hierarchical: RN: 11.4
+     • Summary: RN: 11.7
+• Reviews:
+     • RN: 3.3, 3.5, 3.6 (Review of search and heuristics in problem solving)
+
+
+
+
+Real World Planning and Acting                                                  57
+References
+•   Classical and hierarchical planning systems:
+       •   (Journal articles publicly available online or through NUS Library e-Resources)
+       •   Hoffmann, J. and B. Nebel, The FF planning system: fast plan generation through heuristic search. J. Artif. Int. Res., 2001. 14(1): p. 253–302.
+       •   Helmert, M., The fast downward planning system. J. Artif. Int. Res., 2006. 26(1): p. 191–246.
+       •   Georgievski, I. and M. Aiello, HTN planning: Overview, comparison, and beyond. Artificial Intelligence, 2015. 222: p. 124-156.
+       •   Höller, D., et al., The PANDA Framework for Hierarchical Planning. KI - Künstliche Intelligenz, 2021. https://rdcu.be/cn6Ra
+       •   Höller, D., et al., HDDL: An Extension to PDDL for Expressing Hierarchical Planning Problems. Proceedings of the AAAI Conference on Artificial Intelligence, 2020. 34(06): p.
+           9883-9891. https://cdn.aaai.org/ojs/6542/6542-13-9767-1-10-20200519.pdf
+       •   Höller, D. (2026). Learning Heuristic Functions for HTN Planning. Proceedings of the AAAI Conference on Artificial Intelligence, 40(43), 36262–36270.
+           https://doi.org/10.1609/aaai.v40i43.40945
+
+•   Classical planning in the Real World and recent trends: (excluding integration with large foundational models)
+       •   Neufeld, X., et al., Building a Planner: A Survey of Planning Systems Used in Commercial Video Games. IEEE Transactions on Games, 2019. 11(2): p. 91-108.
+           https://ieeexplore.ieee.org/document/8214211
+       •   Sohrabi, S., AI Planning for Enterprise: Putting Theory Into Practice, in Proceedings of the Twenty-Eighth International Joint Conference on Artificial Intelligence, IJCAI-19.
+           2019, International Joint Conferences on Artificial Intelligence Organization. p. 6408--6410. https://www.ijcai.org/proceedings/2019/0897.pdf
+       •   Estlin, T., et al. Increased Mars Rover Autonomy using AI Planning, Scheduling and Execution. in Proceedings 2007 IEEE International Conference on Robotics and Automation.
+           2007. https://ai.jpl.nasa.gov/public/documents/papers/estlin_icra07_marsrover.pdf
+       •   Rabideau, G.; Wong, V.; Gaines, D.; Agrawal, J.; Chien, S.; Kuhn, S.; Fosse, E.; and Biehl, J. Onboard Automated Scheduling for the Mars 2020 Rover. In Proceedings of the
+           International Symposium on Artificial Intelligence, Robotics and Automation for Space, of i-SAIRAS'2020, Noordwijk, NL, 2020. European Space
+           Agency https://ai.jpl.nasa.gov/public/documents/papers/M2020_OBP_i-SAIRAS2020_camera.pdf
+       •   Steinmetz, M., J. Hoffmann, A. Kovtunova and S. Borgwardt (2022). Classical planning with avoid conditions. Proceedings of the AAAI Conference on Artificial Intelligence
+           36(9): 9944-9952. 10.1609/aaai.v36i9.21232
+       •   Bercher, P. (2022). Hierarchical planning and reasoning about partially ordered plans — from theory to practice. AI Magazine 43(4): 353-364. 10.1002/aaai.12073
+           https://ojs.aaai.org/aimagazine/index.php/aimagazine/article/view/22007
+
+Real World Planning and Acting                                                                                                                                                               58
+Appendix
+
+
+Real World Planning and Acting   59
+Notes: Examples of LLM-Assisted Planning
+                     LLM + PDDL
+Category                               Key Contribution          Planner(s) Used        Reference
+                     Integration
+                                    Generate & refine PDDL
+                     LLM-guided PDDL
+Model Creation                      models via feedback          Fast Downward + VAL NeurIPS 2024
+                     creation
+                                    (Exploration Walk + VAL)
+Task             Task               LLM decomposes tasks;
+                                                                 Symbolic PDDL
+Decomposition & decomposition +     symbolic planners / MCTS                            ICRA 2025
+                                                                 planner + MCTS
+Subgoal Planning subgoal planning   solve subgoals
+                                    Synthesize domain-specific
+Heuristic        Heuristic
+                                    heuristics to speed up       Pyperplan with GBFS ArXiv 2025
+Generation       generation via LLM
+                                    search
+                                    LLM learns reusable
+                 Generalized                                     None directly
+General Planning                    planning strategies and                             AAAI 2024
+                 planning via LLMs                               (strategy synthesis)
+                                    generates solver-like code
+
+
+Real World Planning and Acting                                                                      60
+                                                                  Making planning applicable
+Notes: AIPlanning4EU Project                                            for everyone
+
+
+
+
+        Source: https://www.aiplan4eu-project.eu
+
+
+
+
+                                                         https://github.com/aiplan4eu/unified-planning
+      https://youtu.be/nhO_F9SHEdM?si=-k3_1_bb7P6ZbNmx
+Classical Planning                                                                               61
+Notes: The PANDA Framework
+• PANDA – Planning and Acting in a Network Decomposition
+  Architecture (GitHub, Uni Ulm)
+     •   Supports hierarchical planning with multiple solving techniques:
+     •   PANDApss – Heuristic plan space search (HTN + POCL).
+     •   PANDApro – Heuristic progression search.
+     •   PANDAtotSAT – Solves totally ordered HTN planning via SAT encoding.
+• HDDL: Extension to PDDL for hierarchical planning
+     • AAAI 2020 paper
+     • Overview: KI 2021 paper.
+• PANDADealer – Totally ordered HTN planner (GitHub)
+     • Winner in HTN categories at IPC 2023 (ICAPS 2023 Proc.).
+     • Builds on PANDA framework with optimizations for totally ordered tasks.
+• Learning heuristic functions for HTN Planning
+     • Holler – AAAI-2026                                                        Source: https://ipc2023-htn.github.io
+     • https://doi.org/10.1609/aaai.v40i43.40945
+
+
+
+Real World Planning and Acting                                                                                       62
+

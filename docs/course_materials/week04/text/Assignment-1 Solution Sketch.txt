@@ -1,0 +1,285 @@
+                             National University of Singapore
+                                  School of Computing
+                                       Semester 1, AY2026-27
+
+CS4246/CS5446                            Reinforcement Learning and Sequential Decision Making
+
+Issued: 2 September 2026                                   Due: Friday 18 September 2026 23:59
+
+Rush Hour Adventures: Episode I - AI Planning for the Elevator Challenge
+
+Guidelines
+Please complete the Assignment in your existing Tutorial Teams as formed on Canvas. ONE per-
+son from each team should submit ALL the answers, and grading will be done team-wise. The
+assignment is graded out of 10 points in total.
+
+
+On collaboration
+   You are encouraged to discuss solution ideas. However, each team must write up the solutions
+independently. It is considered plagiarism if the solution write-up is highly similar to other teams’
+write-ups or other sources.
+Generative AI Usage & Declaration
+    The use of Generative AI tools (such as ChatGPT, Claude, Copilot, etc.) is permitted for this
+assignment in accordance with course guidelines.
+    • Declaring AI usage is not graded (AI usage records, prompts, and audit notes will not impact
+      your score).
+    • If you wish to document or declare your AI tool usage, prompt logs, or reflections for trans-
+      parency, you may do so by filling out ai usage.md.
+    • Students remain solely responsible for the technical correctness and understanding of all
+      submitted code and models.
+Assignment Solutions Submission
+    • You can download the programming package from Canvas or from this GitHub repo.
+    • No late submissions are allowed.
+    • Please write the following on the top of the solution files:
+         – Name and matric number (starting with “A...”) of all team members as they appear on
+           Canvas.
+         – Collaborators (write None if no collaborators)
+         – Sources, if any, or if you obtained the solutions through research, e.g., through the web.
+Rush Hour Adventures: Episode I - AI Planning for the Elevator Challenge                           2
+
+
+    • The coding package should be zipped and named:
+      netid1-netid2.zip            (or netid1-netid2-netid3.zip if 3-person team),
+      where netid is the id starting with “E...”. Only submit the zipped file to Canvas. The
+      folder structure should be strictly formed as follows:
+         netid1-netid2.zip (or netid1-netid2-netid3.zip)
+             EleEnv
+             1 PDDL.ipynb
+             2 hierarchical.ipynb
+             1 PDDL solution.py
+             2 hierarchical solution.py
+             3 freeform planning.ipynb
+             3 freeform planning solution.py
+             ai usage.md
+    • IMPORTANT! We are grading based on the three python scripts, you are going to code in
+      the Jupyter notebooks, after completion, remember to COPY or IMPLEMENT the solu-
+      tions to the corresponding python scripts, detailed instructions as follows.
+
+
+
+Programming
+Welcome to the Elevator Challenge! This assignment will immerse you in a classic AI planning
+problem set in the bustling environment of a high-rise building during the evening rush hour. Your
+mission, should you choose to accept it, is to design and implement planning solutions for a single
+elevator serving passengers with different start and destination floors. This seemingly simple sce-
+nario brings a host of planning challenges involving state modelling, capacity constraints, ordering,
+and service quality.
+
+Background: The Elevator Domain
+The Elevator Domain is a well-known problem in AI planning that captures the intricacies of
+coordinating movements in a constrained environment. Imagine a busy office building with several
+floors and passengers travelling between different parts of the building. There is ONLY ONE
+elevator, but its capacity is specified by each problem configuration. The elevator can start from
+any floor and may need to make several trips to serve all passengers while respecting its door and
+occupancy constraints.
+    For more insight into the elevator’s operation, please explore the provided interactive Jupyter
+notebook, 0 env walkthrough.ipynb, where you can play around with different scenarios
+and understand the domain constraints and dynamics in detail.
+Rush Hour Adventures: Episode I - AI Planning for the Elevator Challenge                             3
+
+
+About the Unified Planning Library
+This assignment is part of a broader exploration of AI planning techniques, leveraging tools from
+the AIPlan4EU project, a European initiative aimed at advancing AI planning technologies. AI-
+Plan4EU provides a Unified Planning Library designed to offer flexible and powerful planning
+solutions, integrating different planning paradigms, such as classical PDDL (Planning Domain
+Definition Language) and Hierarchical Task Network (HTN) planning.
+    You will also use the Aries interface, a user-friendly platform that makes it easy to interact with
+these planners and visualize your solutions. These tools will help you tackle the elevator planning
+problem effectively.
+
+Instructions on Solution
+Problems 1 and 2 can be worked on in the Jupyter notebooks 1_PDDL.ipynb and 2_
+hierarchical.ipynb.            An optional bonus problem is provided in 3_freeform_
+planning.ipynb.
+ONLY the python scripts will be graded, i.e., 1_PDDL_solution.py, 2_hierarchical_
+solution.py, and, if attempted, 3_freeform_planning_solution.py. So after com-
+pletion on Jupyter Notebooks, please copy or implement the required blocks to the corresponding
+python scripts. All blocks you should copy are indicated by comments like (where N indicates
+different blocks):
+# COPY-FLAG-N-START
+# COPY-FLAG-N-END
+
+Problem 1: Classical Planning (2 points)
+In the first task, you will implement a solution using the Planning Domain Definition Language
+(PDDL), a standard language for expressing planning problems. You will first model passenger
+requests with arbitrary start and goal floors, then extend the model with destinations, completed
+trips, and a configurable elevator capacity. The model and problem generators should work for
+every valid configuration described in the notebook.
+    Instructions: Complete this part in the 1 PDDL.ipynb Jupyter notebook, following the de-
+tailed guidelines provided. After completion, copy the required blocks to 1 PDDL solution.py.
+There are four parts to the problem: foundational domain, foundational problem generator, capacity-
+aware domain, and capacity-aware problem generator. Only the two capacity-aware tasks are
+graded (1 point each, 2 points total). The foundational tasks are ungraded. AI assistance is per-
+mitted and encouraged, but you are responsible for checking that the resulting model captures the
+intended rules. The solution script includes an optional space for concise AI-audit notes; it is not
+read by the autograder, and carries no marks. Prompt transcripts and AI usage records are not
+graded.
+Rush Hour Adventures: Episode I - AI Planning for the Elevator Challenge                            4
+
+
+Problem 2: Hierarchical Planning (8 points)
+Hierarchical Task Network (HTN) planning is a method that breaks down complex tasks into sim-
+pler sub-tasks. In the second task, you will carry the passenger destination and capacity repre-
+sentation from Problem 1 into a hierarchical model, specify primitive actions and decomposition
+methods, construct an ordered task network, and design a service-order policy for passengers with
+deadlines and time-dependent utility.
+    Instructions: Work through this part in the 2 hierarchical.ipynb Jupyter notebook,
+where step-by-step instructions will guide you in implementing and testing your hierarchical plan-
+ning approach. You will directly implement your code solutions in 2 hierarchical solution.py.
+Primitive actions, HTN methods, and the ordered initial task network are worth 1 point each. Solv-
+ability with successful independent replay is worth 3 points, averaged across various test configu-
+rations. Plan quality contributes the remaining 2 points and is based only on the normalized total
+utility, for 8 points in total. Test configurations scale up to 10 passengers with a hard 10-second
+per-case execution limit, as described in the notebook.
+
+Problem 3: Free-form Planning (Optional, 2 Bonus Points)
+The optional third task keeps the same passenger-request schema, capacity batching, timing model,
+and utility function as Problem 2, but removes the required HTN representation. It tests on scenar-
+ios with more passengers and uses a hard two-second limit for each case. You may use any finite
+algorithm to choose the service order; passengers do not walk or change queues.
+    Instructions: Complete 3 freeform planning.ipynb. You will implement the code
+solutions in the corresponding python script 3 freeform planning solution.py. The
+bonus is worth at most 2 points. Bonus points earned will fill in any points lost in Problems 1 and
+2, with the final total assignment grade capped at 10 points. Twenty equally weighted hidden test
+cases are used, and each case earns 0.1 point when a valid order attains at least 98% of the optimal
+total utility within the hard two-second limit. Faster accepted solutions do not receive extra credit.
+
+
+
+Through these exercises, you will not only deepen your understanding of AI planning but also gain
+practical experience in applying these techniques to solve real-world problems.
+
+   Good luck, and have fun exploring the fascinating world of AI planning!
+
+Problems You May Face
+1. Edge-case of OneshotPlanner:
+
+    • When executing code blocks that use OneshotPlanner from the Unified Planning library,
+      an error may occur if the current file’s parent directories contain whitespace in their names.
+
+    • Please rename the directories to remove spaces and re-run the code.
+Rush Hour Adventures: Episode I - AI Planning for the Elevator Challenge                            5
+
+
+2. Packages that are necessary:
+
+    • Please install the required packages before running the code:
+
+         – pip install -r requirements.txt
+
+
+Programming Solution Sketches
+Problem 1: Classical Planning
+In the first task, you will implement a solution using the Planning Domain Definition Language
+(PDDL), a standard language for expressing planning problems. You will model the elevator do-
+main by defining the relevant objects, states, actions, and goals. The model should support pas-
+sengers traveling between arbitrary floors and will be extended to represent a configurable elevator
+capacity.
+
+    Solution:
+ To approach the elevator problem in PDDL, consider the following components.
+1. Domain File:
+
+    • The types and predicates are predefined and fixed, do not add, delete, or rename predicates
+      and parameters.
+
+    • The movement, door, loading, and unloading actions should use preconditions and effects
+      that preserve the intended elevator rules. For each action, identify which facts must hold for
+      it to be legal and which facts it makes true and false. Delete effects matter as much as add
+      effects: a fact that is no longer true must be retracted.
+
+    • In the capacity-aware model, also represent passenger destinations, completed trips, and the
+      current number of passengers in the elevator.
+
+2. Problem File:
+
+    • Generate the objects, initial state, and goals from the supplied configuration rather than
+      assuming fixed passenger locations or destinations.
+
+    • Include both directions of floor adjacency and initialise the elevator at the configured floor.
+
+    • In the capacity-aware problem, initialise the count chain and correctly handle passengers
+      who are already at their destinations.
+
+3. Verification:
+
+    • Run the planner on several configurations and inspect the meaning of the returned actions.
+Rush Hour Adventures: Episode I - AI Planning for the Elevator Challenge                         6
+
+
+    • Planner success shows that a plan is valid under your model; it does not by itself show that
+      the model matches the intended domain.
+    • Hidden tests use the documented configuration schemas, so the implementation should gen-
+      eralise beyond the notebook examples.
+   You May Want to Pay Attention To:
+    • The elevator should move only when its door is closed.
+    • Loading and unloading should require the correct passenger and elevator locations and
+      should update occupancy consistently.
+    • When the elevator reaches full, it should be unable to load because the count chain has
+      no step beyond the capacity. In addition, a delivered passenger should never board again.
+      Remember to check for boundary cases.
+    • AI-generated PDDL should be treated as a draft and checked against the domain rules. The
+      optional AI-audit notes field may be left blank and is not read by the autograder; prompt
+      transcripts are not graded.
+
+Problem 2: Hierarchical Planning
+Hierarchical Task Network (HTN) planning breaks complex tasks into simpler subtasks. In the
+second task, you will create a hierarchical model for the same elevator domain, specifying primi-
+tive actions, abstract tasks, methods, and an ordered task network while preserving the destination
+and capacity constraints from Problem 1.
+
+   Solution:
+
+The provided code includes the following:
+Objects: Floor, Elevator, Person, and Count, which describe the objects used by the fixed repre-
+sentation.
+
+Fluents: Fluents track passenger and elevator locations, the door state, passenger destinations and
+completion, and the elevator occupancy count.
+
+Actions: move elevator, load, unload, open door, and close door. Their preconditions and effects
+should preserve the same movement, door, destination, and capacity rules as in Problem 1.
+
+Tasks and Methods: Pickup and delivery tasks require different decompositions depending on
+whether the elevator is already at the relevant floor. A separate case handles passengers who begin
+at their destination and need no subtasks. The primitive subtasks within each method must be to-
+tally ordered.
+Rush Hour Adventures: Episode I - AI Planning for the Elevator Challenge                               7
+
+
+Initial Task Network: The service order is divided into consecutive capacity-sized batches after
+initially reached passengers are filtered out. Add all pickups in a batch before its deliveries, and
+totally order the complete task network.
+
+Service Policy: Each request includes a deadline, base utility, and late penalty. The policy should
+return every passenger index exactly once and seek high total utility. Completion time and elevator
+travel are useful diagnostics, but only total utility contributes to the quality score. Test both service
+quality and performance on the range of instances described in the notebook.
+
+A successful planner result should also be checked against the intended primitive action sequence
+and external timing model. The grader performs this replay independently. Package usage exam-
+ples are available in the Unified Planning documentation.
+
+Problem 3: Free-form Planning (Optional Bonus)
+Problem 3 retains Problem 2’s passenger schema, capacity batching, timing rules, and utility eval-
+uator but does not require actions, methods, or a task network. It uses larger instances and a hard
+two-second limit for each case.
+
+   Solution:
+
+Implement a function that returns a permutation of all passenger indices. Initially completed pas-
+sengers must remain in the returned permutation, although they are removed before the active
+passengers are divided into capacity-sized batches. The external evaluator, rather than the submit-
+ted module, determines completion times and total utility.
+
+Any finite search or optimisation method may be used. A useful progression is to begin with ex-
+haustive DFS, obtain a good incumbent early, and then consider branch-and-bound or dynamic
+programming. When reusing partial results, make sure the stored state contains enough informa-
+tion to determine the cost and utility of all future batches.
+
+Test the policy across the published passenger-count ranges, including capacity one, partial final
+batches, and initially completed passengers. Across twenty equally weighted hidden cases, each
+case requires at least 98% of the optimal total utility within the hard two-second limit; runtime
+below that limit is not itself a scoring objective.
+

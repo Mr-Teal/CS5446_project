@@ -1,0 +1,451 @@
+Responsible AI Planning and Decision Making
+Introduction
+
+
+Overview                                      18
+Example: Parcel Delivery
+
+
+
+
+                     Source: maps.google.com.sg
+Overview                                          19
+Example: Asthma Management
+
+
+
+
+                                                                                                                 Source: AIHA 2006
+
+           Source: American International Health Alliance. BRONCHIAL ASTHMA - Clinical Practice Guideline for General Practitioners. 2006.
+                 http://www.aiha.com/en/ResourceLibrary/Products/Curricula/pdf/CPG%20Asthma%20EN.pdf [Accessed 6 Aug 2010]
+Overview                                                                                                                                     20
+   Example: Characters in Games
+                            Source: https://aiwarriorswebsite.github.io/AIWarriors/
+
+
+
+
+                                                                                      Source: www.battle.net/wow
+
+
+
+
+Source: stardewvalley.net
+                                                                                                     Source: dota2.com
+
+
+   Overview                                                                                                 21
+  Example: Assistive Robots
+
+
+
+                                                             Source: Romibo
+
+
+
+           Source: www.cyberbotics.com
+                                         Source: Aldebaran
+
+
+
+
+Overview                                                                      22
+Example: Scientific and Industry Robots
+
+
+
+
+               Source: IMDA
+
+
+Overview                                  23
+Example: Warehouse Management
+• How does Amazon do it?
+
+
+
+
+https://youtu.be/a77XyUI-zXo
+                               https://youtu.be/G-WdDeQ4TKw?si=EDGLXT0GE33VU_-w
+
+Overview                                                                  24
+  Example: Space Exploration
+
+
+
+
+                   Source: https://pixabay.com/illustrations/martian-   Source: www.nasa.gov
+                   monster-green-1674016/
+
+
+Overview                                                                                       25
+AI: Building A Rational Agent
+                                                                         Perception
+                                                                          Learning
+                                                                          Modeling
+                                                                         Reasoning
+                                                                     Planning and Acting
+                                                                       Decision Making
+                          Sensing
+
+
+
+           Environment   Communicating
+
+
+
+
+                            Acting
+
+
+                                         Agent graphics source: ChatGPT4o, accessed 8 Aug 2024
+
+Overview                                                                                    26
+A Planning Problem
+                                    S1            A1     S2         A2
+                                                                           …
+                                                                                   An                   G
+• Assumption:
+    • Agent in task Environment
+                                                       Example:                         a
+• Definition:
+    • States in an environment, with Initial State                             I                b
+                                                       Plan from I to G:
+    • Actions available in a state
+    • Effects of applying an action                                        d
+                                                                                                         X
+    • Goal test to see if objective is met                                                  c
+                                                                               Y
+• Solution:                                                        e                        f
+    • Start from Initial State, find action
+      sequence whose effects (resulting states)                                                     Z
+      lead to the goal state                                        G
+
+Overview                                                                                                27
+Solving Planning Problems
+• Planning Problem or Model
+    • Appropriate abstraction of states, actions, effects, and goals (and costs and values)
+• Planning Algorithm
+    • Input: a problem
+    • Output: a solution in the form of an action sequence (a plan)
+• Planning Solution
+    • A plan or path from the initial state(s) to the goal state(s)
+           • Any path; OR
+           • An optimal path wrt to costs or values
+    • A goal state that satisfies certain properties
+Overview                                                                                 28
+Planning Problem Types
+       Problem Feature                      Simple                              Complex
+       States                               Fully observable Partially observable
+       Actions                              Discrete                            Continuous
+       Effects                              Deterministic                       Non-deterministic or Uncertain
+       Goals                                Deterministic                       Ordered or graded
+       Environment                          Static                              Dynamic
+       Agent                                Single                              Multiple
+
+
+
+                                                                 Costs, preferences, horizon, changes, etc.
+      Source: (GNT) Chapter 2, Ghallab, M., D. Nau, and P. Traverso, Automated planning: Theory and practice. 2004: Morgan Kaufmann
+
+Overview                                                                                                                              29
+AI Planning and Sequential Decision Making
+                                           The Actor’s View of Planning:
+An intelligent agent needs to:                  How to plan to act effectively in the real world?
+• make rational decisions                       How to act to plan effectively in the real world?
+    • What does rational mean?
+    • What are the decision objectives and guiding values?
+• plan a sequence of actions to achieve some objective
+    • How to learn to take actions optimally when there is uncertainty? change?
+    • How to scale it up to large problems?
+• act appropriately when there are other agents around
+    • How to act when the other agents are also “thinking” and optimizing for themselves?
+    • How to function and behave in a responsible manner in a human society?
+
+Overview                                                                                 30
+Course Syllabus
+• Classical planning (Review)
+• Decision theory
+• Probabilistic planning and decision making
+• Reinforcement learning (Planning + Learning)
+• Game theory and multi-agent decision making
+• Large foundational models in planning
+• And other new trends ..
+Overview                                         31
+The BIG Question
+• With the recent advancements of Large Foundational Models:
+
+                   Do we still need to learn
+           Sequential Decision Making techniques???
+
+
+           Agentic AI as sequential decision making …
+
+
+Overview                                                  32
+What is the State of the Art?
+AI Planning and Decision Making: Now and Future
+
+
+
+
+Overview                                          33
+AI: Building A Rational Agent
+                                                                         Perception
+                                                                          Learning
+                                                                          Modeling
+                                                                         Reasoning
+                                                                     Planning and Acting
+                                                                       Decision Making
+                          Sensing
+
+
+
+           Environment   Communicating
+
+
+
+
+                            Acting
+
+
+                                         Agent graphics source: ChatGPT4o, accessed 8 Aug 2024
+
+Overview                                                                                    34
+A Brief History of Agents
+
+
+
+
+Overview                    Graphics generated by GPT4o   35
+Symbolic Agent: Logical Inference
+                     Symbolic AI and Logical Reasoning
+
+
+
+
+                  Source: https://youtu.be/WHCo4m2VOws?si=aXyXVkKwUrHQzRvX
+Overview                                                                     36
+        Reinforcement Learning Agent: Trial and Error
+                                                      Trial and Error for Long Term Optimal Policy
+
+
+
+
+Source:
+https://youtu.be/gn4nRCC9Tw
+Q?si=Ro3ZeHgHOj9k9akg
+
+
+
+
+        Overview              Source: https://youtu.be/FWc6jkPJPNU?si=oPKcN-HyCMNvsXuC           37
+Large Foundation Model Agent: ReACT
+                                                Reasoning and Acting via Language
+
+
+
+
+Overview   Source: https://youtu.be/FwOTs4UxQS4?si=UuxFCfCbocxFi7YJ                 38
+Multi-Agent Collaboration
+                                  Multi-agent communication and coordination
+
+
+
+
+Overview   Source: https://youtu.be/kopoLzvh5jY?si=7QYbkZcqzlw154gN       39
+  Agentic AI in Practice Today
+Andrew Ng Explores The Rise Of AI Agents And Agentic Reasoning | BUILD 2024 Keynote
+
+
+
+
+  Overview                              Source: https://youtu.be/KrRD7r7y7NY?si=2qM1JDanTH17EXIo   40
+Agentic AI Landscape                                            Large Foundational Models
+                                                                            +
+                                                                     Memory Systems
+                                         Tools                              +
+                                                                 Computational Cognitive
+                          Sensing                                       Processes
+
+                                                                      Retrieval/Update
+
+           Environment   Communicating
+
+
+
+
+                            Acting
+
+
+                                            Agent graphics source: ChatGPT4o, accessed 8 Aug 2024
+
+Overview                                                                                       41
+                https://www.forbes.com/councils/forbestechcouncil/2025/03/11/the-rise-
+                of-the-one-person-unicorn-how-ai-agents-are-redefining-entrepreneurship/
+
+
+
+
+Overview   https://www.economist.com/business/2025/08/11/h                                                                                                             42
+           ow-ai-could-create-the-first-one-person-unicorn                                 https://www.straitstimes.com/opinion/how-ai-could-create-the-first-one-person-unicorn
+Responsible AI Planning and Decision Making
+
+• Toward Human-Aware AI Systems
+    • AI working for, working with, and working alongside Humans
+    • Human-AI collaboration
+• Toward Trustworthy AI Systems
+    • Natural interaction and effective collaboration
+    • Fairness, accountability, and transparency
+    • Robustness, resilience, privacy and security
+    • Social, ethical, governance and regulatory considerations
+
+Overview                                                           43
+Beyond Technical Challenges
+• Domain challenges
+    • Involving deep domain knowledge and operational issues
+    • Interacting conditions, processes, and goals
+• User challenges
+    • Different skill levels and preferences
+    • Varying usage patterns and cognitive biases
+• Economic challenges
+    • High implementation costs
+    • Unclear market viability and scalability
+• System challenges
+    • Uncertain and changing information, processes, environments
+    • Evolving IT and communication systems
+
+Overview                                                            44
+Common Principles of Responsible AI
+    How to incorporate these considerations into “rational” decision making?
+• Ensure safety                           • Reflect diversity/inclusion
+• Respect privacy                         • Support equality
+• Ensure fairness                         • Facilitate collaboration
+• Promote trust                           • Uphold human rights and values
+• Establish accountability                • Limit harmful uses of AI
+• Provide transparency                    •…
+• Attribute responsibility                               Ref: RN: Chapter 27
+
+Overview                                                                       45
+Making Responsible Decisions
+• Main issue:
+    • Value gained from accurate results balanced against additional efforts to incorporate responsible
+      feature(s) – transparency, privacy, fairness, safety & robustness, human factors, governance & regulation
+• Examples:
+    • diagnosis recommendations, risk predictions, optimal policies, assistive guidance, recruitment
+      interviews, social assistance schemes, university admissions, population censors , consumer behaviors,
+      scientific research
+• If you are a developer, user, or owner/manager/regulator:
+    1.     What is <responsible feature>? Why is it important?
+    2.     What can be done to ensure trust (in AI decision systems)?
+    3.     What are the techniques and tools available?
+    4.     What is the tradeoff between accuracy and <responsible feature> of a trusted agent?
+    5.     What are the implications?
+    6.     Who should make the decisions? When?
+Overview                                                                                                46
+When to Make Responsible Decisions?
+• In AI design and application?                  Requirement
+                                                   Analysis
+• In software engineering process?
+                                     Evolution      Policy,      Design
+• In deployment and maintenance?                     System
+                                                  Education
+                                                  Development
+                                                      and
+                                                    Life Cycle
+• Who should make decisions?
+                                                  Research
+• What are current practices?
+                                           Testing     Implementation
+
+
+Overview                                                                  47
+        AI Regulation on the Horizon
+
+                                                                                                   https://www.gov.cn/zhengce/202307/content_6892001.htm
+
+
+
+
+       https://artificialintelligenceact.eu
+
+
+
+
+                                                                                                      https://www.hsa.gov.sg/docs/default-source/hprg-
+                                                                                                      mdb/guidance-documents-for-medical-devices/gl-04-r3-
+                                                     https://www.nature.com/articles/d41586-023-      regulatory-guidelines-for-software-medical-devices---a-life-
+https://www.whitehouse.gov/ostp/ai-bill-of-rights/   02491-y                                          cycle-approach-(2024-mar)-pub.pdf?sfvrsn=bbb0bdd2_4
+
+                                                                                                                                                      48
+       Overview
+  Example: AI in Education
+
+
+
+
+https://www.weforum.org/agenda/2024/02   https://www.unesco.org/en/articles/ho
+/with-generative-ai-we-can-reimagine-    w-generative-ai-reshaping-education-
+education-and-the-sky-is-the-limit/      asia-pacific
+
+
+
+  Overview                                                               49
+  Example: AI in Health Care
+Home and Community               Policy, Regulation           Clinic and Hospital
+                                  and Governance
+
+                                  Global Health,
+                                Population Health,
+                                                       Workflow and Process Optimization
+                                   Public Health
+ Prevention and Care Support
+
+
+
+
+                                Scientific discovery
+                               and experimentation
+Monitoring and Communication                                Diagnosis and Treatment
+  Overview                                                                            50
+Example: AI in Finance and Business
+
+
+
+
+Overview                 Source: Office 365 Stock images   51
+AI for Good!
+
+
+
+
+ Overview      52
+Homework
+• If you have not taken CS3263 before: (mandatory)
+
+
+• Review Lecture (on Canvas):
+    • Classical (Symbolic) Planning
+           • As search and logical inference
+
+
+
+
+Overview                                             53
+Homework
+1.    Watch the Videos (Pages 36–40):
+     • Symbolic AI Agents
+     • Reinforcement Learning Agents
+     • Large Foundational AI Agents
+     • Multi-agent Collaboration
+     • Andrew Ng on Agentic AI in Practice
+2.    Research Further:
+     • What AI agents are commonly used in practice?
+     • What are the latest platforms or frameworks for building AI agents?
+     • What challenges or issues arise in using AI agents?
+3.    Deliverable:
+     • Prepare brief notes summarizing your findings for each question.
+     • Be ready to share and discuss in the Forum and/or the tutorial sessions
+Overview                                                                         54
+
