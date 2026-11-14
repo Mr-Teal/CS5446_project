@@ -1,0 +1,171 @@
+{
+  "purpose": "Illustrative rules example, not a strength experiment or complete belief posterior",
+  "public_start_fen": "k7/8/7r/8/3K4/8/8/8 b - - 0 1",
+  "hidden_black_moves": [
+    "h6c6",
+    "h6e6",
+    "h6d6"
+  ],
+  "fens": [
+    "k7/8/2r5/8/3K4/8/8/8 w - - 1 2",
+    "k7/8/4r3/8/3K4/8/8/8 w - - 1 2",
+    "k7/8/3r4/8/3K4/8/8/8 w - - 1 2"
+  ],
+  "white_observation": {
+    "player": "white",
+    "side_to_move": "white",
+    "ply": 1,
+    "visible_squares": [
+      "c3",
+      "c4",
+      "c5",
+      "d3",
+      "d4",
+      "d5",
+      "e3",
+      "e4",
+      "e5"
+    ],
+    "visible_pieces": {
+      "c3": null,
+      "c4": null,
+      "c5": null,
+      "d3": null,
+      "d4": "K",
+      "d5": null,
+      "e3": null,
+      "e4": null,
+      "e5": null
+    },
+    "legal_moves": [
+      "d4c3",
+      "d4c4",
+      "d4c5",
+      "d4d3",
+      "d4d5",
+      "d4e3",
+      "d4e4",
+      "d4e5"
+    ],
+    "halfmove_clock": null,
+    "captured_own_piece_at": null,
+    "terminal": false,
+    "outcome": null,
+    "schema_version": 1
+  },
+  "same_white_private_history": true,
+  "possibilities": [
+    {
+      "label": "A",
+      "rook_square": "c6",
+      "king_already_attacked": false,
+      "moves_allowing_immediate_rook_capture": [
+        "d4c3",
+        "d4c4",
+        "d4c5"
+      ]
+    },
+    {
+      "label": "B",
+      "rook_square": "e6",
+      "king_already_attacked": false,
+      "moves_allowing_immediate_rook_capture": [
+        "d4e3",
+        "d4e4",
+        "d4e5"
+      ]
+    },
+    {
+      "label": "C",
+      "rook_square": "d6",
+      "king_already_attacked": true,
+      "moves_allowing_immediate_rook_capture": [
+        "d4d3",
+        "d4d5"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "white_move": "d4c3",
+      "black_king_capture_replies": [
+        [
+          "c6c3"
+        ],
+        [],
+        []
+      ]
+    },
+    {
+      "white_move": "d4c4",
+      "black_king_capture_replies": [
+        [
+          "c6c4"
+        ],
+        [],
+        []
+      ]
+    },
+    {
+      "white_move": "d4c5",
+      "black_king_capture_replies": [
+        [
+          "c6c5"
+        ],
+        [],
+        []
+      ]
+    },
+    {
+      "white_move": "d4d3",
+      "black_king_capture_replies": [
+        [],
+        [],
+        [
+          "d6d3"
+        ]
+      ]
+    },
+    {
+      "white_move": "d4d5",
+      "black_king_capture_replies": [
+        [],
+        [],
+        [
+          "d6d5"
+        ]
+      ]
+    },
+    {
+      "white_move": "d4e3",
+      "black_king_capture_replies": [
+        [],
+        [
+          "e6e3"
+        ],
+        []
+      ]
+    },
+    {
+      "white_move": "d4e4",
+      "black_king_capture_replies": [
+        [],
+        [
+          "e6e4"
+        ],
+        []
+      ]
+    },
+    {
+      "white_move": "d4e5",
+      "black_king_capture_replies": [
+        [],
+        [
+          "e6e5"
+        ],
+        []
+      ]
+    }
+  ],
+  "scope": "All eight legal king moves, across three selected hidden states. Each move allows immediate king capture in at least one displayed state; none avoids it in all three. No optimality, probability or complete-posterior claim. Check does not restrict legal moves under these project rules."
+}

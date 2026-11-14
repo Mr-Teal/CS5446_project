@@ -1,0 +1,205 @@
+{
+  "purpose": "Illustrative history-based state inference, not a strength result",
+  "assumptions": "Known remaining material: White king and knight; Black king and rook. Black makes exactly one move between the views. Its king is visible before the capture; the rook is hidden. The rook starting square is not supplied to the player.",
+  "white_king_square": "d4",
+  "captured_knight_square": "d6",
+  "before_fen": "8/5k2/3N3r/8/3K4/8/8/8 b - - 0 1",
+  "hidden_black_move": "h6d6",
+  "after_fen": "8/5k2/3r4/8/3K4/8/8/8 w - - 0 2",
+  "white_before": {
+    "player": "white",
+    "side_to_move": "black",
+    "ply": 0,
+    "visible_squares": [
+      "b5",
+      "b7",
+      "c3",
+      "c4",
+      "c5",
+      "c8",
+      "d3",
+      "d4",
+      "d5",
+      "d6",
+      "e3",
+      "e4",
+      "e5",
+      "e8",
+      "f5",
+      "f7"
+    ],
+    "visible_pieces": {
+      "b5": null,
+      "b7": null,
+      "c3": null,
+      "c4": null,
+      "c5": null,
+      "c8": null,
+      "d3": null,
+      "d4": "K",
+      "d5": null,
+      "d6": "N",
+      "e3": null,
+      "e4": null,
+      "e5": null,
+      "e8": null,
+      "f5": null,
+      "f7": "k"
+    },
+    "legal_moves": [],
+    "halfmove_clock": null,
+    "captured_own_piece_at": null,
+    "terminal": false,
+    "outcome": null,
+    "schema_version": 1
+  },
+  "white_after": {
+    "player": "white",
+    "side_to_move": "white",
+    "ply": 1,
+    "visible_squares": [
+      "c3",
+      "c4",
+      "c5",
+      "d3",
+      "d4",
+      "d5",
+      "e3",
+      "e4",
+      "e5"
+    ],
+    "visible_pieces": {
+      "c3": null,
+      "c4": null,
+      "c5": null,
+      "d3": null,
+      "d4": "K",
+      "d5": null,
+      "e3": null,
+      "e4": null,
+      "e5": null
+    },
+    "legal_moves": [
+      "d4c3",
+      "d4c4",
+      "d4c5",
+      "d4d3",
+      "d4d5",
+      "d4e3",
+      "d4e4",
+      "d4e5"
+    ],
+    "halfmove_clock": null,
+    "captured_own_piece_at": "d6",
+    "terminal": false,
+    "outcome": null,
+    "schema_version": 1
+  },
+  "current_view_only": {
+    "player": "white",
+    "side_to_move": "white",
+    "visible_squares": [
+      "c3",
+      "c4",
+      "c5",
+      "d3",
+      "d4",
+      "d5",
+      "e3",
+      "e4",
+      "e5"
+    ],
+    "visible_pieces": {
+      "c3": null,
+      "c4": null,
+      "c5": null,
+      "d3": null,
+      "d4": "K",
+      "d5": null,
+      "e3": null,
+      "e4": null,
+      "e5": null
+    },
+    "legal_moves": [
+      "d4c3",
+      "d4c4",
+      "d4c5",
+      "d4d3",
+      "d4d5",
+      "d4e3",
+      "d4e4",
+      "d4e5"
+    ],
+    "terminal": false,
+    "outcome": null
+  },
+  "current_view_scope": "Current visible squares, pieces and legal moves, without ply or capture-event history. This is the information shown on the standalone fog-view slide.",
+  "matching_hidden_transitions": [
+    {
+      "rook_before": "a6",
+      "move": "a6d6",
+      "after_fen": "8/5k2/3r4/8/3K4/8/8/8 w - - 0 2"
+    },
+    {
+      "rook_before": "b6",
+      "move": "b6d6",
+      "after_fen": "8/5k2/3r4/8/3K4/8/8/8 w - - 0 2"
+    },
+    {
+      "rook_before": "c6",
+      "move": "c6d6",
+      "after_fen": "8/5k2/3r4/8/3K4/8/8/8 w - - 0 2"
+    },
+    {
+      "rook_before": "e6",
+      "move": "e6d6",
+      "after_fen": "8/5k2/3r4/8/3K4/8/8/8 w - - 0 2"
+    },
+    {
+      "rook_before": "f6",
+      "move": "f6d6",
+      "after_fen": "8/5k2/3r4/8/3K4/8/8/8 w - - 0 2"
+    },
+    {
+      "rook_before": "g6",
+      "move": "g6d6",
+      "after_fen": "8/5k2/3r4/8/3K4/8/8/8 w - - 0 2"
+    },
+    {
+      "rook_before": "h6",
+      "move": "h6d6",
+      "after_fen": "8/5k2/3r4/8/3K4/8/8/8 w - - 0 2"
+    },
+    {
+      "rook_before": "d7",
+      "move": "d7d6",
+      "after_fen": "8/5k2/3r4/8/3K4/8/8/8 w - - 0 2"
+    },
+    {
+      "rook_before": "d8",
+      "move": "d8d6",
+      "after_fen": "8/5k2/3r4/8/3K4/8/8/8 w - - 0 2"
+    }
+  ],
+  "current_view_alternatives": [
+    {
+      "label": "A",
+      "rook_square": "c6",
+      "fen": "8/5k2/2r5/8/3K4/8/8/8 w - - 0 2",
+      "history_consistent": false
+    },
+    {
+      "label": "B",
+      "rook_square": "e6",
+      "fen": "8/5k2/4r3/8/3K4/8/8/8 w - - 0 2",
+      "history_consistent": false
+    },
+    {
+      "label": "C",
+      "rook_square": "d6",
+      "fen": "8/5k2/3r4/8/3K4/8/8/8 w - - 0 2",
+      "history_consistent": true
+    }
+  ],
+  "inference": "The rook must have captured on d6 and is there immediately afterward. The previously visible black king cannot reach the knight in one king move. Distance, not check legality, excludes it. White king stays on d4 throughout, as in the opening example. A/B/C reuse the opening rook locations; only C explains the capture history. Later opponent moves require belief propagation."
+}

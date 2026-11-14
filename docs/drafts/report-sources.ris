@@ -1,0 +1,214 @@
+TY  - RPRT
+ID  - rook-example
+TI  - Replay-checked hidden-rook example
+PY  - 2026
+AU  - CS5446_project contributors,
+N1  - [Internet]. 2026 [cited 2026 Nov 8]. Three observation-identical histories and 24 checked move/state consequences.
+UR  - https://github.com/Mr-Teal/CS5446_project/blob/03a01e8d97317b36e63f77a5c67359c9c5b3742f/docs/drafts/presentation-assets/hidden-rook-example.json
+ER  -
+
+TY  - RPRT
+ID  - zs21
+TI  - Subgame solving without common knowledge
+PY  - 2021
+AU  - Zhang, BH
+AU  - Sandholm, T
+N1  - arXiv:2106.06068v2 [Internet]. 2021 Dec 3 [cited 2026 Nov 8].
+UR  - https://arxiv.org/abs/2106.06068v2
+ER  -
+
+TY  - RPRT
+ID  - obscuro
+TI  - General search techniques without common knowledge for imperfect-information games, and application to superhuman Fog of War chess
+PY  - 2026
+AU  - Zhang, BH
+AU  - Sandholm, T
+N1  - arXiv:2506.01242v2 [Internet]. 2026 Feb 28 [cited 2026 Nov 8].
+UR  - https://arxiv.org/abs/2506.01242v2
+ER  -
+
+TY  - RPRT
+ID  - course-game
+TI  - Game theory
+PY  - 2026
+AU  - National University of Singapore School of Computing,
+N1  - CS4246/CS5446 course slides. Version 4.0. Semester 1, AY2026/27.
+ER  -
+
+TY  - JOUR
+ID  - frank-basin
+TI  - Search in games with incomplete information: a case study using Bridge card play
+PY  - 1998
+AU  - Frank, I
+AU  - Basin, D
+N1  - Artif Intell. 1998;100(1-2):87-123.
+JO  - Artificial Intelligence
+VL  - 100
+IS  - 1-2
+SP  - 87
+EP  - 123
+DO  - 10.1016/S0004-3702(97)00082-9
+ER  -
+
+TY  - RPRT
+ID  - course-sdm
+TI  - Sequential decision making under uncertainty
+PY  - 2026
+AU  - National University of Singapore School of Computing,
+N1  - CS4246/CS5446 course slides. Version 1.0. Semester 1, AY2026/27.
+ER  -
+
+TY  - JOUR
+ID  - pomdp
+TI  - Planning and acting in partially observable stochastic domains
+PY  - 1998
+AU  - Kaelbling LP, Littman ML, Cassandra AR
+N1  - Artif Intell. 1998;101(1-2):99-134.
+UR  - https://www.cassandra.org/arc/papers/aij98.pdf
+ER  -
+
+TY  - CONF
+ID  - posg
+TI  - Dynamic programming for partially observable stochastic games
+PY  - 2004
+AU  - Hansen EA, Bernstein DS, Zilberstein S
+N1  - In: Proceedings of AAAI-04. 2004. p. 709-15.
+UR  - https://cdn.aaai.org/AAAI/2004/AAAI04-112.pdf
+ER  -
+
+TY  - RPRT
+ID  - course-guided
+TI  - Guided sequential decision making: decision-time and demonstration-based planning
+PY  - 2026
+AU  - National University of Singapore School of Computing,
+N1  - CS4246/CS5446 course slides. Version 1.0. Semester 1, AY2026/27.
+ER  -
+
+TY  - JOUR
+ID  - deepstack
+TI  - DeepStack: expert-level artificial intelligence in heads-up no-limit poker
+PY  - 2017
+AU  - Moravčík, M
+AU  - Schmid, M
+AU  - Burch, N
+AU  - Lisý, V
+AU  - Morrill, D
+AU  - Bard, N
+AU  - Davis, T
+AU  - Waugh, K
+AU  - Johanson, M
+AU  - Bowling, M
+N1  - Science. 2017;356(6337):508-13.
+JO  - Science
+VL  - 356
+IS  - 6337
+SP  - 508
+EP  - 513
+DO  - 10.1126/science.aam6960
+UR  - https://doi.org/10.1126/science.aam6960
+ER  -
+
+TY  - RPRT
+ID  - rebel
+TI  - Combining deep reinforcement learning and search for imperfect-information games
+PY  - 2020
+AU  - Brown, N
+AU  - Bakhtin, A
+AU  - Lerer, A
+AU  - Gong, Q
+N1  - In: Advances in Neural Information Processing Systems 33; 2020.
+UR  - https://arxiv.org/abs/2007.13544
+ER  -
+
+TY  - RPRT
+ID  - course-mf
+TI  - Reinforcement learning model-free techniques
+PY  - 2026
+AU  - National University of Singapore School of Computing,
+N1  - CS4246/CS5446 course slides. Version 4.1. Semester 1, AY2026/27.
+ER  -
+
+TY  - RPRT
+ID  - system
+TI  - Shared interfaces and sampled search implementation
+PY  - 2026
+AU  - CS5446_project contributors,
+N1  - [software and documentation on the Internet]. 2026 [cited 2026 Nov 8]. Integrated snapshot 3335723.
+UR  - https://github.com/Mr-Teal/CS5446_project/tree/3335723852ad59ccbe5e999dbe0ce2773f7e56d0
+ER  -
+
+TY  - RPRT
+ID  - evaluators
+TI  - Leaf evaluators and practice-data results
+PY  - 2026
+AU  - Quek, HC
+AU  - Kuah, JHB
+AU  - CS5446_project contributors,
+N1  - [Internet]. 2026 [cited 2026 Nov 8]. Snapshot 3335723; linked data manifests, checkpoints and ablations.
+UR  - https://github.com/Mr-Teal/CS5446_project/blob/3335723852ad59ccbe5e999dbe0ce2773f7e56d0/pair_b/README.md
+ER  -
+
+TY  - RPRT
+ID  - bounded-history
+TI  - Bounded history inference with private-stream replay recovery
+PY  - 2026
+AU  - CS5446_project contributors
+N1  - [software on the Internet]. 2026 [cited 2026 Nov 11]. Measured runtime aaa000a.
+UR  - https://github.com/Mr-Teal/CS5446_project/blob/aaa000a034ae5275afe981402891596e660312a4/pair_a_prep/bounded_tracking.py
+ER  -
+
+TY  - RPRT
+ID  - methods
+TI  - Evaluation methods and batch validation
+PY  - 2026
+AU  - Kuah, JHB
+AU  - CS5446_project contributors,
+N1  - [Internet]. 2026 Oct 28 [cited 2026 Nov 8]. Revision 7c292af. Archive recomputation and historical rule boundaries.
+UR  - https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md
+ER  -
+
+TY  - RPRT
+ID  - verification
+TI  - Search verification and integration evidence
+PY  - 2026
+AU  - CS5446_project contributors,
+N1  - [Internet]. 2026 [cited 2026 Nov 8]. Historical source identities and pilot limitations.
+UR  - https://github.com/Mr-Teal/CS5446_project/blob/92af3ce1ee3a9fb52c6ec9db5d7a88a92b4c0531/docs/drafts/report-evidence-notes.md
+ER  -
+
+TY  - RPRT
+ID  - mc-td
+TI  - Monte Carlo and temporal-difference target comparison
+PY  - 2026
+AU  - CS5446_project contributors,
+N1  - [Internet]. 2026 [cited 2026 Nov 8]. Revision 1db35d6.
+UR  - https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md
+ER  -
+
+TY  - RPRT
+ID  - batch
+TI  - Seven-row match batch
+PY  - 2026
+AU  - Quek, HC
+AU  - CS5446_project contributors,
+N1  - [dataset on the Internet]. 2026 Oct 27 [cited 2026 Nov 8]. Execution a5c5fb6; reviewed archive 5e9393a.
+UR  - https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27
+ER  -
+
+TY  - RPRT
+ID  - later-search
+TI  - Network 1 vs Stockfish D1 evaluation
+PY  - 2026
+AU  - CS5446_project contributors
+N1  - [dataset on the Internet]. 2026 Nov 10 [cited 2026 Nov 11]. 100 attempted games; pinned returned archive.
+UR  - https://github.com/Mr-Teal/CS5446_project/blob/8c7baf758e40f8a23c09b273903cff0aee38d2cb/pair_c/evaluation_20261110/README.md
+ER  -
+
+TY  - RPRT
+ID  - contributions
+TI  - Project contribution records
+PY  - 2026
+AU  - CS5446_project team,
+N1  - [Internet]. 2026 [cited 2026 Nov 8]. Contribution statements and proposal work allocation; see report evidence notes.
+UR  - https://github.com/Mr-Teal/CS5446_project/pull/33
+ER  -
