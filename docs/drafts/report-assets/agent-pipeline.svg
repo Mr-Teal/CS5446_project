@@ -1,27 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="6.27in" height="2.861111in" viewBox="0 0 451.44 206">
+<svg xmlns="http://www.w3.org/2000/svg" width="6.27in" height="2.333333in" viewBox="0 0 451.44 168">
 <style>text{font-family:Times New Roman,serif;font-size:12.15px;fill:#171717}</style>
 <rect width="100%" height="100%" fill="white"/>
 <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#34495E"/></marker></defs>
-<text x="66" y="15" text-anchor="middle">From the referee</text>
-<rect x="0" y="29" width="132" height="54" rx="3" fill="#F1F4F6" stroke="#667682" stroke-width=".8"/>
-<text x="66.0" y="51.5" text-anchor="middle" font-weight="bold">Private observation</text>
-<text x="66.0" y="68.5" text-anchor="middle">player-visible data</text>
-<rect x="150" y="29" width="132" height="54" rx="3" fill="#F1F4F6" stroke="#667682" stroke-width=".8"/>
-<text x="216.0" y="51.5" text-anchor="middle" font-weight="bold">Belief tracker</text>
-<text x="216.0" y="68.5" text-anchor="middle">possible histories</text>
-<rect x="300" y="29" width="150" height="54" rx="3" fill="#F1F4F6" stroke="#667682" stroke-width=".8"/>
-<text x="375.0" y="51.5" text-anchor="middle" font-weight="bold">Decision procedure</text>
-<text x="375.0" y="68.5" text-anchor="middle">choose a legal move</text>
-<path d="M133 56 L147 56" fill="none" stroke="#34495E" stroke-width="1.2" marker-end="url(#arrow)"/>
-<path d="M283 56 L297 56" fill="none" stroke="#34495E" stroke-width="1.2" marker-end="url(#arrow)"/>
-<path d="M366 84 L366 127" fill="none" stroke="#34495E" stroke-width="1.2" marker-end="url(#arrow)"/>
-<path d="M387 128 L387 86" fill="none" stroke="#34495E" stroke-width="1.2" marker-end="url(#arrow)"/>
-<text x="354" y="110" text-anchor="end">query / value</text>
-<rect x="300" y="132" width="150" height="67" rx="3" fill="#E7EEF5" stroke="#667682" stroke-width=".8"/>
-<text x="375.0" y="152.5" text-anchor="middle" font-weight="bold">Leaf evaluator</text>
-<text x="375.0" y="169.5" text-anchor="middle">material / Stockfish</text>
-<text x="375.0" y="186.5" text-anchor="middle">or learned values</text>
-<text x="0" y="149" text-anchor="start" font-weight="bold">The evaluator is one component of the agent.</text>
-<text x="0" y="168" text-anchor="start">The decision procedure searches or compares moves;</text>
-<text x="0" y="187" text-anchor="start">the evaluator scores positions where it stops.</text>
+<text x="66" y="13" text-anchor="middle">From the referee</text>
+<rect x="0" y="21" width="132" height="46" rx="3" fill="#F1F4F6" stroke="#667682" stroke-width=".8"/>
+<text x="66.0" y="40" text-anchor="middle" font-weight="bold">Private observation</text>
+<text x="66.0" y="56.5" text-anchor="middle">player-visible data</text>
+<rect x="150" y="21" width="132" height="46" rx="3" fill="#F1F4F6" stroke="#667682" stroke-width=".8"/>
+<text x="216.0" y="40" text-anchor="middle" font-weight="bold">Belief tracker</text>
+<text x="216.0" y="56.5" text-anchor="middle">possible histories</text>
+<rect x="300" y="21" width="150" height="46" rx="3" fill="#F1F4F6" stroke="#667682" stroke-width=".8"/>
+<text x="375.0" y="40" text-anchor="middle" font-weight="bold">Decision procedure</text>
+<text x="375.0" y="56.5" text-anchor="middle">choose a legal move</text>
+<path d="M133 44 L147 44" fill="none" stroke="#34495E" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M283 44 L297 44" fill="none" stroke="#34495E" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M366 68 L366 98" fill="none" stroke="#34495E" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M387 99 L387 70" fill="none" stroke="#34495E" stroke-width="1.2" marker-end="url(#arrow)"/>
+<text x="354" y="88" text-anchor="end">query / value</text>
+<rect x="300" y="103" width="150" height="61" rx="3" fill="#E7EEF5" stroke="#667682" stroke-width=".8"/>
+<text x="375.0" y="121" text-anchor="middle" font-weight="bold">Leaf evaluator</text>
+<text x="375.0" y="137.5" text-anchor="middle">material / Stockfish</text>
+<text x="375.0" y="154" text-anchor="middle">or learned values</text>
+<text x="0" y="121" text-anchor="start" font-weight="bold">The evaluator is one component of the agent.</text>
+<text x="0" y="139" text-anchor="start">The decision procedure searches or compares moves;</text>
+<text x="0" y="157" text-anchor="start">the evaluator scores positions where it stops.</text>
 </svg>
