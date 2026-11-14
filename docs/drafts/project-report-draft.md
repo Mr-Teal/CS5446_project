@@ -1,6 +1,6 @@
-# Better Value Predictions, No Established Decision Gain
+# Improving and Exploring Value Prediction for Simplified Partially Observable Chess
 
-Value Estimation for Belief-Sampled Fog of War Chess
+Fog of War Chess with Sampled Beliefs
 
 CS4246/CS5446 Reinforcement Learning and Sequential Decision Making
 
