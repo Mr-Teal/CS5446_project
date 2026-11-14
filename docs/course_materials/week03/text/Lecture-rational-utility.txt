@@ -1,0 +1,643 @@
+  Rational Decision Making
+  Decision Theory, Utility Theory, and Game Theory
+
+
+  CS4246/5446
+  Reinforcement Learning and Sequential Decision Making
+  Version 3.0
+
+
+
+© Copyright National University of Singapore. All Rights Reserved.
+Topics
+• Decision Making under Uncertainty
+     • Rational decision making
+     • Foundations of Decision Theory
+     • Maximum Expected Utility Principle
+• Basis of Utility Theory
+     • Axioms of Rational Preferences
+     • Expected Utility Theorem
+     • Utility Functions
+
+Rational Decision Making                    2
+Decision Making under Uncertainty
+Uncertain states and action effects
+
+
+
+
+Rational Decision Making              3
+Rational Decision Making
+• Context:
+     • Decision making under uncertainty, in episodic and partially observable environments.
+• Core Idea:
+     A rational agent combines:
+     • Beliefs – information about the world
+     • Preferences – values or goals
+     • A decision process – selects actions that maximize expected benefit or minimize cost,
+       within resource limits
+• Types of Rationality:
+     • Substantive (Ends-focused): Achieving desirable outcomes
+     • Procedural (Mean-focused): Using a coherent, justifiable method
+     • Meta-level: Deciding how to decide (bounded rationality, meta-reasoning)
+Rational Decision Making                                                                       4
+The BDI Model in Agentic AI
+• Belief–Desire–Intention (BDI) Framework:
+     • Beliefs: The agent’s model of the world
+     • Desires: Goals or preferred outcomes
+     • Intentions: Committed plans or actions
+• In Agentic AI Systems (e.g., LLM agents):
+     BDI provides a natural model for rational behavior:
+     • Beliefs inform decision-making
+     • Desires guide prioritization
+     • Intentions anchor planning and execution
+     Modern use: Characterizes AI agents that combine reasoning, planning, and tool use.
+Rational Decision Making                                                              5
+Decision Making under Uncertainty
+• Decision Model:
+     • Actions: 𝑎 ∈ 𝐴
+     • Uncertain current state: 𝑠 ∈ 𝑆 with probability of reaching: 𝑃(𝑠) =1 (if deterministic)
+     • Transition model of uncertain action outcome or effects:
+         𝑃(𝑠′|𝑠, 𝑎) – probability that action 𝑎 in state 𝑠 reaches state 𝑠′
+     • Outcome of applying action 𝑎:
+         Result(𝑎) – random variable whose values are outcome states
+     • Probability of outcome state 𝑠’, conditioning on that action 𝑎 is executed:
+         𝑃 Result 𝑎 = 𝑠’ = ∑! 𝑃 𝑠 𝑃(𝑠 " |𝑠, 𝑎)
+     • Preferences captured by a utility function:
+         𝑈(𝑠) – assigns a single number to express the desirability of a state 𝑠
+Rational Decision Making                                                                         6
+From Logical Planning to Decision Modeling
+• Key Points:
+     • Logical planning:
+       the basis → states as propositions, actions as rules, goals as logical
+       formulas.
+     • Decision models:
+       add probability + utility → handle uncertainty and preferences.
+
+     • Classical planning is thus a special case of decision-theoretic
+       planning: deterministic transitions + binary utilities.
+
+Rational Decision Making                                                        8
+Types of Decision Theory
+• Normative decision theory
+     • Defines how ideal agents should decide
+• Descriptive decision theory
+     • Describes how real agents actually decide
+• Prescriptive decision theory
+     • Guides rational decision making in real-world settings.
+
+
+
+Rational Decision Making                                         9
+ The Beginnings
+• Utility Theory
+   • Origin: Daniel Bernoulli (1738) — measuring risk with
+     subjective value (utility).
+   • Scope: Single-agent decision making under uncertainty.
+• Game Theory
+   • Origin: Von Neumann & Morgenstern (1944) —
+     strategic interaction among agents.
+   • Scope: Multi-agent decision making, where outcomes
+     depend on all players' actions.
+
+ Game Theory                                                  10
+Maximum Expected Utility (MEU) Principle
+• Fundamental Assumption:
+     Rational agents choose actions that maximize expected utility.
+
+            acUon = arg max 𝔼 𝑈 𝑎        = arg max *    # |𝑠, 𝑎 𝑈 𝑠 # "
+                                                   !𝑃 𝑠
+                                                     (Result   𝑎 = 𝑠 )𝑈(𝑠 " )
+                           !                       !
+                                                       "!"#
+     Or, incorporating uncertainty in current state:
+                          𝔼 𝑈 𝑎 = ∑"# ∑" 𝑃 𝑠 𝑃 𝑠 # 𝑠, 𝑎 𝑈(𝑠 # )
+     • Where:                                                        =1
+     • 𝑃 𝑠 : belief about current state 1            for fully observable environment
+     • 𝑃 𝑠 # 𝑠, 𝑎 : transition model
+     • 𝑈 𝑠 # : utility of resulting state
+Rational Decision Making                                                                11
+Example: Panda’s Simple Lunch Choice
+Utility Theory in Action
+• Scenario:
+     • Panda bear Lulu must choose where to find lunch today.
+• Beliefs:
+     • Bamboo Grove: 50% chance of finding 10 bamboo shoots, 50% chance of finding none.
+     • Berry Bush:   100% chance of finding 4 berries.
+• Preferences:
+     • Assume equal preferences for bamboo shoots and berries.
+     • More food = higher utility (utility equals number of food items).
+
+         EU (Bamboo grove) =0.5x10 +0.5x0=5
+         EU(Berry bush)= 1.0x4=4
+                                                          Decision:
+         Expected utility of bamboo grove is higher
+                                                          Where should Lulu go for lunch?
+Rational Decision Making                                                                12
+Example: Pandas’ Dilemma
+Game Theory in Action
+• Scenario:
+    Two pandas, Bobo and Almo, find bamboo in short supply.
+    Each day, they must decide whether to:                   𝐴: 𝐾𝑒𝑒𝑝            𝐴: 𝑆ℎ𝑎𝑟𝑒
+    • Share bamboo grove locations             𝐵: 𝐾𝑒𝑒𝑝    𝐵 = +1; 𝐴 = +1     𝐵 = +5; 𝐴 = 0
+    • Keep them secret
+                                                 𝐵: 𝑆ℎ𝑎𝑟𝑒    𝐵 = 0; 𝐴 = +5   𝐵 = +3; 𝐴 = +3
+• Payoffs:
+    • Both Keep: each gets +1 (safe but poor outcome)
+    • One Shares, One Keeps: the keeper gains +5, the sharer gets 0
+    • Both Share: both get +3 (cooperative outcome)
+• Decision:
+    • What should the pandas do to maximize happiness and health (by eating A LOT OF bamboo)?
+
+Game Theory                                                                                13
+What Should the Pandas Do?
+                                                               𝐴: 𝐾𝑒𝑒𝑝          𝐴: 𝑆ℎ𝑎𝑟𝑒
+                                                 𝐵: 𝐾𝑒𝑒𝑝    𝐵 = +1; 𝐴 = +1   𝐵 = +5; 𝐴 = 0
+                                                 𝐵: 𝑆ℎ𝑎𝑟𝑒   𝐵 = 0; 𝐴 = +5    𝐵 = +3; 𝐴 = +3
+• Rational Action (Self-Interest):
+    • Both pandas will likely choose to Keep Bamboo Locations Secret, leading to
+      an optimal policy (equilibrium)with payoffs [+1, +1].
+• Optimal Collective Action:
+    • If they could build trust and cooperate to Share bamboo locations, both would benefit
+      more → payoffs [+3, +3].
+• Lesson:
+    • Game theory shows that what is individually rational may not be collectively optimal.
+
+Game Theory                                                                           14
+Notes: Common Applications
+Domain                      Utility Theory Applications (Single-agent focus)               Game Theory Applications (Multi-agent focus)
+
+                            Consumer choice, cost–benefit analysis, risk
+Economics                                                                                  Pricing strategies, market competition, auctions
+                            assessment
+
+Networks                    Resource allocation, service optimization                      Cooperation, cost-sharing, competitive network use
+
+Political Science           Policy evaluation, welfare optimization                        Voting systems, coalition formation
+
+Biology                     Habitat choice, foraging optimization                          Evolutionary stable strategies, predator–prey dynamics
+
+Business                    Product design trade-offs, investment decisions                Pricing competition, negotiations
+
+Social Impact               Fair resource distribution, welfare maximization               Fairness and trust in strategic settings
+
+Health Care                 Treatment choice, cost-effectiveness analysis                  Hospital competition, vaccine allocation games
+
+                                                                             Competition between institutions, collaboration
+Education              Curriculum optimization, personalized learning
+                                                                             incentives
+ Reference: Maschler, Michael; Solan, Eilon; Zamir, Shmuel. Game Theory (p. xxiii). 2020. Cambridge University Press. Kindle Edition.
+Game Theory Reference: Maschler, Michael; Solan, Eilon; Zamir, Shmuel. Game Theory (p. xxiii). 2020. Cambridge University Press. Kindle Edition.   15
+Axioms of Rational Preferences
+Constraints on rational preferences
+
+
+
+
+Rational Decision Making              16
+Rational Preferences
+• Preference notations:
+     • 𝐴≻𝐵:          Agent prefers 𝐴 to 𝐵
+     • 𝐴 ~ 𝐵:        Agent is indifferent between 𝐴 and 𝐵
+     • 𝐴 ≽ 𝐵:        Agent prefers 𝐴 over 𝐵 or is indifferent
+• Lotteries:
+     • An action can be seen as a lottery 𝐿 over outcomes
+     • Outcomes: 𝑆! , … , 𝑆"
+     • Probabilities: 𝑝! , … , 𝑝"
+     • Representation:
+                                𝐿 = [𝑝! , 𝑆! ; 𝑝# , 𝑆# , … , 𝑝" , 𝑆" ]
+     • Each 𝑆$ is a possible next state (from one of the action’s possible effects)
+     • Outcomes may be atomic states or nested lotteries
+Rational Decision Making                                                              17
+Axioms of Rational Preferences
+• Utility Theory:
+     • Explains how preferences over lotteries relate to preferences over the
+       underlying states.
+• Key Idea:
+     • Preferences must satisfy certain rationality conditions.
+     • If any axiom is violated, the agent can behave irrationally in some situations.
+• Six axioms (or conditions of rationality):
+     • A1: Orderability (Completeness)       A4: Substitutability (Independence)
+     • A2: Transitivity                      A5: Monotonicity
+     • A3: Continuity                        A6: Decomposibility
+Rational Decision Making                                                         18
+A1. Orderability (Completeness)
+• Definition:
+     • For any two lotteries 𝐴 and 𝐵, a rational agent must:
+     • Prefer 𝐴 ≻ 𝐵, or
+     • Prefer 𝐵 ≻ 𝐴, or
+     • Be indifferent 𝐴 ∼ 𝐵.
+     • Intuition: Any two options can be compared: you must prefer one or be indifferent.
+• Panda Story:
+     • Lulu the panda must decide: bamboo, berries, or no preference.
+• Example:
+     • Choose between:
+     • 𝐴 = 5 bamboo shoots
+     • 𝐵 = 1 bowl of berries
+
+Rational Decision Making                                                                    19
+A2. Transitivity
+• Definition:
+                            𝐴 ≻ 𝐵 and 𝐵 ≻ 𝐶 ⟹ 𝐴 ≻ 𝐶
+     • Intuition: Preferences must be consistent: if A is better than B, and B is
+       better than C, then A is better than C.
+• Panda Story:
+     • If Lulu prefers bamboo over berries, and berries over honey, she must
+       also prefer bamboo over honey.
+• Example:
+     • Bamboo ≻ Berries ≻ Honey → Bamboo ≻ Honey
+Rational Decision Making                                                       20
+A3. Continuity
+• Definition:
+                           𝐴 ≻ 𝐵 ≻ 𝐶 ⟹ ∃𝑝 𝑝, 𝐴; 1 – 𝑝, 𝐶 ~ 𝐵
+     • Intuition: A middle option is equivalent to some gamble between the best
+       and the worst.
+• Panda Story:
+     • Lulu might be indifferent between “5 shoots for sure” and “a gamble: 10
+       shoots with 60%, 1 shoot with 40%.”
+• Example (Lottery):                                ~
+     • Guaranteed 5 bamboo shoots (B)
+     • Or a lottery: 60% chance 10 shoots (A), 40% chance 1 shoot (C)
+Rational Decision Making                                                         22
+A4. Substitutability (Independence)
+• Definition: OR            𝐴 ≻ 𝐵 ⟹ [𝑝, 𝐴; 1 – 𝑝, 𝐶] ≻ [𝑝, 𝐵; 1 – 𝑝, 𝐶]
+                           𝐴 ~ 𝐵 ⟹ [𝑝, 𝐴; 1 – 𝑝, 𝐶] ~ [𝑝, 𝐵; 1 – 𝑝, 𝐶]
+     • Intuition: If two options are equally good, swapping one for the other in any
+       lottery makes no difference.
+• Panda Story:
+     • If Lulu values bamboo and berries equally,      ~
+       swapping them in a lottery makes no difference.
+• Example (Lottery):
+     • Indifferent between 5 shoots (A) and a bowl of berries (B)
+     • In a 70% lottery with nothing (C), Panda should be indifferent whether it’s A or B.
+
+Rational Decision Making                                                                 23
+A5. Monotonicity
+• Definition:
+             𝐴 ≻ 𝐵 ⟹ (𝑝 > 𝑞 ⟺ [𝑝, 𝐴; 1 – 𝑝, 𝐵] ≻ [𝑞, 𝐴; 1 – 𝑞, 𝐵])
+     • Intuition: A higher chance of a better outcome makes a lottery more desirable.
+• Panda Story:
+     • Since Lulu prefers bamboo, she should prefer
+                                                                                    B
+       the lottery with a higher bamboo chance.
+                                                      ≻
+• Example (Lottery):
+     • 80% chance bamboo, 20% berries
+     • 60% chance bamboo, 40% berries
+Rational Decision Making                                                       24
+A6. Decomposability
+• Definition:
+        [𝑝, 𝐴; 1 – 𝑝, [𝑞, 𝐵; 1 – 𝑞, 𝐶]] ~ [𝑝, 𝐴; (1 – 𝑝)𝑞, 𝐵; (1 – 𝑝)(1 – 𝑞), 𝐶]
+     • Intuition: Only final probabilities matter — multi-stage lotteries reduce to a single
+       equivalent lottery.
+• Panda Story:
+     • From Lulu’s view, it doesn’t matter if the
+       gamble has 2 stages or 1
+       — only the final probabilities count.
+• Example (Lottery):
+     • 60% chance bamboo
+     • 40% chance → another lottery: 70% berries, 30% honey
+     • Equivalent to: 60% bamboo, 28% berries, 12% honey
+Rational Decision Making                                                                   25
+Rational Preferences and Utility
+• Key Question:
+     • How should a rational agent make decisions?
+• Notes:
+     • Utility axioms = preference axioms
+     • If preferences satisfy these axioms, a utility function 𝑈 exists
+• Goal:
+     • Derive rational behavior from preference assumptions
+• Foundation:
+     • von Neumann–Morgenstern Expected Utility Theorem (1944)
+
+Rational Decision Making                                                  26
+Expected Utility Theorem
+Von Neumann and Morgenstern (1944)
+
+
+
+
+Rational Decision Making             27
+Existence of Utility Function
+• If an agent’s preferences obey the axioms of utility; then
+  there exists a function 𝑈 such that:
+     • 𝑈(𝐴) > 𝑈(𝐵) if and only if 𝐴 is preferred to 𝐵, and
+     • 𝑈(𝐴) = 𝑈(𝐵) if and only if the agent is indifferent between 𝐴 and 𝐵.
+
+             𝑈 𝐴 >𝑈 𝐵 ⟺𝐴≻𝐵             and    𝑈 𝐴 = 𝑈(𝐵) ⟺ 𝐴 ∼ 𝐵
+
+
+
+
+Rational Decision Making                                                 28
+Expected Utility of A Lottery
+• Utility of a Lottery:
+     • The utility of a lottery is the weighted average of the utilities of each
+       possible outcome:
+                          𝑈([𝑝7 , 𝑆7 ; … ; 𝑝8 , 𝑆8 ]) = ∑7 𝑝7 𝑈( 𝑆7 )
+     • Once the probabilities and utilities of the outcomes are known,
+       the utility of the entire lottery is fully determined.
+
+
+                                              𝑈(𝐿) = 𝑝𝑈(𝐴) + (1 – 𝑝)𝑈(𝐵)
+
+
+
+Rational Decision Making                                                           29
+Computing Expected Utility
+• Expected Utility:
+     • When an action has uncertain outcomes, it behaves like a lottery.
+     • The expected utility of an action is the average utility of its possible
+       outcomes, weighted by their probabilities.
+     𝐸𝑈 𝑎 = 8 𝑃(Result 𝑎 = 𝑠 # )𝑈(𝑠 # ) = 8 8 𝑃 𝑠 𝑃 𝑠 # 𝑠, 𝑎 𝑈(𝑠 # )
+                      "#                          "#   "
+
+• Non-Unique Utility Functions:                                Stretch or shift the scale
+     • Utility is defined up to an affine transformation:      of utility, and the agent’s
+                                                               decisions stay the same
+                           𝑈# 𝑠 = 𝑎𝑈 𝑠 + 𝑏 with 𝑎 > 0
+Rational Decision Making                                                           30
+Rational Decision Making: MEU Principle
+       Known                        Compute                     Rational decision
+     preferences                 expected utility
+
+
+• Maximum expected utility (MEU) principle
+     • Based on preferences, a rational agent chooses the action with the
+       highest expected utility.                A prescription for intelligence behavior
+     • Choose action:                           – “do the right thing” – a basis for AI
+                           𝑎∗ = argmax 𝐸𝑈(𝑎)
+                                       !
+
+     𝐸𝑈 𝑎 = 8 𝑃(Result 𝑎 = 𝑠 # )𝑈(𝑠 # ) = 8 8 𝑃 𝑠 𝑃 𝑠 # 𝑠, 𝑎 𝑈(𝑠 # )
+                      "#                            "#   "
+Rational Decision Making                                                            31
+Computing MEU
+• Key Challenges
+     • Must evaluate many possible actions
+     • Requires estimating probabilities: 𝑃 𝑠 ,𝑃 𝑠 % 𝑠, 𝑎 → needs perception, learning,
+       inference, causal models
+     • Requires estimating utilities: 𝑈 𝑠 % → may involve planning or search
+     • Utility estimates may be uncertain
+• Role in AI
+     • Decision theory provides the mathematical framework, but not a full AI solution.
+     • Utility functions act as internalized performance measures:
+          • Performance measure → evaluates complete histories (external view)
+          • Utility function → guides choices step by step (internal view)
+Rational Decision Making                                                                  33
+Rational Decision-Theoretic Agent
+• Idealization:
+     • Assumes an ideal, hypothetical and fully rational agent
+• Preferences:
+     • Satisfy rationality axioms
+• Rationality:
+     • Chooses the most preferred (optimal) option
+• MEU Principle:
+     • Guides decision making and problem solving
+
+Rational Decision Making                                         34
+Utility Functions
+Encoding Preferences in Utility Functions
+Utility Functions in Real-World Domains
+Utility of Money and Risk Attitudes
+
+
+Rational Decision Making                    35
+Encoding Preferences in Utility Functions
+                                                                                     U(x) = log(x)
+                                                                                     U(x) = 1 - e-x/R
+• Utility Function:                                                                  U(x) = x0.5
+     • A utility function 𝑈 𝑥 maps outcome desirability into numeric utility values
+     • 𝑥: Cost, profit, life expectancy, jobs saved, etc.              Utility
+     • Captures trade-offs, value judgments, and risk attitudes          U(x)
+• Why use utility functions?
+     • Compare and rank outcomes                                                     x          Wealth
+     • Support decision-making under uncertainty
+     • Aggregate multiple aspects of value (e.g., cost, health, time)   Wealth (x)       Utility Value U(x)
+
+• Assessment methods:                                                   2500
+                                                                        1500
+                                                                                                     1.50
+                                                                                                     1.24
+     • Direct: certainty equivalents, probability equivalents           1000                         0.93
+                                                                         600                         0.65
+     • Indirect: expert consensus, published data                        400                         0.47
+                                                                           0                         0.15
+     • Use multi-attribute utility functions for complex trade-offs
+Rational Decision Making                                                                            36
+Notes: Utility Functions in Real-World Domains
+Domain                Utility Function / Measure             Description
+
+                                                             U = Years×Quality score (0–1)
+Health                QALY (Quality-Adjusted Life Year)
+                                                             e.g., 10 years at 0.6 quality = 6 QALYs
+
+                                                             U = Years lost to disability or death
+                      DALY (Disability-Adjusted Life Year)
+                                                             Lower DALY = better outcome
+                                                             U=−Risk in 1M chance of death
+                      Micromort
+                                                             1 micromort = 10!" probability of death
+                                                             U = −Monetary cost per statistical life saved
+Public Policy         VSL (Value of Statistical Life)
+                                                             e.g., $10M/life used in EPA, FDA and DOT
+                                                             U=−Time cost×Value per hour
+Transportation        VHT (Value of Hour Traveled)
+                                                             e.g., $20/hr for commuters
+                                                             U x = 1 − e!#$
+Finance               Exponential Utility
+                                                             Captures risk aversion (r > 0)
+
+                      Log Utility                            U(x)=log(x)
+Economics
+                                                             Reflects diminishing marginal utility of income
+
+                                                             U = −tons CO₂×$ per ton (e.g., $50)
+Energy/Environment    Carbon cost utility
+                                                             Used in carbon pricing & offset decisions
+
+Rational Decision Making                                                                                       37
+Example: Value of Statistical Life
+• Value of statistical life:
+     • How to put a value on human life?
+     • Used by agencies of U.S. government,
+       including the Environmental Protection
+       Agency, Health and Human Services, and
+       the Department of Transportation
+     • To determine costs and benefits of
+       regulations and interventions
+     • How much would it be?
+          • USA: ~USD$14 million (in 2025)
+                                                   Sources: (accessed 26 Aug 2024)
+          • Australia: AUD$5.9 million (in 2025)   •U.S. Department of Health and Human Services
+                                                   •Australian Office of Impact Analysis
+
+Rational Decision Making                                                                           38
+Example: A Choice of Games
+• Consider the following two games:                   EMV
+          Game 1           Win $30 with prob 0.5
+                           Lose $1 with prob 0.5
+          Game 2           Win $2000 with prob 0.5
+                           Lose $1900 with prob 0.5
+• Which game would you play? Why?
+• What if you are to play a game 10 times?
+
+Rational Decision Making                                    39
+Example: Expected Monetary Value
+• Example:
+     • You have won $1 mil so far
+     • Now, flip a coin –
+          • Lose all the money (new total $0) if Head and
+          • Gain $1.5mil (new total $2.5mil) if Tail
+     • Will you play?
+• What is the expected monetary value (EMV) of the lottery?
+     • 𝐸𝑀𝑉 =
+• Is accepting the game the best decision?
+
+Rational Decision Making                                      40
+Utility of Money
+                                                                                                 Risk
+• Let 𝑆8 = state of having $𝑛; current wealth = $𝑘                                              averse
+• Expected Utility of lottery:
+                           $      $
+     • 𝐸𝑈 Accept = % 𝑈 𝑆& + % 𝑈 𝑆&'%.)*
+     • 𝐸𝑈 Decline = 𝑈 𝑆&'$*
+• Example utilities:
+     • 𝑈 𝑆& = 5, 𝑈 𝑆&'%.)* = 9, 𝑈 𝑆&'$* = 8                                                Risk
+                                                                                         seeking
+     • 𝐸𝑈 Accept = 0.5 5 + 0.5 9 = 7
+     • 𝐸𝑈 Decline = 8
+     • Decision: Decline is better (8 > 7)                A typical utility of money function
+                                                                                     Source: RN16.2 b
+• Note:
+     • The utility of money is usually concave (e.g., ~log of wealth), reflecting risk aversion.
+Rational Decision Making                                                                           41
+Expected Utility and Certainty Equivalent
+• Certainty Equivalent:
+     • The certainty equivalent of a lottery is the guaranteed outcome the
+       agent considers equally desirable. Utility                       Utility
+                                                                        Curve
+
+
+• Defined by:                                    EU                   Risk
+
+     • 𝐸𝑈 Lolery = 𝑈 Certainty Equivalent                             premium
+
+
+
+
+• Key Points:                                             CE    EMV
+     • If two options have the same CE → they have the same expected utility
+       → agent is indifferent.
+     • Ranking options by their CE is equivalent to ranking by expected utility.
+
+Rational Decision Making                                                           42
+Certainty Equivalent and Risk Premium
+                                                               • Orange curve: log utility, concave, showing diminishing
+                                                                 returns.
+ 𝑈 Certainty Equivalent = 𝐸𝑈 Locery
+                                                               • Red points: risky lottery outcomes ($1M and $3.5M).
+                                                               • Green point: sure outcome ($2M).
+                                                               • Purple markers:
+                                                                   • ▼ Expected wealth (EMV = $2.25M) - arithmetic average
+                                                                     of the monetary outcomes (x-axis).
+                                                                   • ► Expected utility (~0.625) - arithmetic average of utilities
+                                                                     of the outcomes (y-axis).
+                                                                   • x EU of lottery- expected utility aligned to EMV for
+                                                                      visualization.
+                                                               • Orange x : certainty equivalent (CE ≈ $1.87M)
+                                                                   • U(Certainty Equivalent) = EU(Lottery)
+                                                               • Black arrow: Risk Premium (~$0.38M)
+                                                                   Risk Premium = EMV– CE : gap between expected wealth and
+                                                                   CE, — the amount one would give up to avoid the risk.
+
+Rational Decision Making Source: ChatGPT 5.0 accessed 3 Sep 2025                                                            43
+Risk Attitudes and Risk Premium
+• Risk Premium:
+     • Risk Premium = Expected Value (EV) − Certainty Equivalent (CE)
+     • Value given up (or paid) to avoid (or take on) risk.
+• Risk Attitudes:
+     • Risk-averse: CE < EV → prefers a sure but lower payoff
+     • Risk-seeking: CE > EV → willing to pay for risky gain                  Risk-Neutral
+                                                 Utility
+     • Risk-neutral: CE = EV → indifferent
+                                                 Risk-Seeking
+
+
+
+                                                                Risk-Averse
+
+Rational Decision Making                                                               44
+Notes: Calculating Risk Premium
+• Definition:
+     • Risk Premium = Expected Value (EV) – Certainty Equivalent (CE)
+     • EU(Lottery) = U(CE)
+• Steps to Calculate:
+     • Compute Expected Utility (EU) of the lottery.
+     • Find CE: the value whose utility equals the EU.
+     • Compute EV of the lottery (e.g., in money, time, health units).
+     • Calculate: Risk Premium = EV − CE
+• Notes:
+     • EV = Expected Value in the original units (e.g., dollars, years, QALYs).
+     • For monetary outcomes, EV is called EMV.
+     • Utility scale must reflect preferences between best and worst outcomes.
+     • CE and PE (Probability Equivalent) methods can be used for utility assessment.
+Rational Decision Making                                                                45
+Exercise: Paying to Avoid Risk
+• Recall the following gamble:
+          • Win            $2000 with probability            0.5
+          • Lose           $20 with probability              0.5
+• What is the expected value of the lottery (EMV)?
+     • EMV = $X
+• How much will you be willing to accept to avoid the lottery?
+     • Let CE = $300       (your subjective, “perceived value” of the lottery)
+• What is the risk premium?
+     • Risk premium = $X – $300 = $Y
+• What does this mean?
+     • Trading lottery for $300: willing to give up $X in expected value to avoid risk
+Rational Decision Making                                                                 46
+Summary
+• Preference & Utility
+     • Preferences: 𝐴 ≻ 𝐵 (preferred), 𝐴 ∼ 𝐵 (indifferent)
+     • Utility function 𝑈 𝑠 : assigns numbers to outcomes, capturing ranking and risk attitude
+     • Subjective & personal: not directly comparable across individuals
+     • Ordinal scale: numbers express order, not strength of preference
+• MEU Principle
+     • Rational choice = pick action with Maximum Expected Utility (MEU)
+     • Certainty Equivalent (CE): the sure value equal in utility to a lottery
+     • EU = utility scale; CE = real-world scale
+• Caveats
+     • Utility is non-linear; not simply additive 𝑈(𝑎 + 𝑏) ≠ 𝑈(𝑎) + 𝑈(𝑏)
+     • Utilities must be assessed at outcome endpoints
+     • Multi-attribute and uncertain cases need more advanced models
+Rationa Decision Making                                                                     47
+Rational Decision Making in the Real World
+• AI Applications
+     • Decision-making under uncertainty with MEU
+     • Applied in planning, learning, and inference
+     • Supports human–AI collaboration and transparency
+• Challenges
+     • Capturing human preferences in dynamic, uncertain contexts
+     • Integrating expert judgment with data
+     • Building responsible AI: fairness, ethics, and governance
+
+Rational Decision Making                                            48
+Homework
+• Readings:
+     • RN: 16.1: Maximum expected utility principle
+     • RN: 16.2-16.3.2: Utility Theory
+• Reviews:
+     • Review notes on Probability and Statistics
+     • RN: 13.2-13.5; 14.2-14.4 (Conditional probability and Bayesian networks)
+     • Charniak, E., Bayesian networks without tears. AI Mag., 1991. 12(4): p. 50–63.
+     • RN: 16.5 (Decision networks), 16.6.6 (Sensitivity analysis)
+     • Howard, R.A., Decision Analysis: Practice and Promise. Management Science, 1988. 34(6): p. 679-695.
+       [Accessible through NUS Library e-Resources]
+• References
+     • Bernoulli, D. (1738/1954) Exposition of a New Theory on the Measurement of Risk, Econometrica, 22,
+       23–36. http://dx.doi.org/10.2307/1909829
+     • von Neumann, J., O. Morgenstern, and A. Rubinstein, Theory of Games and Economic Behavior (60th
+       Anniversary Commemorative Edition). 1944: Princeton University Press.
+     • Abbas, A.E., Foundations of Multiattribute Utility. 2018, Cambridge: Cambridge University Press.
+Rational Decision Making                                                                              49
+

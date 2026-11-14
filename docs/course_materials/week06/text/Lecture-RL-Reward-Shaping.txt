@@ -1,0 +1,622 @@
+              Guest Lecture
+Reward Shaping for Reinforcement Learning
+          and Its Applications
+
+
+                  Ma Haozhe
+Section I: Review
+
+Markov Decision Process and Reinforcement Learning
+  1.    Reinforcement Learning (RL) solves sequential decision-making problems.
+        1.   The learning paradigm is like how human learns from our real world.
+        2.   An agent refines its behaviors by interacting with an environment.
+
+
+  2.    The interaction between agent and environment is modeled as a Markov Decision Process (MDP)
+
+
+
+
+                            Markov decision process (MDP)
+                                                  [Source]
+                                                                                                                  Transition probability     deterministic
+        ➢ 𝑆: state space
+                                                                    • State space: the location of the robot. 𝑆 =                 1,1 , 1,2 , … , 4,3
+        ➢ 𝐴: action space
+        ➢ 𝑇: transition function: 𝑃(𝑠 ′ |𝑠, 𝑎)                      • Action space: moving to four directions. 𝐴 = {←, →, ↑, ↓}
+        ➢ 𝑅: reward function                                        • Transition functions: 𝑃(𝑠 ′ |𝑠, 𝑎)
+        ➢ 𝛾: discount factor                                        • Reward functions: 𝑅 4,3                     = 1, 𝑅 4,2      = −1, 𝑅 … = 0
+
+9/15/2026                                        Reward Shaping for Reinforcement Learning and Its Applications                                              2
+Section I: Review
+
+Review
+            • Policy:
+                                           𝜋: 𝑆 → 𝐴, 𝜋 𝑎 𝑠 = Pr 𝐴𝑡 = 𝑎 𝑆𝑡 = 𝑠)
+            • Value of a specific policy 𝜋 for state 𝑠, the expected cumulative discounted rewards starting from 𝑠:
+                                                                                                              ∞
+
+                          𝑉 𝜋 𝑠𝜏 = 𝔼 𝑅 𝑠𝜏 + 𝛾𝑅 𝑠𝜏+1 + 𝛾 2 𝑅 𝑠𝜏+2 + ⋯ = 𝔼𝜋 ෍ 𝛾 𝑘 𝑅 𝑠𝜏+𝑘
+                                                                                                              𝑘=0
+                                                             Return
+
+            • Q-value defines the value of each state-action pair, starting from 𝑠, forcing to do action 𝑎.
+
+                                           𝑄 𝑠, 𝑎 = 𝑅 𝑠, 𝑎 + 𝛾 ෍ 𝑃 𝑠 ′ 𝑠, 𝑎 𝑉(𝑠′)
+                                                                               𝑠′
+            • Reinforcement learning: to learn an optimal policy that maximize the Q-values for each state.
+                                                 𝜋 ∗ (𝑠) = arg max 𝑄 ∗ (𝑠, 𝑎)
+                                                                             𝑎
+
+
+
+9/15/2026                                    Reward Shaping for Reinforcement Learning and Its Applications           3
+Section I: Review
+
+Review
+     • Q-Learning
+                                               𝜋 ∗ (𝑠) = arg max 𝑄 ∗ (𝑠, 𝑎)
+                                                                      𝑎
+
+                              To learn the optimal policy          To learn the optimal (exact) Q-function
+
+     • Represent the Q-function: 𝑄෠𝜃 𝑠, 𝑎
+            ➢ If represent the 𝑄෠𝜃 (𝑠, 𝑎) as a table: tabular Q-learning
+            ➢ If represent the 𝑄෠𝜃 (𝑠, 𝑎) as a linear/nonlinear function: Function approximation Q-learning
+            ➢ If represent the 𝑄෠𝜃 (𝑠, 𝑎) as a deep neural network: DQN
+
+                                                                                                                                  ←   0.0
+
+                                        ←    0.5       ←     0.0                                                                  →   0.8
+
+                                        →    0.1       →     0.8                                                                  ↑   0.3
+
+                                         ↑   0.2       ↑     0.3                                                                  ↓   0.4
+
+                                         ↓   0.4       ↓     0.4
+                                                                           Let network estimate which state and the corresponding Q-values
+
+9/15/2026                                     Reward Shaping for Reinforcement Learning and Its Applications                                 4
+Section I: Review
+
+Review
+     • Learn Q-function 𝑄෠𝜃 (𝑠, 𝑎) → 𝑄 ∗ (𝑠, 𝑎)
+
+                           Learning target, i.e., 𝑦𝑡
+
+            ➢ Monte Carlo: 𝑦𝑡𝑀𝐶 = 𝐺𝑡 = 𝑟𝑡 + 𝛾𝑟𝑡+1 + 𝛾 2 𝑟𝑡+2 + ⋯
+
+                                        Collect all rewards of a trajectory
+
+            ➢ Temporal Difference (TD):
+                                   𝑦𝑡𝑀𝐶 = 𝐺𝑡 = 𝑟𝑡 + 𝛾𝑟𝑡+1 + 𝛾 2 𝑟𝑡+2 + ⋯
+
+                                         Estimate by the currently/previously learned 𝑄෠𝜃𝑜𝑙𝑑 (𝑠, 𝑎)
+
+
+                                                           ෠ 𝑡+1 , 𝑎𝑡+1 )
+                                      𝑦𝑡SARSA = 𝐺𝑡 = 𝑟𝑡 + 𝛾𝑄(𝑠
+                                   Q−Learning                     ෠ 𝑡+1 , 𝑎′)
+                                 𝑦𝑡              = 𝐺𝑡 = 𝑟𝑡 + 𝛾max
+                                                               ′
+                                                                 𝑄(𝑠
+                                                                          𝑎
+
+9/15/2026                                  Reward Shaping for Reinforcement Learning and Its Applications   5
+Section I: Review
+
+Review
+     • Q-function/Q-network for discrete and limited action space:
+                                                                                               ←       0.0
+                                                                                               →       0.8
+                                                                                                              Esay to get the argmax
+                                                                                               ↑       0.3
+                                                                                               ↓       0.4
+     • How about continuous or unlimited action space?
+        o Network/table can’t list all actions:
+             Input both state and action into network, only output the Q-value
+
+                                                                                          𝑄𝜃                 ,→           critic
+                            action: →                       𝑄𝜃 𝑠, 𝑎′
+            o Can’t compute the argmax
+                Learn another function to estimate argmax : 𝜋𝜙 𝑠 ≈ arg max
+                                                                         ′
+                                                                            𝑄𝜃 𝑠, 𝑎 ′
+                                                                                                   𝑎
+
+
+                                                                                      action: →                           actor
+                                                         𝜋𝜙 𝑠
+9/15/2026                                Reward Shaping for Reinforcement Learning and Its Applications                                6
+Section II: Reward Matters
+
+Reward Matters
+     • Q-learning => Q-function
+                                                                                         ←     0.0
+                                                                                         →     0.8
+                                                                                                           Esay to get the argmax
+                                                                                         ↑     0.3
+                                                                                         ↓     0.4
+
+     • Actor-critic => Value/Q-value function
+
+
+
+                                                                              𝑄𝜃                   ,→
+                      action: →                𝑄𝜃 𝑠, 𝑎′
+
+
+                                                                                                                 Reward comes from
+                                                                                                                   interaction with
+                                  Return: 𝐺𝑡 = 𝑅 𝑠𝑡 + 𝛾𝑅 𝑠𝑡+1 + 𝛾 2 𝑅 𝑠𝑡+2 + ⋯
+                                                                                                                     environment
+
+9/15/2026                                 Reward Shaping for Reinforcement Learning and Its Applications                              7
+Section II: Reward Matters
+
+Challenge: Native Reward Models
+  Native environmental rewards are typically:
+      o sparse, delayed, and non-informative;
+      o only indicating the completion of the overall task (at most some milestones).
+      o 0 rewards for all in-process states, providing no information.
+
+                                          𝑎0                𝑎1                𝑎2                  𝑎……                     𝑎𝑇
+                                 𝑠0                𝑠1                𝑠2                𝑠3         ……                 𝑠𝑇         ……
+
+                             𝑅(𝑠0 ) = 0        𝑅(𝑠1 ) = 0        𝑅(𝑠2 ) = 0        𝑅(𝑠3 ) = 0                 𝑅(𝑠𝑇 ) = 𝟏
+
+
+
+
+                                                                                                               0           +1
+
+
+
+
+                                                [Source]
+
+
+9/15/2026                                           Reward Shaping for Reinforcement Learning and Its Applications                   8
+Section II: Reward Matters
+
+Challenge: Native Reward Models
+  What will happen if we learn policies in a sparse-reward environment?
+
+                                                      𝑎0                𝑎1                𝑎2                   𝑎……                𝑎𝑇
+                                               𝑠0              𝑠1                𝑠2                𝑠3          ……            𝑠𝑇        ……
+
+                                         𝑅(𝑠0 ) = 0        𝑅(𝑠1 ) = 0        𝑅(𝑠2 ) = 0        𝑅(𝑠3 ) = 0                𝑅(𝑠𝑇 ) = 0
+
+
+                                                        𝑦𝑡𝑀𝐶 = 𝐺𝑡 = 𝑟𝑡 + 𝛾𝑟𝑡+1 + 𝛾 2 𝑟𝑡+2 + ⋯ = 0
+
+                                                                                𝑄෠𝜃 (𝑠𝑡 , 𝑎) → 𝑦𝑡𝑀𝐶
+
+                                                                        Target in this sample will be 0
+
+                                            Q−Learning                                   ′ = 0 + 𝛾max𝑄 𝑠        ′
+                                          𝑦𝑡                 = 𝐺𝑡 = 𝑟𝑡 + 𝛾max
+                                                                           ′
+                                                                              𝑄 𝑠𝑡+1 , 𝑎           ′    𝑡+1 , 𝑎
+                                                                                      𝑎                              𝑎
+
+                                                    one-step reward is 0
+                                       If 𝑄 ≡ 0 initialized, then 𝑄 ← 𝑄
+                                                                                                                       Note:
+                                                                                                        The algorithm finally works, we’re
+                                                                                                         focusing on the sample efficiency
+
+9/15/2026                             Reward Shaping for Reinforcement Learning and Its Applications                                         9
+Section II: Reward Matters
+
+Challenge: Native Reward Models
+  You’ll notice: the RL algorithms only “begin to learn” after sampling a successful reward.
+
+
+
+
+                                                                                             𝑦𝑡𝑀𝐶 = 0 + 𝛾 × 0 + ⋯ + 𝛾 20 × 1 ≈ 0.12
+
+
+
+                                                                                                         𝑄෠𝜃 𝑠𝑡 , 𝑎 → 0.12
+
+                                                                                                           Start to learn!
+
+
+
+                                                                                                                 Note:
+                                                                                                  The algorithm finally works, we’re
+                                                                                                   focusing on the sample efficiency
+
+9/15/2026                              Reward Shaping for Reinforcement Learning and Its Applications                                  10
+Section III: Reward Shaping
+
+Reward Shaping: A Promising Solution
+  • Native reward models: sparse, delayed, non-informative, …
+  • Reward Shaping (RS): Reshape/rebuild the native reward model to more informative reward structures.
+                                     𝑅𝑛𝑒𝑤 (⋅) = 𝛼𝑅𝑒𝑛𝑣 (⋅) + 𝛽𝑹𝒔𝒉𝒂 (⋅)
+  • Reshaping rewards allows us to explicitly control over the agent’s behavior
+  • Main problem: how to define/learn/maintain a shaped reward 𝑹𝒔𝒉𝒂 (⋅)
+
+
+   Sparse rewards:                                                                                                                1
+                                            𝑅 𝑘𝑒𝑦 = 0                                            𝑅 𝑑𝑜𝑜𝑟 = 0
+
+                                                            Reward shaping
+
+
+
+   Expected dense             0.1    0.1                       0.2           0.2           0.2                  0.3   0.3   0.3   1
+         rewards:
+                                           𝑅 𝑘𝑒𝑦 = 0.5                                           𝑅 𝑑𝑜𝑜𝑟 = 0.8
+9/15/2026                                  Reward Shaping for Reinforcement Learning and Its Applications                             11
+Section III: Reward Shaping
+
+Reward Shaping for Exploration
+  • By reshaping rewards, we can control agents to explore.
+  • Exploration bonus: Assign higher rewards to under-explored regions.
+
+
+
+
+                        explored
+
+
+
+                                                                                                          want the agent to explore:
+                                                                                                            give higher rewards
+
+
+
+
+9/15/2026                                Reward Shaping for Reinforcement Learning and Its Applications                                12
+Section III: Reward Shaping
+
+Reward Shaping for Exploration
+  • How to reward under-explored states?
+     o Novelty: assign higher rewards to novel states.
+         ➢ Method #1: For tabular states: count visiting numbers:
+                                       𝑐𝑜𝑢𝑛𝑡              𝑒𝑛𝑣
+                                                                         𝛽
+                                   𝑅           (⋅) = 𝛼𝑅         (⋅) +
+                                                                      𝑁 𝑠 +1
+
+                                                                       Not divided by 0
+
+
+
+
+9/15/2026                               Reward Shaping for Reinforcement Learning and Its Applications   13
+Section III: Reward Shaping
+
+Reward Shaping for Exploration
+  • How to reward under-explored states?
+     o Novelty: assign higher rewards to novel states.
+         ➢ Method #2: For continuous states: no state is ever visited twice: pseudo-count by density model
+                                  pseudo−count         𝑒𝑛𝑣
+                                                                     𝛽
+                                𝑅              (⋅) = 𝛼𝑅 (⋅) +
+                                                                𝑁෡ 𝑠 +1
+
+                                                                                                     Estimated count
+
+
+
+
+                                                                     Estimate: how many history visiting
+                                                                        counts near the specific state.
+
+
+
+
+[1] Bellemare M, Srinivasan S, Ostrovski G, et al. Unifying count-based exploration and intrinsic motivation[J]. Advances in neural information processing systems, 2016, 29.
+9/15/2026                                                       Reward Shaping for Reinforcement Learning and Its Applications                                                  14
+Section III: Reward Shaping
+
+Reward Shaping for Exploration
+  • How to reward under-explored states?
+     o Novelty: assign higher rewards to novel states.
+         ➢ Method #3: Random network distillation (RND): for high-dimension states: density is expensive to
+            compute.
+                                                                     2
+                               𝑅 RND         𝑒𝑛𝑣               መ
+                                     (⋅) = 𝛼𝑅 (⋅) + 𝛽 𝑓(𝑠) − 𝑓𝜃 (𝑠)
+                                                           The error between the predicted value and a randomly fixed value
+
+                                Randomly initialized and fixed
+                                                                                                                                               initialized target 𝑓
+
+                                                                                                                                  error
+                                           Target net                                              2                                      update
+                                                                        𝑓                  𝑓 − 𝑓መ𝜃                                                     predicted 𝑓መ𝜃
+                                                                                                             error
+                                             Predictor
+                                                                        𝑓መ𝜃                     update
+
+            Differently initialized with
+                   parameter 𝜃
+[1] Burda Y, Edwards H, Storkey A, et al. Exploration by random network distillation[J]. arXiv preprint arXiv:1810.12894, 2018.
+9/15/2026                                                       Reward Shaping for Reinforcement Learning and Its Applications                                         15
+Section III: Reward Shaping
+
+Reward Shaping for Exploration
+  • Challenge: novelty does not align with the original goal.
+     o Noisy-TV problem: if we put a TV broadcasting random channels in a maze, agent will be attracted by the
+       noisy TV, as every channel is novel.
+
+
+
+
+                 with a noisy TV                     without a noisy TV
+
+
+[1] OpenAI Blog: "Reinforcement Learning with Prediction-Based Rewards
+9/15/2026                                                   Reward Shaping for Reinforcement Learning and Its Applications   16
+Section III: Reward Shaping
+
+Reward Shaping for Exploitation
+  • By reshaping rewards, we can control agents to exploit (optimization).
+  • Assign higher rewards to more meaningful/valuable states.
+
+
+
+
+    The two doors are “more important”:
+             give higher rewards
+
+
+
+
+9/15/2026                                 Reward Shaping for Reinforcement Learning and Its Applications   17
+Section III: Reward Shaping
+
+Reward Shaping for Exploitation
+  • By reshaping rewards, we can control agents to exploit (optimization).
+  • Assign higher rewards to more meaningful/valuable states.
+     o Method #1: Graph/Clustering based: find the most common states.
+
+
+
+
+                                                building transition graph
+                                               or clustering history states
+
+
+
+
+        o Challenge: the states near the starting point are always most commonly visited.
+
+9/15/2026                                Reward Shaping for Reinforcement Learning and Its Applications   18
+Section III: Reward Shaping
+
+Reward Shaping for Exploitation
+  • By reshaping rewards, we can control agents to exploit (optimization).
+  • Assign higher rewards to more meaningful/valuable states.
+     o Method #2: Tree-like search to estimate the potential success rate.
+
+
+
+
+                                                           Can fix a specific state (prefix) to
+                                                                         start to rollout
+
+
+
+
+        o Challenge: searching is very expensive.
+
+
+
+9/15/2026                               Reward Shaping for Reinforcement Learning and Its Applications   19
+Section III: Reward Shaping
+
+Reward Shaping for Exploitation
+  • By reshaping rewards, we can control agents to exploit (optimization).
+  • Assign higher rewards to more meaningful/valuable states.
+     o Method #2: Tree-like search to estimate the potential success rate.
+          ➢ Example: Math-Shepherd reward model in LLM domain.
+
+
+
+
+[1] Wang P, Li L, Shao Z, et al. Math-shepherd: Verify and reinforce llms step-by-step without human annotations[C]//Proceedings of the 62nd Annual Meeting of the Association for
+Computational Linguistics (Volume 1: Long Papers). 2024: 9426-9439.
+9/15/2026                                                  Reward Shaping for Reinforcement Learning and Its Applications                                                      20
+Section III: Reward Shaping
+
+Challenge: Consistent Optimal Policy
+  • Reward shaping changed the reward function, will the learned optimal policy is consistent with the original one?
+  • Writing the shaped reward function as potential-difference functions
+  • Theoretically guarantee that the optimal policy remains unchanged.
+                                                 𝑅𝑛𝑒𝑤 (⋅) = 𝛼𝑅𝑒𝑛𝑣 (⋅) + 𝛽𝑹𝒔𝒉𝒂 (⋅)
+
+                                                   𝑹𝒔𝒉𝒂 𝑠 = 𝜙 𝑠 − 𝛾𝜙 𝑠 ′
+
+                𝐺𝑡 = 𝑅 𝑠ℎ𝑎 𝑠 + 𝛾𝑅 𝑠ℎ𝑎 𝑠 ′ + ⋯ = 𝜙 𝑠 − 𝛾𝜙 𝑠 ′ + 𝛾 𝜙 𝑠 ′ − 𝛾𝜙 𝑠 ′′                             = 𝜙 𝑠 − 𝛾 2 𝜙 𝑠 ′′
+
+                                                                     Eliminated
+        𝐺𝑡 = 𝑅 𝑠ℎ𝑎 𝑠 + 𝛾𝑅 𝑠ℎ𝑎 𝑠 ′ + 𝛾 2 𝑅 𝑠ℎ𝑎 𝑠 ′ ′ + ⋯ = 𝜙 𝑠 − 𝛾 2 𝜙 𝑠 ′′ + 𝛾 2 𝜙 𝑠 ′′ − 𝛾𝜙 𝑠 ′′′                     = 𝜙 𝑠 − 𝛾 3 𝜙 𝑠 ′′′
+
+                                                                   Eliminated
+  • All other RS methods, including all our methods, DO NOT offer theoretical guarantee.
+  • Most reward-shaping methods are evaluated empirically for higher sample efficiency.
+
+
+9/15/2026                                   Reward Shaping for Reinforcement Learning and Its Applications                                   21
+Section III: Reward Shaping
+
+Reward Shaping for Open-Ended Environments in LLM
+  • Reinforcement Learning is widely used in Large Language Models (LLMs)
+
+
+
+
+                                                                                                     Reinforcement
+                                                                                                       Learning
+
+
+
+
+9/15/2026                           Reward Shaping for Reinforcement Learning and Its Applications                   22
+Section III: Reward Shaping
+
+Reward Shaping for Open-Ended Environments in LLM
+  • Reinforcement Learning is widely used in Large Language Models (LLMs)
+  • Many open-ended questions typically do not have a standard answer or an environmental reward.
+     o Write a short self-introduction for my first day at a new job.
+     o Suggest five names for a coffee shop next to a university campus.
+     o Draft a LinkedIn headline for a data scientist moving into product.
+     o…
+  • Challenge: How to define rewards?
+      Reinforcement learning from human feedbacks (RLHF)
+
+
+
+
+[1] L. Ouyang, J. Wu, X. Jiang, D. Almeida, C. Wainwright, P. Mishkin, C. Zhang, S. Agarwal, K. Slama, A. Ray et al., “Training language models to follow instructions with human feedback,”
+Advances in Neural Information Processing Systems, vol. 35, pp. 27 730–27 744,2022.
+[2] P. F. Christiano, J. Leike, T. Brown, M. Martic, S. Legg, and D. Amodei, “Deep reinforcement learning from human preferences,” Advances in neural information processing systems, vol. 30,
+2017.
+9/15/2026                                                      Reward Shaping for Reinforcement Learning and Its Applications                                                              23
+Section III: Reward Shaping
+
+Reward Shaping for Open-Ended Environments in LLM
+  • Building a reward model in RLHF
+        1.   One prompt -> SFT model -> 𝑁 responses.
+        2.   Human experts: rank the 𝑁 response based on preference:
+                                𝑟𝑒𝑠1 > 𝑟𝑒𝑠2 > ⋯ > 𝑟𝑒𝑠𝑁
+        3.   Prepare a reward model:
+             ➢ Usually another LLM with the same scale of the SFT model.
+             ➢ Add a regression head to the final layer, making it a mapping function:
+                                       𝑟𝜃 𝑥, 𝑦 → ℝ
+             where 𝑥 is the prompt, 𝑦 is the response.
+        4.   Train the reward model by preference-based data:
+             For each pair of outputs: 𝑦+ > 𝑦−
+                          𝐿𝑅𝑀 = −log 𝜎 𝑟𝜃 𝑥, 𝑦+ − 𝑟𝜃 𝑥, 𝑦−
+             where 𝜎 ⋅ is the Sigmoid function.
+                                                                     𝑟𝜃 𝑥, 𝑦+ ≪ 𝑟𝜃 𝑥, 𝑦−
+
+                                                                                                   𝑟𝜃 𝑥, 𝑦+ ≫ 𝑟𝜃 𝑥, 𝑦−
+
+                                                                                 𝑟𝜃 𝑥, 𝑦+ ≈ 𝑟𝜃 𝑥, 𝑦−
+
+
+9/15/2026                                   Reward Shaping for Reinforcement Learning and Its Applications               24
+Section III: Reward Shaping
+
+Summary
+  • Reward shaping / reward modeling:
+                          𝑅𝑛𝑒𝑤 (⋅) = 𝛼𝑅𝑒𝑛𝑣 (⋅) + 𝛽𝑹𝒔𝒉𝒂 (⋅)
+
+                                  for exploration: assign higher rewards to under-explored states.
+
+            Reward Shaping        for exploitation: assign higher rewards to most important states.
+
+                                  from human data: for open-ended problems.
+
+
+  • Common challenge:
+        o How to estimate novelty or importance efficiently?
+        o How to guarantee consistent of the original optimal policy?
+        o How to balance exploration and exploitation?
+
+
+
+
+9/15/2026                                       Reward Shaping for Reinforcement Learning and Its Applications   25
+Section IV: Reinforcement Learning with an Assistant Reward Agent (ReLara)
+
+RL with an Assistant Reward Agent (ReLara)
+  • Framework
+        o Policy agent (PA) 𝒜𝑃 :
+            ➢ Given state from the environment, act an action to interact with the environment.
+        o Reward agent (RA) 𝒜𝑅 : The agent to generate a suggested reward.
+            ➢ Treat the reward generation as a decision-making problem.
+            ➢ Given the state-action, generate a reward signal.
+                         action 𝑎𝑡                                                environmental reward 𝑟𝐸𝑡
+                                                           Environment
+                                      state 𝑠𝑡                                          state 𝑠𝑡
+                                                                  environmental
+                                  next state 𝑠𝑡+1                                   next state 𝑠𝑡+1
+                                                                    reward 𝑟𝐸𝑡
+                                                                                           suggested
+                          Actor                    Critic               𝑟𝐸𝑡 + 𝜆𝑟𝑆𝑡         reward 𝑟𝑆𝑡                  Actor               Critic
+                        𝜋𝜃 : 𝑆 → 𝐴                𝑄𝜙 (𝑠, 𝑎)                                                      𝜋𝜁 : 𝑆 × 𝐴 → ℛ           𝑄𝜂 (𝑠, 𝑟𝑃 )
+                   Policy Agent (𝒜𝑃 )                                                                        Reward Agent (𝒜𝑅 )
+
+[1] Haozhe Ma, Kuankuan Sima, Thanh Vinh Vo, Di Fu, and Tze-Yun Leong. 2024. Reward Shaping for Reinforcement Learning with An Assistant Reward Agent. In Proceedings of the 41st
+International Conference on Machine Learning. (ICML 2024)
+9/15/2026                                                 Reward Shaping for Reinforcement Learning and Its Applications                                                      26
+Section IV : Centralized Reward Agent for Multi-Task Reinforcement Learning (CenRA)
+
+Multi-Task RL with a Centralized Reward Agent (CenRA)
+  • Sharing and transferring the knowledge learned by Reward Agent
+        o The knowledge learned by the Reward Agent can be shared and transferred to similar tasks.
+        o A Centralized Reward Agent (CRA) to extract and distribute knowledge to multiple tasks.
+                                   knowledge reward 𝑟 𝑟𝑤𝑑
+                                                                        Centralized reward agent 𝐴𝑟𝑤𝑑
+                                                                                                                                                                 Knowledge
+                                                                                                                                                                 distillation
+                                                                                                                                                                 Knowledge
+                                               Concatenated replay buffer 𝒟                                                                                      distribution
+
+
+                                                  replay buffer 𝒟1          replay buffer 𝒟2                 replay buffer 𝒟𝑁
+
+
+                                        𝑝𝑜𝑙                                              𝑝𝑜𝑙                                                 𝑝𝑜𝑙
+                          Policy agent 𝐴1                                  Policy agent 𝐴2                                      Policy agent 𝐴𝑁
+
+
+
+
+                                              performance                                      performance                                         performance
+                     Task #1          Learning #1                     Task #2           Learning #2                        Task #N          Learning #N
+
+
+
+[1] Haozhe Ma, Zhengding Luo, Kuankuan Sima, Thanh Vinh Vo, Tze-Yun Leong. Centralized Reward Agent for Knowledge Sharing and Transfer in Multi-Task
+Reinforcement Learning. In Proceedings of the 39th Annual Conference on Neural Information Processing Systems. (NeurIPS 2025)
+9/15/2026                                                   Reward Shaping for Reinforcement Learning and Its Applications                                                      27
+Section IV: Self-Adaptive Success Rate based Reward Shaping (SASR)
+
+Self-Adaptive Success Rate based RS (SASR)
+  • Methodology
+     o Data accumulates along training processes.
+     o More data build more confident Beta distributions.
+
+
+
+
+[1] Haozhe Ma, Zhengding Luo, Thanh Vinh Vo, Kuankuan Sima, Tze-Yun Leong. 2025. Highly Efficient Self-Adaptive Reward Shaping for Reinforcement Learning.
+In proceedings of the 13th International Conference on Learning Representations. (ICLR 2025)
+9/15/2026                                          Reward Shaping for Reinforcement Learning and Its Applications                                       28
+Summary
+
+Summary
+  • Reward shaping / reward modeling:
+                          𝑅𝑛𝑒𝑤 (⋅) = 𝛼𝑅𝑒𝑛𝑣 (⋅) + 𝛽𝑹𝒔𝒉𝒂 (⋅)
+                                     for exploration: assign higher rewards to under-explored states.
+
+            Reward Shaping           for exploitation: assign higher rewards to most important states.
+
+                                     from human data: for open-ended problems.
+
+  • Reference
+        [1] Bellemare M, Srinivasan S, Ostrovski G, et al. Unifying count-based exploration and intrinsic motivation[J]. Advances in neural information processing
+        systems, 2016, 29.
+        [2] Burda Y, Edwards H, Storkey A, et al. Exploration by random network distillation[J]. arXiv preprint arXiv:1810.12894, 2018.
+        [3] Wang P, Li L, Shao Z, et al. Math-shepherd: Verify and reinforce llms step-by-step without human annotations[C]//Proceedings of the 62nd Annual
+        Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 2024: 9426-9439.
+        [4] L. Ouyang, J. Wu, X. Jiang, D. Almeida, C. Wainwright, P. Mishkin, C. Zhang, S. Agarwal, K. Slama, A. Ray et al., “Training language models to follow
+        instructions with human feedback,” Advances in Neural Information Processing Systems, vol. 35, pp. 27 730–27 744,2022.
+        [5] P. F. Christiano, J. Leike, T. Brown, M. Martic, S. Legg, and D. Amodei, “Deep reinforcement learning from human preferences,” Advances in neural
+        information processing systems, vol. 30, 2017.
+        [6] Lil’Log: Exploration Strategies in Deep Reinforcement Learning https://lilianweng.github.io/posts/2020-06-07-exploration-drl/
+        [7] OpenAI Blog: Reinforcement Learning with Prediction-Based Rewards https://openai.com/index/reinforcement-learning-with-prediction-based-rewards/
+
+
+9/15/2026                                             Reward Shaping for Reinforcement Learning and Its Applications                                                 29
+Thank You!
+

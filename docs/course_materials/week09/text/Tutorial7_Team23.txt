@@ -1,0 +1,237 @@
+                                              CS5446 Tutorial 7
+                                               AY26/27 Semester 1
+                                                Tutorial Team 23
+
+
+1     Problem 1
+
+Given parameters:
+
+      • Transition and reward model:
+
+                                       Pη (s1 | s, a) = 0.75,     Rη (s, a, s1 ) = 2
+
+                                     Pη (s2 | s, a) = 0.25,      Rη (s, a, s2 ) = −2
+
+      • Value estimates and parameters:
+
+                            U(s1 ) = max
+                                      ′
+                                         Q(s1 , a′ ) = 6,       U(s2 ) = max
+                                                                          ′
+                                                                             Q(s2 , a′ ) = 2
+                                          a                                a
+
+                                    γ = 0.9,         α = 0.5,   Current Q(s, a) = 3
+
+
+1.1    Part A
+
+Expected Bellman target is given by:
+                                                          [                         ]
+                             Targetfull = ∑ Pη (s′ | s, a) Rη (s, a, s′ ) + γ U(s′ )
+                                               s′
+
+
+Substituting the values for s1 and s2 :
+
+                         Targetfull = 0.75 × [2 + 0.9 × 6] + 0.25 × [−2 + 0.9 × 2]
+                                    = 0.75 × [2 + 5.4] + 0.25 × [−2 + 1.8]
+                                    = 0.75 × 7.4 + 0.25 × (−0.2)
+                                    = 5.55 − 0.05 = 5.50
+
+Then perform Q-Value update with learning rate α = 0.5:
+
+                               Qnew (s, a) = Q(s, a) + α [Targetfull − Q(s, a)]
+                                               = 3 + 0.5 × (5.50 − 3)
+                                               = 3 + 0.5 × 2.50 = 4.25
+
+
+1.2    Part B
+                                              a,−2
+For the sampled simulated transition s −−→ s2 , the sample-based target is:
+
+                     Targetsample = R + γ U(s2 ) = −2 + 0.9 × 2 = −2 + 1.8 = −0.20
+
+Then perform Q-planning update with α = 0.5:
+                                                      [                       ]
+                             Qnew (s, a) = Q(s, a) + α Targetsample − Q(s, a)
+                                              = 3 + 0.5 × (−0.20 − 3)
+                                              = 3 + 0.5 × (−3.20) = 1.40
+
+                                                          1
+1.3     Part C
+
+Reason for difference:
+
+      • Part A (full model / expectation backup): It computes an exact, expectation-based Bellman update
+        across all possible next-states weighted by their transition probabilities Pη (s′ | s, a). And it has zero
+        sample variance relative to the model.
+
+      • Part B (sample-based Q-Planning / sample backup): It uses stochastic sampling to draw a single
+        transition (s2 ). Because s2 carries a negative reward and lower utility (U(s2 ) = 2 vs U(s1 ) = 6),
+        this single sample introduces high variance.
+
+      • Sample-based updates have lower computational cost per step, but higher variance. With a large
+        amount of random samples, the expected update of part B can converge to part A.
+
+
+1.4     Part D
+
+Dyna-Q combines real environment experience, model learning, and sample-based planning in a unified
+architecture:
+
+    1. Direct RL: Executes action a in real environment state s, observes real r, s′ , and updates Q(s, a)
+       directly.
+
+    2. Model learning: Updates the learned model Pη , Rη using the real experience (s, a, r, s′ ).
+
+    3. Planning: Performs K simulated Q-planning steps per real step. This involves uniformly sampling
+       previously visited state-action pairs (ssim , asim ) from the learned model, generating simulated next-
+       states, and updating their Q-values.
+
+
+2     Problem 2
+
+2.1     Part A
+
+Predicted position: a deterministic model trained with Mean Squared Error (MSE) minimizes E[(s′ − ŝ′ )2 ].
+The optimal prediction is the conditional expectation:
+
+                                   ŝ′ = E[s′ ] = 0.5 × (−1) + 0.5 × (+1) = 0
+
+Why problematic: s′ = 0 corresponds to collision with the obstacle. The deterministic model gives a
+result that is physically impossible under the true bimodal distribution.
+
+
+2.2     Part B
+
+Given R = 1, U(s′L ) = 4, U(s′R ) = 8, γ = 0.9:
+                                                          [                       ]
+                           Backupexpected = ∑ P(s′ | s, a) R(s, a, s′ ) + γ U(s′ )
+                                              s′
+                                           = 0.5 × [1 + 0.9 × 4] + 0.5 × [1 + 0.9 × 8]
+                                           = 0.5 × [1 + 3.6] + 0.5 × [1 + 7.2]
+                                           = 0.5 × 4.6 + 0.5 × 8.2 = 2.3 + 4.1 = 6.4
+
+
+                                                         2
+2.3     Part C
+
+      • If sample is s′L (prob 0.5):
+                                             Vsample (s′L ) = 1 + 0.9 × 4 = 4.6
+      • If sample is s′R (prob 0.5):
+                                             Vsample (s′R ) = 1 + 0.9 × 8 = 8.2
+      • Expectation of Samples:
+                                         E[Vsample ] = 0.5 × 4.6 + 0.5 × 8.2 = 6.4
+
+
+2.4     Part D
+
+    1. Limits of deterministic models: Deterministic models predict the expected next state, which col-
+       lapses multimodal distributions into an invalid or unsafe mean.
+    2. Advantages of stochastic dynamics models: Probabilistic or sample-based models preserve distinct
+       valid futures and evaluate outcomes in value space (E[V (s′ )]). They represent stochastic environ-
+       ments accurately to prevent catastrophic averaging and ensure safe, robust planning.
+
+
+3     Problem 3
+
+3.1     Part A
+
+      • Q-Planning: Background Planning. It uses the model offline / in the background to update general
+        value functions Q(s, a) across all states to improve policy readiness before action selection.
+      • MCTS and MPC: Decision-Time Planning. They use the current state st at decision time to evaluate
+        trajectory trees or lookahead rollout sequences before executing an action.
+      • Distinction: Background planning updates global value functions over the state space asynchronously.
+        Decision-time planning computes local trajectory rollouts specifically for the current state to choose
+        the immediate best action.
+
+
+3.2     Part B
+
+MPC sequence discounted return (H = 2, γ = 0.9):
+
+      • Sequence A (3, 4):
+                                       GA = r0 + γ r1 = 3 + 0.9 × 4 = 3 + 3.6 = 6.6
+      • Sequence B (4, 2):
+                                       GB = r0 + γ r1 = 4 + 0.9 × 2 = 4 + 1.8 = 5.8
+
+Sequence A is preferred as GA (6.6) > GB (5.8).
+
+
+3.3     Part C
+
+    1. Model imperfection & unmodeled disturbance: Real environments can deviate from model predic-
+       tions over time, and executing full long sequences accumulates drift.
+    2. Receding horizon control: Re-planning at st+1 incorporates actual observed state feedback, updat-
+       ing future trajectories with fresher data over an extended horizon window.
+
+                                                         3
+3.4     Part D
+
+MuZero plans without raw high-dimensional observations (like images). It uses latent state space with
+necessary dynamics and features to perform accurate predictions. This works because effective planning
+requires evaluating rewards, values and state transitions rather than reconstructing perceptual pixels.
+
+
+4     Problem 4
+
+4.1     Part A
+
+      • DreamerV3: Uses the learned latent world model to generate synthetic trajectories offline / in
+        background to train an actor-critic policy and value network via backpropagation through time.
+
+      • TD-MPC2: Uses the learned latent model at decision time for local sampling-based trajectory
+        optimization combined with a learned terminal Q-value.
+
+
+4.2     Part B
+
+TD-MPC2 candidate evaluation (H = 2, γ = 0.9), using Ĝt = r̂t + γ r̂t+1 + γ 2 Q̂terminal :
+
+      • Sequence A: r = (2, 2), Q̂terminal = 6
+
+                      ĜA = 2 + 0.9 × 2 + 0.92 × 6 = 2 + 1.8 + 0.81 × 6 = 3.8 + 4.86 = 8.66
+
+      • Sequence B: r = (3, 3), Q̂terminal = 1
+
+                      ĜB = 3 + 0.9 × 3 + 0.92 × 1 = 3 + 2.7 + 0.81 × 1 = 5.7 + 0.81 = 6.51
+
+Sequence A is preferred as ĜA (8.66) > ĜB (6.51).
+
+
+4.3     Part C
+
+The terminal Q-value acts as a boostrap estimator for states beyond the finite planning horizon H. It
+estimates the expected cumulative future return. So the planer can account for long-term consequences
+without computationally costly long rollouts, effectively truncating planning depth while maintaining
+infinite-horizon accuracy.
+
+
+4.4     Part D
+
+      • DreamerV3
+
+           – Harms: DreamerV3 trains its actor-critic completely on imagined rollout trajectories. Com-
+             pounding errors during long trajectories may lead to inaccurate policy exploitation. Thus,
+             behaviors look optimal in imagination but fail in reality.
+           – Mitigation: Symlog predictions, KL regularized latent dynamics (RSSM), and incorportating
+             fresh real-world data.
+
+      • TD-MPC2
+
+
+
+                                                      4
+– Harms: During MPC planning, if the learned world model contains errors, optimazation bias
+  may lead the planner to choose action sequences whose scores are artificially inflated by
+  errors in candidate rollout scoring.
+– Mitigation: Terminal Q-value truncation, fixed short rollouts, and incorportating fresh real-
+  world data.
+
+
+
+
+                                          5
+

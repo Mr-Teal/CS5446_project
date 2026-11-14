@@ -1,0 +1,165 @@
+                                     CS5446 Tutorial 2
+                                        AY26/27 Semester 1
+                                         Tutorial Team 47
+                            Kheng Yau Dong                    Denny Wongso
+
+
+1     Problem 1
+1.1      Part A
+Expected Utility of each choice L under each function U:
+
+ U (x)    U (0)    U (1)   U (2)   EU (L1 ) = U (1)       EU (L2 ) = 0.5U (2) + 0.5U (0)   EU (L3 ) = U (2)
+ x2         0        1       4            1                             2                         4
+ x
+ →          0        1       2            1                             1                         2
+   x        0        1     1.414          1                          0.707                     1.414
+
+                  Table 1: Expected utility of L1 , L2 , L3 under each utility function
+
+    Utility function of each individual based on their preference and values in table 1
+
+    • Adam: Preference: L2 ↑ L1 ; needs E(L2 ) = E(L1 ), utility function: x
+                                                                          →
+    • Bing: Preference: L1 ↓ L2 ; needs E(L1 ) > E(L2 ), utility function: x
+    • Candy: Preference: L3 ↑ L2 : needs E(L3 ) > E(L2 ), utility function: None of the above
+
+    • Diana: Preference: L2 ↓ L1 ; needs E(L2 ) > E(L1 ), utility function: x2
+
+1.2      Part B
+Suppose agent 1 prefers A over B:
+
+
+                                            U1 (A) ↓ U2 (B)
+
+    Substituting U1 with the given expression:
+
+                                     k1 U2 (A) + k2 ↓ k1 U2 (B) + k2
+                                          k1 U2 (A) ↓ k1 U2 (B)
+                                            U2 (A) ↓ U2 (B)
+
+    In the last line, the inequality direction is preserved since k1 > 0. From the expression above,
+it shows that agent 1 prefers A over B if and only if agent 2 prefers A over B. The same goes for
+the situation when U1 (A) = U2 (B). Thus, both agents have the same preferences.
+
+
+2     Problem 2
+2.1      A
+we have this value
+                                          L = [0.8, 100; 0.2, 0]
+where 80
+   we can calculate the U (x) for keep all the money
+
+                                        U (100) = log(1 + 100)
+                                        U (100) ↔ 4.6151
+
+
+                                                      1
+calculate the U (x) for losing all the money
+
+                                         U (0) = log(1 + 0)
+                                         U (0) = 0
+    then for the expected utility without insurance is
+
+                       EU (x) = (0.8 ↗ 4.6151) + (0.2 ↗ 0) EU (x) = 3.69208
+
+2.2    B
+we have this value
+                                               L = [1, 70]
+In both scenarioes PacBaby’s will be able to keep 70, so its 100we can calculate the U(x)
+
+                                        U (70) = log(1 + 70)
+                                        U (70) ↔ 4.2627
+then for the expected utility if she buys insurance
+
+                              EU (x) = (1 ↗ 4.2627) EU (x) = 4.2627
+
+EU(x) with insurance is higher than EU(x) with no insurance, therefore PacBaby’s should buy the
+insurance.
+
+2.3    C
+we have this value for PacIncome
+                                        L = [0.8, 30; 0.2, ↘40]
+There is 80
+   EMV value is
+                        EM V (x) = (0.8 ↗ 30) ↘ (0.2 ↗ 40) EM V (x) = 16
+
+
+3     Problem 3
+3.1    A
+people prefer B over A and C over D we can calculate the U(x) for each of the value
+
+                                          U (4000) = 4000
+                                          U (3000) = 3000
+                                               U (0) = 0
+
+for B ↓ A the EU (B) ↓ EU (A)
+
+                                     EU (A) = 0.8 ↗ 4000 = 3200
+                                     EU (B) = 100 ↗ 3000 = 3000
+from the above EU between B and A, most people consistently prefer B ↓ A which imply they are
+
+                                            RiskAverse
+
+however, if we look at EU for C ↓ D
+                                     EU (C) = 0.2 ↗ 4000 = 800
+                                     EU (D) = 0.25 ↗ 3000 = 750
+It is showing that most people are
+                                            Riskseeking
+which is contradicting between both choices. By the rule most people should have the same
+preferences between the two options but this is showing otherwise.
+
+
+                                                   2
+3.2    B
+Using axiom of substitutability:
+
+                                              B↓A
+                            [p : B, (1 ↘ p) : $0] ↓ [p : A, (1 ↘ p) : $0]
+
+
+   Expressing C as a multi-turn lottery in terms of A:
+
+
+
+
+   For the multi-turn lottery’s probability of winning $4000 to be the same as that of C:
+
+                                             0.8p = 0.2
+                                               p = 0.25
+
+   Thus:
+
+                          C = [p : A, (1 ↘ p) : $0] = [0.25 : A, 0.75 : $0]
+
+
+
+
+                                                 3
+Similarly, expressing D as a multi-turn lottery in terms of B:
+
+
+
+
+For the multi-turn lottery’s probability of winning $4000 to be the same as that of D:
+
+                                        1 ≃ p = 0.25
+                                             p = 0.25
+
+Thus:
+
+                      D = [p : B, (1 ↘ p) : $0] = [0.25 : B, 0.75 : $0]
+
+Hence:
+
+                         [0.25 : B, 0.75 : $0] ↓ [0.25 : A, 0.75 : $0]
+                                           D↓C
+
+But D ↓ C contradicts with the given preference C ↓ D.
+
+Hence, the given preference violates axiom of substitutability.
+
+
+
+
+                                              4
+

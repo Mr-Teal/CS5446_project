@@ -1,0 +1,350 @@
+                               National University of Singapore
+                                    School of Computing
+
+                                     Semester 1, AY202627
+
+
+CS4246/5446                           Reinforcement Learning and Sequential Decision Making
+
+
+Issue: 26 August 2026
+                                  Project Guidelines (Draft)
+Important Dates
+    •   Project Proposal Submission:          1800    Monday, 28 Sep 2026
+    •   Project Presentation:                         Week of 10 Nov 2026
+    •   Project Report Submission:            2359    Sunday, 15 Nov 2025
+
+Project Team
+
+You will work in teams of 5–6 members. Project team sign-ups will be available under the People >
+Project Teams tab on Canvas. Your project team may include the same or di7erent members from
+your Tutorial and/or Assignment Teams, and members can be from di7erent tutorial sessions.
+Each team member is responsible for the overall success of the team. Choose your teammates
+carefully to ensure eTective collaboration.
+
+Project Topic
+
+The project is a core component of the course, giving you the opportunity to
+explore reinforcement learning and sequential decision making in AI with an emphasis
+on responsible and impactful applications. Topics should be directly relevant to the course
+materials and integrate Responsible AI considerations such as fairness, transparency,
+accountability, and trust.
+
+Themes:
+
+•   AI Assistant for X:
+
+        Develop intelligent assistants to support decision making in speciﬁc domains, such as
+        education, ﬁnance, health, well-being, elderly care, or customer service.
+
+•   AI for Good:
+
+        Apply AI to address broader societal challenges, such as sustainability, climate change,
+        healthcare, social protection, or ESG-driven initiatives.
+
+•   Other suggested directions:
+
+        o   Human–AI Collaboration – systems where humans and AI jointly plan, learn, and act
+
+        o   Agentic AI and Autonomous Decision Support – AI agents coordinating tools,
+            reasoning, and actions to achieve complex goals
+
+
+
+                                                                                               1
+       o   Planning and Reasoning with Foundation Models – integrating LLMs into decision-
+           making pipelines
+
+       o   Multi-Agent Systems – AI for negotiation, cooperation, and competition across
+           interacting agents
+
+       o   AI for Scientiﬁc Discovery and Innovation – accelerating breakthroughs in domains
+           like drug discovery, climate modeling, or materials science
+
+       o   Responsible AI by Design – aligning AI behavior with human values, ethics, and
+           governance frameworks
+
+Project Types
+You may choose one of the following project types:
+1. Exposition Project on Frontiers of AI Planning and Decision Making
+2. Explore a key framework, algorithm, or emerging area in AI. Possible topics include agentic
+   workﬂows, PPO and its variants, reinforcement learning with human feedback (RLHF) or AI
+   feedback (RLAIF) and their variants, Chain/Tree of Thought, hierarchical or model-based RL,
+   AI for scientiﬁc discovery, human–AI collaboration, neuro-inspired models (e.g., MAMBA,
+   liquid        networks),      digital      twins,      or        multi-agent       systems.
+   Brieﬂy explain the method, key challenges, and signiﬁcance. Include a demonstration—e.g.,
+   reproducing results or running experiments. Emphasize analysis and insights into theoretical
+   or practical impact.
+3. Application Project
+       Deﬁne and address an AI problem within a chosen theme. Apply or extend advanced
+       techniques such as PPO, DQN, Actor–Critic, hierarchical planning or reinforcement
+       learning, model-based RL, LLM-assisted reasoning and planning, imitation and inverse
+       reinforcement learning, or strategic multi-agent decision making.
+4. Competition Project
+       Solve an AI task in planning, games, or robotics. Formal entry is not required, but
+       demonstrate an AI controller in a suitable environment (e.g., OpenAI Gym, MiniGrid,
+       PettingZoo, PyBullet, etc.). See Information Resources below.
+5. Theoretical / Methodological Research (for the Brave Souls)
+       Propose an original algorithm or method in planning or decision making. Possible topics
+       include symbolic–RL integration, neuro-symbolic reasoning, causal inference with
+       knowledge graphs, human-alignment-aware RL, scalable multi-agent coordination,
+       foundation models as world models and planners, continual learning, or neuro-inspired
+       planning. Focus on conceptual innovation and potential impact; implementation is
+       optional but encouraged.
+       o   If interested, discuss UROP or PhD opportunities with me.
+
+Project Requirements
+The project contributes 30% of the ﬁnal grade. Assessment is based on the report and
+presentation, but a proposal must be submitted to receive a grade.
+
+
+
+
+                                                                                             2
+a. Project Proposal1
+    •   Length: Maximum 1 page, single-spaced, single-column, min. 10 point fonts, 1-inch
+        margins (excluding title page & references).
+    •   Content: Clearly outline your plan (not detailed speciﬁcs), providing background,
+        problem statement, approach, team roles, deadlines, and risk assessment.
+    •   Submission: Upload via Canvas with all team members’ names, metric numbers, and
+        email addresses.
+    •   Grading: The proposal is not graded, but feedback will be provided.
+
+b. Project Presentation
+    •   Duration: ~15 minutes + 5 minutes Q&A (subject to change).
+    •   Format: Present to the class or submit a recorded presentation if required.
+c. Project Report
+    •   Writing Standard: Academic, technical report.
+    •   Length: Maximum 10 pages, single-spaced, single-column, min. 12 point fonts, 1-inch
+        margins (excluding title page & references). All important discussions, ﬁgures, tables, and
+        materials must be included. Additional details (e.g., probabilistic graphics models,
+        screenshots) can be placed in an appendix.
+    •   References: Use a Reference Manager (e.g., Endnote, Zotero, Mendeley) and
+        follow Vancouver citation style.
+    •   Submission: Upload PDF via Canvas with all team members’ details.
+
+Audience
+Your proposal, report, and presentation should be understandable to a technical
+audience familiar with AI but not necessarily your speciﬁc topic (e.g., classmates).
+
+Collaboration
+    •   Clearly deﬁne team roles in both the proposal and ﬁnal report (adjustments from the
+        proposal are acceptable).
+    •   Ensure all team members understand the entire project.
+    •   DO NOT copy-paste or merely rephrase printed/online materials.
+    •   Cite all sources properly.
+    •   If using ChatGPT or other LLMs, specify your contributions vs. AI-generated content. You
+        won’t be penalized for AI use, but transparency is required.
+
+
+
+
+1
+ Feel free to start preliminary discussion on your topic in the discussion forum before the proposal
+deadline
+
+
+
+
+                                                                                                       3
+Grading Criteria2
+Your project will be graded on:
+    •   Report: Organization, diTiculty, achievement, soundness, innovation, clarity.
+    •   Presentation: Organization, clarity, and ability to answer questions.
+
+Best Project Award
+The best project will receive a mystery prize at the end of the course!
+Information Resources
+
+•   A list of relevant information repositories is provided HERE3.
+•   For data sources, try to access public available datasets or APIs.
+
+
+
+
+2
+ Refer to the Appendix A for detailed evaluation criteria.
+3
+ For the competitions, you don’t have to actually enter the competitions, just make use of the
+programming environments
+
+
+                                                                                                 4
+Appendix A: Project Evaluation Guidelines
+
+   •   Problem Understanding and Formulation
+          • Motivation and rationale
+          • Problem deﬁnition
+          • Innovativeness
+   •   Knowledge and Technical Depth
+          • Relevance and signiﬁcance
+          • Accuracy of knowledge applied
+          • Level of achievements
+   •   Methodology and Results
+          • Methodology
+          • Literature survey and prior work (if applicable)
+          • Implementation (if applicable)
+          • Analysis and insights
+   •   ETort and Initiative
+          • Evidence of eTort
+          • Evidence of independent and teamwork
+          • Contributions of team members clearly stated
+   •   Report
+          • Relevance of content
+          • Organization
+                  • 10-page length strictly enforced
+          • Writing style
+   •   Presentation
+          • Relevance of content
+          • Organization
+          • Clarity
+          • Time management
+          • Q&A
+
+
+
+
+                                                               5
+Appendix B: AI Planning and Sequential Decision-Making Competitions and Benchmarks
+These resources support hands-on work in automated planning, scheduling, sequential decision
+making, multi-agent coordination, reinforcement learning, and adaptive agents. They
+complement standard machine-learning projects by emphasising long-horizon decisions,
+coordination, uncertainty, and adaptation.
+(Links and status veriﬁed 21 August 2026.) Competition schedules change, please consult the
+oTicial pages. Completed competitions are included only where their environments, starter kits,
+benchmarks, or results remain useful for projects.
+1. Recent and Recurring Competitions
+
+Competition      Focus                        Why It Is Relevant     Status and Link
+
+              Automated planning; the Flagship benchmark
+              2026               edition competition          for
+                                                                  2026              edition
+International included numeric           automated planning,
+                                                                  completed; Numeric
+Planning      planning (Optimal,         spanning         formal
+                                                                  Planning
+Competition – Satisﬁcing,    and   Agile planning            and
+                                                                  tracks and Epistemic
+IPC 2026      tracks)      and       the reasoning         about
+                                                                  Planning track
+              ﬁrst Epistemic             beliefs and knowledge
+              Planning track             in multi-agent settings
+
+                  Automated       negotiation,
+Automated                                                             Recurring competition;
+                  bidding and acceptance Directly             applies
+Negotiating                                                           2026             edition
+                  strategies,       opponent decision theory and
+Agents                                                                completed; oTicial
+                  modelling,     supply-chain multi-agent strategy to
+Competition     –                                                     site (ANAC          Live
+                  negotiation, and human- autonomous agents
+ANAC 2026                                                             Competition)
+                  agent negotiation
+
+                                           Supports      planning,
+               Multi-agent         railway                         2026             edition
+                                           search, optimisation,
+Flatland ECML rescheduling,       routing,                         completed; oTicial
+                                           operations research,
+2026 Challenge coordination, intermediate                          site (Flatland
+                                           and RL in a dynamic
+               stops, and time windows                             Association)
+                                           transport setting
+
+                 Disaster simulation and A long-running setting
+RoboCup                                                             Recurring       RoboCup
+                 intelligent   agents    for for        multi-agent
+Rescue                                                              league; oTicial
+                 search,             rescue, planning and decision
+Simulation                                                          site(RoboCup 2026 |
+                 coordination, and resource making            under
+League                                                              로보컵 2026)
+                 allocation                  uncertainty
+
+                                          Integrates scheduling,
+                Task assignment, lifelong path         planning, 2026     main     round
+League of Robot multi-agent path ﬁnding, coordination,      and completed; oTicial
+Runners 2026 execution control, and robust execution in site(League of Robot
+                stochastic delays         warehouse-scale        Runners)
+                                          scenarios
+
+                                              Supports RL, online
+NS-Gym AAMAS Decision   agents           that                     2026       competition
+                                              planning,    meta-
+2026     Non- detect, adapt to,          and                      completed; framework
+                                              learning,      and
+
+
+
+
+                                                                                             6
+Competition       Focus                      Why It Is Relevant     Status and Link
+
+Stationarity      recover from environmental continual     learning remains reusable; oTicial
+Challenge         changes                    under non-stationarity site (NS-Gym)
+
+2. Archived Competitions with Reusable Environments
+
+Resource            Focus and Use                       Status and Link
+
+                 Cooperative agents with limited
+                                                     Last competition held in 2022; no
+Multi-Agent      local information, coordinated task
+                                                     conﬁrmed        next   date; oTicial
+Programming      completion,             multi-agent
+                                                     site (Multi-Agent     Programming
+Contest / MASSim programming, and norm-sensitive
+                                                     Contest)
+                 scenarios
+
+                    Minecraft-based         sequential
+                                                       Last BASALT competition held at
+                    decision making, sample-eTicient
+                                                       NeurIPS                2022; MineRL
+MineRL / BASALT     RL, imitation learning, human
+                                                       repository (Proceedings of Machine
+                    feedback, and tasks without
+                                                       Learning Research)
+                    predeﬁned reward functions
+
+                   Multi-agent 1v1 strategy-game Closed on 24 March 2025;
+Lux AI Challenge – agents using programmed policies, environment and submissions remain
+Season 3           imitation learning, RL, or meta- useful       for    projects; Kaggle
+                   learning                          page (Kaggle)
+
+3. Benchmark Environments — Not Competitions
+
+Environment Focus                       Why It Is Relevant        Link
+
+               Conﬁgurable grid worlds Lightweight environment
+               involving   navigation, for     planning,     RL,
+                                                                 OTicial
+MiniGrid       objects, keys, doors, curriculum learning, and
+                                                                 documentation(GitHub)
+               mazes, and hierarchical grounded      instruction
+               missions                following
+
+               Cooperative,             Maintained standard API
+               competitive, turn-based, and           reference
+                                                                OTicial
+PettingZoo     and simultaneous-action environments for multi-
+                                                                documentation(PettingZoo)
+               multi-agent              agent RL and sequential
+               environments             decision making
+
+Useful Competition Portals
+For new competition cycles, use the following oTicial discovery pages rather than generic
+conference homepages:
+   •   ICAPS Competition Archive for automated planning and scheduling competitions. (ICAPS)
+   •   AAMAS 2026 Competitions for multi-agent planning, routing, adaptation, games, and
+       coordination challenges. (Cyprus Conferences)
+   •   NeurIPS 2026 Competitions for the latest accepted machine-learning, agent, robotics,
+       optimisation, and evaluation competitions. Sixteen competitions were announced on 28
+       July 2026; participation schedules vary by competition. (blog.neurips.cc)
+
+
+
+                                                                                            7
+

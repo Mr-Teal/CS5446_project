@@ -1,0 +1,996 @@
+  Sequential Decision Making
+  under Uncertainty
+  CS4246/5446
+  Reinforcement Learning and Sequential Decision Making
+  Version 1.0
+
+
+
+© Copyright National University of Singapore. All Rights Reserved.
+What we have learned so far…
+• Symbolic (Classical) Planning
+     • Sequential, deterministic, fully observable
+• Utility Theory
+     • Episodic or sequential, stochastic, fully or partially observable
+• Up Next: Decision Making Under Uncertainty and Over Time
+     • Sequential, stochastic, fully or partially observable
+     • Markov decision process
+     • Reinforcement learning
+
+Sequential Decision Making                                                 2
+Topics
+• Markov Decision Process (17.1)
+      •   Model formulation and solution
+      •   Bellman Equation and Q-function
+      •   Solution algorithm: Value iteration (17.2.1)
+      •   Solution algorithm: Policy iteration (17.2.2)
+
+• Reinforcement Learning: Reward Based Learning and Planning
+
+• Prediction (Learning) - Passive RL
+      •   Adaptive dynamic programming
+      •   Monte Carlo learning: Direct utility estimation
+      •   Temporal difference learning
+
+• Control (Planning) - Active RL
+      •   Active adaptive dynamic programming
+      •   Exploration vs exploitation
+      •   Monte Carlo Control
+      •   Temporal difference Control: Q-learning and SARSA
+
+
+
+Sequential Decision Making                                     3
+Solving Sequential Decision Problem
+• Decision Problem or Model
+     • Appropriate abstraction of states, actions, uncertain effects, and goals (wrt costs and
+       values or preferences) and time horizon + observations (through sensing)
+• Decision Algorithm
+     • Input: a problem
+     • Output: an optimal solution over time horizon
+• Decision Solution
+     • An action sequence or solution from an initial state to the goal state(s)
+          • An optimal action sequence; OR
+          • An optimal policy that specifies “best” action in each state wrt to costs or values or preferences
+     • (Optional) A goal state that satisfies certain properties
+
+Sequential Decision Making                                                                            4
+Markov Decision Process
+Foundational sequential decision modeling and solution framework
+
+
+
+
+Sequential Decision Making                                         5
+Markov Decision Process (MDP)
+• Formally:
+     • An MDP 𝑀 ≜ 𝑆, 𝐴, 𝑇, 𝑅, γ consists of:
+     • A set 𝑆 of states
+                                                                 next state only depends on the current state
+     • A set 𝐴 of actions                                        (does not remember historical states)
+
+     • A transition function 𝑇: 𝑆×𝐴×𝑆 → [0,1] that satisfies the Markov property such that:
+                        ∀𝑠 ∈ 𝑆, ∀𝑎 ∈ 𝐴: 4 𝑇 𝑠, 𝑎, 𝑠 " = 4 𝑃(𝑠 " |𝑠, 𝑎) = 1
+                                        !"∈$                !"∈$
+     • A reward function 𝑅: 𝑆 → ℜ or 𝑅: 𝑆×𝐴 → ℜ or 𝑅: 𝑆×𝐴×𝑆 → ℜ
+     • A discount factor 0 ≤ 𝛾 ≤ 1
+     • Solution is a policy – a function to recommend an action in each state: 𝜋: 𝑆 → 𝐴
+          • Solution involves careful balancing of risk and reward
+Sequential Decision Making                                                                           6
+  Example: Navigation in Grid World
+                               • Fully observable 4 x 3 environment
+                                  • Begin in START state 𝑠0
+                                  • One action 𝑎 per time step.
+                                  • Terminate when reaching goal states 𝑠%
+                               • Uncertain action effects:
+                                  • Example: Up, Down, Left, Right:
+                                  • 0.8 - correct direction
+                                  • 0.1 - perpendicular to the left
+                                  • 0.1 - perpendicular to the right
+Source: RN Figure 17.1
+
+  Sequential Decision Making                                           7
+  Example: Navigation in Grid World
+                                                 • Transition model:
+                                                     • Define (stochastic) outcome of each action:
+            -0.04        -0.04   -0.04               • 𝑃(𝑠’|𝑠, 𝑎) – probability of reaching state s’ if
+                                                       action 𝑎 is taken
+                                                 • Reward model:
+             -0.4                -0.04               • Define reward received for every transition:
+                                                     • 𝑅(𝑠, 𝑎, 𝑠’) – For every transition from 𝑠 to 𝑠′ via
+                                                       action 𝑎
+             -0.04       -0.04   -0.04   -0.04
+                                                     • Rewards bounded by ±𝑅!"#
+                                                 • Utility function: (State utility)
+                                                     • 𝑈 𝑠 – defined on the sequence of states and
+                                                       actions from state 𝑠 – environment history – sum
+Source: RN Figure 17.1                                 of rewards of the states in the sequenc
+
+  Sequential Decision Making                                                                              8
+Solving MDPs
+• What does a solution look like?
+     • A policy 𝜋: 𝑆 → 𝐴 maps each state 𝑠 to an action 𝑎.
+     • The quality of a policy is measured by its expected utility over the
+       state sequences it generates.
+     • The optimal policy 𝜋 ∗ maximizes expected utility. (MEU Principle)
+• An MDP agent uses 𝜋 ∗ :
+     • It observes the current state 𝑠
+     • Executes the action 𝑎∗ = 𝜋 ∗ 𝑠
+     • The policy defines how the agent behaves.
+
+Sequential Decision Making                                                    9
+Notes: State Utility and Optimal Policy
+• Utility of a state 𝑠 (Value of a state 𝑠):
+     • Best achievable expected utility starting from 𝑠:
+                                                 ∗
+                                       𝑈 𝑠 = 𝑈! 𝑠 = max 𝑈! (𝑠) = 𝑉(𝑠)
+                                                            !
+
+• Bellman Optimality Equation:
+                              𝑈 𝑠 = max"∈$(&) + 𝑃 𝑠 ( 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 ( + 𝛾𝑈 𝑠 (
+                                                  &(
+
+• Optimal policy (Maximum Expected Utility Principle):
+                             𝜋 ∗ 𝑠 = argmax"∈$(&) + 𝑃 𝑠 ( 𝑠, 𝑎 [𝑅 𝑠, 𝑎, 𝑠 ( + 𝛾𝑈 𝑠 ( ]
+                                                       &(
+
+• Interpretation:
+     • Utility of a state is the maximum expected immediate reward plus discounted utility of successor states.
+
+Sequential Decision Making                                                                               10
+ Solving Bellman Optimality Equation
+Numbers are 𝑈(𝑠)
+Initialize: 𝑈 𝑠 = 0
+                                                            0   0   0
+How to compute
+the 𝑈(𝑠) numbers?
+                                  Bellman update            0       0
+𝑈"#$ 𝑠
+← max%∈'()) 0 𝑃 𝑠 + 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 + + 𝛾𝑈" 𝑠 +              0   0   0   0
+                 )+
+
+                          Utility of a state
+            is the maximum expected immediate reward
+              plus discounted utility of successor states
+ Markov Decision Process                                                    Source:
+                                                                               11 RN Figure 17
+Notes: Value Iteration
+• Iterative, repeated Bellman updates of state utilities:
+    1. Initialize utilities arbitrarily (e.g., 𝑈 𝑠 = 0) Bellman update
+     2.     Update utilities of all states using:
+                  𝑈"#$ 𝑠 ← max%∈'()) 0 𝑃 𝑠 + 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 + + 𝛾𝑈" 𝑠 +
+                                           )+
+     3.     Repeat until values converge (changes < threshold 𝜖)
+     4.     Extract optimal policy from final utilities:
+                   𝜋 ∗ 𝑠 = argmax%∈'()) 0 𝑃 𝑠 + 𝑠, 𝑎 [𝑅 𝑠, 𝑎, 𝑠 + + 𝛾𝑈 𝑠 + ]
+                                            )+
+• Key points:
+     • Convergence: Approximates utilities until convergence to the unique Bellman solution.
+     • Optimality: Extracted policy is guaranteed to be optimal.
+     • Complexity: Each iteration is 𝑂 ∣ 𝑆 ∣- ∣ 𝐴 ∣ ; total iterations depends on 𝜖 and 𝛾.
+Sequential Decision Making                                                                 12
+  Example: Solution by Value Iteration
+  𝑅(𝑠) = −0.04
+
+Numbers are 𝑈(𝑠)
+
+How to compute the numbers?
+What is the optimal policy?
+
+For U(1,1):           𝑈/01 𝑠 ← max2∈4(5) . 𝑃 𝑠 6 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 6 + 𝛾𝑈/ 𝑠 6
+                                           56
+                                                                                     (U)
+                                                                                     (L)
+                                                                                     (D)
+                                                                                     (R)
+𝜋 ∗ 1,1       = Up
+                                                            Source: RN Figure 17.3
+  Markov Decision Process                                                                  13
+   Notes: Policy Iteration
+• Iterative Steps:
+    1.    Initialize an arbitrary policy 𝜋*.                               Bellman expectation equation
+    2.    Policy Evaluation: Solve for utilities 𝑈! 𝑠 under 𝜋+ :
+                             𝑈!" 𝑠 = 𝑈+ 𝑠 = ∑&( 𝑃 𝑠 ( 𝑠, 𝜋+ 𝑠 [𝑅(𝑠, 𝜋+ 𝑠 , 𝑠′) + 𝛾𝑈+ 𝑠′ ]
+    • For large state spaces, use iterative approximation:
+                           𝑈+,- 𝑠    ← + 𝑃 𝑠 ( 𝑠, 𝜋+ 𝑠 [𝑅(𝑠, 𝜋+ 𝑠 , 𝑠′) + 𝛾𝑈+ 𝑠′ ]
+                                          &(
+    3.     Policy Improvement: Update policy 𝜋+,- based on current utilities:
+                            𝜋+,- 𝑠 = arg max + 𝑃 (𝑠 (|𝑠, 𝑎) 𝑅 𝑠, 𝑎, 𝑠 ( + 𝛾𝑈+ 𝑠 (
+                                               "
+                                                   &#
+    4.     Repeat until the policy stabilizes (no change between iterations).
+• Key Points:
+    • Convergence: Terminates in a finite number of iterations.
+    • Optimality: Final policy is guaranteed to be optimal.
+    • Complexity: Policy evaluation solves |𝑆| linear equations (𝑂 𝑛$ for |𝑆| = 𝑛); iterative evaluation used for large
+      state spaces
+   Sequential Decision Making                                                                                       14
+Example: Solution by Policy Iteration
+                                        NO max operator
+• Step 1: Policy evaluation:
+  (Bellman expectation equation)
+     𝑈& 𝑠 = ∑!" 𝑃 𝑠 " 𝑠, 𝜋& 𝑠 [𝑅(𝑠, 𝜋& 𝑠 , 𝑠′) + 𝛾𝑈& 𝑠′ ]
+          = 𝑅 s + 𝛾 ∑!. 𝑃 𝑠 " 𝑠, 𝜋& (𝑠) 𝑈& 𝑠 "                       Assume: 𝜋+ 𝑠
+
+
+
+
+       𝑈& 1,1 = 0.8 −0.04 + 𝑈& 1,2 + 0.1 −0.04 + 𝑈& 2,1 ] + 0.1[−0.04 + 𝑈& 1,1
+     • 𝑈& 1,2 = 0.8 −0.04 + 𝑈& 1,3 + 0.2 −0.04 + 𝑈& 1,2
+                                          ⋮
+                                                                  Source: RN 17.2.2
+
+Markov Decision Process                                                               15
+Example: Solution by Policy Iteration
+• Step 2: Policy improvement:
+     • For all the states, to find best policy:
+                𝜋 ∗ 𝑠 = argmax ) 𝑃 𝑠 ? 𝑠, 𝑎 [𝑅 𝑠, 𝑎, 𝑠 ? + 𝛾𝑈 𝑠 ? ]
+                          ;∈=(>)                                                 Assume: 𝜋+ 𝑠
+                                     >?
+     • In state (1, 1):
+          • Check if any action 𝑎 when applied to 𝑠 is better than current policy 𝜋& 𝑠 ;
+          • Update if necessary
+            𝜋@AB 1,1 = argmax ∑>? 𝑃 𝑠 ? (1,1), 𝑎 [𝑅 (1,1), 𝑎, 𝑠 ? + 𝛾𝑈 𝑠 ? ]
+                            ;∈=(>)
+                                                                           (U)
+                                                                           (L)
+                                                                           (D)
+                                                                           (R)
+Markov Decision Process                                                                     16
+Reinforcement Learning
+Combining planning + learning in sequential decision making
+
+
+
+
+Sequential Decision Making                                    17
+  Example: Navigation in Grid World
+                               • Transition model:
+                                 • Unknown
+                               • Reward model:
+                                 • Unknown
+                               • How to find optimal policy 𝜋 ∗ ?
+
+
+
+Source: RN Figure 17.1
+
+  Sequential Decision Making                                 18
+     Reinforcement Learning
+                                                             Fully observable environment based on percepts
+                                                             Unknown dynamics
+     • The agent – environment loop                          Unknown action outcomes
+                                                             Unknown rewards
+                                                 Action
+                                                                 Assumes MDP
+                                             Current State      Environment
+                                  Agent                                               Related work:
+                                                                                      psychology,
+E.g., playing games, flying                   Next State                              neuroscience,
+helicopter, exploring
+Mars, assisting elderly                                                               operations research,
+                                                 Reward                               optimal control theory
+
+How to derive optimal policy?             Reward or Reinforcement as feedback for learning –
+                                          achieved along the way or at the end
+
+     Sequential Decision Making                                                                       19
+Reinforcement Learning Videos
+• Stanford Autonomous Helicopter
+     • https://youtu.be/M-QUkgk3HyE?si=7yx8E0UeObDJk_lJ
+• Run Away from Zombies!
+     • https://youtu.be/TWBSSCYnEOM?si=iQdbr6EXEMnJdZYA
+• RL in Starcraft II
+     • https://youtu.be/gEyBzcPU5-w
+• Autonomous robot control
+     • https://youtu.be/KyA2uTIQfxw
+
+
+
+
+Sequential Decision Making                                20
+Notes: Reinforcement Learning
+                                                                    E.g., playing chess, flying helicopter,
+                                                                    exploring Mars, assisting elderly
+• Decision making in complex and uncertain environments
+     • Learning to behave in unfamiliar environment, given percepts and occasional rewards
+• Assume:
+     • Environment is a Markov Decision Process (MDP)        Relies on the Markov property
+     • Optimal policy – policy that maximizes the expected total reward
+• Reinforcement learning
+     • Unknown environment model reward function
+     • Use observed rewards to learn an optimal policy for the environment
+     • Related work: psychology, neuroscience, operations research, optimal control theory.
+
+Sequential Decision Making                                                                         21
+Types of RL Agents                                    Assume:
+                                                      Environment is an MDP
+                                                      Optimal policy maximizing total rewards
+• Reinforcement learning
+     • [MB]         Model-based:     Learns transition model (and reward model) to solve problem
+     • [MF]         Model- free:     Does not (need to) learn transition model to solve problem
+• Passive learning agent        𝜋 → 𝑈;
+     • Learning - Prediction/evaluation/value estimation problem
+     • Fixed policy determining behavior
+     • Learns utility functions or action-utility functions (Q-functions)
+     • sf policy evaluation in policy iteration
+• Active learning agent         𝜋∗
+     • Planning - Control problem
+     • Learning how to behave – balancing exploration vs exploitation
+     • Plans or determines actions to take
+     • sf value iteration
+
+Sequential Decision Making                                                                         22
+Notes: Q-Function
+• Q-Function (Action-Utility Function)
+     • State utility 𝑈 𝑠 is defined by the Bellman Optimality Equation.
+     • To select actions, it is useful to evaluate state–action pairs directly.
+• Definition (Bellman Optimality Equation for Q):
+     𝑄(𝑠, 𝑎) = 0 𝑃 𝑠 + 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 + + 𝛾𝑈 𝑠 +       = 0 𝑃 𝑠 + 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 + + 𝛾max%% 𝑄(𝑠′, 𝑎′)
+                   )+                                      )+
+     • State utility: 𝑈 𝑠 = max% 𝑄(𝑠, 𝑎)
+     • Optimal policy: 𝜋 ∗ 𝑠 = argmax% 𝑄(𝑠, 𝑎)
+• Interpretation:
+     • 𝑄(𝑠, 𝑎) = expected utility of taking action 𝑎 in state 𝑠, then following the optimal policy.
+
+
+Sequential Decision Making                                                                      23
+Passive Reinforcement Learning                                          𝜋 → 𝑈5
+Predict utility function (action-utility function) of state given a fixed policy
+
+
+
+
+Sequential Decision Making                                                         24
+Notes: Passive Learning
+• Main ideas
+     • Agent follows a fixed policy 𝜋 for multiple trials (episodes)
+     • Starts from an initial state 𝑠' and continues until reaching a terminal state
+     • Observes states and rewards while executing 𝜋
+     • Learns expected utilities under 𝜋:                                         Discounted
+                                        +                                       Rewards received
+
+                        𝑈 ( 𝑠 = 𝔼( 4 𝛾 ) 𝑅(𝑆) , 𝜋 𝑆) , 𝑆),- )|𝑆' = s
+                                        )*'
+                                   +
+
+                  𝑄 ( (𝑠, 𝑎) = 𝔼( [4 𝛾 ) 𝑅(𝑆) , 𝐴) , 𝑆),- ) ∣ 𝑆' = 𝑠, 𝐴' = 𝑎]
+                                  )*'
+     • This is policy evaluation in policy iteration.
+Sequential Decision Making                                                                  25
+Learning Utility Function    𝑟/0/12345+/"6 = −0.04
+
+
+
+
+                                                              Source: RN Figure 22.1
+
+• The policy 𝜋 is fixed:
+     • Agent always executes 𝜋(𝑠) in state 𝑠
+• Goal: Learn utility function or value function 𝑈 I (𝑠) from observations
+     • Unknown transition model, 𝑃(𝑠 ? |𝑠, 𝑎)         If known, simply do
+     • Unknown reward function, 𝑅(𝑠) or 𝑅(𝑠, 𝑎, s′)   policy evaluation!
+Sequential Decision Making                                                         26
+Trials, Returns, and Expected Returns
+                                                                                       𝑟/0/12345+/"6 = −0.04
+• Trials
+     • Also called state-action sequences/runs/trajectories/episodes
+• Returns (𝐺) )
+     • Discounted sum of rewards of a trial from time t onwards
+                                 𝐺2 = 𝑅2 + 𝛾𝑅2,- + 𝛾 7𝑅2,7 + ⋯
+     • Example: 𝐺2 = −0.04 + 𝛾 −0.04 + 𝛾 7 −0.04 + ⋯ + 𝛾 / 1
+• Expected Returns
+     • Utility / value of a state (under policy 𝜋):
+                                𝑈! 𝑠 = 𝐸! ∑9        2
+                                               28* 𝛾 𝑅 𝑆2 |𝑆* = 𝑠 = 𝐸! [𝐺*| 𝑆* = 𝑠]
+
+• Note: Q-function (Action-utility function) 𝑄(𝑠, 𝑎)
+     • Expected total discounted reward if action 𝑎 is taken in state 𝑠, followed by optimal behavior
+     • Related to state utilities: 𝑈 𝑠 = max 𝑄(𝑠, 𝑎)
+                                               "
+Sequential Decision Making                                                                              27
+Learning Utility Function
+                                                  Start
+                                                  state
+• Agent executes a series of trials / episodes /runs using π, e.g.,
+     • Trial 1:
+     • Trial 2:
+     • Trial 3:                                                       Return Gt:
+                                                              Sum of discounted rewards
+• Utility or value of a state under 𝜋:                                 of a trial
+     • Expected total reward from that state onwards following 𝜋          From now on:
+     • Also called expected reward-to-go / expected return                Assume 𝛾 = 1
+                         S                  S
+     𝑈 O 𝑠 = 𝐸 ) 𝛾 P 𝑅 𝑆P |𝑆R = 𝑠 = 𝐸 ) 𝛾 P 𝑅(𝑆P , 𝜋 𝑆P , 𝑆PAB )|𝑆R = s
+                        PQR                PQR
+
+Sequential Decision Making
+                                   𝐺6                                           28
+Learning Utility Function
+• Unknown transition dynamics, unknow reward functions
+• Model-based
+     • Learn the transition and reward functions, then solve the MDP (𝑈O )
+     • Examples: Adaptive Dynamic Programming (ADP)
+• Model-free
+     • Directly learn the utility function (𝑈O )
+     • Examples: Monte Carlo (MC) Learning, Temporal Difference (TD) Learning
+
+
+Sequential Decision Making                                                   29
+Example: Adaptive Dynamic Programming
+                                                              c
+
+
+
+
+What is the transition probability function from 𝑠 = 3, 3 ?
+To compute:
+     •
+
+
+
+
+Sequential Decision Making                                        30
+Adaptive Dynamic Programming (ADP)
+• Learn model from experience:
+     • Estimate transition probabilities 𝑃 𝑠 ( 𝑠, 𝑎 by counting and normalizing observed outcomes.
+     • Learn rewards 𝑅 𝑠, 𝑎, 𝑠 ( when entering state 𝑠 (.
+• Evaluate policy using learned model:
+                             𝑈! 𝑠 = + 𝑃 𝑠 ( 𝑠, 𝜋 𝑠 [𝑅 𝑠, 𝜋 𝑠 , 𝑠 ( + 𝛾𝑈! (𝑠 () ]
+                                      &#
+
+• Notes:
+     • Solve |𝑆| linear equations in 𝑂 𝑆 : time
+     • Learning 𝑃 𝑠 ( 𝑠, 𝑎 is supervised learning:
+       Input: a state–action pair 𝑠, 𝑎 , target: observed next state 𝑠 (.
+     • Learning 𝑅 𝑠, 𝑎, 𝑠 ( is supervised learning:
+       Input: a transition 𝑠, 𝑎, 𝑠′ , target: observed reward.
+     • ADP enforces global consistency among utilities using Bellman expectation equations.
+Sequential Decision Making                                                                           31
+   Notes: ADP-Learner
+
+
+             Using tabular
+             representation
+
+ Reward
+function R
+
+Transition
+function T                      Maximum likelihood estimation (MLE)
+
+
+
+                                         Source: RN Figure 22.2
+   Sequential Decision Making                                     32
+Learning Utility Function
+• Unknown transition dynamics, unknow reward functions
+• Model-based
+     • Learn the transition and reward functions, then solve the MDP (𝑈O )
+     • Examples: Adaptive Dynamic Programming (ADP)
+• Model-free
+     • Directly learn the utility function(𝑈O )
+     • Examples: Monte Carlo Learning, Temporal Difference (TD) Learning
+
+
+Sequential Decision Making                                                   33
+Example: Monte Carlo Learning
+
+
+
+• Each trial provides a “sample” of expected return for each state visited
+     • In the first trial, sample total reward:
+          • For 1,1 = 0.72
+          • For 1,2 = 0.76 and 0.84 and so on                          0 )                     4
+     • Overall:                                                   1      "               "
+                                                     𝑈 . (𝑠) ←       0 𝐺1 ;           𝐺1 = 0 𝛾 2 𝑅 𝑆1#2
+                           './0,'./0 2-.03                       𝑁 𝑠
+          • 𝑈 ( 1,1 =                      = 0.067                      "/$                   2/3
+                                  4
+                           './5,'.63,'./5                 • 𝑁(𝑠) = number of times state 𝑠 has been visited
+          • 𝑈 ( 1,2      =                 = 0.79
+                                  4                             • 𝐺! " = return from the 𝑖 −th visit to 𝑠
+
+Sequential Decision Making                                                                               34
+Monte Carlo Learning
+• Goal: Estimate state or state–action utilities under a fixed policy.
+• Method: Run trials (episodes), then update utilities using the observed return 𝐺
+• Learning: Update by averaging returns across visits to each state or (state, action).
+• Key idea:
+          The return 𝐺 (total discounted reward) is an unbiased estimate of true utility:
+                                  𝔼 𝐺 = 𝑈 ( 𝑠 or 𝑄 ( (𝑠, 𝑎)
+                                                                        ; &,"               9
+• Properties:                                                   1
+                                                     𝑄 𝑠, 𝑎 ←            + 𝐺2 + ;    𝐺2 + = + 𝛾 = 𝑅 𝑆2,=
+     • No model required                                      𝑁 𝑠, 𝑎
+                                                                         +8-                =8*
+     • High variance, slow convergence → Does not enforce Bellman consistency during learning
+     • Updates only after each episode completes
+     • Useful when episodes are short and full returns are observable.
+
+Sequential Decision Making                                                                         35
+Example: Temporal-Difference (TD) Learning
+
+
+After first trial:                        Solving the MDP without learning
+                      3.6#3.66                  a transition function.
+     • 𝑈 . 1,3 =                 = 0.84
+                             -
+     • 𝑈 . 2,3 = 0.92
+• In the long run, must obey:
+     • 𝑈 . 1,3 = −0.04 + 𝑈 . 2,3
+• Hence:
+     • 𝑈 . 1,3 = 0.88 Current value of 0.84 needs updating!
+Sequential Decision Making                                                   37
+Example: Temporal Difference (TD) Learning
+• Use Temporal Difference (TD) Update Rule                                             From now on:
+                             𝑈( 𝑠   ← 𝑈( 𝑠   + 𝛼[𝑅 + 𝛾𝑈 ( 𝑠 "   − 𝑈( 𝑠 ]               Assume 𝛾 = 1
+            𝑈 ( 1, 3 ← 0.84 + 𝛼 ⋅ −0.04 + 0.92 − 0.84 = 0.84 + 𝛼 ⋅ 0.04
+     • If 𝛼 = 0.5, then:
+                               𝑈 ( 1, 3 = 0.84 + 0.5 ⋅ 0.04 = 0.86 Closer to the long run value 0.88!
+• What is 𝛼?
+     • 𝛼 is the learning rate
+     • Controls how much each new experience affects the current utility estimate:
+          • 𝛼 = 1: full update using the new estimate
+          • 𝛼 = 0: ignore the new estimate
+     • Typically: 0 < 𝛼 < 1
+                                                                -
+     • For convergence: use decreasing 𝜶, e.g., 𝛼 𝑛 =
+                                                                >
+Sequential Decision Making                                                                       38
+Temporal Difference Learning (TD)
+                                                                       Update rule uses difference in
+                                                                     utlities between successive states
+• TD Update Rule (for a transition 𝑠 → 𝑠 ? ):
+
+                    𝑈 . 𝑠 ← 𝑈 . 𝑠 + 𝛼(𝑅 𝑠, 𝜋 𝑠 , 𝑠′ + 𝛾𝑈 . 𝑠 + − 𝑈 . 𝑠 )
+                                                TD Target TD Term or TD Error
+                             .   +
+     • TD Target: 𝑅 + 𝛾𝑈 𝑠
+     • TD Error: 𝑅 𝑠 + 𝛾𝑈 . 𝑠 + − 𝑈 . 𝑠
+     • Learning rate: 𝛼, typically 𝛼 𝑛 = 𝑂 1/𝑛 over visits
+• Key Insights
+     • Bootstrapping: Updates based on observed transitions and current estimate of 𝑈 . 𝑠 +
+     • Faster learning: TD updates after every step (vs. MC: end of episode)
+     • No model required: Unlike Adaptive Dynamic Programming (ADP)
+     • Converges: When every state is visited infinitely often, and 𝛼 decays appropriately
+Sequential Decision Making                                                                     39
+ Notes: TD-Learner (Model-Free RL)
+
+
+
+
+                              TD Target TD Term or TD Error
+
+• TD needs only observed transitions to do the updates; no transition model is needed!
+• Learn from every experience – update each time we experience 𝑠, 𝜋 𝑠 , and 𝑠’
+                                                                  Source: RN Figure 22.4
+ Sequential Decision Making                                                                40
+  Notes: 𝑛-step TD
+• 𝑛-step return (under policy 𝜋):
+      (>)
+   𝐺)       = 𝑅) + 𝛾𝑅),- + ⋯ + 𝛾 >2- 𝑅),>2- + 𝛾 > 𝑈 ( (𝑆),> )
+
+• 𝑛-step TD update:
+                                       (>)
+               𝑈 ( 𝑆) ← 𝑈 ( 𝑆) + 𝛼(𝐺)        − 𝑈 ( 𝑆) )
+   where 𝑈 ( (𝑆),> ) is the estimated value at state 𝑆),>
+• Note:
+                               (>)
+   • 𝑛-step TD sets 𝐺) as target for update
+   • TD sets 1-step return as target for update
+   • ∞-step TD is Monte Carlo learning                          Source: SB Figure 7.1
+  Sequential Decision Making                                                            41
+     Notes: TD(𝜆)
+• Average over different values of 𝑛 instead of 𝑛-step returns
+    • Target for the update (𝜆-update):
+                                 9
+                   𝑢2> = 1 − 𝜆 + 𝜆/1-𝑢2:2,/
+                                  /8-
+
+
+
+    • A weighted sum of 𝑛-step returns; 𝑛th step is weighted by 𝜆/1-
+    • Can be computed efficiently by eligibility traces method
+• Normalizing constant:
+                 9                9
+                                           1
+                    + 𝜆/1- = + 𝜆/ =
+                                          1−𝜆
+                    /8-           /8*
+• Converges to TD as 𝜆 → 0, and to MC as 𝜆 → 1
+    • How to prove this?                                               Source: SB Figure 12.1
+     Sequential Decision Making                                                                 42
+Example: ADP vs TD
+
+
+
+
+                   Adaptive Dynamic Programming   Temporal Difference Learning
+                                                   Source: RN Figure 22.3 (a) and 22.5 (a)
+Sequential Decision Making                                                                   43
+ADP vs TD vs MC
+Aspect                   ADP                                              TD(0)                                MC
+                         𝑈! 𝑠                                               𝑈! 𝑠                                             ' "
+                                                                                                                         1           $
+                                                                               !                               𝑈! 𝑠 =      )      𝐺(
+Core equation            = ) 𝑃 𝑠 # 𝑠, 𝜋 𝑠 [𝑅 𝑠, 𝜋 𝑠 , 𝑠 #   + 𝛾𝑈 ! (𝑠 # ) ] ← 𝑈 ! 𝑠 #+ 𝛼(𝑅! 𝑠, 𝜋 𝑠 , 𝑠′               𝑁 𝑠    $%&
+                                                                            + 𝛾𝑈 𝑠 − 𝑈 𝑠 )                             $    +
+                            "!                                                                                 where 𝐺( = ; )%* 𝛾 ) 𝑅 𝑆(,)
+
+                         Makes each state agree with all possible         Makes each state agree with
+                                                                                                               Makes each state agree with the full
+Update style             successors using model 𝑇 (full Bellman           its observed successor (bootstraps
+                                                                                                               observed return (no bootstrapping)
+                         backup)                                          from estimates)
+Updates per observed                                                                                           One per state per episode (after
+                         Many/global (sweeps all states using model)      One/local (only visited state)
+transition                                                                                                     episode ends)
+
+Model required           Needs known/learned model (𝑇, 𝑅)                 ✘ Model-free                         ✘ Model-free
+
+                         More data-efficient (can simulate from           Moderate (needs many samples but     Less data-efficient(waits for full
+Data efficiency
+                         model)                                           updates early)                       episodes)
+                         Heavy (solving Bellman equations or
+Computation per update                                                    Light (incremental updates)          Light (averaging returns, but delayed)
+                         expectations)
+When updates occur       After model learning or planning sweep           After each step                      After each episode
+                         Yes — uses current estimates of 𝑈 ! 𝑠 # from     Yes — uses current estimate          No — uses actual returns 𝐺, not
+Bootstrapping?
+                         the model                                        of 𝑈 ! 𝑠 # from samples              current estimates
+                         Low variance, high bias; bootstraps from         Lower variance, some bias;           High variance, no bias; no
+Summary
+                         model                                            bootstraps from samples              bootstrapping
+Sequential Decision Making                                                                                                                    44
+Active Reinforcement Learning Learn 𝜋 ∗
+Choose to act optimally based on prediction of utility or value of states
+
+
+
+
+Sequential Decision Making                                                  45
+Notes: Active Reinforcement Learning
+• Main ideas
+     • 𝑇 (transition model) and 𝑅 (reward function) are unknown
+     • Agent can choose any action 𝑎 at each step
+     • Learns an optimal policy 𝜋 ∗ that satisfies the Bellman optimality equations:
+
+                      𝑈 𝑠 = maxA∈B(!) 4 𝑃 𝑠 " 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 " + 𝛾𝑈 𝑠 "
+                                            !"
+
+                    𝑄 ∗ (𝑠, 𝑎) = 4 𝑃 (𝑠 " |𝑠, 𝑎) 𝑅(𝑠, 𝑎, 𝑠 " ) + 𝛾max
+                                                                   !
+                                                                      𝑄 ∗ (𝑠 " , 𝑎 " )
+                                                                      A
+                                  !!
+     • Must balance exploration vs exploitation.
+     • If the learned model 𝑇a is inaccurate, the resulting 𝜋 ∗ may be suboptimal (policy loss).
+Sequential Decision Making                                                                 46
+Generalized Policy Iteration                                  Evaluation
+                                                               𝑄 ⇝ 𝑞>
+• Generalized policy iteration (GPI):                𝜋                            𝑄
+                                                           𝜋 ⇝ greedy 𝑄
+• Repeatedly alternate between:                             Improvement
+
+     • Policy evaluation — estimate utilities or values of the current policy
+       (e.g., using ADP, Monte Carlo or Temporal Difference methods)
+     • Policy improvement — act greedily with respect to the current utility
+       estimates to refine the policy and gather better samples
+• Key insight
+     • These two processes interleave and influence each other
+     • This feedback loop converges to the optimal policy
+                                                                    Source: SB page 86
+Sequential Decision Making                                                               47
+Notes: GPI and Active RL Techniques
+                                   Evaluation
+                                    𝑄 ⇝ 𝑞>
+
+                             𝜋                  𝑄
+                                 𝜋 ⇝ greedy 𝑄
+                                  Improvement
+
+
+• How it connects
+     • Active ADP: does explicit evaluation + greedy improvement
+     • SARSA / Q-learning: do incremental TD evaluation; policy becomes greedier
+       as estimates improve
+     • GPI helps us see these methods as different ways to realize the same loop
+
+Sequential Decision Making                                                  48
+Learning Optimal Policy
+• Unknown transition dynamics, unknown reward functions
+• Model-based
+     • Learn the transition and reward functions, then solve the MDP (𝜋∗)
+     • Examples: Active Adaptive Dynamic Programming
+• Model-free
+     • Directly learn the optimal policy 𝜋*
+     • Examples: Monte Carlo Control, Q-Learning, SARSA
+
+
+Sequential Decision Making                                                  49
+Active Adaptive Dynamic Programming
+• Learn model 𝑇 and 𝑅 from passive ADP:
+     • Estimate transitions 𝑃 𝑠 ? 𝑠, 𝑎
+     • Estimate rewards 𝑅 𝑠, 𝑎, 𝑠 ?
+• Learn optimal utilities via Bellman optimality equation:
+                     ∗
+     𝑈 𝑠 = 𝑈 O 𝑠 = max;∈=(>) ) 𝑃 𝑠 ? 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 ? + 𝛾𝑈 𝑠 ?       = 𝑉(𝑠)
+                                     >?
+• Extract optimal policy:
+     • 𝜋 ∗ 𝑠 = argmax;∈=(>) ∑>? 𝑃 𝑠 ? 𝑠, 𝑎 [𝑅 𝑠, 𝑎, 𝑠 ? + 𝛾𝑈 𝑠 ? ]
+
+Sequential Decision Making                                                    50
+    Notes: From Passive to Active ADP-Learner
+                                                              𝜋 not fixed
+
+        Using tabular
+        representation
+Count action
+ oucomes
+
+  Reward
+ function R
+
+ Transition                                            𝑈 ← PolicyIteration(𝜋, 𝑈, 𝑚𝑑𝑝)
+ function T
+
+     • 𝜋 is no longer fixed; changes as transitions & rewards are learned
+     • Replace POLICY-EVALUATION step by 𝜋 ← POLICY-ITERATION(mdp) above
+                                                                 Source: RN Figure 22.2
+     Sequential Decision Making                                                           51
+Greedy ADP Learner
+    RMS error in the utility
+     estimates averaged
+      over non-terminal
+            states
+
+
+
+                   ∗
+    Policy loss: 𝑈 " − 𝑈 "
+
+
+
+
+• Learns model 𝑇 and 𝑅 through experience (passive ADP)                        Source: RN Figure 22.6
+
+• Acts greedily: selects actions optimal under the current learned model
+• May converge to a suboptimal policy (e.g., at (2,1), agent goes right instead of left)
+• Greedy behavior can limit exploration and future learning
+• Actions influence both:
+     • Immediate reward, and
+     • Future data for improving the model
+Sequential Decision Making                                                                    52
+Exploration Vs Exploitation
+• Goal: Find an optimal policy that maximizes long-term rewards
+• Exploration:
+     • Try new actions to learn the true environment 𝑇 → may lead to better rewards later
+                                                                   Hope to learn something
+• Exploitation:                                                    new about the problem!
+     • Use the current model 𝑇 to choose actions with the highest estimated rewards now
+• Key challenges:
+     • How to balance exploring enough to learn vs exploiting to earn?
+     • When to stop exploring as knowledge improves?
+• As the model becomes accurate, exploration should decrease
+Sequential Decision Making                                                               53
+Greedy in the Limit of Infinite Exploration
+• GLIE: Balancing exploration and exploitation
+     • Tries every action in every state infinitely often
+     • Prevents missing the optimal action
+     • Becomes greedy over time → converges to optimal policy
+• GLIE-based Exploration in Reinforcement Learning
+     • 𝜖-greedy exploration
+     • Greedy action with 1 − 𝜖; random with 𝜖
+     • Converges slowly
+• Improvements
+     • Decay 𝜖 (e.g. 𝜖 = 1/𝑡)
+     • Use exploration functions (favor rarely tried actions)
+Sequential Decision Making                                      54
+Optimism
+• Encourages exploration by being optimistic about untried actions
+• Use greedy selection w.r.t. an optimistic utility estimate 𝑈 _ 𝑠
+• Update rule using an exploration function 𝑓(𝑢, 𝑛):
+
+     𝑈_ 𝑠 ← max 𝑓 1 𝑃 𝑠 b 𝑠, 𝑎 [𝑅 𝑠, a, s′ + 𝛾𝑈 _ 𝑠′ ], 𝑁 𝑠, 𝑎
+                         `
+                             aG
+     • 𝑁(𝑠, 𝑎): number of times action 𝑎 has been tried in state 𝑠
+
+
+• Less-tried actions get inflated estimates → more likely to be explored
+Sequential Decision Making                                           55
+Notes: Exploration Functions
+• When to explore?
+     • Goal: Decide when to explore
+     • Random actions explore a fixed amount → inefficient
+     • Better: explore actions not yet proven bad
+• Exploration function 𝑓(𝑢, 𝑛):
+     • Takes value estimate 𝑢 and visit count 𝑛
+     • Returns optimistic utility to guide greedy action choice
+     • Balances greed (high 𝑢) vs curiosity (low 𝑛)
+     • Should increase with 𝑢 and decrease with 𝑛
+Sequential Decision Making                                        56
+Example: An Exploration Function
+• An 𝑓(𝑢, 𝑛) increasing with 𝑢 and decreasing with 𝑛:
+                                                           Agent tries each state-action
+                                          A                       pairs 𝑁" times
+                             𝑓 𝑢, 𝑛 = 3𝑅       if 𝑛 < 𝑁Z
+                                        𝑢     otherwise
+     Where:
+     • Inputs: utility or value estimate 𝑢 and visit count 𝑛
+     • 𝑅A : an optimistic estimate of the best possible reward
+     • 𝑁Z ∶ a fixed parameter
+
+
+Sequential Decision Making                                                         57
+Example: Navigation in Grid World
+
+
+
+
+                             Exploring ADP                       Greedy ADP
+
+• Exploring ADP using exploration function with: 𝑅7 = 2, 𝑁8 = 5
+                                             Source: RN Figure 22.6 (a) 22.7 (a) and (b)
+
+Sequential Decision Making                                                    58
+Learning Optimal Policy
+• Unknown transition dynamics, unknown reward functions
+• Model-based
+     • Learn the transition and reward functions, then solve the MDP (𝜋∗)
+     • Examples: Active Adaptive Dynamic Programming
+• Model-free
+     • Directly learn the optimal policy 𝜋*
+     • Examples: Monte Carlo Control, Q-Learning, SARSA
+
+
+Sequential Decision Making                                                  59
+Monte Carlo Control
+• Policy evaluation
+     • Estimate action values using Monte Carlo learning (no model needed):
+                                  0 ),%                              0 )
+                              1          "                       1         "
+              𝑄 𝑠, 𝑎 ←              0 𝐺1             𝑈 . (𝑠) ←       0 𝐺1
+                           𝑁 𝑠, 𝑎                              𝑁 𝑠
+                                    "/$                                  "/$
+          "
+     • 𝐺1 : return (discounted cumulative future rewards) from the 𝑖-th visit to 𝑠, 𝑎
+     • 𝑁 𝑠, 𝑎 : number of times action 𝑎 has been taken in state 𝑠 (visits to 𝑠, 𝑎 )
+     • This is the Monte Carlo estimate of 𝑄 . 𝑠, 𝑎 (sf. 𝑈 . 𝑠 ) using episode returns
+• Policy improvement
+     • Update policy to favor higher-value or underexplored actions:
+                            𝜋 𝑠 = arg max 𝑓(𝑄 𝑠, 𝑎 , 𝑁 𝑠, 𝑎 )
+                                            %
+     • 𝑓: exploration function encouraging less-visited actions (e.g., optimistic values)
+Sequential Decision Making                                                                  60
+ Active TD Control
+• Goal:
+  • Improve the policy while learning action-utilities 𝑄 𝑠, 𝑎 from experience
+• Core idea:
+  • Use TD updates to estimate action-utilities (no full episodes needed)
+  • Use these updated utilities to make the policy greedier over time
+• Two main algorithms:
+  • SARSA (on-policy): learns from the actions actually taken
+  • Q-learning (off-policy): learns from the best possible actions
+ Sequential Decision Making                                                 61
+Notes: Active TD/TD Control
+                                                                            a’: action selected by
+• Use Temporal-Difference (TD) learning for control:                      estimation (target) policy
+     • Action-value update:
+                     𝑄 𝑠, 𝑎 ← 𝑄 𝑠, 𝑎 + 𝛼[𝑅 𝑠, 𝑎, 𝑠′ + 𝛾𝑄 𝑠 + , 𝑎′ − 𝑄 𝑠, 𝑎 ]
+     • Policy update:
+                 𝜋(𝑠) = argmax 𝑄(𝑠, 𝑎 ) or 𝜋(𝑠) = argmax 𝑓(𝑄 𝑠, 𝑎 , 𝑁 𝑠, 𝑎 )
+                              %                             %
+• Algorithms:
+     SARSA
+     • Use the current 𝜋 to estimate Q
+     • On-policy: estimation (target) policy is the same as the behavior policy
+     Q-Learning
+     • Use the greedy 𝜋 to estimate Q
+     • Off-policy: estimation (target) policy is different from the behavior policy
+Sequential Decision Making                                                                        62
+SARSA
+• State–Action–Reward–State–Action
+     Model free, on-policy method:
+     • Uses Temporal Difference (TD) for policy evaluation
+     • Uses 𝜖-greedy for action selection
+                                                                             TD Term or Error
+• TD update:
+                 𝑄 𝑠, 𝑎 ← 𝑄 𝑠, 𝑎 + 𝛼[𝑅 𝑠, 𝑎, 𝑠′ + 𝛾𝑄 𝑠 " , 𝑎 " − 𝑄 𝑠, 𝑎 ]
+     • 𝑎 " : the next action actually taken in state 𝑠 " (from the current policy 𝜋)
+     • This rule is applied after observing the full quintuple (𝑠, 𝑎, 𝑟, 𝑠′, 𝑎′)
+• Convergence:
+     • With decreasing 𝜖 and decreasing learning rates 𝛼 , and if all state–action pairs
+       are visited infinitely often, SARSA converges to the optimal policy.
+Sequential Decision Making                                                                 63
+𝑄-Learning: Learning Action-Utility Functions
+• Q-learning
+     • Model-free: learns 𝑄(𝑠, 𝑎) directly from experience; no transition model or
+       lookahead needed
+     • Off-policy: Based on the Bellman optimality equation for 𝑄:
+
+                   𝑄 𝑠, 𝑎 = 4 𝑃 𝑠 " |𝑠, 𝑎 [𝑅 𝑠, 𝑎, 𝑠 " + 𝛾max
+                                                           !
+                                                              𝑄(𝑠 " , 𝑎′) ]
+                                                             A
+                              !!                                              TD Term or Error
+     • Learns via Temporal Difference (TD) updates:
+           𝑄 𝑠, 𝑎 ← 𝑄 𝑠, 𝑎 + 𝛼[𝑅 𝑠, 𝑎, 𝑠′ + 𝛾 max     𝑄 𝑠 " , 𝑎 " − 𝑄 𝑠, 𝑎 ]
+                                                    ! A
+• Convergence:
+     • With decreasing 𝜖 and decreasing learning rates 𝛼 , and if all state–action pairs
+       are visited infinitely often, Q-Learning converges to the optimal policy.
+Sequential Decision Making                                                                 64
+Notes: SARSA vs Q-Learning
+
+
+
+
+                   Source: Poole and Macwark, AI Foundations of Computational Agents, 2e, 2018
+Sequential Decision Making                                                                       66
+Example: Cliff Walking
+
+
+
+• Actions: left, right, up, down
+• Reward: −1 for each step; −100 if you fall off
+• SARSA & 𝑄-learning used with 𝜖-greedy; 𝜖 = 0.1
+     • Why does SARSA outperform 𝑄-learning?
+     • What happens if GLIE exploration is used?   Source: SB: Example 6.6
+
+Sequential Decision Making                                                   67
+    SARSA vs Q-Learning
+               SARSA                                                   Q-learning
+
+               On-policy — learns from actions actually taken by the
+Type                                                                   Off-policy — learns as if always choosing the best action
+               current (exploring) policy
+
+                  𝑄 𝑠, 𝑎                                                𝑄 𝑠, 𝑎
+Update
+                  ← 𝑄 𝑠, 𝑎 + 𝛼 𝑅 𝑠, 𝑎, 𝑠′ + 𝛾𝑄 𝑠% , 𝑎% − 𝑄 𝑠, 𝑎         ← 𝑄 𝑠, 𝑎 + 𝛼 𝑅 𝑠, 𝑎, 𝑠′ + 𝛾 max
+                                                                                                     -
+                                                                                                        𝑄 𝑠% , 𝑎% − 𝑄 𝑠, 𝑎
+                                                                                                         &
+
+Target         Uses 𝑄 𝑠% , 𝑎% from the next action actually taken      Uses max&- 𝑄 𝑠% , 𝑎% from the best possible action
+
+Exploration    Penalizes bad exploratory actions → safer, more         Ignores outcomes of exploratory actions → more
+effect         cautious                                                optimistic
+Learning       Incorporates negative outcomes → can be slower but      Ignores negative exploratory outcomes → faster but
+behavior       more stable                                             riskier
+
+               Behave the same when the agent never explores           Behave the same when the agent never explores
+Similarity
+               (always takes the best action)                          (always takes the best action)
+
+               Converges if 𝜖 and 𝛼 decay and all 𝑠, 𝑎 are visited     Converges if 𝜖 and 𝛼 decay and all 𝑠, 𝑎 are visited
+Convergence
+               infinitely often                                        infinitely often
+    Sequential Decision Making                                                                                               68
+Summary: Reinforcement Learning
+• Passive Learning — fixed policy (policy evaluation)
+     • [MB] Adaptive dynamic programming (ADP)
+     • [MF] Monte Carlo prediction (MC): direct value (utility) estimation
+     • [MF] Temporal-difference (TD) prediction
+• Active Learning — optimal policy (control)
+     • [MB] Active ADP (model-based control)
+     • [MF] Monte Carlo control
+     • [MF] Active TD methods (TD control): Q-learning, SARSA
+
+Sequential Decision Making                                                   69
+Homework
+• Readings:
+     • RN: 22.1, 22.2. 22.3.1, 22.3.2
+     • SB: 6.2, 6.4, 6.5 (Optional)
+• Some classical papers and recent surveys on RL
+         (Journal articles publicly available online or through NUS Library e-
+     Resources)
+     • L. P. Kaelbling, M. L. Littman, & A. W. Moore. Reinforcement Learning: A
+       Survey. JAIR, 4:237-285, 1996
+     • Wirth, C., et al., A survey of preference-based reinforcement learning
+       methods. J. Mach. Learn. Res., 2017. 18(1): p. 4945–4990.
+
+Sequential Decision Making                                                        70
+

@@ -1,0 +1,818 @@
+  Reinforcement Learning
+  Model-Based Techniques
+
+
+  CS4246/CS5446
+  Reinforcement Learning and Sequential Decision Making
+  AY 2026-2027 Sem 1
+
+
+
+© Copyright National University of Singapore. All Rights Reserved.
+Topics
+• Model-Based vs Model-Free Reinforcement Learning
+• Model Learning
+• From Model Learning to Planning
+    • Direct model solving
+    • Sampling based planning
+    • Integrated learning and planning
+• World models
+• Model Errors and Limitations
+Model-Based Reinforcement Learning                   2
+Notes: Recall: Reinforcement Learning
+• Based on:
+    A Markov decision process (MDP) 𝑀 ≜ 𝑆, 𝐴, 𝑇, 𝑅, γ consisting of:
+    • A set 𝑆 of states
+    • A set 𝐴 of actions                        Adaptive dynamic programming (ADP)
+    • Unknown transition function 𝑇?            Monte Carlo (MC) Learning – Direct utility estimates
+    • Unknown reward function 𝑅?                Temporal difference (TD) learning
+    • Discount factor 0 ≤ γ ≤ 1
+• Prediction (Policy evaluation) – Passive Learning:
+    • Assume policy 𝜋
+    • Solution is a utility (value) function: 𝑈: 𝑆 → ℜ or 𝑉: 𝑆 → ℜ
+• Control (Policy optimization) – Active Learning:
+    • Learn utility function or Q-function (action-utility function)
+    • Solution is an (optimal) policy: 𝜋 ∗: 𝑆 → 𝐴
+
+
+Model-Based Reinforcement Learning                                                                     3
+Notes:
+Foundational Reinforcement Learning Techniques
+• Passive Learning — fixed policy (prediction)
+    • [MB] Adaptive dynamic programming (ADP)
+    • [MF] Monte Carlo prediction (MC): direct value (utility) estimation
+    • [MF] Temporal-difference (TD) prediction
+• Active Learning — optimal policy (control)
+    • [MB] Active ADP (model-based control)
+    • [MF] Monte Carlo control
+    • [MF] Active TD methods (TD control): Q-learning, SARSA
+
+Model-Based Reinforcement
+                                                                            4
+Learning
+  Example: Navigation in Grid World
+                                                                                         (vs 3 x 4 matrix)
+                                       • Fully observable 4 x 3 environment
+                                           • Begin in START state 𝑠0
+                                           • One action 𝑎 per time step.
+                                           • Terminate when reaching goal states 𝑠!
+                                       • A Markov decision process (MDP)              States marked +1 and -1
+                                           • A set 𝑆 of states
+                                           • A set 𝐴 of actions
+                                           • Discount factor 0 ≤ γ ≤ 1
+                                           • Transition model: Unknown
+                                           • Reward model: Unknown
+                                       • Agent observes transitions and rewards through interaction
+                                       • Solution (s)                  Prediction – policy evaluation
+                                           • What is the utility (value) 𝑈 (𝑉) of state 𝑠 under policy 𝜋?
+Source: RN Figure 17.1                     • How to learn optimal policy 𝜋∗?
+                                                                        Control – policy optimization
+  Model-Based Reinforcement Learning                                                                     5
+Model-free vs Model-based RL
+                                                      Adaptive dynamic programming (ADP)
+                                                      Monte Carlo (MC) Learning – Direct utility estimates
+• Model-free RL                                       Temporal difference (TD) learning
+
+    • No explicit environment model
+    • Experience à learn utility/value function and/or policy
+• Model-based RL
+    • Learn or use a model of the environment
+    • Experience à learn model à plan or learn using the model
+• Connection to dynamic programming
+    • Bellman evaluation or optimization: Given a model à compute value/policy
+    • Model-based RL: model may also be learned from experience (real or simulated)
+• Key idea:
+    • A model predicts how the environment may respond to actions for planning or learning.
+Model-Based Reinforcement Learning                                                                      6
+Notes: Why Model-based RL?
+• Benefits
+    • Real interaction may be expensive or risky.
+         • Reuse real experience through model learning and planning.
+         • Generate simulated experience without additional interaction.
+    • Some decisions benefit from reasoning before acting.
+         • Predict possible future outcomes and plan before executing an action.
+• Challenges
+    • Learning and using the model costs computation.
+    • Model errors introduce model bias.
+    • Planning may exploit systematic model errors.
+
+Model-Based Reinforcement Learning                                                 7
+What is a Model in Model-Based RL?
+• What is a model?
+    • A model 𝑀! predicts how the environment responds to actions.
+    • For a fully observable MDP 𝑆, 𝐴, 𝑇, 𝑅, γ with known 𝑆, 𝐴, γ , it may model:
+         • Transitions      𝑇 ≈ 𝑃" 𝑠′|𝑠, 𝑎
+         • Rewards          𝑅 ≈ 𝑅" 𝑠, 𝑎, 𝑠′   or 𝑅 ≈ 𝑅" 𝑠, 𝑎   or 𝑅 ≈ 𝑅" 𝑠
+    • Modern models may instead predict latent states or observations.
+• How is a model obtained?                              • Examples of models
+    • Learned from experience                               • Table lookup
+                                                            • Linear / linear-Gaussian
+         • model learning                                   • Neural networks
+    • Specified by a designer                               • Latent-state models
+         • e.g. simulator                                   • …
+Model-Based Reinforcement Learning                                                       8
+Model Learning
+
+
+Model-Based Reinforcement Learning   9
+Model Learning
+• Estimate model 𝑀! from observed experience
+                             𝑠# , 𝑎# , 𝑟# , 𝑠#$% , 𝑟# = 𝑅 𝑠# , 𝑎# , 𝑠#$% .
+    • Often formulated as supervised / maximum-likelihood prediction
+    • Learn parameters 𝜂 by minimizing an appropriate prediction loss
+• Dynamics: (Deterministic or Stochastic)
+                                𝐷" 𝑠, 𝑎 = 𝑠̂ & or ˆ𝑠′ ∼ 𝑃" 𝑠′|𝑠, 𝑎 .
+    • Usually regression for deterministic dynamics or probabilistic prediction for stochastic dynamics
+• Reward:
+                                            𝑅" 𝑠, 𝑎, 𝑠′ = 𝑟̂
+    • Usually regression
+• For latent-state models
+    • Encoder / representation: 𝐸" 𝑠 = 𝑧
+    • Learned dynamics:         𝐷" 𝑧, 𝑎 = ˆ𝑧′   or 𝑧′̂ ∼ 𝑃" 𝑧′|𝑧, 𝑎
+    • Learned reward (Reward predictor): 𝑅" 𝑧, 𝑎, 𝑧′ = 𝑟ˆ
+Model-Based Reinforcement Learning                                                                        10
+Table-Lookup Model
+Recall: Adapative Dynamic Programming
+                                                              c
+
+
+
+
+What is the transition probability function from 𝑠 = 3, 3 ?
+To compute:
+                                                      F
+    • 𝑃 𝑠 E = 3, 2 𝑠 = 3, 3 , 𝑎 = 𝑅𝑖𝑔ℎ𝑡 = G
+                                                      H
+    • 𝑃 𝑠 E = 4, 3 𝑠 = 3, 3 , 𝑎 = 𝑅𝑖𝑔ℎ𝑡 = G
+                     Why are all the actions 𝑅𝑖𝑔ℎ𝑡?
+Model-Based Reinforcement Learning                                11
+Notes: Table Lookup Model
+• Recall: Adaptive Dynamic Programming
+
+• Trials:                            • Transition model   • Reward model
+       𝐴 − 𝑎F →IJF 𝐵                                 1                   1+2
+                                         𝑃 𝐵 𝐴, 𝑎F =         𝑅 𝐴, 𝑎F   =
+       𝐴 − 𝑎F →IJH 𝐶                                 2                    2
+       𝐴 − 𝑎H →IJG 𝐵                                 1       𝑅 𝐴, 𝑎H   =3
+                                         𝑃 𝐶 𝐴, 𝑎F =
+                                                     2
+                                         𝑃 𝐵 𝐴, 𝑎H = 1
+
+Doesn’t scale!
+
+Model-Based Reinforcement Learning                                         12
+Linear Model
+• For continuous state vector 𝒔 and discrete action 𝑎:
+                                     ˆ𝐬′ = 𝑊K 𝐬 + 𝑏K
+                                      𝑟ˆ = 𝐰KL 𝐬 + 𝑐K
+• Or predict the change:
+                             =𝐬 = 𝐷M 𝐬, 𝑎 ,
+                             Δ                             =𝐬.
+                                                 ˆ𝐬′ = 𝐬 + Δ
+• For stochastic environments:
+    • Predict a distribution 𝑃M 𝑠′|𝑠, 𝑎 , not just its mean.
+    • Why a conditional mean may fail?
+
+Model-Based Reinforcement Learning                               13
+Notes: Why a Conditional Mean May Fail
+• With squared-error regression, a deterministic dynamics model
+                                     𝐷! 𝑠, 𝑎 = ˆ𝑠′
+    tends to learn the conditional mean
+                                   ˆ𝑠′ ≈ 𝔼 𝑠′ ∣ 𝑠, 𝑎
+    • Works well when there is essentially one likely next state.
+• With multiple distinct outcomes, the mean may be unrealistic.
+    • Example: paths go left or right of an obstacle, but their average goes through it.
+• Mitigation: predict a distribution
+                                      𝑃! 𝑠′ ∣ 𝑠, 𝑎
+    to represent multiple possible next states.
+Model-Based Reinforcement Learning    Moerland et al., 2023                                14
+Model-Based Reinforcement Learning   15
+Notes: Neural and Latent Models
+• Main idea:
+    • Use neural networks to represent the state, often in latent space, and predict
+      action-conditioned state transitions, rewards, and other relevant signals.
+• Neural networks can predict:
+    • Next observation/state
+    • A latent next state
+    • Reward
+    • Termination/continuation
+• Latent models:
+    • Need not reproduce every detail of the observation.
+    • What matters depends on how the model will be used.
+Model-Based Reinforcement Learning                                                     16
+Model-Based Reinforcement Learning   17
+Challenges in Model Learning
+                                     • Issues:
+                                        • Predicting the complete next
+                                          observation 𝑠, 𝑎 → 𝑠′ may be difficult.
+                                        • Much of the observation may be
+                                          irrelevant to the decision.
+                                     • Can we learn a model that
+                                       preserves only what matters for:
+                                        • predicting rewards or values?
+                                        • making good decisions?
+
+Model-Based Reinforcement Learning                                           18
+Value Equivalence Principle
+• Value equivalence:
+    • Two models 𝑀(%) and 𝑀()) are value equivalent for selected policies and value functions if they
+      produce the same relevant Bellman updates.
+• Bellman update (under policy 𝜋 and value function 𝑣):
+                                     𝑣 𝑠 ← 𝔼*,, 𝑟 + 𝛾𝑣 𝑠′ ∣ 𝑠
+• Example: latent model
+                                               𝐸" : 𝑠 → 𝑧
+                                 𝐷" : 𝑧, 𝑎 → ˆ𝑧′,      𝑅" : 𝑧, 𝑎, ˆ𝑧′ → 𝑟ˆ
+    • If the latent model preserves Bellman updates using:
+                                             𝑟ˆ + 𝛾𝑣- ˆ𝑧′
+    • It need not reconstruct the full next observation 𝑠′.
+• Key idea:
+    • Preserve what matters for value and policy computation, not every observation detail.
+Model-Based Reinforcement Learning         Source: Grimm et al, 2020                                    19
+Notes:
+Value Equivalence: What Does It Mean?
+• For a policy 𝜋 and value function 𝑣,
+                                      𝒯"# 𝑣 𝑠 = 𝔼" 𝑟 + 𝛾𝑣 𝑠′ ∣ 𝑠, 𝜋 .
+• Let
+                       Π = policies considered,           𝒱 = value funcFons considered.
+• Models 𝑀(%) and 𝑀()) are value equivalent for Π, 𝒱 if
+                                     𝒯"#! 𝑣 = 𝒯"#" 𝑣,         ∀ 𝜋 ∈ Π, 𝑣 ∈ 𝒱.
+• Interpretation
+    • The models may predict different next states, but give the same expected reward + future value.
+    • Therefore, they give the same Bellman backup for the selected policies and values.
+    • Larger Π, 𝒱 impose a stronger equivalence requirement.
+• Key idea:
+    • Planning model need not reproduce the exact environment; it preserves what matters for decision making.
+
+Model-Based Reinforcement Learning                                                                         20
+                                              Grimm et al., 2020
+Notes: The Bellman Operator
+• 𝒯,* is the Bellman operator for policy 𝜋 under model 𝑀
+     • It is an operator because it takes an entire value function
+                                                           "
+                                                                   𝑣 as input and returns a new value function:
+                                                         𝒯!
+                                                     𝑣        𝒯$% 𝑣.
+• Then
+                                           𝒯$% 𝑣 𝑠 = 𝔼$ 𝑟 + 𝛾𝑣 𝑠′ ∣ 𝑠, 𝜋
+     • At state 𝑠, the new value is the expected immediate reward + discounted value of the next state, assuming actions
+       follow 𝜋 and transitions/rewards follow model 𝑀.
+• For a discrete MDP, this is:
+     • 𝒯$% 𝑣 𝑠 = ∑& 𝜋 𝑎 ∣ 𝑠 ∑'( 𝑃$ 𝑠′ ∣ 𝑠, 𝑎 𝑅$ 𝑠, 𝑎, 𝑠′ + 𝛾𝑣 𝑠′ .
+     • 𝒯$% : Bellman operator
+     • 𝑣: input value function
+     • 𝒯$% 𝑣: updated value function
+     • 𝒯$% 𝑣 𝑠 : its value at state 𝑠
+• Key idea:
+    • Value equivalence compares whether two models produce the same Bellman updates for the selected 𝑣 and 𝜋.
+Model-Based Reinforcement Learning                                                                                         21
+From Model Learning to Planning
+Direct model solving
+Sampling-based planning
+Integrated learning and planning
+
+
+Model-Based Reinforcement Learning   22
+Model-Based Reinforcement Learning   23
+Notes: From Model Learning to Planning
+• Goal: use the learned model to improve the policy/value.
+• A learned model can be used in three main ways:
+    • Direct model solving
+        Solve the learned MDP using dynamic programming or Bellman optimization
+    • Sampling-based planning
+        Simulate possible futures to improve value estimates or guide action selection.
+    • Integrated learning and planning
+        Learn directly from real experience and use the model for additional planning updates.
+• Key idea:
+    • Model learning provides predictions
+    • Planning and learning use those predictions to improve decisions.
+Model-Based Reinforcement Learning                                                         24
+Direct Model Solving
+• Replace the true 𝑃, 𝑅 by learned 𝑃M , 𝑅M
+• Solve the model MDP 𝑀M directly using MDP solvers
+    Value iteration
+    Policy iteration
+    …
+                  𝑈567 𝑠 = max : 𝑃! 𝑠′|𝑠, 𝑎 𝑅! 𝑠, 𝑎, 𝑠′ + 𝛾𝑈5 𝑠′
+                                     8
+                                         9:
+• Example: (Recall)
+    • Active Adaptive Dynamic Programming:
+    • Learn a model P, R, then solve it using value or policy iteration
+                                                                Source: Sutton & Barto 2018, 2020
+Model-Based Reinforcement Learning                                                                  25
+    Architecture
+
+Utilize the model fully
+Transition probabilities
+       are used directly
+
+
+
+
+    Model-Based Reinforcement Learning   Source: Sutton & Barto 2018, 2020   26
+Sampling-Based Planning
+• Use the learned model 𝑀! as a simulator:
+    • Generate possible future transitions or trajectories
+                            ˆ𝑠′ ∼ 𝑃M 𝑠′|𝑠, 𝑎 ,   𝑟ˆ = 𝑅M 𝑠, 𝑎, ˆ𝑠′
+    • Use these simulations to improve value estimates or guide action selection.
+• Examples:
+    • Q-planning: one-step simulated transitions
+    • MuZero: latent simulations + MCTS
+    • MPC: finite-horizon model rollouts/predictions
+
+Model-Based Reinforcement Learning                                           27
+    Architecture
+
+   Sample from model
+Transition probabilities
+  are not used directly
+
+
+
+
+    Model-Based Reinforcement Learning   Source: Sutton & Barto 2018, 2020   28
+Q-Planning
+
+
+
+                                     • Main idea:
+                                        • Apply Q-learning to simulated
+                                          experience generated by the model.
+                                        • Q-learning: real experience
+                                        • Q-planning: model-generated
+                                          experience
+
+Model-Based Reinforcement Learning                  Source: Sutton & Barto 2018, 2020   29
+Notes: Q-Planning
+• Algorithm:
+    • Select state 𝑠 and action 𝑎.
+    • Query the model for simulated ˆ𝑟, ˆ𝑠′.
+    • Apply Q-learning:
+                        𝑄 𝑠, 𝑎 ← 𝑄 𝑠, 𝑎 + 𝛼 𝑟ˆ + 𝛾 max 𝑄 ˆ𝑠′, 𝑎′ − 𝑄 𝑠, 𝑎 .
+                                                    .&
+
+
+
+
+Model-Based Reinforcement Learning                                      Source: Sutton & Barto 2018, 2020   30
+Model-Based Reinforcement Learning   31
+Notes: From Background to Decision-Time Planning
+
+• Background planning
+    • Use model-generated experience to improve value/policy over many states.
+    • Example: Q-planning.
+• Decision-time planning
+    • Focus computation on the current state.
+    • Look ahead using the model.
+    • Choose an action, observe the next state, and plan again.
+    • Example: Monte Carlo Tree Search (MCTS), model predictive control (MPC)
+• Key idea:
+    • Spend planning effort where it matters now.
+
+Model-Based Reinforcement Learning                                               32
+Monte Carlo Tree Search with Learned Models
+• MCTS: explore possible futures from the current state.
+    • Selection: follow the tree policy to a promising branch.
+    • Expansion: use the model to generate a successor state (or latent state) and reward.
+    • Simulation/Evaluation: estimate the value of the new leaf using a rollout or value function.
+    • Backup: propagate the return/value up the tree.
+• Learned components can include:
+    • Model: transitions and rewards.
+    • Value function: leaf evaluation.
+    • Policy: guides search.
+• Key idea:
+    • Use model simulation to improve the current decision.
+
+Model-Based Reinforcement Learning                                                                       33
+                               Sutton and Barto, 2018, Browne et al., 2012; Schrittwieser et al., 2020
+MuZero: Planning with Learned Latent Model
+• AlphaZero:
+                                                                                     Relation to earlier notation:
+    • MCTS + learned policy/value + known game dynamics.
+                                                                                     ℎ ≈ 𝐸) ; 𝑔 combines 𝐷) and 𝑅) ;
+• MuZero:                                                                            𝑓 predicts policy and value.
+    • MCTS + learned policy/value + learned latent dynamics and rewards.
+• MuZero learns:
+    Representation         ℎ: observaXon history → 𝑧
+    Dynamics and reward 𝑔: 𝑧, 𝑎 → ˆ𝑧′, 𝑟ˆ
+    Prediction             𝑓: 𝑧 → ˆ𝜋, 𝑈ˆ
+    • MCTS plans in the learned latent state space.
+    • Strong reported results in Go, chess, shogi, and Atari.
+• Main lesson: (Value equivalence)
+    • The model need not reconstruct observations; it must preserve what matters for planning.
+
+Model-Based Reinforcement Learning     Source: Schrittwieser et al, 2020, DeepMind                                 34
+Notes: MuZero: Planning with a Learned Model
+                                                      • Critical model elements for planning:
+                                                           At each step 𝑘:
+                                                           • Policy 𝑝$ predicts the MCTS policy 𝜋%&$ .
+                                                           • Value 𝑣 $ predicts the expected future returns (value target)
+                                                           • Reward 𝑟 $ predicts the observed reward, 𝑘 ≥ 1
+                                                           • In the diagram:
+                                                            𝑓 𝑠 $ → 𝑝$ , 𝑣 $ ,     𝑔 𝑠 $'( , 𝑎%&$ → 𝑠 $ , 𝑟 $ .
+
+                                                      • MCTS to plan with the neural networks.
+                                                           • ℎ: observation/history àlatent state
+                                                           • 𝑔: predicts latent dynamics and reward
+                                                           • 𝑓: predicts policy and value
+                                                           • MCTS uses these to choose an action.
+                                                                                                                                           ˆ ˆ𝑟.
+                                                          Lecture notation: 𝑠 # is MuZero’s latent state; 𝑝# , 𝑣 # , 𝑟 # correspond to ˆ𝜋, 𝑈,
+                                                          𝑡: real time; 𝑘: model unroll step from time 𝑡.
+Model-Based Reinforcement Learning Source: https://deepmind.google/blog/muzero-mastering-go-chess-shogi-and-atari-without-rules/
+                                                                                                                        35
+Notes: MuZero: MCTS-based Action Selection
+
+
+
+
+               •    AlphaZero: search uses known game dynamics.
+               •    MuZero: search uses learned latent dynamics and rewards.
+
+Model-Based Reinforcement Learning   Credit: Google Deepmind                   36
+Notes: MuZero: Training with a Learned Model
+                                                                                  • During training:
+                                                                                         • Unroll the learned model along stored
+                                                                                           experience.
+                                                                                  • At each step 𝑘:
+                                                                                         • Policy 𝑝8 predicts the MCTS policy 𝜋#$8 .
+                                                                                         • Value 𝑣 8 predicts the expected future
+                                                                                           returns (value target)
+                                                                                         • Reward 𝑟 8 predicts the observed
+                                                                                           reward, 𝑘 ≥ 1
+                                                                                         • In the diagram:
+                                                                                                𝑓 𝑠 8 → 𝑝8 , 𝑣 8 ,
+                                                                                 ˆ ˆ𝑟.
+ Lecture notation: 𝑠* is MuZero’s latent state; 𝑝* , 𝑣 * , 𝑟 * correspond to ˆ𝜋, 𝑈,         𝑔 𝑠 89%, 𝑎#$8 → 𝑠 8 , 𝑟 8 .
+ 𝑡: real time; 𝑘: model unroll step from time 𝑡.
+                                       Source: https://deepmind.google/blog/muzero-mastering-go-chess-shogi-and-atari-without-rules/
+Model-Based Reinforcement Learning                                                                                             37
+Model-Based Reinforcement Learning   Source: Garcia et al 1989, Schwenzer et al 2021   38
+Notes: Model Predictive Control (MPC)
+• Main idea: receding-horizon planning
+    • Plan a short action sequence, execute only the first action, observe the next state, then replan:
+                        𝑠# → plan 𝑎# , … , 𝑎#$:9% → execute 𝑎# → 𝑠#$% → replan
+• At each decision time
+    • Start from the current state 𝑠# .
+    • Use a given or learned model to predict outcomes over horizon 𝐻.
+    • Choose the action sequence with the best predicted return.
+    • Execute only the first action.
+    • Observe the new state and replan.
+                                          .$         .$%!       .$%&'!
+                                        𝑠# → 𝑠ˆ#$%          ⋯            𝑠ˆ#$:
+• Key idea:
+    • Replanning updates the plan from the new observed state; the model itself need not change.
+    • Short-horizon lookahead with continual replanning adapts decisions to new observations.
+Model-Based Reinforcement Learning                                   Source: Garcia et al 1989, Schwenzer et al 2021   39
+Integrated Learning and Planning
+• Two sources of experience:
+    • Real experience
+                                     𝑠, 𝑎, 𝑟, 𝑠′ ∼ environment
+    • Simulated experience
+                                         ˆ𝑠′ ∼ 𝑃! 𝑠′|𝑠, 𝑎
+                                         𝑟ˆ = 𝑅! 𝑠, 𝑎, ˆ𝑠′
+• Main idea:
+    • Learn directly from real experience.
+    • Use the learned model to generate additional simulated experience for planning.
+
+
+Model-Based Reinforcement Learning                                                  40
+    Architecture
+
+   Sample from model         Learning /
+Transition probabilities
+  are not used directly
+
+
+
+
+                                          Source: Sutton & Barto 2018, 2020
+    Model-Based Reinforcement Learning                                        41
+Model-Based Reinforcement Learning   Source: Sutton & Barto 2018, 2020   42
+Notes: Dyna-Q: Combining Learning and Planning
+
+• Dyna-Q combines three steps:
+    1.     Act: collect real experience 𝑠, 𝑎, 𝑟, 𝑠′ .
+    2.     Learn: update 𝑄 and the model from real experience.
+    3.     Plan: sample simulated transitions from the model and apply
+           additional 𝑄-learning updates.
+• Key idea:
+    • Use real experience both to learn directly and to build a model that
+      generates additional learning experience.
+    • Dyna-Q combines real experience, model learning, and planning
+Model-Based Reinforcement Learning                    Source: Sutton & Barto 2018, 2020   43
+Notes: Dyna-Q: Algorithm
+
+
+                                                Real experience
+
+
+
+
+                                     Model-based updates:
+                                     Planning/simulated experience
+
+
+
+
+                                       Source: Sutton & Barto 2018, 2020
+Model-Based Reinforcement Learning                                         44
+Dyna-Q: Results
+Main idea:
+•   More planning updates can
+    reduce the amount of real
+    interaction needed.
+
+
+
+
+Model-Based Reinforcement Learning   Source: Sutton & Barto 2018, 2020   45
+World Models
+
+
+Model-Based Reinforcement Learning   46
+From Environment Models to World Models
+• Environment model
+    • Predicts transitions and rewards in the state space:
+                                     𝐷) 𝑠, 𝑎 = ˆ𝑠′ or ˆ𝑠′ ∼ 𝑃) 𝑠′|𝑠, 𝑎
+                                              𝑅) 𝑠, 𝑎, 𝑠′ = 𝑟ˆ
+
+• World model
+    • Broader learned predictive model of how the world evolves.
+    • May operate in latent space; or predict future observations directly:
+                                                 𝐸) 𝑠 = 𝑧
+                                     𝐷) 𝑧, 𝑎 = ˆ𝑧′ or ˆ𝑧′ ∼ 𝑃) 𝑧′|𝑧, 𝑎
+                                                   𝑅) 𝑧, 𝑎, 𝑧′ = 𝑟ˆ
+    • May also predict continuation or other task-relevant signals.
+• Main idea:
+    • Learn how the world evolves and responds to actions for learning, planning/control, or simulation.
+    • The planning ideas remain; the models become richer, learned, and often latent.
+Model-Based Reinforcement Learning                                                                     47
+Representative World Model Approaches
+• Learned latent world models
+    • DreamerV3 (2025): Learns policy and value functions from imagined latent trajectories.
+    • MuZero (2020): Uses MCTS for decision-time planning with a learned latent model.
+    • TD-MPC2 (2024): Uses MPC for decision-time planning with a learned latent model.
+• Connections to earlier methods
+    • MCTS → MuZero: Tree search with learned dynamics.
+    • MPC → TD-MPC2: Receding-horizon planning with learned dynamics.
+• Key distinction:
+    • DreamerV3 primarily uses imagined trajectories for policy learning; MuZero and TD-
+      MPC2 use learned models for decision-time planning.
+
+Model-Based Reinforcement Learning                                                         48
+  DreamerV3: Learning a Policy in Imagination
+• Main idea:
+    • Learn a latent world model from real experience, then train an actor–critic on imagined latent trajectorie
+                    learn world model → imagine trajectories → train actor−−critic → deploy actor.
+                                  Recurrent State-Space Model
+      Real replay                     RSSM world model                  Latent imagination                         Actor - Critic
+                                           Infer latent state 𝑧ₜ        roll out predicted latent            Train from imagined returns
+       (𝑠ₜ, 𝑎ₜ, 𝑟ₜ, 𝑠ₜ₊₁)
+                                        Learn latent dynamics,          states 𝑧 and rewards 𝑟 ̂                 Actor 𝜋+ 𝑎 ∣ ℎ( , 𝑧(
+      real experience
+                                     rewards, and continuation              without new real                       Critic 𝑈ˆ , ℎ( , 𝑧(
+                                     ℎ( , 𝑧( + 𝑎( → ℎ()*, 𝑧ˆ()* , 𝑟ˆ(          interacLon
+
+                 Train world model from real experience                          Train actor and critic from imagined experience
+Notes:
+    • Model rollouts mainly train the actor during training,                                                       Deployment
+      not repeatedly planning at decision time                                                              Actor acts directly in the real
+    • One configuration across more than 150 reported tasks.                                                        environment
+    • Larger models improved reported performance.
+    • Limitation: inaccurate imagined dynamics can bias actor–critic learning.
+  Model-Based Reinforcement Learning                                                        Source: Hafner et al., 2025, Nature          49
+DreamerV3: Training Processes
+
+
+
+
+Model-Based Reinforcement Learning   Source: Hafner et al., 2025, Nature   50
+Notes: Recurrent State-Space Model
+• Recurrent State-Space Model (RSSM)
+    • ℎJ : recurrent state summarizing history.
+    • 𝑧J : latent state representing the current situation.
+                                  ℎJ67 = 𝐷! ℎJ , 𝑧J , 𝑎J
+• Real experience
+                                     𝑧J67 ∼ 𝑞! 𝑧J67 ∣ ℎJ67 , 𝑠J67
+    • The observed next state helps infer the latent state.
+• Imagination
+                                       𝑧ˆJ67 ∼ 𝑝! 𝑧J67 ∣ ℎJ67
+    • No new observation is available; the world model predicts the next latent state.
+Model-Based Reinforcement Learning                                                       51
+Notes: DreamerV3 Technical Details
+• World-model learning
+
+                                     𝐿! = $ 𝐿#$%& + 𝐿&'( + 𝛽𝐿$%#
+                                          "
+    • 𝐿#$%& : observation, reward, and continuation prediction.
+    • 𝐿&'( , 𝐿$%# : align the dynamics prior and posterior latent representations.
+
+• Learning from imagined returns                                               Continuation/terminal handling
+                                                                               omitted from the return for clarity
+                           𝐺ˆ ") = 𝑟ˆ" + 𝛾 1 − 𝜆 𝑈ˆ * ℎ"+, , 𝑧ˆ"+, + 𝜆𝐺ˆ "+,
+                                                                         )
+
+    • Actor: improve the policy 𝜋- using imagined returns or advantages.
+    • Critic: fit 𝑈ˆ * to the imagined 𝜆-return.
+    • 𝜆 : controls how far into the imagined future the return looks before relying on the critic.
+
+Model-Based Reinforcement Learning                                                                         52
+Model-Based Reinforcement Learning
+                                     Ref: Hansen et al., 2024   53
+TD-MPC2: Decision-Time Planning with Learned Model
+
+• Main idea:
+    • Learn a latent model and use it for short-horizon planning at decision time.
+
+      𝑠J → 𝑧J → latent rollouts → predicted rewards + terminal 𝑄 → 𝑎J → replan
+
+
+• Notes:
+    • Strengths: Compact latent planning; short rollouts limit accumulated model error;
+      terminal 𝑄extends the horizon.
+    • Evidence: Scalable continuous-control performance across many tasks.
+    • Limitation: Decision-time optimization adds latency; model errors can bias planning.
+
+Model-Based Reinforcement Learning                                      Ref: Hansen et al., 2024   54
+   Notes: TD-MPC2 Architecture                                                  Future observations are not
+                                                                                reconstructed. Planning happens
+                                               • Components:                    entirely in latent space.
+                                                   • Encoder: 𝑧 = ℎ 𝑠
+                                                   • Latent dynamics: 𝑧′ = 𝑑 𝑧, 𝑎
+                                                   • Reward: 𝑟ˆ = 𝑅 𝑧, 𝑎
+                                                   • Terminal value: 𝑞ˆ = 𝑄 𝑧, 𝑎
+                                                   • Policy prior: 𝑎ˆ ∼ 𝑝 𝑧
+                                               • At each step:
+                                                         enc
+                                                   • 𝑠)      𝑧)
+                                                   • and actions drive the latent dynamics:
+                                                   • 𝑧) , 𝑎) → 𝑧)&(.
+                                               • From each latent state, the learned heads predict:
+                                                   • 𝑎ˆ ) ,   𝑟ˆ) ,    𝑞ˆ ) .
+
+
+• encode 𝑠" → short latent rollouts → predicted rewards + terminal 𝑄 → execute ﬁrst ac`on 𝑎" → replan
+   Model-Based Reinforcement Learning                                 Source: Hansen et al., 2024        55
+Notes: TD-MPC2: Technical Details
+• Joint model and Q learning
+                              𝐿*,, = K 𝜌% 𝛼𝐿cons + 𝛽𝐿reward + 𝜅𝐿value
+                                         %
+
+• where 𝜌 discounts later predicOon steps and 𝛼, 𝛽, 𝜅 are loss weights.
+    • 𝐿cons : Align predicted latent state with encoded next state.
+    • 𝐿reward : Predict observed rewards.
+    • 𝐿value : Learn Q-values using TD targets.
+    • Policy prior: Learn to favor high-Q actions, with entropy regularization.
+• Planning return
+                                             0'(
+                                     𝐺ˆ % = K 𝛾 - 𝑟ˆ%&- + 𝛾 0 𝑄ˆ , 𝑧ˆ%&0 , 𝑎%&0
+                                             -./
+        where 𝑎%&0 ∼ 𝜋1 ⋅∣ 𝑧ˆ%&0
+    • Predicted rewards estimate returns within the planning horizon.
+    • Terminal Q estimates the return beyond the short planning horizon.
+
+Model-Based Reinforcement Learning                                                Source: Hansen et al., 2022, 2024   56
+Notes: Technical Comparison
+
+                          DreamerV3                       TD-MPC2
+                          Prediction, dynamics,           Latent consistency, reward,
+Model learning
+                          representation losses           value losses
+                          Critic trained using imagined   Q-function trained using TD
+Value learning
+                          𝜆-returns                       targets
+Policy                    Actor learning from imagined    Learned policy prior and
+improvement               trajectories                    decision-time MPC
+
+
+Model-Based Reinforcement Learning                                               57
+          Emerging Directions in World Models
+      How the field is expanding from latent control models toward scalable interactive simulators linked to action.
+
+          Direction                            Example          Main idea
+          Interactive world simulation         Genie 3          Generate controllable environments in real time.
+
+                                                                Learn general predictive representations from
+          World foundation models              V-JEPA 2
+                                                                large-scale data across tasks/domains
+          World–action models                  𝜏E-WM            Jointly model world dynamics and agent actions.
+                                               Cosmos 3;        Support prediction, planning, and control for
+          World models for physical AI
+                                               V-JEPA 2-AC      embodied agents.
+way
+
+                 World models are expanding toward scalable, multimodal, interactive models
+                          that can support training, testing, and action selection.
+
+          Model-Based Reinforcement Learning                                                                      58
+Model Error and Limitations
+• Model error
+    • Learned models, including latent models, are approximate.
+    • Errors can accumulate over multi-step predictions or search.
+    • Planners or policies may exploit systematic errors.
+• Main trade-off
+    • "More model use" ⟹ "potentially less real interaction, but greater exposure to model bias."
+• Common responses
+    • Use short rollouts or learned terminal/leaf values (e.g., MBPO, TD-MPC2, MuZero).
+    • Replan after new real observations (e.g., TD-MPC2, MuZero).
+    • Update the model with fresh real experience (e.g., DreamerV3, TD-MPC2, MuZero).
+    • Preserve decision-relevant information in learned representations (e.g., MuZero, TD-MPC2).
+    • Model uncertainty explicitly (e.g., PETS).
+Model-Based Reinforcement Learning                                                                  59
+Summary
+• Model Learning
+    • Models may be given or learned.
+    • Learned models predict dynamics, rewards, or latent representations.
+    • Useful models need to preserve decision-relevant information, not every observable detail.
+• Using models
+    • Direct solving, simulated learning, search, imagination, or decision-time planning.
+• Main lessons
+    • Model-based RL connects learning and planning.
+    • Model-generated experience can reduce real interaction at the cost of computation.
+    • Longer model rollouts increase exposure to model error.
+    • Short rollouts and replanning can limit accumulated error.
+    • Modern methods often operate in learned latent representations.
+• Key idea
+    • A model need not predict everything accurately, but it must be accurate enough for the decisions it supports.
+Model-Based Reinforcement Learning                                                                             60
+Comparison of Model-Based RL Approaches
+Method        How the model is used                                    Learning/planning role       Main output
+Active ADP    Use learned 𝑃, 𝑅 directly in Bellman/DP updates          Direct model solving         Value / policy
+Q-planning    Generate one-step model transitions for Q-learning       Background planning          Q-values / policy
+              Combine real Q-learning, model learning, and model- Direct RL + background
+Dyna-Q                                                                                              Q-values / policy
+              generated Q-learning updates                        planning
+                                                                                                    Search policy / current
+MuZero        Run MCTS with learned latent dynamics and rewards Decision-time planning
+                                                                                                    action
+              Predict finite-horizon trajectories; execute the first
+MPC                                                                    Decision-time planning       Current action
+              action and replan
+                                                                       Imagination-based learning
+DreamerV3     Train an actor–critic on imagined latent trajectories                                 Actor / critic
+                                                                       during training
+              Perform short latent MPC using predicted rewards         Decision-time latent
+TD-MPC2                                                                                             Current action
+              and terminal 𝑄                                           planning
+
+Key takeaway: Models can support direct solving, background learning, decision-time planning, or learning in imagination.
+Model-Based Reinforcement Learning                                                                                        61
+Model-Based Reinforcement Learning   62
+References
+Area                              Full citation
+                                  Sutton, R. S., & Barto, A. G. (2018). Reinforcement Learning: An Introduction (2nd ed., corrected
+Foundations / Dyna / Q-planning
+                                  printing, 2020). MIT Press. Especially Chapter 8. http://incompleteideas.net/book/the-book-2nd.html
+                                  Moerland, T. M., Broekens, J., Plaat, A., & Jonker, C. M. (2023). Model-based reinforcement learning:
+Model-based RL overview           A survey. Foundations and Trends in Machine Learning, 16(1), 1–118.
+                                  https://doi.org/10.1561/2200000086
+                                  Grimm, C., Barreto, A., Singh, S. P., & Silver, D. (2020). The value equivalence principle for model-
+Value equivalence
+                                  based reinforcement learning. Advances in Neural Information Processing Systems, 33. NeurIPS paper
+                                  Browne, C. B., Powley, E., Whitehouse, D., Lucas, S. M., Cowling, P. I., Rohlfshagen, P., Tavener, S.,
+                                  Perez, D., Samothrakis, S., & Colton, S. (2012). A survey of Monte Carlo tree search methods. IEEE
+MCTS
+                                  Transactions on Computational Intelligence and AI in Games, 4(1), 1–43.
+                                  https://doi.org/10.1109/TCIAIG.2012.2186810
+                                  Schrittwieser, J., et al. (2020). Mastering Atari, Go, chess and shogi by planning with a learned
+MuZero
+                                  model. Nature, 588, 604–609. https://doi.org/10.1038/s41586-020-03051-4
+                                  García, C. E., Prett, D. M., & Morari, M. (1989). Model predictive control: Theory and practice—A
+                                  survey. Automatica, 25(3), 335–348
+MPC
+                                  Schwenzer, M., M. Ay, T. Bergs and D. Abel (2021). Review on model predictive control: an
+                                  engineering perspective. The International Journal of Advanced Manufacturing Technology 117(5):
+                                  1327-1349. 10.1007/s00170-021-07682-3 https://doi.org/10.1007/s00170-021-07682-3
+
+Model-Based Reinforcement Learning                                                                                                         63
+References
+Area           Full citation
+               Hafner, D., Pasukonis, J., Ba, J., & Lillicrap, T. (2025). Mastering diverse control tasks through world models. Nature, 640, 647–
+DreamerV3
+               653. https://doi.org/10.1038/s41586-025-08744-2
+               Hansen, N. A., Su, H., & Wang, X. (2022). Temporal difference learning for model predictive control. In Proceedings of the 39th International
+TD-MPC
+               Conference on Machine Learning, 8387–8406. PMLR publication page
+               Hansen, N., Su, H., & Wang, X. (2024). TD-MPC2: Scalable, robust world models for continuous control. In International Conference on
+TD-MPC2
+               Learning Representations. OpenReview paper
+               Assran, M., et al. (2025). V-JEPA 2: Self-supervised video models enable understanding, prediction and planning. arXiv preprint
+V-JEPA 2
+               arXiv:2506.09985. https://arxiv.org/abs/2506.09985
+
+Genie 3        Parker-Holder, J., & Fruchter, S. (2025, August 5). Genie 3: A new frontier for world models. Google DeepMind. Google DeepMind article
+
+Cosmos 3       NVIDIA. (2026). Cosmos 3: Omnimodal world models for physical AI. arXiv preprint arXiv:2606.02800. https://arxiv.org/abs/2606.02800
+
+World-action   Zhou, P., et al. (2026). 𝜏! -WM: A unified video-action world model for robotic manipulation. arXiv preprint
+models         arXiv:2606.01027. https://arxiv.org/abs/2606.01027
+               Chua, K., Calandra, R., McAllister, R., & Levine, S. (2018). Deep reinforcement learning in a handful of trials using probabilistic dynamics
+PETS           models. In Advances in Neural Information Processing Systems 31. https://arxiv.org/abs/1805.12114
+
+               Janner, M., Fu, J., Zhang, M., & Levine, S. (2019). When to trust your model: Model-based policy optimization. In Advances in Neural
+MBPO           Information Processing Systems 32. https://arxiv.org/abs/1906.08253
+
+
+Model-Based Reinforcement Learning                                                                                                                             64
+

@@ -1,0 +1,959 @@
+  Foundation-Model-Based Decision Making
+  From Agentic Planning to Human Alignment
+
+
+
+  CS4246/5446
+  Reinforcement Learning and Sequential Decision Making
+  Version2.0
+
+
+
+© Copyright National University of Singapore. All Rights Reserved.
+Decision Making with Foundational Models   2
+Topics
+• Agentic Artificial Intelligence (AI): State of the Art
+• Foundation-Model Based Decision Systems
+     • Agent framework: Belief-Desire-Intention (BDI)
+     • Roles of foundation models in decision systems
+• Human Alignment in Agentic AI Decision Making
+     • Human Guided Learning
+          • Learning from human demonstrations and preferences
+     • Integrated Reasoning and Planning
+          • Reasoning and planning within human goals and constraints
+     • AI-Guided Learning
+          • Learning from outcomes and processes, with human oversight
+Decision Making with Foundational Models                                 3
+Large Foundational Models (LFMs)
+• Definition:
+     • Pretrained models trained on broad data and adaptable to a range of tasks.
+
+
+
+
+                    Predictive AI             Generative AI                 Agentic AI
+                  Classifies data. Makes   Creates text, images, or    Plans, learns, uses tools,
+                         forecasts.         plans from prompts.       and acts to perform tasks.
+
+• Key Features:
+     • Few-shot Learning: Perform tasks with few examples.
+     • Multimodal: Some models handle text, images, audio, and other modalities.
+     • Scalability: Capabilities can improve with increased training data, model size, and compute.
+     • Reasoning & Planning & Decision Making:
+       Support reasoning, planning, and decision-making, often with external tools and verification.
+Decision Making with Foundational Models                                                               4
+What is Agentic Artificial Intelligence?
+• Agentic AI (built on Large Foundation Models - LFMs):
+   • Sense – Reason – Plan – Act – Learn
+   • Uses tools, performs tasks, aligns with humans, and adapts within guardrails
+
+
+
+
+• Why It Matters:
+     • Impact: faster service, personalization, cross-organization coordination
+     • Expectation: stronger governance, assurance, and accountability
+Decision Making with Foundational
+                                                                                    5
+Models
+                                                                                                                          Sense
+
+
+
+
+Agentic AI Landscape
+                                                                                                            Learn                    Reason
+
+
+
+
+                                                                                                                    Act           Plan
+
+
+
+
+                                                                          Large Foundational Models
+                                                                                      +
+                                                           Tools               Memory Systems
+                                                                                      +
+                                            Sensing                    Computational Cognitive Processes
+
+                                                                                        Retrieval/Update
+
+         Environment                       Communicating
+
+
+
+
+                                              Acting
+
+
+                                                              Agent graphics source: ChatGPT4o, accessed 8 Aug 2024
+
+Decision Making with Foundational Models                                                                                   6
+                                                                                                                       Sense
+
+
+
+
+A REAL Example – Part 1                                                                                  Learn                        Reason
+
+
+
+
+                                                                                                                 Act               Plan
+
+
+• Me: Please generate a diagram for this slide: (Agent Decision Loop). Include the NUS logo.
+• Agent (Sense):
+     • Ingesting your request and slide context.
+• Agent (Reason):
+     • Goal = diagram of the agentic loop; constraints = accurate labels, slide-ready.
+     • ““I don’t have the logo in memory. I’ll use the RAG tool to fetch it.”
+     • Act --> Tool Use: Call RAG(NUS logo)
+     • “Rerieved logo successfully”.
+• Agent (Plan):
+     • Draft loop (Sense→Reason→Plan→Act→Learn);
+     • add side callouts (Human alignment, Tools use, Task execution, Guardrails adaptation).
+• Agent (Act → Tool use):
+     • Using LaTeX with Tik to render draft within guardrails.
+• Agent: Here’s Draft v1. Do you want annotations as side labels or callouts?
+Decision Making with Foundational Models                                                 Source: ChatGPT 5.0                   7
+                                                                                                                        Sense
+
+
+
+
+A REAL Example – Part 2                                                                                   Learn                        Reason
+
+
+
+
+                                                                                                                  Act               Plan
+
+
+• Me: Side labels, please add them.                     • Me: Yes, please.
+• Agent (Sense):                                        • Agent (Sense, Reason, Plan, Act → Tool use):
+     • Preference captured.                                 • Exporting via DiagramExporter, compiling with LaTeXCompiler.
+
+• Agent (Reason):                                       • Agent: Files ready
+     • Adjust layout for clarity; verify label order.     — agentic_diagram.tex, agentic_diagram.pdf.
+• Agent (Plan):                                         • Me: OK, thank you.
+     • Update diagram and recheck terminology.          • Agent (Learn):
+• Agent (Act → Tool use):                                   •   Logged corrections and preferences for future tasks.
+     • Revising with DiagramTool and Validator.
+
+• Agent (Guardrails):
+     • Checked accuracy and compliance with design
+       constraints.
+
+• Agent: Draft v2 corrected and verified.
+         Generate LaTeX version?
+
+Decision Making with Foundational Models                                                Source: ChatGPT 5.0                     8
+LFM Generated Diagram from Latex
+
+
+
+
+                                           Source: ChatGPT 5.0 accessed 29 Oct 2025
+Decision Making with Foundational Models                                          9
+Roles of LFMs in Decision Systems
+What LFMs do inside decision loops
+
+
+
+
+Decision Making with Foundational Models   10
+Recall: Solving Sequential Decision Problem
+• Decision Problem or Model
+     • Appropriate abstraction of states, actions, uncertain effects, and goals (wrt costs and
+       values or preferences) and time horizon + observations (through sensing)
+• Decision Algorithm
+     • Input: a problem
+     • Output: an optimal solution over time horizon
+• Decision Solution
+     • An action sequence or solution from an initial state to the goal state(s)
+          • An optimal action sequence; OR
+          • An optimal policy that specifies “best” action in each state wrt to costs or values or preferences
+     • (Optional) A goal state that satisfies certain properties
+
+Decision Making with Foundational Models                                                             11
+Theoretical Foundations
+• Rational Decision Making: Solving Sequential Decision Problems
+     • Combine beliefs, preferences, and decision processes for action selection to
+       maximize expected utility, subject to constraints.
+
+• Belief–Desire–Intention (BDI)
+     • Beliefs → World information: observations, retrieval, memory, world models
+     • Desires → Goals and desired outcomes: human preferences, reward models
+     • Intentions → Committed goals and plans: planning, policy generation, tool use
+• BDI provides a framework for goal-directed agents
+
+                                           Refs: Bratman (1987); Rao & Georgeff (1991)
+Decision Making with Foundational Models                                                 12
+    Recall: Examples of LFM-Assisted Planning
+                                                                     Planner(s)
+Category                   Key Contribution                                         Reference
+                                                                     Used
+                           Generate & refine PDDL models via
+Model Creation                                                       PDDL Tools     NeurIPS 2024
+                           environment feedback
+
+                           Breaks long tasks into subgoals for symbolic
+Task Decomposition                                                      PDDL/MCTS   ICRA 2025
+                           or MCTS-based planners.
+
+                           Generates Python heuristic functions to   Pyperplan with
+Heuristic Generation                                                                NeurIPS 2025
+                           guide best-first search.                  GBFS
+
+                           Synthesizes reusable programs to solve new
+General Planning                                                      Program Tests AAAI 2024
+                           tasks in a PDDL domain.
+
+    LFM contributions complement—not replace—planning algorithms and external validation
+    Decision Making with Foundational Models                                                    13
+                                                                                                                Sense
+
+
+
+
+Roles of LFMs in Decision Making
+                                                                                                  Learn                    Reason
+
+
+
+
+                                                                                                          Act           Plan
+
+
+
+    Model Creation / Grounding ↔ Sense
+    • Interpret observations; retrieve knowledge (RAG); support world-model creation & refinement.
+    • Use predictive models or simulators to estimate outcomes.
+    Task Decomposition / Planning ↔ Reason / Plan
+    • Propose multi-step plans and subgoals (CoT/ToT).
+    • Support generalized planning and plan verification.
+    Heuristic Synthesis ↔ Plan
+    • Generate domain-specific heuristics to guide search (e.g., A*/GBFS with PDDL models).
+    Tool Orchestration ↔ Act
+    • Select and use tools (search, code, simulators); interleave reasoning and action (ReAct).
+    • Apply permissions, guardrails, and logging.
+    Evaluator / Critic ↔ Plan / Learn
+    • Evaluate plans and outcomes using external checks and human/AI feedback.
+    • Revise plans and memory
+Decision Making with Foundational Models                                                                          14
+Notes: Agentic Decision System Architecture
+                  This architecture operationalizes the Agentic Loop in real systems.
+
+                                 Memory                 • Planner (Reason → Plan):
+                           (Sense ↔ Learn)                  • Breaks goals into steps using structured reasoning.
+
+                                                        • Executor (Act):
+                                                            • Uses tools or APIs and tracks results.
+                                Human-in-
+  Critic/Assurance
+                                Command      Executor   • Memory (Sense ↔ Learn):
+      (Learn ↔
+     Governance)
+                              (Governance      (Act)        • Stores key information with expiration and updates.
+                                 Loop)
+                                                        • Critic / Assurance (Learn ↔ Governance):
+                                                            • Checks policy compliance; triggers corrections if needed.
+                                Plan
+                                                        • Human-in-Command (Governance Loop):
+                           (Reason → Plan)
+                                                            • Approves key actions and ensures oversight.
+
+
+Decision Making with Foundational Models                                                                       15
+Recall: Large Foundation Model Agent: ReACT
+                                           Reasoning and Acting via Language
+
+
+
+
+                          Source: https://youtu.be/FwOTs4UxQS4?si=UuxFCfCbocxFi7YJ
+Decision Making with Foundational Models                                             16
+        Notes: Agentic AI: Technical Workflow
+Agentic Loop                  Integration Pattern
+                                                                   Explanation
+(Conceptual)                  (Operational, e.g., ReAct)
+                                                                   Agent erceives observations or retrieves relevant context
+Sense                         Observe / Retrieve
+                                                                   (e.g., RAG).
+                                                                   Model generates intermediate reasoning steps (CoT/ToT) or
+Reason                        Generate / Reason
+                                                                   hypotheses.
+                                                                   Agent evaluates candidate plans, selects actions, and plans
+Plan                          Evaluate → Select
+                                                                   tool use.
+                              Execute / Tool Call →                Agent executes actions (APIs, code, environment steps) and
+Act
+                              Observe                              receives results to update context.
+
+                                                                   Agent uses feedback to refine future decisions and update
+Learn                         Feedback → Update
+                                                                   memory; model training may occur separately.
+           Note: The mapping is illustrative. ReAct interleaves reasoning and action; the stages need not follow a strict sequence.
+           Learning does not necessarily involve updating model parameters.
+        Decision Making with Foundational Models                                                                                      17
+  Evaluating Agentic AI Systems
+• What to Evaluate                                                                       Sense
+    • Assess the full Sense → Reason → Plan → Act → Learn loop,
+      not just final outputs.
+• Key Criteria                                                             Learn                      Reason
+    • Task Success: Does it complete tasks accurately and reliably?
+    • Safety: Are plans and actions valid, safe, and authorized?
+    • Latency: Is it fast and responsive?
+    • Explainability: Can decisions and actions be traced and explained?           Act            Plan
+    • Human Oversight: Can humans monitor, intervene, or override?
+• How It's Tested                                                              WebArena / OSWorld – Web tasks, tool
+                                                                               use, and computer interaction.
+    • Benchmarks assessing multi-step interaction and/or task completion.      ALFWorld – Simulated planning and action.
+                                                                               SWE-bench – Real-world software
+                                                                               engineering tasks.
+  Decision Making with Foundational Models                                                                    18
+Decision Making with Foundational Models   19
+Notes: Learning and Alignment Stages of Foundation Models
+
+Stage                         Method                     Goal                          Analogy
+                                                         Learn general
+Pretraining                   Self-supervised learning   representations and           “Learn the language”
+                                                         capabilities.
+                                                         Learn to follow
+                              Supervised Fine-Tuning
+2. Instruction Tuning                                    instructions and              “Imitate good behavior”
+                              (SFT)
+                                                         demonstrations.
+
+                                                         Improve model behavior
+3. Preference / Reward                                   using preference              “Refine behavior through
+                              RLHF, DPO, RLAIF, GRPO
+Optimization                                             comparisons or reward         feedback”
+                                                         signals.
+
+4. Post-Deployment            Monitoring, evaluation,    Identify failures and guide
+                                                                                       “Learn from use”
+Feedback                      optional model updates     further improvements.
+
+Decision Making with Foundational Models                                                                  20
+Decision Making with Foundational Models   21
+Notes: Agentic Decision Loop
+– Example with RAG, ReAct, and Human Oversight
+Stage      Role                               Agent Action                                  Human Oversight Role
+                                                                                            Human initiates the task; sets intent
+Sense      Understand task and context        Ingests user request and slide context.
+                                                                                            and context.
+                                              Identifies goal (agentic-
+           Identify goals, constraints, and                                                 Human defines scope and authorizes
+Reason                                        loop diagram), constraints (accurate labels
+           information gaps                                                                 access as needed.
+                                              , slide-ready), and need for NUS logo.
+ReAct /                                       Retrieves NUS logo from a trusted             Policy guardrails check sources and
+           Select and invoke tools
+Tool Use                                      source.                                       permitted tool use.
+
+                                              Plans the Sense → Reason → Plan → Act
+                                                                                            Human may review or confirm the
+Plan       Sequence layout and design         → Learn diagram, callouts, and logo
+                                                                                            plan.
+                                              placement.
+
+                                              Uses a diagram-                               Human reviews and approves the
+Act        Execute using tools or code
+                                              generation tool to render the draft.          output.
+                                              Requests feedback and revises the next        Human provides corrections and prefe
+Learn      Incorporate feedback and adapt
+                                              version.                                      rences for refinement.
+Decision Making with Foundational Models                                                                                 22
+Decision Making with Foundational Models   23
+Human Alignment in Agentic AI
+
+
+Human-Guided Learning                      Reasoning and Planning           AI-Guided Alignment
+Learn from human                           Generate and verify reasoning    Improve model behavior
+demonstrations and preferences             and plans against human goals    through outcome and process
+to align model behavior                    and constraints.                 feedback, with human
+Techniques: SFT, RLHF (PPO),               Techniques: CoT, self-           oversight.
+DPO, RLAIF.                                consistency, PoT, planning and   Techniques: Outcome/process
+                                           verification.                    supervision, RLAIF with CoT,
+                                                                            GRPO, SRLMs.
+
+            Goal: Safe, reliable, and human-aligned agentic decision making.
+Decision Making with Foundational Models                                                             24
+Human-Guided Learning
+Learning from human demonstrations and preferences
+Model Training and Optimization: SFT, RLHF/PPO, DPO, RLAIF
+
+
+
+Decision Making with Foundational Models                     25
+Human-Guided Learning:
+From Demonstration to Preference Alignment
+• Key Approaches
+     • Supervised fine tuning (SFT):
+       Learn instruction-following behavior from demonstrations.
+     • RL with human feedback (RLHF):
+       Optimize policies using rewards learned from human preferences.
+     • Direct preference optimization (DPO):
+       Optimize policies directly from preference comparisons.
+     • RL with AI feedback (RLAIF):
+       Use AI-generated feedback for alignment.
+• Alignment Objectives
+     • Helpfulness · Harmlessness · Honesty                              Ref: Ouyang et al., 2022
+
+• Key Idea:
+     • From demonstration-based learning to preference-based optimization using human or AI feedback.
+Decision Making with Foundational Models                                                            26
+Notes: The Alignment Triangle
+Vertex                Meaning                          Goal
+                      The model is useful, capable,    Provide high-quality, relevant,
+Helpfulness
+                      and responsive to user intent.   goal-directed responses.
+             The model avoids causing
+                                                       Stay within ethical, legal, and
+Harmlessness harm or producing unsafe,
+                                                       safety boundaries.
+             biased, or unethical outputs.
+                      The model is truthful and      Avoid fabrications, misleading
+Honesty
+                      transparent about uncertainty. claims, or false confidence.
+
+                                                                      Ref: Ouyang et al., 2022
+
+Decision Making with Foundational Models                                                         27
+Reinforcement Learning from Human Feedback
+
+
+
+
+                                           Source: https://openai.com/index/learning-from-human-preferences/
+Decision Making with Foundational Models                                                                       28
+Example: How to Backflip?
+                                                •    Agent proposes multiple behaviors
+                                                •    Humans label which one is more like a backflip
+                                                •    Reward model trained from preferences
+                                                •    Agent learns to backflip without an explicit reward function
+
+
+
+
+                                           Source: https://openai.com/index/learning-from-human-preferences/
+Decision Making with Foundational Models                                                                       29
+Notes: How to Backflip?
+• Task:
+     • Train a simulated agent to do a backflip.
+• How RLHF Helps:
+     • The agent tries different movements.
+     • Humans choose which ones look more like a backflip.
+     • The agent learns from this feedback and improves over time.
+• Result:
+     • The agent learns to backflip—without needing a specific reward formula.
+Decision Making with Foundational   Source: https://openai.com/index/learning-from-human-preferences/
+                                                                                                        30
+Models
+Example: Working with LFMs …
+
+
+
+
+                                       Source: ChatGPT4o, accessed 13 October 2024
+
+
+Decision Making with Foundational Models                                             31
+     Reinforcement Learning with Human Feedback (RLHF)
+                       Collect comparisons → train reward model → opUmize policy
+1.     Supervised Fine-Tuning (SFT):
+      • Train a reference policy 𝜋!"# on curated instruction data (prompts) and response
+         – imitation learning
+2.     Reward Model Training:
+      • Learn a reward function 𝑟$ 𝑥, 𝑦 from human preference comparisons.
+                                                                             𝛽 controls how closely the fine-tuned policy
+3.     Policy OpYmizaYon:                                                    stays to the reference model.
+      • Opgmize 𝜋% to maximize the KL−regularized reward objecgve (typically with PPO):
+                                                                                                              𝜋% 𝑦|𝑥
+      𝐽 𝜃 =𝔼      &∼𝒟      [𝑟$ (𝑥, 𝑦) − 𝛽 𝔼&∼𝒟 𝐷-. 𝜋% ⋅∣ 𝑥 ‖𝜋!"# ⋅∣ 𝑥   =𝔼   &∼𝒟        𝑟$ 𝑥, 𝑦 − 𝛽 log
+                )∼*! ⋅|&                                                   )∼*! ⋅|&                           𝜋!"# 𝑦|𝑥
+• Example:
+      • InstructGPT— human preference comparisons train a reward model for policy optimization
+
+
+     Decision Making with Foundational Models                                            Ref: Ouyang et al., 2022   32
+From RLHF Objective to PPO
+• RLHF Objective:
+                                                                 𝜋) 𝑦|𝑥
+                               𝐽 𝜃 =𝔼        !∼𝒟      𝑟( 𝑥, 𝑦 − 𝛽 log
+                                           $∼%! ⋅|!              𝜋*+, 𝑦|𝑥
+     • where 𝑥 is the prompt, 𝑦 is the complete generated response, 𝑟( 𝑥, 𝑦 is the learned reward model, and
+       𝜋*+, is the fixed SFT reference policy.
+• PPO Approximation:
+                                                                                        % (3 ∣5 )
+               11 min 𝜌1 𝜃 𝐴6 1 , clip 𝜌1 𝜃 , 1 − 𝜖, 1 + 𝜖)𝐴6 1
+     𝐿-./0 𝜃 = 𝔼                                                    ,       𝜌1 (𝜃) = % ! (3" ∣5" )
+                                                                                        #$%   " "
+     • 𝑠1 : Prompt and preceding generated tokens.
+     • 𝑎1 : Next generated token.                                                             Probability ratio between the new
+     • 𝜋789: Policy used to collect the current training samples.                             policy being updated and the old
+     • 𝐴6 1 : Advantage estimate based on KL-regularized rewards.                             policy used to collect data
+
+• Notes:
+     • PPO clipping discourages large policy updates relative to 𝜋789.
+     • RLHF KL regularization discourages deviation from the reference policy 𝜋*+, .
+     • Sample-efficient trust-region-style optimization for large LFMs.
+     • RLHF defines what to optimize (reward + KL); PPO defines how (stable, clipped gradient updates)
+Decision Making with Foundational Models                                                                                    33
+                                                                  Ref: Schulman et al. (2017); Ouyang et al. (2022)
+Notes: Connecting RLHF to Policy Gradient
+• RLHF defines the expected regularized reward:
+                           𝐽(𝜃) = 𝔼    &∼𝒟 [ 𝑟$ (𝑥, 𝑦) ] − 𝛽 𝔼&∼𝒟 𝐷-. 𝜋% ⋅∣ 𝑥 ‖𝜋!"# ⋅∣ 𝑥
+                                     )∼*! ⋅|&
+                                                                        𝜋% 𝑦|𝑥
+                                   =𝔼        &∼𝒟      𝑟$ 𝑥, 𝑦 − 𝛽 log
+                                           )∼*! ⋅|&                     𝜋!"# 𝑦|𝑥
+     • where 𝑥 ∼ 𝒟 and 𝑦 ∼ 𝜋% ⋅∣ 𝑥
+• To optimize this, we compute its gradient:
+                                                                 𝜋% 𝑦 𝑥
+                   ∇% 𝐽(𝜃) = 𝔼    &∼𝒟        [ 𝑟$ 𝑥, 𝑦 − 𝛽 log                 ∇% log 𝜋% (𝑦 ∣ 𝑥)]
+                                )∼*! ⋅|&                         𝜋!"# 𝑦 𝑥
+• Main idea:
+     • Essentially a policy gradient — but directly computing it for large models is unstable.
+     • Use PPO (Proximal Policy Optimization) as a stable approximation to this update.
+
+Decision Making with Foundational Models                                                            34
+Notes: Challenges and Mitigations in RLHF
+Challenge                    Description                            Mitigation
+High Compute and             PPO requires rollouts and value        Efficient RL variants; DPO as an
+Memory                       estimation                             alternative.
+Reward Over-                 Models exploit reward-model            Better reward models, KL regularization,
+Optimization                 weaknesses                             independent evaluation.
+Preference Noise and         Human judgments may be                 Diverse feedback, quality checks,
+Bias                         inconsistent or biased.                preference-model evaluation.
+                             Policy diverges excessively from the
+Distribution Drift                                                  Monitor KL divergence; tune 𝛽.
+                             reference.
+Under-Exploration /          Outputs become repetitive or overly    Diverse training feedback and
+Diversity Loss               conservative.                          exploration strategies.
+
+
+
+Decision Making with Foundational Models                                                                 35
+Direct Preference Optimization (DPO)
+• Core Idea
+     • Optimize policy directly from preference pairs, without separate reward model or PPO
+       training loop
+• Objective                       Soft reward comparison - make the good response more probable than the bad one
+                          ℒ!"# 𝜃 = −𝔼 $,& :,& ; log 𝜎 𝛽 Δ' − Δ()*
+     • where                                             Controls strength of KL regularization
+                          Δ' = log 𝜋' 𝑦 + ∣ 𝑥 − log 𝜋' 𝑦 , ∣ 𝑥
+     • and Δ()* is defined similarly for 𝜋()* .
+• Key Features
+     • Supervised-style optimization using preference pairs.
+     • Derived from KL-regularized reward optimization.
+     • Computationally simpler than PPO-based RLHF.
+Decision Making with Foundational Models                                           Ref: Rafailov et al., 2023      36
+Notes: DPO Explained
+                          ℒ!"# 𝜃 = −𝔼 $,& :,& ; log 𝜎 𝛽 Δ' − Δ()*
+
+• Understanding the Objective
+     • 𝑦 + , 𝑦 , : Preferred and rejected responses.
+     • 𝜋' , 𝜋()* : Current and fixed reference policies.
+     • Δ' − Δ()* : Preference log-probability difference relative to the reference.
+     • 𝜎: Converts the scaled difference into a preference probability.
+     • 𝛽: Controls scaling associated with KL regularization.
+• Key Idea:
+     • DPO favors preferred responses relative to the reference, without an explicit KL penalty
+       or hard KL constraint.
+
+Decision Making with Foundational Models                                                     37
+Reinforcement Learning from AI Feedback (RLAIF)
+• Use AI judges to supplement or replace human preference feedback.
+     • RLAIF (e.g., PPO): Optimize policies using AI-derived rewards.
+                                                                  𝜋' 𝑦 ∣ 𝑥
+                           𝐽 𝜃 =𝔼       $∼𝒟      𝑟23 𝑥, 𝑦 − 𝛽 log
+                                      &∼/< ⋅∣$                    𝜋()* 𝑦 ∣ 𝑥
+     • AI-Feedback DPO: Optimize policies directly from AI-generated preference pairs.
+                          23
+                         ℒ!"# 𝜃 = −𝔼𝒟=> log 𝜎 𝛽 Δ' − Δ()*
+         where Δ' and Δ()* are the preferred–rejected response log-probability differences.
+     • Constitutional AI: Principle-guided critique, revision, and RLAIF.
+• Benefits and Challenges
+     • Benefits: Scalable feedback; reduced human annotation costs.
+     • Challenges: AI bias, evaluation errors, feedback amplification.
+     • Mitigation: Human audits, calibration, diverse evaluators, red-teaming.
+Decision Making with Foundational Models            Refs: Bai et al. (2022); Lee et al. (2024); Yuan et al. (2024).   38
+ Notes: From RLHF to RLAIF
+
+ Aspect                RLHF                               RLAIF
+ Feedback              Human preferences                  AI judgments
+ Optimization          Typically reward model + PPO       RL with AI-derived rewards
+ Trade-off             Human-intensive                    Scalable but subject to AI bias
+• Human + AI Feedback Strategy
+   • Use AI judges for scale.
+   • Use human oversight and audits for reliability.
+   • Evaluate disagreements, biases, and failure cases.
+• Key Trend:
+   • Human feedback → AI-assisted feedback → Hybrid human–AI oversight and governance.
+ Decision Making with Foundational Models                                                   39
+Summary: Human-Guided Learning
+  Method               Feedback Source               Learning Mechanism
+  SFT                  Human demonstrations          Supervised learning
+                       Human preferences → learned
+  RLHF (PPO)                                         Reward-based policy optimization
+                       rewards
+  DPO                  Preference comparisons        Direct preference optimization
+  RLAIF                AI-generated feedback         RL using AI-derived rewards
+
+• Key Ideas
+     • SFT learns from demonstrations; RLHF and DPO learn from preferences.
+     • RLAIF scales feedback using AI judges; AI-labeled preferences can also support DPO.
+     • Human oversight remains important for alignment and feedback reliability.
+Decision Making with Foundational Models                                                40
+Integrated Reasoning and Planning
+Reasoning and planning within human goals and constraints
+CoT Prompting, Self-Consistency, PoT, Planning and Verification
+
+
+
+Decision Making with Foundational Models                          41
+Example Notes: Apples of My Eye …
+• Prompt:
+     • "If there are 3 apples, and you take away 2, how many apples do you
+       have?"
+
+
+
+
+                                                          Ref: Wei, J. et al., 2022
+Decision Making with Foundational Models                                              42
+Chain of Thought (CoT) Reasoning
+• Core Idea
+     • Generate intermediate reasoning steps before a final answer.
+                             𝑦 = 𝑟4 , 𝑟5 , … , 𝑟6 , 𝑎 ∼ 𝜋' ⋅∣ 𝑥
+     • where 𝑟7 are generated reasoning steps and 𝑎 is the final answer.
+• Benefits
+     • Supports structured, multi-step reasoning.
+     • Enables review and critique of generated steps.
+• Example:
+     • Prompt: "If there are 3 apples, and you take away 2, how many apples do you have?"
+• Limitation:
+     • Generated reasoning may not faithfully reflect the model's internal reasoning.
+Decision Making with Foundational Models                    Refs: Wei et al. (2022); Turpin et al. (2023)   43
+Notes: CoT Technical Summary
+• Structured Generation
+                                     𝑦 = 𝑟? , 𝑟@ , … , 𝑟A , 𝑎 ∼ 𝜋) ⋅∣ 𝑥
+     • where 𝑟B are generated reasoning steps and 𝑎 is the final answer.
+• Policy Representation
+                                                    D
+                                   log 𝜋) 𝑦 ∣ 𝑥 = F log 𝜋) 𝑦1 ∣ 𝑥, 𝑦E1
+                                                   1C?
+     • where 𝑦1 are tokens in the complete response, including reasoning steps and the answer.
+• Prompting and Training
+     • CoT Prompting: Elicit reasoning steps without updating model parameters.
+     • SFT: Train on demonstrations containing reasoning traces.
+     • RLHF / DPO: Can optimize responses containing CoT using rewards or preference comparisons, respectively
+• Limitation:
+     • Generated reasoning steps may not faithfully reflect internal reasoning
+                                                                                    Ref: Wei, J. et al., 2022
+Decision Making with Foundational Models                                                                        44
+CoT Extensions
+• Self-Consistency
+     • Sample multiple CoT paths and aggregate final answers.
+• Program-of-Thought (PoT)
+     • Generate executable code to perform computations.
+• Step-Level Supervision
+     • Evaluate intermediate reasoning steps using feedback or rewards.
+     • Use these signals for process evaluation or learning.
+• Key Distinction:
+     • Self-consistency and PoT support decision-time reasoning; step-
+       level supervision supports training and evaluation.
+Decision Making with Foundational Models         Refs: Wang et al. (2023); Chen et al. (2023)   45
+Integrated Reasoning and Planning:
+Techniques and Process
+• Core Idea
+     • Combine model reasoning with planning, external checks, and tool-based execution.
+
+ Technique                    How It Works
+ Plan-and-Solve               Decompose a task into steps before solving.
+ Tree of Thoughts (ToT)       Explore, evaluate, and backtrack across alternative reasoning paths.
+ LLM+P                        Translate problems into PDDL and use a classical planner.
+ LLM-Modulo                   Use external verification and feedback to check and revise candidate plans.
+ ReAct                        Interleave reasoning, tool actions, and observations; adapt subsequent actions.
+
+• Human Guidance
+     • Specify goals, constraints, and permissions; require approval for consequential actions.
+• Key Idea
+     • Reasoning proposes solutions; external checks assess plan validity against the specified model and constraints.
+Decision Making with Foundational Models                                                                        46
+Summary: Reasoning and Human-Aligned Planning
+Method                      Core Mechanism                          Role
+CoT                         Generate intermediate reasoning steps   Structured reasoning
+                            Sample multiple reasoning paths and
+Self-Consistency                                                    Improve reliability
+                            aggregate answers
+PoT                         Generate and execute code               Support computation
+Step-Level Supervision      Evaluate intermediate reasoning steps   Training and evaluation
+Planning and                Check plans against goals and
+                                                                    Support human-aligned decisions
+Verification                constraints
+
+• Key Ideas
+      • CoT, self-consistency, and PoT support decision-time reasoning.
+      • Step-level supervision connects reasoning to learning and alignment.
+      • Human-aligned planning also requires constraints, verification, and oversight.
+Decision Making with Foundational Models                                                              47
+AI-Guided Learning
+Learning from outcomes and processes, with human oversight
+Bridging Reasoning and Optimization: Process Supervision, RLAIF, GRPO, Self-Rewarding LMs
+
+
+
+Decision Making with Foundational Models                                           48
+AI-Guided Learning
+• Improve model behavior using feedback on outcomes or intermediate reasoning steps.
+• Approaches
+     • Outcome Supervision: Evaluate the final answer.
+     • Process Supervision: Evaluate individual reasoning steps.
+     • RLAIF with CoT: Use AI judges to evaluate responses or reasoning traces.
+     • Group Relative Policy Optimization (GRPO): Optimize policies using group relative advantages from rewards
+     • Self-rewarding LMs (SRLMs): Use self-generated evaluations for iterative DPO.
+• Learning
+     • Use feedback to train evaluators or optimize policies.
+     • Human or external verification helps assess feedback reliability.
+• Key Idea:
+     • Connect reasoning evaluation to policy learning.
+     • Pipeline: Generate → Critique / Evaluate → Score / Compare → Update Policy
+Decision Making with Foundational Models        Refs: Lightman et al. (2023); Shao et al. 2024); Bai et al. (2022)   49
+RLAIF with CoT
+• Use AI judges to evaluate responses, optionally including generated CoT reasoning traces.
+• Objective
+                                                               𝜋% 𝑦 ∣ 𝑥
+                                  𝐽 𝜃 = 𝔼&,) 𝑟01 𝑥, 𝑦 − 𝛽 log
+                                                              𝜋!"# 𝑦 ∣ 𝑥
+     • where 𝑥 ∼ 𝒟, 𝑦 ∼ 𝜋% ⋅∣ 𝑥 , and 𝜋!"# is the fixed reference policy.
+• Mechanism
+     • AI judges provide feedback on response quality and, optionally, reasoning quality.
+     • AI-derived rewards guide policy optimization.
+• Benefits
+     • Scalable AI-feedback training.
+     • Can improve response and reasoning quality, depending on feedback reliability.
+
+
+Decision Making with Foundational Models                                         Ref: Bai et al, 2022   50
+Group-Relative Policy Optimization (GRPO)
+• Core Idea
+     • PPO-style reinforcement learning using group-relative rewards instead of a value critic.
+• Mechanism
+     • Sample multiple responses for each prompt.
+     • Score responses using outcome or process rewards.
+     • Compute group-relative advantages and update the policy using PPO-style clipping and KL regularization.
+• Group-Relative Advantage (Outcome Rewards)
+                                                                                    Examples:
+                                                  𝑅2 − mean 𝑅                   Math reasoning, scalable CoT
+                                           𝐴< 2 =                               training (e.g., DeepSeekMath)
+                                                      std 𝑅
+     • where 𝑅2 is the reward for response 𝑖, assuming nonzero reward variance.
+• Benefits
+     • Eliminates the separate value critic.
+                                                                                 Ref: Shao, z. et al. ( 2024)
+     • Supports efficient reinforcement learning for reasoning tasks.
+Decision Making with Foundational Models                                                                        51
+Notes: GRPO and PPO
+• GRPO Clipped Objective (Simplified)
+               $ &,( [min( 𝜌&,( 𝜃 𝐴, &,( , clip 𝜌&,( 𝜃 , 1 − 𝜖, 1 + 𝜖)𝐴, &,( ) − 𝛽 𝐷
+     𝐽"#$% 𝜃 = 𝔼                                                                   $)*,&,(
+
+     where
+                                                 𝜋+ 𝑎&,( ∣ 𝑠&,(
+                                      𝜌&,( 𝜃 =
+                                                 𝜋,-. 𝑎&,( ∣ 𝑠&,(
+     • 𝐴, &,( : Group-relative advantage; for outcome supervision, 𝐴, &,( = 𝐴, & .
+       $)*,&,( : Estimated divergence from the reference policy.
+     • 𝐷
+     • Difference from PPO: Group-relative advantages replace value-critic estimates.
+     • Difference from DPO: GRPO performs reinforcement learning; DPO directly
+       optimizes preference pairs.
+Decision Making with Foundational Models                            Ref: Shao, z. et al. (2024)   52
+Notes: Self-Rewarding Language Models (SRLMs)
+• Core Idea
+     • The model evaluates its own generated responses using LLM-as-a-Judge to guide iterative learning.
+• Mechanism
+     • Generate responses → Self-evaluate → Construct preference pairs → Update with DPO → Repeat.
+     • LLM-as-a-Judge scores response quality using a rubric, e.g., relevance, usefulness, clarity.
+• Policy Optimization
+                             ℒ34.5 𝜃 = −𝔼𝒟&'$( log 𝜎 𝛽 Δ% − Δ!"#
+     • where Δ% and Δ!"# are the preferred-versus-rejected log-probability differences, as defined earlier.
+• Benefits
+     • Scalable self-generated feedback.
+     • Can improve response quality and evaluation ability.
+• Risks and Mitigations
+     • Risks: Self-confirmation bias, unreliable judgments, feedback drift.
+     • Mitigations: External evaluation, human audits, calibrated judging criteria.
+Decision Making with Foundational Models                                              Ref: Yuan et al., 2024   53
+ Summary: Reasoning-Aware Learning and Alignment
+Method               Feedback Mechanism                        Policy Optimization
+                     AI judges evaluate responses or
+RLAIF with CoT                                                 RL using AI-derived rewards
+                     reasoning traces
+                     Group-relative rewards from               PPO-style updates without a value
+GRPO
+                     multiple sampled responses                critic
+                     Model-generated evaluations and
+SRLMs                                                          Iterative DPO
+                     preferences
+
+ • Key Ideas
+      • Outcome and process supervision determine what is evaluated.
+      • RLAIF and SRLMs provide AI-generated feedback; GRPO specifies how reward-
+        based policy optimization is performed.
+      • These approaches can be combined, but their effectiveness depends on feedback reliability.
+ Decision Making with Foundational Models                                                            54
+Summary & Outlook
+
+
+Decision Making with Foundational Models   55
+Decision Making with Foundational Models   56
+Notes: LFMs-Based Decision Systems
+• Core Roles
+     • Grounding / World-Model Support · Planning / Heuristic Synthesis · Evaluation / Critique · Tool Orchestration
+     • Support the agentic decision loop: Sense → Reason → Plan → Act → Learn.
+
+• Conceptual Framework (BDI)
+     • Beliefs → World information and knowledge
+     • Desires → Goals and desired outcomes
+     • Intentions → Committed goals and plans
+
+• Learning and Alignment for Agentic Decision Making
+     • Human-Guided Learning: Learn from human demonstrations and preferences.
+       Techniques: SFT, RLHF (PPO), DPO, RLAIF.
+     • Integrated Reasoning and Planning: Generate and verify reasoning and plans against human goals and constraints.
+       Techniques: CoT, self-consistency, PoT, planning and verification.
+     • AI-Guided Learning: Improve through outcome and process feedback, with human oversight.
+       Techniques: Outcome/process supervision, RLAIF with CoT, GRPO, Self-Rewarding LMs.
+
+• Evaluation Beyond Accuracy
+     • Task Success · Safety · Latency · Explainability · Human Oversight · Fairness / Human Impact
+
+• Goal: Human-Guided and Human-Aligned Agentic AI
+     • Capable, reliable, and adaptive decision making guided by human goals, values, and constraints.
+Decision Making with Foundational Models                                                                                 57
+Summary: Foundation-Model-Based Decision Systems
+Dimension                         Key Methods                        Purpose
+                                                                     Learn instruction-following and
+Human-Guided Learning             SFT · RLHF/PPO · DPO · RLAIF
+                                                                     preference-aligned behavior
+                                  CoT · Self-Consistency · PoT ·
+Reasoning and Planning                                               Support multi-step decision making
+                                  Planning and Verification
+                                  Outcome/Process Supervision ·      Improve behavior through feedback
+AI-Guided Alignment
+                                  RLAIF with CoT · GRPO · SRLMs      and optimization
+• Agentic System Roles
+     • World Model · Planner · Evaluator · Tool Orchestrator
+• Integration Contexts
+     • Hybrid Planning · Model-Based RL · Multi-Agent Coordination
+• Key Idea: Human-AI alignment requires learning human preferences, reasoning and
+  planning toward human goals, and continual evaluation and oversight.
+Decision Making with Foundational Models                                                               58
+                                                                                                                Sense
+
+
+
+
+A REAL Example (cont.)
+                                                                                                  Learn                    Reason
+
+
+
+
+                                                                                                          Act           Plan
+
+
+
+
+• Me: “Generate diagram.”
+• Agent: (Poten5al workﬂow)
+     • Sense: Interpret request; retrieve context and constraints.
+     • Reason: CoT proposes a diagram structure; generate and compare alterna<ves.
+     • Plan: Generate and compare diagram plans; verify constraints; generate executable layout code.
+     • Act: Use ReAct-style interac<on with DiagramTool, with safety guardrails; validate the result.
+     • Learn: Incorporate user correc<ons into memory; collect feedback for future training.
+
+
+
+
+Decision Making with Foundational Models                                                                        59
+Decision Making with Foundational Models   60
+Outlook and Future Directions
+• Reasoning and Alignment
+     • Integrate outcome and process feedback with policy learning.
+     • Improve reasoning reliability through external verification.
+• Model and System Integration
+     • Multimodal world models, planning, and tool use.
+     • Adaptive decision making with safe online learning.
+• Human–AI Collaboration and Governance
+     • Human oversight, interactive decisions, and appropriate autonomy.
+     • Multi-agent coordination and institutional governance.
+• Key Trend
+     • Human-guided decision making → AI-guided decision making → collaborative human–AI decision making
+• Goal:
+     • Toward reliable, adaptive, and human-aligned agentic AI systems.
+Decision Making with Foundational Models                                                                   61
+Homework
+• Readings: (On Generative AI)
+     • M2: Chapter 20 (Optional)
+• Reference books:
+     • [M1] Murphy, K. P. (2022). Probabilistic machine learning: An
+       introduction, MIT Press.
+     • [M2] Murphy, K. P. (2023). Probabilistic machine learning: Advanced
+       topics, MIT Press.
+     • Both references available at: https://probml.github.io/pml-book/
+
+Decision Making with Foundational Models                                     62
+References
+• AI Planning and Decision-Making Frameworks
+     1. Silver, T., Dan, S., Srinivas, K., Tenenbaum, J. B., Kaelbling, L., & Katz, M. (2024). Generalized planning in PDDL domains with
+     pretrained large language models. Proceedings of the AAAI Conference on Artificial Intelligence, 38(18), 20256–
+     20264. https://doi.org/10.1609/aaai.v38i18.30006
+     2. Chu-Carroll, J., Beck, A., Burnham, G., Melville, D. O. S., Nachman, D., Özcan, A. E., & Ferrucci, D. (2024). Beyond LLMs: Advancing
+     the landscape of complex reasoning. arXiv preprint, arXiv:2402.08064. https://arxiv.org/abs/2402.08064
+     3. Kambhampati, S., Valmeekam, K., Guan, L., Verma, M., Stechly, K., Bhambri, S., Saldyt, L. P., & Murthy, A. B. (2024). Position: LLMs
+     can't plan, but can help planning in LLM-Modulo frameworks. Proceedings of the 41st International Conference on Machine Learning,
+     PMLR 235, 22895–22907. https://proceedings.mlr.press/v235/kambhampati24a.html
+• Human-Guided Learning: SFT, RLHF, DPO and RLAIF
+     4. Christiano, P. F., Leike, J., Brown, T. B., Martic, M., Legg, S., & Amodei, D. (2017). Deep reinforcement learning from human
+     preferences. Advances in Neural Information Processing Systems,
+     30. https://papers.nips.cc/paper/2017/hash/d5e2c0adad503c91f91df240d0cd4e49-Abstract.html
+     5. Ouyang, L., et al. (2022). Training language models to follow instructions with human feedback. Advances in Neural Information
+     Processing Systems, 35, 27730–
+     27744. https://proceedings.neurips.cc/paper_files/paper/2022/hash/b1efde53be364a73914f58805a001731-Abstract-
+     Conference.html
+     6. Rafailov, R., Sharma, A., Mitchell, E., Ermon, S., Manning, C. D., & Finn, C. (2023). Direct preference optimization: Your language
+     model is secretly a reward model. Advances in Neural Information Processing Systems,
+     36. https://proceedings.neurips.cc/paper_files/paper/2023/hash/a85b405ed65c6477a4fe8302b5e06ce7-Abstract-Conference.html
+     7. Bai, Y., et al. (2022). Constitutional AI: Harmlessness from AI feedback. arXiv preprint, https://arxiv.org/abs/2212.08073
+Decision Making with Foundational Models                                                                                              63
+References
+• Chain-of-Thought Reasoning and Extensions
+     1. Wei, J., Wang, X., Schuurmans, D., Bosma, M., Ichter, B., Xia, F., Chi, E. H., Le, Q. V., & Zhou, D. (2022). Chain-of-thought prompting
+     elicits reasoning in large language models. Advances in Neural Information Processing Systems, 35, 24824–
+     24837. https://arxiv.org/abs/2201.11903
+     2. Chu, Z., et al. (2024). Navigate through enigmatic labyrinth a survey of chain of thought reasoning: Advances, frontiers and
+     future. Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics, 1173–
+     1203. https://aclanthology.org/2024.acl-long.65/
+     3. Wang, X., Wei, J., Schuurmans, D., Le, Q. V., Chi, E. H., Narang, S., Chowdhery, A., & Zhou, D. (2023). Self-consistency improves
+     chain of thought reasoning in language models. International Conference on Learning Representations (ICLR
+     2023). https://arxiv.org/abs/2203.11171
+     4. Chen, W., Ma, X., Wang, X., & Cohen, W. W. (2023). Program of thoughts prompting: Disentangling computation from reasoning
+     for numerical reasoning tasks. Transactions on Machine Learning Research. https://openreview.net/forum?id=YfZ4ZPt8zd
+
+• Reasoning-Aware Learning and Alignment
+     5. Lightman, H., et al. (2024). Let's verify step by step. International Conference on Learning Representations (ICLR
+     2024). https://proceedings.iclr.cc/paper_files/paper/2024/hash/aca97732e30bcf1303bc22ac3924fd16-Abstract-Conference.html
+     6. Shao, Z., et al. (2024). DeepSeekMath: Pushing the limits of mathematical reasoning in open language models. arXiv preprint,
+     arXiv:2402.03300. https://arxiv.org/abs/2402.03300
+     7. Yuan, W., Pang, R. Y., Cho, K., Li, X., Sukhbaatar, S., Xu, J., & Weston, J. E. (2024). Self-rewarding language models. Proceedings of
+     the 41st International Conference on Machine Learning, PMLR 235, 57905–57923. https://proceedings.mlr.press/v235/yuan24d.html
+Decision Making with Foundational Models                                                                                                 64
+

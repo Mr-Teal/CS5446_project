@@ -1,0 +1,314 @@
+Rational Decision Making
+Examples and Notes
+
+
+
+
+Rational Decision Making   50
+Example
+Utility Theory: MEU calculations with Bayesian Updating
+
+
+
+
+Rational Decision Making                                  51
+Example: Panda’s Lunch Choice
+Partially Observable Environments
+• Setup
+     • Panda Lulu chooses between Bamboo Grove and Berry Bush, but can't see the grove from her location.
+     • Actions: Bamboo Grove (risky) vs Berry Bush (sure 4).
+     • Prior over grove state:
+       𝑃 𝐵 = 0.5 (bamboo present), 𝑃 ¬𝐵 = 0.5 (empty).
+     • Utilities if Lulu goes to the grove: 𝑈 = 10 if 𝐵; 𝑈 = 0 if ¬𝐵.
+• Observation:
+     • Lulu hears rustling near the grove. Observation 𝑂 ∈ rustling no rustling before choosing. This could mean:
+     • Wind in the leaves — bamboo still there, happens 20% of the time if bamboo is present
+     • Monkeys eating bamboo — bamboo already gone, happens 60% of the time if bamboo is absent:
+     • Likelihoods (rustling more likely when grove is empty—monkeys):
+       𝑃 𝑂 = rustling ∣ 𝐵 = 0.2, 𝑃 𝑂 = rustling ∣ ¬𝐵 = 0.6.
+• Takeaways:
+     • Belief updating (Bayes) → new posteriors → new EUs → new choice.
+     • Same prior and utilities can yield different optimal actions depending on the observation.
+Rational Decision Making                                                                                      52
+1) Posterior after hearing rustling
+• Calculations:
+                           ! "∣$ ! $            '.)⋅'.+       '.)
+     • 𝑃 𝐵 ∣ 𝑂 = ! "∣$ ! $ %! "∣¬$ ! ¬$ = '.)⋅'.+%'.,⋅'.+ = '.)%'., = 0.25
+
+• Expected utilities:
+     • 𝐸𝑈 Grove ∣ 𝑂 = 0.25 ⋅ 10 + 0.75 ⋅ 0 = 2.5
+     • 𝐸𝑈 Berry = 4
+• Decision: Choose Berry Bush (4 > 2.5).
+
+
+Rational Decision Making                                                 53
+2) Posterior after hearing no rustling
+• Calculations:
+     • Use complements: 𝑃 no ∣ 𝐵 = 0.8, 𝑃 no ∣ ¬𝐵 = 0.4.
+                           '.-⋅'.+   '.-    )
+     • 𝑃 𝐵 ∣ no = '.-⋅'.+%'..⋅'.+ = '.-%'.. = / ≈ 0.667
+
+• Expected utilities:
+                              )
+     • 𝐸𝑈 Grove ∣ no = / ⋅ 10 ≈ 6.67
+     • 𝐸𝑈 Berry = 4
+• Decision: Choose Bamboo Grove (6.67 > 4).
+
+Rational Decision Making                                   54
+Constructing Utility Functions
+Probability equivalence
+Certainty equivalence
+
+
+
+Rational Decision Making         55
+Preference Elicitation: Method 1
+• Using probability equivalents
+     • Present choices to agents; define utility function from observed responses
+• Method:
+     • Fix a scale; fix utilities of 2 outcomes to establish the scale
+     • Worst: 𝑢0 ; Best: 𝑢1
+          • Normalized utilities: 𝑢0 = 0; 𝑢1 = 1
+     • Assess utility for prize 𝑆 by asking the agent to choose between 𝑈(𝑆)
+       and the lottery [𝑝, 𝑢1 ; 1 − 𝑝 , 𝑢0 ]
+          • Adjust 𝑝 until the agent is indifferent between 𝑆 and lottery
+Rational Decision Making                                                    56
+Example: Getting Good Grade
+• Demonstration:
+     • Grade in CS4246/CS5446: 𝑈(𝐹) = 0; 𝑈(𝐴) = 1; sure grade: 𝐵, 𝐶, 𝐷
+     • What value of 𝑝 would you trade 𝐿𝑜𝑡𝑡𝑒𝑟𝑦 for 𝐵?
+
+
+
+
+     • What about 𝐶, 𝐷?
+
+Rational Decision Making                                                 57
+Example: Pizza Party
+• Demonstration:
+     • Alice’s preference:     𝑃𝑎𝑠𝑡𝑎 ≻ 𝑃𝑖𝑧𝑧𝑎 ≻ 𝑆𝑎𝑙𝑎𝑑
+     • Bob’s preference:       𝑆𝑎𝑙𝑎𝑑 ≻ 𝑃𝑎𝑠𝑡𝑎 ≻ 𝑃𝑖𝑧𝑧𝑎
+     • Charlie’s preference:   𝑃𝑖𝑧𝑧𝑎 ≻ 𝑃𝑎𝑠𝑡𝑎 ≻ 𝑆𝑎𝑙𝑎𝑑
+• What is the group’s preference?
+
+          UNSURE! Compromise and other considerations are needed
+• So?
+     • Group preference may be non-transitive
+     • Studied in social choice theory
+
+
+Rational Decision Making                                           58
+Certainty Equivalent
+• Certainty Equivalent (CE)
+     • Fixed amount of money equivalent to a given situation involving uncertainty
+     • Value agent accepts in lieu of the lottery
+• Example:
+     • You are faced with the following lottery:
+          • Win            $2000 with probability   0.5    Expected Monetary Value
+          • Lose           $20   with probability   0.5          EMV = $990
+     • How much are you willing to sell the lottery for?
+     • This amount, say $𝑋, is the least that you would accept for the lottery, then
+       the lottery must be equivalent in your mind to a sure $𝑋
+
+Rational Decision Making                                                        59
+     Preference Elicitation: Method 2
+• Using certainty equivalents                              • Example:
+1.   Determine two initial points on curve                 1.   Assume: worst: $10, best: $100
+2.       Arbitrarily assign utility values to the points   2.   Set 𝑈" (10) = 0; 𝑈# (100) = 1
+3.       Create reference lottery to determine CE          3.   Reference lottery
+4.       Find third point on curve by formula:
+       • 𝑈(𝐶𝐸!) = 𝐸𝑈(𝐿𝑜𝑡𝑡𝑒𝑟𝑦)
+5.       Create additional reference lotteries
+6.       Proceed as before until enough points are
+         available to plot a curve
+                                                           4.   Assume: 𝐶𝐸! = 30
+                                                           5.   𝑈 𝐶𝐸! = 𝑈 30
+                                                                      = 0.5𝑈 100 + 0.5𝑈 10
+                                                                      = 0.5
+
+     Rational Decision Making                                                                    60
+Continue ...
+
+              CE_2
+                     𝑈(50) = 0.5𝑈(100) + 0.5𝑈(30) = 0.75
+
+
+
+
+              CE_3
+                      𝑈(18) = 0.5𝑈(30) + 0.5𝑈(10) = 0.25
+Rational Decision Making                                   61
+Plotting the Utility Function
+                 Utility                                    Utility
+                                                            Curve
+                           1.00
+
+                           0.75
+
+                           0.50
+
+                           0.25
+
+
+
+
+                                  20   40   60   80   100
+                                                                      Wealth
+
+
+
+
+Rational Decision Making                                                       62
+Proof of Expected Utility Theorem
+
+
+Rational Decision Making            63
+Expected Utility Theorem: Proof
+• [Proof Sketch]:
+     • An orderable, transitive preference relation satisfies continuity and
+       substitutability if and only if it admits an expected utility
+       representation.
+          • Based on Levin, Jonathan. Choice Under Uncertainy. Lecture notes, 2006.
+            Access from:
+            https://web.stanford.edu/~jdlevin/Econ%20202/Uncertainty.pdf
+
+
+
+
+Rational Decision Making                                                          64
+Expected Utility Theorem: Proof
+
+
+
+
+Rational Decision Making          65
+Expected Utility Theorem: Proof
+
+
+
+
+Rational Decision Making          66
+Expected Utility Theorem: Proof
+
+
+
+
+Rational Decision Making          67
+Expected Utility Theorem: Proof
+
+
+
+
+Rational Decision Making          68
+Expected Utility Theorem: Proof
+
+
+
+
+Rational Decision Making          69
+Decision Analysis
+A prescriptive framework for decision making
+
+
+
+
+Rational Decision Making                       70
+Example: Martian Adventures
+• Scenario:
+     • Mars Base is considering deploying a new tool for Persy the Mars Rover to collect and analyze
+       Martian rock samples:
+     • Two different power sources: Solar Power and Battery Power.
+     • Both power designs have different energy consumption rates and development time.
+     • Success rate for either design working efficiently in the harsh Martian environment is uncertain.
+     • Only one design can be deployed at a time due to payload constraints on the resupply ships.
+     • If either design doesn't work optimally once deployed, a new, modified version may be sent in the
+       next resupply mission, but this means waiting longer and it still doesn’t guarantee success.
+• Two stage decision problem:
+     • Decide on which power design to deploy: Solar, Battery, or neither (if risk is too high).
+     • If the tool fails, decide whether to send a modified version or to abort the mission objective.
+
+Rational Decision Making                                                                                   71
+The Decision Analysis Process
+                                      Problem Formulation
+              Identify contexts       Understand objectives        Identify alternatives
+
+                                       Problem Modelling
+         Model problem structure       Model uncertainties         Model preferences
+
+                                       Choose Alternative
+                                          Model solution
+
+                                       Sensitivity analyses                                Yes
+                                     Is further analysis needed?
+                                                       No
+
+                                  Implement Chosen Alternative
+
+Rational Decision Making                                                                   72
+Decision Modeling: Decision Basis Formulation
+
+
+
+
+                                                                                                                Source: Howard, R. A. 1988
+                 Howard, R. A., Decision Analysis: Practice and Promise, Management Science, Vol. 34, No. 6 (Jun., 1988) , pp. 679-695
+Rational Decision Making                                                                                                                 73
+Basic Elements of a Decision Model
+• Decision nodes
+     • Decision points with several choices or alternatives
+• Chance nodes
+     • Uncertain or chance events with several outcomes
+• Value or utility nodes
+     • Deterministic monetary value or utility functions
+     • Measure desirability of final objectives
+• Probabilistic dependencies
+     • Represent conditional dependence of chance events
+• Informational dependencies
+     • Represent information available at decision points
+
+Rational Decision Making                                      74
+      Example: A Decision Model (1)
+  Which power design
+  to use?
+
+
+
+
+If tool fails, should a
+new version be sent?
+
+
+
+
+                                 What are the utilities - benefits or costs?
+      Rational Decision Making                                         75
+ Example: A Decision Model (2)
+How to estimate
+uncertainties?
+
+                                 How to estimate
+                                 utilities?
+
+
+
+
+ Rational Decision Making                      76
+Computing Tools
+• Commercial Products – mostly derived from academic research work
+     • DPL – Decision Programming Language – Influence diagrams, Decision trees
+     • Netica – Bayes nets, Influence diagrams, API engines
+     • Treeage Pro – Decision trees, Influence diagrams (limited)
+     • Palisade PrecisionTree – Decision trees, Influence diagrams
+     • BayesiaLab – Bayes nets, causal analysis
+     • Hugin Expert – Bayes nets, Influence diagrams
+     • …
+• Commercial Products With FREE academic version
+     • Bayesfusion: GeNIe and SMILE - Bayes nets, Influence diagrams, API engines
+     • …
+• Also check out survey at:
+     • INFORMS Decision Analysis Software Survey
+       https://www.informs.org/ORMS-Today/OR-MS-Today-Software-Surveys/Decision-Analysis-Software-Survey
+
+
+Rational Decision Making                                                                              77
+

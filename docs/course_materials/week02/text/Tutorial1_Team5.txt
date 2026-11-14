@@ -1,0 +1,77 @@
+ Tutorial 1: Real World Planning and Acting
+CS5446 Reinforcement Learning and Sequential Decision Making
+                       Chigilli Palli Ishaan                Layana Trevedy
+                            E1576567                           E1582891
+                Rayaan Nabi Ahmed Quraishi Sukumar Ganesan
+                        E1553073              E1604477
+
+
+Problem 1
+Solution (a)
+Domain
+Types : block, table
+Predicates : On(x, y), Block(x), Clear(x)
+Actions :
+Move(x, f r, to),
+P recondition : Block(x) ∧ On(x, f r) ∧ Clear(x) ∧ Clear(to) ∧ (x ̸= f r) ∧ (x ̸= to) ∧ (f r ̸= to)
+Ef f ect : On(x, to) ∧ Clear(f r) ∧ ¬On(x, f r)) ∧ ¬Clear(to)
+MoveToTable(x, f r),
+P recondition : Block(x) ∧ On(x, f r) ∧ Clear(x) ∧ (x ̸= f r) ∧ (x ̸= to) ∧ (f r ̸= to)
+Ef f ect : On(x, to) ∧ Clear(f r) ∧ ¬On(x, f r))
+
+Problem
+Objects : Blocks − A, B, C; table − T able
+Init : (On(A, B) ∧ On(B, C) ∧ On(C, T able) ∧ Clear(A))
+Goal : (On(A, C) ∧ On(B, T able) ∧ On(C, T able) ∧ Clear(A) ∧ Clear(B))
+Solution (b)
+
+
+
+
+Solution (c)
+A valid plan for the problem is given below as inferred from the search tree in part (b).
+M oveT oT able(A, B)
+M oveT oT able(B, C)
+M ove(A, T able, C)
+
+
+Problem 2
+If an action has both positive and negative effects, then in the original planning problem,
+the result of applying an action a to a state s is
+                                        (︁         )︁
+                          Result(s, a) = s − DEL(a) ∪ ADD(a)
+   After removing the negative, or delete, effects, the result becomes
+
+                               Result+ (s, a) = s ∪ ADD(a)
+
+                              ∴ Result(s, a) ⊆ Result+ (s, a)
+The relaxed result contains all the positive facts in the original result and possibly additional
+facts. Since, all action preconditions and goals are positive, therefore, every plan that solves
+the original problem also solves the relaxed problem. Thus, removing all negative effects
+produces a relaxed problem.
+    If negative preconditions or goals are allowed, removing negative effects does not neces-
+sarily produce a relaxed problem. A negative effect may be required to satisfy a negative
+precondition or goal. Removing that, effect could make the modified problem unsolvable
+even when the original problem is solvable.
+
+
+Problem 3
+Solution (A)
+  (i) Action(H1, P recond : ¬A, Ef f ect : A ∧ ∼ ±B)
+
+ (ii) Action(H2, P recond : ¬B, Ef f ect : ∼ +A ∧ ∼ ±C)
+
+(iii) Action(H3, P recond : ¬B ∧ ¬C, Ef f ect : D ∧ E)
+
+Solution (B)
+Below given sequences of HLAs with their implementations achieve the goal state.
+
+   i. H1 (P1,P3), H2 (P6), H3 (P8,P9)
+
+  ii. H1 (P1,P3), H2 (P7), H3 (P8,P10)
+
+
+Declaration
+Internet resources and AI tools (ChatGPT and Gemini) have been used for language polishing
+and LaTeX formatting suggestions.
+

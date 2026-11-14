@@ -1,0 +1,340 @@
+CS4246/CS5446 — Tutorial 3 Solutions: Sequential
+Decision Making under Uncertainty
+National University of Singapore — School of Computing
+Semester 1, AY2026-27 · CS4246/CS5446 Reinforcement Learning and Sequential Decision Making
+Tutorial 3 (Week 5 session) · Issued: 02 Sep 2026
+
+Team members (alphabetical order):
+
+
+  Name                                                                Student ID
+
+  Gong Zeyu                                                           A0230695B
+
+  Liu Fayang                                                          A0229303M
+
+  Ma Rundi                                                            A0230561R
+
+
+
+
+Problem 1: Nova the Mars Rover
+Nova's controller is a two-state, two-action infinite-horizon MDP:                                           ,                        , with
+transitions
+
+
+
+
+      , eco
+
+      , boost
+
+   , eco
+
+   , boost
+
+
+and rewards               independent of the resulting state (i.e.,                           ):                      ,                    ,
+                   ,                 .
+
+
+Part 1: Discounting
+(a) Role of discounting;                        vs
+
+Discounting multiplies a reward received         steps in the future by    , so the value of a state is the present value of its future
+reward stream,
+
+
+
+
+For             and bounded rewards this infinite sum converges to a finite value, which (i) makes the infinite-horizon problem
+well defined (finite       , unique solution to the Bellman equations, and value iteration converges by contraction), and (ii)
+encodes a preference for earlier reward. The effective planning horizon is                          steps.
+
+With               the agent is more short-sighted: a reward 10 sols ahead is worth                              of an immediate one, so
+decisions are driven almost entirely by immediate reward. With                  (                  ) the agent is farsighted and willing
+to forgo immediate reward to keep the battery healthy. Both values induce the same optimal actions here (boost when
+charged, eco when low, since                                   ; see part (b)), but the decision margins differ: at the low state,
+eco's advantage over boost is             at          versus          at            (values                      vs              ).
+(b) Optimal policy as             varies from 0 to 1
+
+Solving the linear systems                               for each of the four deterministic policies and comparing values, the
+optimal policy takes three distinct regimes:
+
+
+  Range of                                              Optimal policy                                             Example
+
+                                                        always boost                                                        (or      )
+
+                                                        boost when charged, eco when low
+
+                                                        always eco
+
+
+(at            and                the two adjacent policies tie). Endpoint checks:
+
+      At          only immediate reward matters, and boost strictly dominates eco in both states (                    ,           ): always
+      boost.
+
+      As          , the policy with the best long-run average reward per sol wins. Stationary fractions of time spent charged
+      and average rewards are: always eco                        ,              ; boost/eco           ,       ; eco/boost                ,
+                     ; always boost              , . So always eco wins for      near 1.
+
+      The fourth policy, eco when charged and boost when low, is optimal for no value of                  (shown in part (c)).
+
+Derivation of the regime boundaries
+
+Each deterministic policy    induces a 2×2 system                               ; with states ordered          , Cramer's rule gives (with
+                             on          ):
+
+
+  Policy
+
+
+  π₁ always boost
+
+
+  π₂ boost at , eco at
+
+
+  π₃ eco at , boost at
+
+
+  π₄ always eco
+
+
+The optimal policy switches only where two policies tie, and policies differing in a single state tie exactly where their value
+vectors coincide:
+
+      π₁ vs π₂ (differ only at ):
+                                    on        , both value functions equal to                 at the tie. So always boost is optimal
+      exactly for            .
+
+      π₂ vs π₄ (differ only at ): since                      ,
+                                  , both value functions equal to                  at the tie. So boost/eco holds on
+                  and always eco for                     .
+
+      π₃ is optimal for no value of       (part (c)).
+
+The upper envelope switches π₁ → π₂ at                       and π₂ → π₄ at           , giving the three regimes of the table.
+
+(c) Modifying the MDP so the optimal policy is eco when charged, boost when low
+First, no discount factor alone can achieve this. For the given MDP, if                                                 were optimal, the
+following would both have to hold for                                      :
+
+        eco      boost at charged:                                                                                                            ;
+
+        boost        eco at low:                                                                                             .
+
+These require                       , a contradiction, so the MDP itself must be changed.
+
+Minimal change: reduce the boost reward at the charged state,                                                 , keeping everything else fixed.
+With this single change, take                 (the policy is optimal for all       up to                    , as derived below). Solving the
+Bellman equations for                                         :
+
+
+
+gives                                             . Greedy check against        :
+
+        charged: eco                        vs boost                      → eco optimal;
+
+        low: boost                      vs eco                     → boost optimal.
+
+The greedy policy w.r.t.           is exactly (eco, boost), so      = eco when charged, boost when low. With                                      , eco
+weakly dominates boost at the charged state (equal immediate reward, strictly better transitions whenever                                           ),
+while at the low state boost's immediate reward of                beats eco's   for small-to-moderate : the condition
+                    holds, with                                      .
+
+Derivation for the modified-MDP example
+
+At             the Bellman system for                             has determinant                , giving                        ; the exact greedy
+margins are            for eco at     and        for boost at .
+
+Exact range of validity,                    . Under the modified MDP, at the charged state eco weakly dominates boost for any
+                :                                                                                                                        (equal
+immediate rewards, strictly better transitions). At the low state, boost                   eco                                                           .
+Solving the system for general          (the determinant                                         is independent of the rewards):
+
+
+
+
+so     is greedy w.r.t. its own value function
+(the other root is          ). Hence (eco, boost) is optimal exactly for                            ; at          ,                          .
+
+(d) What            represents; why                    is problematic
+
+Practically,    is the agent's degree of patience: the present value of a reward                  steps ahead is       of the same reward now
+(equivalently, a per-step survival probability, or an interest rate via                             ), and the effective horizon over which
+rewards still matter is                     steps (                about 5 sols,                  10 sols).
+
+With           in a continuing (non-episodic) task, the discounted return                         generally diverges: value functions are
+unbounded, the Bellman equations may have no finite or non-unique solutions, value iteration has no contraction
+guarantee, and policy comparison is ill-defined — here all four policies accumulate infinite total reward and cannot be
+ranked.             is safe only where the sum stays finite: episodic tasks that terminate with probability 1, or an average-
+reward formulation.
+
+
+Part 2: Optimal Policy (                                  )
+Because rewards depend only on                   , the backup is                                                         .
+
+(a) Q-values updated from
+
+Since                   , the bootstrap term vanishes and                                    :
+(b) Next value function
+
+
+
+(c) Next update from
+
+Value Iteration (Bellman optimality backup):
+
+
+
+
+Policy Iteration: the greedy policy w.r.t.                                is                                               (the Q-values above give
+           at        and                  at ). Exact evaluation solves
+
+
+
+The second equation gives                                  ; substituting into the first:                           , so
+
+
+
+
+(d) Optimal policy
+
+Running policy iteration to a fixed point: the greedy policy w.r.t.                         is still (boost at , eco at ) — at : boost
+                                      eco; at : eco                                   boost — so it is the optimal policy:
+
+
+
+
+This matches regime (b):                                             .
+
+
+
+Problem 2: Aster's Rescue Route — Comparing Active RL Methods
+Setup:                ; states        , terminal          (so            ). Previous experience from                :          with          (    );
+with             (    );           with           (        ), and that episode continued with            then              on reaching   . New episode:
+                            .
+
+(a) Active ADP
+After observing the new transition                              , the count-based model from             becomes:
+
+         action : 4 observations, all to              :                    ,                     ;
+
+         action : 5 observations,                     and           :                                ,                                   .
+
+Reward estimates follow the observed outcomes:                                        ,                         ,                        . With           ,
+             :
+
+
+
+
+Since                      , the greedy action at         is    .
+(b) Monte Carlo Control
+The complete return following             in the new episode is
+
+
+
+Averaging all five observed returns                  — equivalently, the incremental update from the current running mean
+                                :
+
+
+
+
+(c) SARSA and Q-learning updates for
+Both agents experience                  with next action   selected by the behavior policy,          :
+
+      SARSA (on-policy: bootstrap from the action actually taken,                     ):
+
+
+
+      Q-learning (off-policy: bootstrap from                                               ):
+
+
+
+
+(d) If the behavior policy had selected                             instead of
+      SARSA: the target now bootstraps from the action taken,                     :
+
+
+
+The update changes (                ): SARSA's target depends on the behavior policy's choice, so its    -estimate tracks the
+policy actually followed; it coincides with the Q-learning value from (c) because      is the greedy action in   .
+
+      Q-learning: the update is unchanged —                         as in (c) — because the target                        does
+      not depend on the behavior policy's choice (the off-policy property); the reward on the                leg enters only the
+      update of           .
+
+
+(e) Comparison of the four active RL methods
+  Method       What it learns              How experience improves the policy
+
+               An explicit model:
+                             ,             Each transition updates the model; the agent then plans (value/policy
+  Active
+                             , and         iteration) and acts greedily w.r.t. the resulting values. One experience
+  ADP
+               utilities derived from      propagates globally, and the model also yields simulated experience.
+               it
+
+  Monte                   as the           Averages the completed-episode return into               (part (b)), then improves
+  Carlo        average of complete         greedily w.r.t.   . No bootstrapping: unbiased but high-variance, one update
+  control      observed returns            per episode.
+
+  SARSA
+                                           One-step update bootstrapping from the action actually taken:
+  (on-              of the behavior
+                                                                                         (parts (c)–(d)); values reflect the
+  policy       policy itself
+                                           cost of exploration; converges to     only under decaying exploration (GLIE).
+  TD)
+
+  Q-
+  learning           directly,             One-step update bootstrapping from the best next action:
+  (off-        independent of the                                                   ; the behavior policy only needs to visit
+  policy       behavior policy             all pairs.
+  TD)
+
+
+ADP is the most sample-efficient (planning propagates each observation to the whole value function, and the model covers
+untried actions) but must learn and plan with a model; Monte Carlo needs the least structure but the most data per
+update; SARSA and Q-learning interpolate — one-step bootstrapped updates, differing in whether the target follows the
+behavior policy (SARSA) or the greedy policy (Q-learning).
+
+
+(f) Why exploration is necessary for all four methods
+All four methods learn only from actions actually executed: an untried action has zero model counts (ADP), contributes no
+returns (Monte Carlo), and leaves its Q-value at initialization (SARSA/Q-learning), so a purely exploiting agent can repeat a
+mediocre action forever and never discover a better one. Convergence guarantees therefore require every state–action
+pair to be tried infinitely often with decaying exploration (GLIE for SARSA/Q-learning; optimistic/uncertainty-based
+exploration for ADP, whose model is wrong at unvisited transitions). Q-learning's        and ADP's greedy planning are
+correct only if the values of all candidate actions are accurate — without trying both   and   in     , Aster cannot rank them.
+
+
+
+(Optional) Problem 3: Reinforcement Learning in the Real World
+(a) RL as a model of human behavior and decision making
+Humans repeatedly face the core RL problem — choosing actions whose long-term rewards are unknown — and value-
+learning models fit behavioral data well: expected rewards are updated by prediction errors (delta-rule/TD updates, often
+with separate learning rates for positive and negative errors) and converted into choices via a softmax/Boltzmann rule with
+an inverse-temperature parameter. Neuroimaging shows human reward-prediction-error signals consistent with TD errors,
+and behavior combines model-free control (cached action values, habit-like) with model-based control (planning with a
+learned transition model), with arbitration depending on uncertainty and effort. Discounting appears empirically:
+intertemporal choice shows preference reversals better fit by hyperbolic than exponential discounting, and exploratory
+choices correlate with novelty/uncertainty bonuses, paralleling curiosity-driven exploration in RL.
+
+
+(b) Connection to neuroscience
+Dopaminergic neurons in the ventral tegmental area and substantia nigra encode reward prediction errors — bursting
+for better-than-expected rewards, pausing for worse-than-expected outcomes, and shifting their response from actual
+reward to predictive cues as learning proceeds — exactly the TD error                             (Schultz, Dayan &
+Montague, 1997). Primary rewards act as built-in        , with dopamine as a global teaching signal broadcast to action-
+selection circuits, and credit for delayed rewards is assigned through learned value predictions. The connection influenced
+RL in both directions: it validated TD learning as a normative model of prediction and inspired actor–critic architectures
+(critic/actor mapped onto ventral/dorsal striatal loops), reward shaping, and intrinsic/curiosity-driven exploration;
+conversely, RL supplied neuroscience with its computational vocabulary — value functions, policies, exploration–
+exploitation trade-offs. Antecedents include Thorndike's law of effect and the Rescorla–Wagner model (precursors of the
+delta rule), and Sutton & Barto's work on secondary reinforcers led directly to TD learning.
+

@@ -1,0 +1,148 @@
+Real World Planning and Acting
+Serializable Subgoals and Hierarchical Planning Notes
+
+
+
+
+Real World Planning and Acting                          1
+Example: Sussman Anomaly
+Consider three blocks A, B, and C with the following:
+• Initial State:
+     • Block C is on Block A (on(C, A)).
+     • Block A is on the table.
+     • Block B is on the table (onTable(B)).
+• Goal State:
+     • Block A on Block B (on(A, B)).
+     • Block B on Block C (on(B, C)).
+               Original source: Sussman, G. J. (1975). A Computer Model of Skill Acquisition. Elsevier.
+Real World Planning and Acting                                                                            2
+Example: Sussman Anomaly
+Sequence 1: Achieving on(A, B) first, then on(B, C)
+1. Movetotable(C, A) – Move Block C from Block A to the table.
+2. Move(A, table, B) – Move Block A from the table to Block B.
+     • Subgoal Achieved: on(A, B).
+3.     Movetotable(A, B) – Undo the subgoal on(A, B) by moving Block A from
+       Block B back to the table to clear B.
+4.     Move(B, table, C) – Move Block B from the table to Block C.
+     • Subgoal Achieved: on(B, C).
+5.     Move(A, table, B) – Finally, move Block A from the table to Block B again.
+     • Final State: on(A, B) and on(B, C) achieved.
+
+
+Real World Planning and Acting                                                      3
+Example: Sussman Anomaly
+Sequence 2: Achieving on(B, C) first, then on(A, B)
+1.   Move(B, table, C) – Move Block B from the table to Block C.
+     • Subgoal Achieved: on(B, C).
+2.     Movetotable(B, C) – Undo the subgoal on(B, C) by moving Block B from Block C back to the
+       table to clear C.
+3.     Movetotable(C, A) – Move Block C from Block A to the table.
+4.     Move(A, table, B) – Move Block A from the table to Block B.
+     • Subgoal Achieved: on(A, B).
+5.     Movetotable(A, B) – Undo the subgoal on(A, B) by moving Block A from Block B back to the
+       table to clear B.
+6.     Move(B, table, C) – Move Block B from the table to Block C again.
+     • Subgoal Achieved: on(B, C).
+7.     Move(A, table, B) – Finally, move Block A from the table to Block B again.
+     • Final State: on(A, B) and on(B, C) achieved.
+Real World Planning and Acting                                                                    4
+Example: Sussman Anomaly
+Observations:
+• In both sequences, achieving one goal required undoing previously
+  achieved subgoals, which exemplifies Sussman Anomaly. Specifically:
+     • In Sequence 1, the subgoal on(A, B) was undone in Step 3 to achieve on(B, C).
+     • In Sequence 2, the subgoal on(B, C) was undone in Step 2, and on(A, B) was
+       undone in Step 5 to rearrange the blocks.
+• These steps highlight the interdependencies and conflicts between
+  subgoals, demonstrating the complexity and inefficiency in achieving all
+  goals without having to backtrack and redo certain actions.
+
+
+Real World Planning and Acting                                                         5
+Example: Sussman Anomaly
+• What is the problem with independent subgoals?
+     • Moving two blocks to specific positions may require a sequence that
+       undoes one goal to achieve another.
+• Serializable Subgoals:
+     • A planning approach where subgoals are achieved in a specific
+       sequence without conflict.
+     • Ensures each subgoal is completed without undoing previously
+       achieved goals.
+     • Helps avoid issues like Sussman Anomaly.
+Real World Planning and Acting                                               6
+Example: Air Cargo Transportation
+• Original problem:
+     • 10 airports, 50 planes and 200 cargos
+     • Total no. of states = 1050 × (50 + 10)200 ≈ 10405
+• Assumption:
+     • All cargos are just in 5 airports, instead of 10, and all cargos in the same airport have
+       the same destination.
+• Reformulation:
+     • Drop all the irrelevant 𝐴𝑡 fluents (What are the relevant ones?)
+     • Total no. of states = 105 × (5 + 10)5 ≈ 1011
+• Solution:
+     • Shorter than that for original problem (admissible heuristic)
+     • Extensible by adding relevant actions
+
+Real World Planning and Acting                                                                     7
+Example: Original Problem Setup
+• Initial Problem Setup:
+     • 10 airports: Each airport can be a possible location for planes and cargo.
+     • 50 planes: Each plane can be at one of the 10 airports.
+     • 200 pieces of cargo: Each piece of cargo can either be on one of the planes or unloaded at one of the airports.
+• Total Number of States:
+1.     Planes' locations:
+     • Each of the 50 planes can be at any of the 10 airports.
+     • The total number of combinations for plane locations is 1050
+2.     Cargo locations:
+     • Each of the 200 pieces of cargo can either be:
+           •   On one of the 50 planes (50 options), or
+           •   At one of the 10 airports (10 options).
+     • Therefore, each piece of cargo has 60 possible locations (50 planes + 10 airports).
+     • The total number of combinations for cargo locations is (50 + 10)200
+
+3.     Total number of states:
+     • Multiply the number of possible plane locations by the number of possible cargo locations:
+                                               Total states= 1050 × (50 + 10)200 ≈ 10405
+Real World Planning and Acting                                                                                           8
+Example: Abstracted Problem Setup
+• Now, consider that:
+      •    All packages are at just 5 of the airports.
+      •    All packages at a given airport have the same destination.
+• This allows us to make significant abstractions:
+1.        Planes' locations:
+      •    We abstract the problem by considering only 5 "big" planes, each representing a group of planes heading to the same destination.
+      •    These 5 planes can be at any of the 10 airports.
+      •    The total number of combinations for these 5 planes is 105.
+2.        Cargo locations:
+      •    We abstract the problem by considering 5 "big" packages, each representing all the cargo at one airport.
+      •    Each "big" package can either be:
+              •   On one of the 5 "big" planes (5 options), or
+              •   At one of the 10 airports (10 options).
+      •    Therefore, each "big" package has 15 possible locations (5 planes + 10 airports).
+      •    The total number of combinations for the 5 "big" packages is (5 + 10)5.
+3.        Total number of abstracted states:
+      •    Multiply the number of possible "big" plane locations by the number of possible "big" package locations:
+                                                    Total abstracted states= 105 × (5 + 10)5 ≈ 1011
+Real World Planning and Acting                                                                                                                9
+Example: Hierarchical Planning Complexity
+• Goal: Get from Home to SIN Airport
+     • Primitive actions: walk, open door, get in taxi, pay, etc
+• Flat planner (non-hierarchical):
+     • Branching factor 𝑏 ≈ 10 primitive actions/step
+     • Optimal plan length 𝑑 = 30 primitive steps
+                                                               Note:
+     • Cost: 𝑂 𝑏 ! = 𝑂 10"# → astronomically large
+                                                               • d = total primitive actions in the final plan.
+• HTN planner (illustrative):                                  • (d−1)/(k−1) arises because each
+                                                                  refinement adds 𝑘 − 1 tasks; to
+     • HLA: Go(Home, SIN)                                         reach 𝑑 tasks we need d−1 additions.
+     • Refinements: 𝑟 = 3 (e.g., Drive / Taxi / MRT)
+     • Each refinement expands to about 𝑘 = 10 primitive actions
+                                      !$%        '(
+     • No. of refinement steps ≈             =        ≈ 3.22
+                                       &$%       (
+                                 !$% / &$%
+     • Cost (approx.): 𝑂 (𝑟                  ) = 𝑂 3".'' ≈ 𝟑𝟒 à Huge exponential savings!
+Real World Planning and Acting                                                                        10
+

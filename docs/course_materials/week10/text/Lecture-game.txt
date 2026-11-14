@@ -1,0 +1,1011 @@
+  Game Theory
+  Foundation for Strategic and Multiagent Decision Making
+
+
+  CS4246/CS5446
+  Reinforcement Learning and Sequential Decision Making
+  Version 4.0
+
+
+
+© Copyright National University of Singapore. All Rights Reserved.
+Recall: Normative Decision Theory
+• Utility theory:
+    • Quantifies degrees of preferences of alternatives
+• Decision Model:
+    • Explicates impact of uncertainty on these preferences
+• Utility function:
+    • mapping from states of the world to real numbers, indicating agent's
+      level of happiness with that state of the world
+• Decision-theoretic rationality:
+    • takes actions to maximize expected utility.
+
+Game Theory                                                                  2
+Topics
+• Introduction to game theory
+    • Elements of a game
+    • Types of games
+• Non cooperative game theory
+    • Pure strategy games
+    • Mixed strategies games
+    • Zero-sum games
+• Future topics and connections to AI
+Game Theory                             3
+Introduction to Game Theory
+Elements of a Game
+
+
+
+
+Game Theory                   4
+Recall: Example: Pandas’ Dilemma
+Game Theory in Action
+• Scenario:
+    Two pandas, Bobo and Almo, find bamboo in short supply.
+    Each day, they must decide whether to:                   𝐴: 𝐾𝑒𝑒𝑝            𝐴: 𝑆ℎ𝑎𝑟𝑒
+    • Share bamboo grove locations             𝐵: 𝐾𝑒𝑒𝑝    𝐵 = +1; 𝐴 = +1     𝐵 = +5; 𝐴 = 0
+    • Keep them secret
+                                                 𝐵: 𝑆ℎ𝑎𝑟𝑒    𝐵 = 0; 𝐴 = +5   𝐵 = +3; 𝐴 = +3
+• Payoffs:
+    • Both Keep: each gets +1 (safe but poor outcome)
+    • One Shares, One Keeps: the keeper gains +5, the sharer gets 0
+    • Both Share: both get +3 (cooperative outcome)
+• Decision:
+    • What should the pandas do to maximize happiness and health (by eating A LOT OF bamboo)?
+
+Game Theory                                                                                5
+  Example: Rational Action
+  • What should Almo and Bobo do? NE = (K, K) with payoffs (1, 1)
+                                            Dominant strategy
+                                                  𝐴: 𝐾𝑒𝑒𝑝               𝐴: 𝑆ℎ𝑎𝑟𝑒
+
+Dominant strategy            𝐵: 𝐾𝑒𝑒𝑝         𝐵 = +1; 𝐴 = +1         𝐵 = +5; 𝐴 = 0
+
+                            𝐵: 𝑆ℎ𝑎𝑟𝑒          𝐵 = 0; 𝐴 = +5        𝐵 = +3; 𝐴 = +3
+
+                                       Both should keep secrets!
+  Nash equilibrium (NE):
+        A strategy (action) profile where no player can improve their payoff by changing their strategy alone.
+
+  Game Theory                                                                                               6
+Notes: Rational Action
+• What should Almo and Bobo do?
+• Nash equilibrium:
+    • A strategy (action) profile where no player can
+      improve their payoff by changing their strategy alone.
+• Best-response reasoning:
+    • Let 𝑢!, 𝑢" be Almo’s and Bobo’s payoffs.
+    • Best responses (Almo):
+    • If Bobo S: 𝑢!(𝐾, 𝑆) = 5 > 𝑢!(𝑆, 𝑆) = 3 ⇒ Almo prefers K.
+    • If Bobo K: 𝑢!(𝐾, 𝐾) = 1 > 𝑢!(𝑆, K) = 0 ⇒ Almo prefers K.
+    • Keep strictly dominates Share for both players.
+• Conclusion:
+    • NE = (K, K) with payoffs (1, 1)
+    • Stable under self-interest, but not socially optimal.
+Game Theory                                                      7
+Example: Optimal Collective Action
+• What should Almo and Bobo do?
+                         Social optimum: (S, S) with maximized welfare= 6
+
+                                             𝐴: 𝐾𝑒𝑒𝑝                   𝐴: 𝑆ℎ𝑎𝑟𝑒
+
+                        𝐵: 𝐾𝑒𝑒𝑝        𝐵 = +1; 𝐴 = +1               𝐵 = +5; 𝐴 = 0
+                                       𝑇𝑜𝑡𝑎𝑙 (𝑊) = +2                (𝑊) = +5
+                       𝐵: 𝑆ℎ𝑎𝑟𝑒          𝐵 = 0; 𝐴 = +5             𝐵 = +3; 𝐴 = +3
+                                          (𝑊) = +5                   (𝑊) = +6
+                                  Welfare (W):
+                                       Sum of both players’ payoffs in an outcome.
+Pareto Optimality (PO):
+      An outcome (of payoffs) where no player can be made better off without making another worse off.
+Game Theory                                                                                          8
+Notes: Optimal Collective Action
+• What should Almo and Bobo do?
+• Welfare:
+    • Sum of both players’ payoffs in an outcome.
+• Welfare values:
+                                                       𝐴: 𝐾𝑒𝑒𝑝                𝐴: 𝑆ℎ𝑎𝑟𝑒
+    • 𝑊(𝑆, 𝑆) = 6
+    • 𝑊(𝐾, 𝑆) = 5                   𝐵: 𝐾𝑒𝑒𝑝      𝐵 = +1; 𝐴 = +1           𝐵 = +5; 𝐴 = 0
+    • 𝑊(𝑆, 𝐾) = 5                                𝑇𝑜𝑡𝑎𝑙 (𝑊) = +2            (𝑊) = +5
+    • 𝑊(𝐾, 𝐾) = 2                   𝐵: 𝑆ℎ𝑎𝑟𝑒        𝐵 = 0; 𝐴 = +5        𝐵 = +3; 𝐴 = +3
+                                                     (𝑊) = +5              (𝑊) = +6
+• Conclusion:
+    • Social optimum: (S, S) with maximized welfare 6
+    • Nash equilibrium: (K, K) with welfare 2 → shows inefficiency (price of anarchy).
+
+Game Theory                                                                               9
+Notes: Main Observations
+• Rational ≠ Optimal
+• Nash Equilibrium
+    • A stable outcome: no player can do better by changing their move alone.
+    • → For Almo & Bobo: (Keep, Keep) is the NE with payoffs (+1, +1)
+    • → But it’s not the best outcome overall.
+• Social Optimum
+    • The outcome that maximizes total welfare (sum of both players’ payoffs).
+    • → Here, (Share, Share) gives (+3, +3) — total welfare = 6
+    • → NE gives total welfare = 2 — a big drop.
+• Inefficiency of Equilibrium
+    • The NE is Pareto inefficient — both players could do better by cooperating.
+• This gap is the Price of Anarchy:
+    • the loss in total welfare when players act rationally but selfishly.
+
+
+Game Theory                                                                         10
+What Should the Pandas Do?
+                                                               𝐴: 𝐾𝑒𝑒𝑝          𝐴: 𝑆ℎ𝑎𝑟𝑒
+                                                 𝐵: 𝐾𝑒𝑒𝑝    𝐵 = +1; 𝐴 = +1   𝐵 = +5; 𝐴 = 0
+                                                 𝐵: 𝑆ℎ𝑎𝑟𝑒   𝐵 = 0; 𝐴 = +5    𝐵 = +3; 𝐴 = +3
+• Rational Action (Self-Interest):
+    • Both pandas will likely choose to Keep Bamboo Locations Secret, leading to
+      an optimal policy (equilibrium)with payoffs [+1, +1].
+• Optimal Collective Action:
+    • If they could build trust and cooperate to Share bamboo locations, both would benefit
+      more → payoffs [+3, +3].
+• Lesson:
+    • Game theory shows that what is individually rational may not be collectively optimal.
+
+Game Theory                                                                           11
+Key Ideas
+• Main observation: Rational ≠ Best for All
+    • Even when players act rationally to help themselves, they may end up
+      in a worse outcome together.
+• How to Improve Outcomes?
+    • Incentives for cooperation
+    • Contracts or binding agreements
+    • Repeated play builds trust
+    • Game design that aligns self-interest with group welfare
+
+Game Theory                                                             12
+Game Theory   13
+Notes: Game Theory Applications
+• AI & Computer Science                            • Economics & Markets
+    • Multi-agent systems                              • Oligopoly pricing
+      (robot swarms, autonomous driving)                 (e.g., Bertrand, Cournot models)
+    • Mechanism design                                 • Auctions
+       (e.g., matching markets, ad auctions)              (e.g., eBay, spectrum sales, Google Ads)
+    • Reinforcement learning                           • Bargaining & contracts
+       (adversarial training, self-play)                 (e.g., labor negotiations)
+• Everyday & Strategic Behavior                    • Political Science & Social Choice
+    • Traffic rules (coordination games)               • Voting systems
+    • Split-or-steal game shows                          (strategic voting, Arrow’s theorem)
+    • Negotiations and pricing in business deals       • International relations
+                                                         (e.g., nuclear deterrence, treaties)
+• Biology & Evolution                                  • Public goods & climate agreements
+    • Evolutionarily stable strategies (ESS)             (free-riding, enforcement)
+    • Animal conflict and cooperation
+      (e.g., hawk-dove, mating behavior)
+
+
+Game Theory                                                                                          15
+Elements of A Game                                                PAPI: Rules of the game
+
+• Players (𝑁):
+    • The decision-makers in the game, 𝑁 = {1, 2, … , 𝑛}
+• Actions (𝐴! ):
+    • Each player 𝑖 chooses from possible actions 𝐴! .
+    • All players’ choices form an action profile 𝐴 = 𝐴" × 𝐴# × … × 𝐴$ .
+• Payoffs (𝑢! (𝑎) ):
+    • The reward or outcome player 𝑖 receives for a given action profile 𝑎∈𝐴.
+    • 𝑢! : 𝐴 → ℝ represents player 𝑖’s utility.
+• Information (𝐼! ):
+    • What player 𝑖 knows about the game (actions, payoffs, or others’ choices).
+    • Differs in perfect vs. imperfect information games.
+Game Theory                                                                         16
+  Strategy and Equilibrium
+                                                               Assuming PAPI: Rules of the game
+• Strategy (𝑠! ):
+    • A plan of action for player 𝑖 based on what they know.
+    • Can be a single action (pure) or a probability distribution over actions (mixed).
+• Objective:
+    • Each player chooses an optimal strategy 𝑠!∗ to maximize their payoff, given others’ strategies:
+                               𝑠!∗ = argmax 𝑢! (𝑠! , 𝑠$! ) – Best response
+                                          #!
+                                                                     No player benefits from deviating
+• Equilibrium (𝑠"∗ , 𝑠$∗ ,…, 𝑠%∗ ):                                  from their equilibrium strategy.
+    • A stable strategy profile where no player can improve their payoff by changing their strategy.
+    • In a Nash Equilibrium:
+                                  ∀𝑖: 𝑢! (𝑠!∗ , 𝑠$!
+                                                 ∗                ∗
+                                                    ) ≥ 𝑢! (𝑠! , 𝑠$! )
+  Game Theory                                                                                       17
+Playing Games
+• Which of the following is a game?
+    1.   The Organization of the Petroleum Exporting Countries (OPEC) members
+         choosing their annual output
+    2.   Apple purchasing Organic Light-Emitting Diode (OLED) displays from Samsung
+    3.   Two manufacturers, one of nuts and one of bolts, deciding whether to use
+         metric or American standards
+    4.   A board of directors setting up a stock option plan for the chief executive officer
+    5.   Singapore Airlines (SIA) hiring cabin crew
+    6.   The government deciding whether to build a nuclear plant given its estimate of
+         demand for electricity in ten years
+                                                        Source: Adapted from Rasmussen 2005, Chapter 1
+Game Theory                                                                                              18
+  Notes: Overview of Game Theory                                        Assumption
+                                                                        All agents follow optimal decision-making
+                                                                        rules according to game theory principles.
+Aspect                              Description                                 Example
+                                    Act independently vs. collaborate for
+Non-Cooperative vs. Cooperative                                                 Chicken / Bargaining
+                                    mutual benefit
+Strategic (Simultaneous) vs.        Choose actions at the same time vs. in
+                                                                                Rock-Paper-Scissors / Chess
+Extensive (Sequential)              sequence
+Perfect vs. Imperfect Information   All moves known vs. hidden information      Chess / Poker
+                                                                                Single RPS / Iterated
+Single vs. Repeated Games           One-time vs. ongoing interactions
+                                                                                Prisoner’s Dilemma
+Agent Design                        Design agents to make optimal decisions     Two-Finger Morra
+                                    Design rules to achieve desired
+Mechanism Design                                                                Internet traffic routing
+                                    outcomes
+
+  Game Theory                                                                                              19
+  Notes: Overview of Game Theory                                         Assumption
+                                                                         Players are typically modeled as rational
+                                                                         and seek to maximize their own payoffs
+Aspect                              Description                                   Example
+                                    Individual strategic choices vs. coalitions
+Non-Cooperative vs. Cooperative                                                   Chicken / Bargaining
+                                    / binding agreements
+Strategic (Normal) Form vs.         Strategies and payoffs vs. sequences of
+                                                                                  Rock-Paper-Scissors / Chess
+Extensive Form                      actions and information
+Perfect vs. Imperfect Information   All moves known vs. hidden information        Chess / Poker
+                                                                                  Single RPS / Iterated
+Single vs. Repeated Games           One-time vs. ongoing interactions
+                                                                                  Prisoner’s Dilemma
+Agent Design                        Design agents to make optimal decisions       Two-Finger Morra
+                                    Design rules to achieve desired
+Mechanism Design                                                                  Internet traffic routing
+                                    outcomes
+
+  Game Theory                                                                                                20
+ Non-Cooperative Games
+• Idea:
+   • How independent, rational agents make decisions when outcomes depend on others.
+• Non-cooperative:
+   • Agents act independently — no enforceable agreements.            In economics, politics,
+                                                                      and interacting AI agents
+• Why study this:
+   • To understand competition, negotiation, and strategic behavior
+   • → Analyze stable outcomes (equilibria)
+• Self-interest assumptions:
+   • Agents maximize their own preferences — not necessarily to help or harm others.
+   • Assume rational decision-making.
+ Game Theory                                                                             21
+  Notes: Extremes of Non-Cooperative Games
+• Pure Competition
+   • Players have fully opposing interests (usually two players).
+   • For all action profiles 𝑎 ∈ 𝐴, total payoff is constant:
+                                           𝑢" 𝑎 + 𝑢# 𝑎 = 𝑐
+   • Special case: Zero-sum → 𝑐 = 0
+   • Intuition: One’s gain is another’s loss — e.g., Chess, sports, bidding wars.
+• Pure Coordination
+   • Players share identical interests — no conflict.
+   • For all action profiles 𝑎 ∈ 𝐴, all prefer the same outcomes:
+                                         𝑢! 𝑎 = 𝑢% 𝑎 for all 𝑖, 𝑗
+   • Intuition: Everyone benefits by matching actions — e.g., traffic side rules, teamwork tasks.
+  Game Theory                                                                             22
+How These Games Work
+• Non-cooperative games:
+    • Agents act independently — no enforceable agreements. (Timing can be simultaneous or sequential)
+• Examples:
+    • Prisoner’s Dilemma; Two-Finger Morra; real-world pricing or bidding
+• Game Rules:
+    • Players: 𝑁 = 1, 2, … , 𝑛 : Actions: 𝐴 = 𝐴" × 𝐴# × … × 𝐴$ ; Payoffs: 𝑢ᵢ: 𝐴 → ℝ
+    • Information: 𝐼𝑖 :
+      Players know the game’s structure (actions, payoffs) ⇒ complete information;
+      Players do not observe others’ simultaneous choices ⇒ imperfect information
+      Sequential games, where players move in turn and observe previous actions, can have perfect information.
+• Representations:
+    • Payoff matrix (strategic/normal form) for simultaneous-move games;
+    • Game tree (extensive form) for sequential games (simultaneous moves can be shown with information sets).
+Game Theory                                                                                                 23
+Notes: General Form of Single-Move Games
+                                                                Subscripts in payoffs denote
+• A game written as a matrix                                    action numbers of P1 and P2
+    • “strategic form” or “normal form”
+
+                                𝐶𝑜𝑙𝑢𝑚𝑛 𝑃𝑙𝑎𝑦𝑒𝑟 (P2)    𝐶𝑜𝑙𝑢𝑚𝑛 𝑃𝑙𝑎𝑦𝑒𝑟 (𝑃2)
+                                     𝐴𝑐𝑡𝑖𝑜𝑛 1              𝐴𝑐𝑡𝑖𝑜𝑛 2
+              𝑅𝑜𝑤 𝑃𝑙𝑎𝑦𝑒𝑟 (P1)   𝑅 = 𝑂%&& ; 𝐶 = 𝑂'&&   𝑅 = 𝑂%&( ; 𝐶 = 𝑂'&(
+                 𝐴𝑐𝑡𝑖𝑜𝑛 1
+              𝑅𝑜𝑤 𝑃𝑙𝑎𝑦𝑒𝑟 (P1)   𝑅 = 𝑂%(& ; 𝐶 = 𝑂'(&   𝑅 = 𝑂%(( ; 𝐶 = 𝑂'((
+                 𝐴𝑐𝑡𝑖𝑜𝑛 2
+
+
+
+Game Theory                                                                           24
+Notes: General Form of Single-Move Games
+                                                      Subscripts in payoffs denote
+• A game written as a game tree                       action numbers of P1 and P2
+    • “extensive form”
+                                   A1   𝑅 = 𝑂%&&; 𝐶 = 𝑂'&&
+
+                              P2
+                         A1
+                                   A2   𝑅 = 𝑂%&(; 𝐶 = 𝑂'&(
+                    P1
+                                   A1   𝑅 = 𝑂%(&; 𝐶 = 𝑂'(&
+   A1: Action 1          A2
+   A2: Action 2               P2
+
+                                   A2   𝑅 = 𝑂%((; 𝐶 = 𝑂'((
+
+
+Game Theory                                                                 25
+Game Strategies & Solutions
+• Strategy:
+    • Plan of action — pure or mixed.
+• Outcome:
+    • Payoffs from players’ chosen strategies.
+• Solution concept: predicts stable or efficient outcomes.
+    • Equilibrium asks whether players have incentives to deviate.
+    • Efficiency asks whether the resulting outcome could be collectively improved.
+    • Nash equilibrium: stable — no one gains by deviating alone.
+    • Pareto optimum: efficient — no one can be better off without hurting another.
+Concept             Perspective    Focus         Interpretation
+Nash Equilibrium    Strategic      Actions       Every player’s choice is the best response to others.
+Pareto Efficiency   Welfare        Utilities     How good the outcomes are collectively
+Game Theory                                                                                      26
+Pure Strategy Games
+Single deterministic actions
+
+
+
+
+Game Theory                    27
+Example: Prisoner’s Dilemma
+• Game:
+    • Two suspects: Bo and Al, are caught near a burglary scene and interrogated separately
+• Choices:
+    • One Testifies (blames the other) and the other Refuses (to cooperate):
+        • Payoffs – [0, -10] or [-10, 0]
+                                                              𝐴𝑙: 𝑇𝑒𝑠𝑡𝑖𝑓𝑦        𝐴𝑙: 𝑅𝑒𝑓𝑢𝑠𝑒
+    • Both Refuse:
+        • Payoffs – [ -1, -1]               𝐵𝑜: 𝑇𝑒𝑠𝑡𝑖𝑓𝑦    𝐵 = −5; 𝐴 = −5      𝐵 = 0; 𝐴 = −10
+
+    • Both Testify:                         𝐵𝑜: 𝑅𝑒𝑓𝑢𝑠𝑒      𝐵 = −10; 𝐴 = 0     𝐵 = −1; 𝐴 = −1
+        • Payoffs – [ -5, -5]
+    • Should each of them testify?
+
+
+Game Theory                                                                                   28
+Example: Prisoner’s Dilemma
+
+
+
+
+Game Theory                   29
+Notes: Game Strategies and Game Solutions
+• Game Strategies
+    • Strategy: A player’s plan of action.
+    • Pure Strategy: Choose one action deterministically → 𝑠% ∈ 𝐴%
+    • Mixed Strategy: Choose actions probabilistically → 𝑠% = [𝑝(𝑎) = 𝑝, 𝑝(𝑏) = 1 − 𝑝] .
+    • Strategy Profile: All players’ strategies →         𝑠 = (𝑠" , 𝑠# , … , 𝑠$ )
+• Game Solutions
+    • Outcome: Payoffs to all players from a strategy profile 𝑠; for player 𝑖: 𝑢% : 𝐴 → ℝ
+    • Solution: A strategy profile or outcome satisfying a specified solution concept.
+• Common Solutions:
+    • Pareto Optimal:        No player can improve without making another worse off.
+    • Nash Equilibrium:      No player can gain by changing strategy alone: 𝑢% 𝑠%∗ , 𝑠'%
+                                                                                      ∗             ∗
+                                                                                         ≥ 𝑢% 𝑠% , 𝑠'% , ∀𝑖 and 𝑠% ∈ 𝑆%
+• Assumption:
+    • Players are rational — each maximizes expected utility given others’ strategies.
+    • Outcomes are actual results; solutions are theoretical models for analysis.
+Game Theory                                                                                                     30
+Best Response and Equilibria
+• Best response:
+    • Best response: strategy that maximizes a player’s payoff given others’ choices.
+    • A player’s best move, given others’ strategies.
+    • Intuition: “If they play 𝑠$! , what’s my best reply?”
+• Nash Equilibrium
+    • Each player’s strategy is a best response to the others.
+    • No one can gain by deviating alone.
+    • A Nash equilibrium is a stable outcome
+    • A stable outcome is one where no single player can benefit by changing their decision
+      alone, assuming everyone else keeps theirs the same - No one gains by deviating alone
+
+Game Theory                                                                               31
+Notes: Best Response
+• Definition
+    • For a player 𝑖, the best response is the strategy that maximizes their payoff, given the strategies of the
+      other players.
+• Formally:
+    • If the strategies of all other players are denoted by 𝑠'% , player 𝑖’s best response strategy 𝑠%∗ is one that
+      maximizes their payoff:
+                                            𝑠%∗ = argmax 𝑢% (𝑠% , 𝑠'% ) ∈ 𝐵𝑅(𝑠'% )
+                                                            (!∈*!
+          where the best response set is defined as:
+                               𝐵𝑅 𝑠'% = 𝑠% ∈ 𝑆% 𝑢% (𝑠% , 𝑠'% ) ≥ 𝑢% (𝑠%+ , 𝑠'% ) ∀𝑠%+ ∈ 𝑆% }
+          given:
+          • 𝑠" is the strategy for player 𝑖,
+          • 𝑠#" is the strategy profile of all players other than 𝑖,
+          • 𝑢" (𝑠" , 𝑠#" )is the payoff function for player 𝑖.
+    •   𝑠%∗ ∈ 𝐵𝑅(𝑠'% ) is the strategy that gives player 𝑖 the highest payoff, given the strategies 𝑠'% of other players.
+
+Game Theory                                                                                                            32
+Notes: Nash Equilibrium
+• Definition
+    • A Nash equilibrium occurs when each player's strategy is a best response to the strategies of the other players.
+• Formally:
+    • A strategy profile (𝑠"∗ , 𝑠$∗ ,…, 𝑠%∗ ) is a Nash equilibrium if, for each player 𝑖:
+                                                  ∀𝑠& : 𝑢& (𝑠&∗ , 𝑠'&
+                                                                   ∗                ∗
+                                                                      ) ≥ 𝑢& (𝑠& , 𝑠'& )
+                                                                       ∗
+    • For every player 𝑖, given the equilibrium strategies 𝑠'&             of the other players, their strategy 𝑠&∗ is the best response
+           ∗
+      to 𝑠'& , meaning no player can improve their payoff by unilaterally deviating:
+                                                         𝑠&∗ ∈ 𝐵𝑅( 𝑠'&   ∗
+                                                                           )
+                       ∗                                                                                                           ∗
+    •    Where 𝐵𝑅 𝑠'&     is the best response set of player 𝑖 given the equilibrium strategies of the other players 𝑠'&             .
+• Key Points:                                                                       E.g., in Prisoner’s Dilemma, both players testifying
+    • Every finite game has at least one Nash equilibrium (John Nash). It is stable against unilateral deviations.
+    • A dominant strategy equilibrium is a special case of Nash equilibrium, where each player has a dominant strategy
+    • Some games have Nash equilibria without dominant strategies
+          • (e.g., Battle of the sexes, since each player's optimal strategy depends on the other's action.).
+
+               Note: The concept of equilibrium is called Nash equilibrium in honour of John Nash
+Game Theory                                                                                                                                33
+Example: Prisoner’s Dilemma
+• What should Al and Bo do?
+
+                                   𝐴𝑙: 𝑇𝑒𝑠𝑡𝑖𝑓𝑦         𝐴𝑙: 𝑅𝑒𝑓𝑢𝑠𝑒
+
+                  𝐵𝑜: 𝑇𝑒𝑠𝑡𝑖𝑓𝑦    𝐵 = −5; 𝐴 = −5 𝐵 = 0; 𝐴 = −10
+
+                   𝐵𝑜: 𝑅𝑒𝑓𝑢𝑠𝑒    𝐵 = −10; 𝐴 = 0 𝐵 = −1; 𝐴 = −1
+
+
+                                Both should testify!
+    • Result: (Testify, Testify) is a Nash equilibrium
+
+Game Theory                                                         34
+Notes: How to Find Pure Strategy Nash Equilibria?
+• Checklist:
+    1.   For each column, mark the row(s) with the best payoff for Player 1.
+    2.   For each row, mark the column(s) with the best payoff for Player 2.
+    3.   Cells with both marks = pure NE.
+
+• If multiple → need coordination; if none → consider mixed strategies.
+
+
+
+
+Game Theory                                                                    35
+Notes: Domination
+• Dominant Strategy
+    • A strategy 𝑠0 dominates all others if it always yields a better or equal outcome for player 𝑖,
+      regardless of other players' strategies.
+    • If a strictly dominant strategy exists, it is irrational not to play it.
+    • Playing a strictly dominated strategy is irrational.
+                                                                               set of all possible strategy
+• Strongly Dominant Strategy                                                  profiles for the other players
+    • Strategy 𝑠0 strongly dominates 𝑠01 if:
+    • ∀𝑠20 ∈ 𝑆20 : 𝑢0 (𝑠0 , 𝑠20 ) > 𝑢0 (𝑠01, 𝑠20 )
+    • 𝑠0 is strictly better than 𝑠01 for every choice of strategies by other players.
+• Weakly Dominant Strategy
+    • Strategy 𝑠0 weakly dominates 𝑠01 if:
+    • ∀𝑠20 ∈ 𝑆20 : 𝑢0 (𝑠0 , 𝑠20 ) ≥ 𝑢0 𝑠01, 𝑠20        and:      ∃𝑠20 ∈ 𝑆20 : 𝑢0 (𝑠0 , 𝑠20 ) > 𝑢0 (𝑠01, 𝑠20 )
+    • 𝑠0 is at least as good as 𝑠01 for all other players' strategies, and strictly better in at least one case.
+Game Theory                                                                                                        36
+Notes: Dominant Strategies and Equilibria
+• Strongly Dominant:
+    • Removing strongly dominated strategies gives a unique equilibrium,
+      regardless of order.
+
+• Weakly Dominant:
+    • Removing weakly dominated strategies may give multiple equilibria.
+                                                        E.g., in Prisoner’s Dilemma, both
+• Dominant Strategy Equilibrium:                        players testifying
+
+    • All players choose their dominant strategies; no one can gain by deviating.
+
+Game Theory                                                                           37
+Example: Prisoner’s Dilemma
+                                              Dominant strategy: always ≥ alternatives, regardless of others.
+                                              DSE: everyone plays a dominant strategy (strong or weak).
+• What should Al and Bo do?                   Note: every DSE is a Nash equilibrium (not vice versa).
+                    Dominant Strategy
+                    Equilibrium (DSE)    Dominant strategy
+
+                                           𝐴𝑙: 𝑇𝑒𝑠𝑡𝑖𝑓𝑦          𝐴𝑙: 𝑅𝑒𝑓𝑢𝑠𝑒
+
+Dominant strategy     𝐵𝑜: 𝑇𝑒𝑠𝑡𝑖𝑓𝑦       𝐵 = −5; 𝐴 = −5 𝐵 = 0; 𝐴 = −10
+
+                      𝐵𝑜: 𝑅𝑒𝑓𝑢𝑠𝑒         𝐵 = −10; 𝐴 = 0 𝐵 = −1; 𝐴 = −1
+
+
+                                        Both should testify!
+    • Result: Testify is a dominant strategy for both → (Testify, Testify).
+
+Game Theory                                                                                          38
+ Notes: Deriving Solution with Dominated Strategies
+                                                                          𝐴𝑙: 𝑇𝑒𝑠𝑡𝑖𝑓𝑦       𝐴𝑙: 𝑅𝑒𝑓𝑢𝑠𝑒
+• One way to solve the game:                           𝐵𝑜: 𝑇𝑒𝑠𝑡𝑖𝑓𝑦    𝐵 = −5; 𝐴 = −5      𝐵 = 0; 𝐴 = −10
+
+   • Iteratively remove dominated strategies.          𝐵𝑜: 𝑅𝑒𝑓𝑢𝑠𝑒     𝐵 = −10; 𝐴 = 0      𝐵 = −1; 𝐴 = −1
+
+   • If one strategy remains per player →
+     solution found.
+                                                                                    𝐴𝑙: 𝑇𝑒𝑠𝑡𝑖𝑓𝑦
+   • Al eliminates Refuse (dominated).
+                                                             𝐵𝑜: 𝑇𝑒𝑠𝑡𝑖𝑓𝑦         𝐵 = −5; 𝐴 = −5
+   • Bo then eliminates Refuse.
+                                                             𝐵𝑜: 𝑅𝑒𝑓𝑢𝑠𝑒          𝐵 = −10; 𝐴 = 0
+   • Remaining strategies give the solution.
+                                                                                    𝐴𝑙: 𝑇𝑒𝑠𝑡𝑖𝑓𝑦
+
+                                                             𝐵𝑜: 𝑇𝑒𝑠𝑡𝑖𝑓𝑦         𝐵 = −5; 𝐴 = −5
+                       Dominant Strategy Equilibrium
+ Game Theory                                                                                        39
+Pareto Optimality
+• Pareto-optimal:
+    • An outcome where no player can be made better off without making
+      another worse off.
+       → A Pareto-optimal outcome is called efficient.
+• Efficient outcome:
+    • Uses opportunities so that no further gains are possible without harming
+      someone.
+        → No one can improve without hurting another.
+• Key idea:
+    • Stability (Nash) does not imply efficiency (Pareto)!
+Game Theory                                                                  40
+  Notes: Pareto Optimality
+• Pareto Optimality:
+    • An outcome 𝑢& , 𝑢( , … , 𝑢) is Pareto optimal if no other outcome (𝑢&* , 𝑢(* ,…, 𝑢)* ) can
+      improve one player's payoff without making at least one other player worse off:
+                      ∄ (𝑢&* , 𝑢(* , … , 𝑢)* ) such that ∀𝑖 , 𝑢!* ≥ 𝑢! and ∃𝑗, 𝑢+* > 𝑢+ .
+    • An outcome is Pareto-dominated if there exists another outcome where at least one player
+      is better off and no player is worse off:
+                                       ∀𝑖 , 𝑢!* ≥ 𝑢! and ∃𝑗, 𝑢+* > 𝑢+   An outcome is Pareto-optimal
+                                                                                                  if there is no other outcome
+• Key Points:                                                                                     that Pareto-dominates it
+    • A Pareto-optimal outcome cannot be Pareto-dominated.
+    • A game can have multiple Pareto-optimal outcomes, and every finite game has at least one.
+
+        Note: Pareto optimality is named for the Italian economist Vilfredo Pareto (1848–1923).
+  Game Theory                                                                                                         41
+Example: Prisoner’s Dilemma
+                                                                                                    Pareto
+                              Equilibrium      𝐴𝑙: 𝑇𝑒𝑠𝑡𝑖𝑓𝑦           𝐴𝑙: 𝑅𝑒𝑓𝑢𝑠𝑒                     optimal
+
+       Pareto
+                         𝐵𝑜: 𝑇𝑒𝑠𝑡𝑖𝑓𝑦        𝐵 = −5; 𝐴 = −5 𝐵 = 0; 𝐴 = −10
+       optimal
+                         𝐵𝑜: 𝑅𝑒𝑓𝑢𝑠𝑒         𝐵 = −10; 𝐴 = 0 𝐵 = −1; 𝐴 = −1                         Pareto
+                                                                                                dominating
+• Dilemma:
+    • (Refuse, Refuse): Payoffs (–1, –1) — both better off than (–5, –5) in (Testify, Testify).
+    • But each has an incentive to deviate — testifying improves their own payoff but hurts the other.
+    Result:
+    • (Refuse, Refuse) is Pareto-optimal but not a Nash equilibrium.
+    • (Testify, Testify) is a Nash equilibrium — stable but Pareto-inefficient, and Pareto-dominated by
+      (Refuse, Refuse)
+    • Rational actions lead to a worse outcome for both.
+    • Key idea: The Nash equilibrium is the only non-Pareto optimal outcome in this game!
+Game Theory                                                                                               42
+Example: Coordination Game: Astro vs Bolt
+                                   𝐴𝑠𝑡𝑟𝑜: 𝑏𝑙𝑢𝑟𝑎𝑦     𝐴𝑠𝑡𝑟𝑜: 𝑑𝑣𝑑
+
+                   𝐵𝑜𝑙𝑡: 𝑏𝑙𝑢𝑟𝑎𝑦   𝐵 = +9; 𝐴 = +9   𝐵 = −1; 𝐴 = −4
+
+                    𝐵𝑜𝑙𝑡: 𝑑𝑣𝑑     𝐵 = −1; 𝐴 = −3   𝐵 = +5; 𝐴 = +5
+
+
+• Game (Classic):
+    • Astro and Bolt, two console manufacturers, must choose between Blu-ray or DVD
+    • Profits are positive if they choose the same format, negative if they choose
+      different ones
+    • There’s no dominant strategy, so iterative elimination won’t work
+• How do we find the solution(s) in this case?
+
+Game Theory                                                                       43
+Example: Finding Pure Strategy Nash Equilibrium
+     Pareto
+   dominating
+                                        𝐴𝑠𝑡𝑟𝑜: 𝑏𝑙𝑢𝑟𝑎𝑦            𝐴𝑠𝑡𝑟𝑜: 𝑑𝑣𝑑
+
+
+                   𝐵𝑜𝑙𝑡: 𝑏𝑙𝑢𝑟𝑎𝑦       𝐵 = +9; 𝐴 = +9 𝐵 = −1; 𝐴 = −4
+
+
+                     𝐵𝑜𝑙𝑡: 𝑑𝑣𝑑         𝐵 = −1; 𝐴 = −3         𝐵 = +5; 𝐴 = +5
+
+
+
+• There are 2 Nash equilibriums:
+    • (𝑏𝑙𝑢𝑟𝑎𝑦, 𝑏𝑙𝑢𝑟𝑎𝑦) and 𝑑𝑣𝑑, 𝑑𝑣𝑑
+• Choice in this case: (𝑏𝑙𝑢𝑟𝑎𝑦, 𝑏𝑙𝑢𝑟𝑎𝑦), a Pareto optimal and Pareto-dominating solution
+    • Every finite game has at least one Pareto-optimal solution and may have multiple
+Game Theory                                                                              44
+Notes: Game Comparisons
+Feature           Prisoner’s Dilemma (PD)                              Astro vs Bolt (Coordination Game)
+
+Game category     Non-cooperative, conflict / dilemma game             Non-cooperative, coordination game
+
+                  Players’ individually rational choices lead          Players’ payoffs are highest when they match
+Key structure
+                  to mutually worse outcomes (social dilemma).         actions — success depends on coordination.
+
+Dominant                                                               No dominant strategy — best action depends on
+                  Each has a dominant strategy (defect / testify).
+strategies                                                             what the other does.
+
+                                                                       Two or more NEs (e.g., both choose A or both
+Nash equilibria   One NE (defect, defect) → inefficient.
+                                                                       choose B) → each efficient if coordinated.
+
+                  Conflict of interest: self-interest vs. collective   Coordination problem: multiple stable outcomes,
+Tension type
+                  welfare.                                             need mutual expectations.
+
+Cooperation?      Not enforceable → non-cooperative.                   Not enforceable → still non-cooperative.
+
+
+Game Theory                                                                                                           45
+Summary: Non-Cooperative Pure Strategy Games
+
+• Main ideas:
+    • Players act independently — no binding agreements.
+    • Cooperation can emerge through repetition, fairness, or
+      mechanism design.
+        → In repeated PD, (Refuse, Refuse) may become likely.
+• Key tools:
+    • Dominance and best response
+    • Nash equilibrium (stability) vs. Pareto optimality (efficiency)
+    • Coordination games may have multiple equilibria
+Game Theory                                                             46
+Mixed Strategy Games
+Probabilistic action selection with randomized policy
+
+
+
+
+Game Theory                                             47
+Example: Game of Chicken
+                                    𝑃𝑙𝑎𝑦𝑒𝑟 𝐴: 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒   𝑃𝑙𝑎𝑦𝑒𝑟 𝐴: 𝑠𝑤𝑒𝑟𝑣𝑒
+
+               𝑃𝑙𝑎𝑦𝑒𝑟 𝐵: 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒   𝐵 = −10; 𝐴 = −10      𝐵 = 2; 𝐴 = −2
+
+               𝑃𝑙𝑎𝑦𝑒𝑟 𝐵: 𝑠𝑤𝑒𝑟𝑣𝑒       𝐵 = −2; 𝐴 = 2        𝐵 = 0; 𝐴 = 0
+
+
+• Winnie-the-Pooh’s Dilemma 🐻🍯
+    • Pooh and Tigger race their honey carts toward each other.
+    • If one swerves, that one’s the “chicken,” and the other looks brave.
+    • If both swerve, they’re safe and laugh it off.
+    • If neither swerves — crash! 💥 (and no honey for anyone!)
+
+Game Theory                                                                  48
+Example: Game of Chicken
+                                 𝑃𝑙𝑎𝑦𝑒𝑟 𝐴: 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒   𝑃𝑙𝑎𝑦𝑒𝑟 𝐴: 𝑠𝑤𝑒𝑟𝑣𝑒
+
+
+              𝑃𝑙𝑎𝑦𝑒𝑟 𝐵: 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒 𝐵 = −10; 𝐴 = −10      𝐵 = 2; 𝐴 = −2
+
+
+              𝑃𝑙𝑎𝑦𝑒𝑟 𝐵: 𝑠𝑤𝑒𝑟𝑣𝑒     𝐵 = −2; 𝐴 = 2        𝐵 = 0; 𝐴 = 0
+
+
+• There are two pure strategy Nash equilibria
+    • (𝐴: 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒, 𝐵: 𝑠𝑤𝑒𝑟𝑣𝑒)
+    • 𝐴: 𝑠𝑤𝑒𝑟𝑣𝑒, 𝐵: 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒
+• But there is also a mixed strategy equilibrium that we can compute
+Game Theory                                                              49
+Notes: Mixed-Strategy Games
+• Motivation:
+    • Avoid being predictable and exploitable by randomizing over pure strategies.
+• Approach:
+    1.    Assign probabilities to pure strategies.
+    2.    Compute opponent’s expected payoffs.
+    3.    Choose probabilities that make the opponent indifferent.
+    4.    If neither player benefits from deviating → mixed-strategy Nash equilibrium.
+• Example: Game of Chicken
+    • Mix between swerving and going straight to avoid predictable behavior.
+• Note:
+    • Mixed strategies may be necessary when no pure-strategy equilibrium exists.
+Game Theory                                                                              50
+Example: Game of Chicken
+                                      𝑃𝑙𝑎𝑦𝑒𝑟 𝐴: 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒   𝑃𝑙𝑎𝑦𝑒𝑟 𝐴: 𝑠𝑤𝑒𝑟𝑣𝑒
+          [p;    𝑃𝑙𝑎𝑦𝑒𝑟 𝐵: 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒   𝐵 = −10; 𝐴 = −10      𝐵 = 2; 𝐴 = −2
+          1-p]   𝑃𝑙𝑎𝑦𝑒𝑟 𝐵: 𝑠𝑤𝑒𝑟𝑣𝑒       𝐵 = −2; 𝐴 = 2        𝐵 = 0; 𝐴 = 0
+
+
+• B plays 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒:
+    • Let 𝐵 play 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒 with probability 𝑝 and swerve with probability (1 − 𝑝)
+    • If 𝐴 plays 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒, expected payoff for 𝐴 is:
+                           −10𝑝 + 2 1 − 𝑝 = −12𝑝 + 2
+    • If 𝐴 plays 𝑠𝑤𝑒𝑟𝑣𝑒, expected payoff for 𝐴 is:
+                               −2𝑝 + 0 1 − 𝑝 = −2𝑝
+    • To find the value of 𝑝 where both actions give the same expected payoff:
+                         −12𝑝 + 2 = −2𝑝 ⟹ 𝑝 = 1/5
+
+Game Theory                                                                   51
+Example: Game of Chicken
+                  [q;  1-q]
+                                      𝑃𝑙𝑎𝑦𝑒𝑟 𝐴: 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒   𝑃𝑙𝑎𝑦𝑒𝑟 𝐴: 𝑠𝑤𝑒𝑟𝑣𝑒
+                 𝑃𝑙𝑎𝑦𝑒𝑟 𝐵: 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒   𝐵 = −10; 𝐴 = −10      𝐵 = 2; 𝐴 = −2
+                 𝑃𝑙𝑎𝑦𝑒𝑟 𝐵: 𝑠𝑤𝑒𝑟𝑣𝑒       𝐵 = −2; 𝐴 = 2        𝐵 = 0; 𝐴 = 0
+
+
+• A plays 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒:
+    • Let 𝐴 play 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒 with probability 𝑞 and swerve with probability (1 − 𝑞)
+    • If 𝐵 plays 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒, expected payoff for 𝐵 is:
+                           −10𝑞 + 2 1 − 𝑞 = −12𝑞 + 2
+    • If 𝐵 plays 𝑠𝑤𝑒𝑟𝑣𝑒, expected payoff for 𝐵 is:
+                                −2𝑞 + 0 1 − 𝑞 = −2𝑞
+    • To find the value of 𝑞 where both actions give the same expected payoff:
+                           −12𝑞 + 2 = −2𝑞 ⟹ 𝑞 = 1/5
+
+Game Theory                                                                   52
+Example: Game of Chicken
+                                                                                            1
+                                    𝑃𝑙𝑎𝑦𝑒𝑟 𝐴: 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒    𝑃𝑙𝑎𝑦𝑒𝑟 𝐴: 𝑠𝑤𝑒𝑟𝑣𝑒        𝑝=𝑞=
+                                                                                            5
+               𝑃𝑙𝑎𝑦𝑒𝑟 𝐵: 𝑐𝑜𝑛𝑡𝑖𝑛𝑢𝑒   𝐵 = −10; 𝐴 = −10        𝐵 = 2; 𝐴 = −2
+                                       𝑝𝑞 = 1/25           𝑝 1 − 𝑞 = 4/25
+                                                                                  Probabilities of the
+               𝑃𝑙𝑎𝑦𝑒𝑟 𝐵: 𝑠𝑤𝑒𝑟𝑣𝑒       𝐵 = −2; 𝐴 = 2          𝐵 = 0; 𝐴 = 0
+                                      1 − 𝑝 𝑞 = 4/25     1 − 𝑝 1 − 𝑞 = 16/25        pairs of actions
+
+
+
+Finding mixed strategy:
+• For player 𝐵 the expected utility is:
+     "      U    U     "V      $
+    • ×−10 + ×2 + ×−2 + ×0 = −
+     $T     $T   $T    $T      T                                     Expected payoff for
+• For player 𝐴 the expected utility is:                              each player for this
+        "        U     U    "V      $                                  strategy profile
+    •      ×−10 + ×−2 + ×2 + ×0 = −
+        $T       $T    $T   $T      T
+
+Game Theory                                                                                     53
+Notes: Mixed Strategies and Expected Utility
+• Mixed Strategies: (model strategic randomness)
+    • A mixed strategy lets a player randomly choose among pure strategies using probabilities.
+    • For player 𝑖 with pure strategies 𝑆0 = 𝑠0&,𝑠0(, … , 𝑠0L , a mixed strategy 𝜎0 is a probability distribution:
+                             𝜎0 𝑠0M = 𝑝0M ,        ∑O MN& 𝑝0M = 1,         0 ≤ 𝑝0M ≤ 1
+    • Example: For two strategies 𝜎0 = 𝑝, 1 − 𝑝
+    • Mixed strategies add unpredictability and can create equilibria where none exist in pure strategies.
+• Expected Utility: (measure average payoff of probabilistic strategies)
+    • When all players mix, each player’s payoff is the expected value of outcomes:
+                                                              P
+                      𝑈0 𝜎&, 𝜎(, … , 𝜎P = ^ … ^              _ 𝜎T (𝑠T ) 𝑢0 (𝑠&, … , 𝑠U )
+                                           Q$ ∈S$   Q% ∈S%   TN&
+    • Intuitively: the weighted average of payoffs, with weights given by each player’s chosen probabilities.
+
+Game Theory                                                                                                 54
+Summary: Why Mixed Strategies?
+• Pure strategies can fail:
+    • No equilibrium (e.g., Matching Pennies), or too many (e.g., Chicken)
+    • No clear best move (e.g., Battle of the Sexes).
+    • Modeling long-run or group behavior
+• Mixed strategies add unpredictability
+    • Solve for probabilities that make the opponent indifferent in expected utility
+    • Indifference = no reason to change
+    • Leads to stable equilibrium
+• Tradeoff:
+    • Stability, but not always efficient
+    • (Randomization prevents exploitation, but may lead to lower overall payoffs)
+• Big question:
+    • Is there a general, efficient algorithm to compute Nash equilibrium in mixed strategies?
+    • → Only partially answered — the problem is computationally complex in general.
+Game Theory                                                                                      55
+Zero-Sum Games
+Minimax Theorem
+
+
+
+
+Game Theory       56
+What are Zero-Sum Games?
+• Definition:
+    • A game where one player’s gain is exactly the other’s loss.
+• Formally:
+                        𝑢1(𝑎) + 𝑢2(𝑎) = 0 for all action profiles 𝑎 ∈ 𝐴
+• Notes:
+    • The total payoff is fixed — players compete over how it’s divided.
+    • Common in adversarial settings (e.g., chess, matching pennies).
+    • Foundation for analyzing pure competition between agents.
+    • Leads to the Minimax Theorem - defines optimal play and equilibrium in this setting.
+Game Theory                                                                           57
+Minimax Theorem (von Neumann)
+• Intuition:
+    • In zero-sum games, each player guards against the worst-case.
+    • Player 1: maximizes their minimum payoff (maximin).
+    • Player 2: minimizes the maximum payoff Player 1 can get (minimax).
+    • The minimax and maximin values are equal — the game’s value (𝑣)
+        • At equilibrium, Player 1 gets 𝑣 and Player 2 gets −𝑣 (zero-sum)
+    • Both players have optimal mixed strategies that guarantee this value.
+    • These strategies are mutual best responses → a Nash equilibrium.
+• Note:
+    • Minimax = Nash equilibrium in mixed-strategy zero-sum games
+      — a powerful and unique result!
+
+Game Theory                                                                   58
+Notes: Minimax Theorem (von Neumann)
+• Formal Definition:
+    In a two-player zero-sum game, let:
+    • 𝑢&(𝑠&, 𝑠() be the payoff function for Player 1, where 𝑠& and 𝑠( are the strategies for Player 1 and Player 2,
+       respectively.
+    • The maximin value for Player 1 is:
+                                                   max min 𝑢&(𝜎&, 𝑠()
+                                                   V$   Q&
+        where 𝜎& is a mixed strategy for Player 1.
+    • The minimax value for Player 2 is:
+                                                  min max 𝑢&(𝑠&, 𝜎()
+                                                   V&   Q$
+        where 𝜎( is a mixed strategy for Player 2.
+    • The Minimax Theorem guarantees that:
+                                max min 𝑢&(𝜎&, 𝑠() = min max 𝑢&(𝑠&, 𝜎()
+                                   V$   Q&                   V&   Q$
+    • This value is the game's value; both players can achieve their optimal payoffs using optimal mixed strategies.
+Game Theory                                                                                              59
+Example: Two-Finger Morra
+• Players: E (even) and O (odd)
+• Players E and O simultaneously show one or two fingers à Total fingers 𝑓 ∈ 2,3,4
+    • If 𝑓 is even, E wins +𝑓 (O gets – 𝑓); if odd, O wins +𝑓.
+• Payoff matrix (E rows, O columns):
+                                               O: one         O: two
+                                   E: one     (+2, −2)       (−3, +3)
+                                   E: two     (−3, +3)       (+4, −4)
+• Zero-sum: 𝑈A = −𝑈B .                                                  Efficient algorithm to
+    • E maximizes payoff 𝑈𝐸(𝑒, 𝑜); O minimizes this                     compute the
+• Questions:                                                            equilibrium is known
+    • What is the optimal mixed strategy against a rational player?
+    • What is the expected utility for each player (game value 𝑣)?
+Game Theory                                                                                  60
+Two Finger Morra: Maximin Game Tree
+                                                                              𝑂: 𝑜𝑛𝑒           𝑂: 𝑡𝑤𝑜
+                                                                 𝐸: 𝑜𝑛𝑒   𝐸 = +2; 𝑂 = −2   𝐸 = −3; 𝑂 = +3
+• Find range of true utility 𝑈 of solution                       𝐸: 𝑡𝑤𝑜   𝐸 = −3; 𝑂 = +3   𝐸 = +4; 𝑂 = −4
+
+    • Examining pure strategies: (from E’s perspective)
+                𝑈fg,hi ≤ 𝑈 ≤ 𝑈fh,gi :           −3 ≤ 𝑈 ≤ 2
+
+
+
+
+Game Theory                Source: RN Figure 18.12 (a) and (b)                                     61
+Solve the Mixed-Strategy NE (Maximin)                            O: one     O: two
+                                                       E: one   (+2, −2)   (−3, +3)
+                                                       E: two   (−3, +3)   (+4, −4)
+• Let 𝑝 = Pr(𝐸 𝑝𝑙𝑎𝑦𝑠 𝑜𝑛𝑒).
+    • If O plays one:       𝑈< = 2𝑝 − 3(1 − 𝑝) = 5𝑝 − 3.
+    • If O plays two:       𝑈< = −3𝑝 + 4(1 − 𝑝) = 4 − 7𝑝.
+• O (minimizer) will pick the lower line
+• E maximizes the minimum, so set them equal:
+                                        7          1
+              5𝑝 − 3 = 4 − 7𝑝 ⇒ 𝑝 =       , 𝑈< = − .
+                                       12         12
+• By symmetry
+    • (or the same indifference step with 𝑞 = Pr(𝑂 𝑝𝑙𝑎𝑦𝑠 𝑜𝑛𝑒)):
+                            7                1
+                     𝑞=       ,      𝑈= = +
+                           12               12
+• Optimal Strategy:
+    • Mixed strategy [7/12:𝑜𝑛𝑒; 5/12:𝑡𝑤𝑜] is the maximin equilibrium and
+      a Nash equilibrium.
+Game Theory                                                                           62
+Notes: Solve the Mixed-Strategy NE (Minimax)
+• Let 𝑞 = Pr(𝑂 𝑝𝑙𝑎𝑦𝑠 𝑜𝑛𝑒).
+    • If E plays one:   𝑈B = −2𝑞 + 3 1 − 𝑞 = 3 − 5𝑞.
+    • If E plays two:   𝑈B = 3𝑞 − 4 1 − 𝑞 = 7𝑞 − 4.
+• E (maximizer) will pick the upper line;
+• O minimizes the maximum, so set them equal:
+                            7       1
+      3 − 5𝑞 = 7𝑞 − 4 ⇒ 𝑞 =   ,𝑈 = + .
+                            12 B    12
+
+                                                  O: one     O: two
+                                        E: one   (+2, −2)   (−3, +3)
+                                        E: two   (−3, +3)   (+4, −4)
+
+
+Game Theory                                                            63
+Two Finger Morra: Summary
+• Two-Finger Morra: Insights
+    • Canonical zero-sum game — one player’s gain equals the other’s loss.
+    • No pure equilibrium → players must mix to stay unpredictable.
+• Equilibrium:
+    • Maximin/minimax solution = mixed-strategy Nash equilibrium
+    • Both randomize — one: 7/12, two: 5/12 → stable, mutual best responses.
+                           &                             &
+    • Game value: 𝑈Y = − &( (and by zero-sum: 𝑈Z = + &().
+• Key idea:
+    • Mixing makes the opponent indifferent, guaranteeing stability.
+    • No unilateral deviation can improve a player’s payoff.
+• Insight:
+    • Two-Finger Morra shows how maximin/minimax = mixed-strategy Nash —a unified view of stability
+      in zero-sum games.
+Game Theory                                                                                      64
+Notes:
+Complexity of Computing Nash Equilibrium
+• Every finite game has at least one Nash equilibrium.
+    • For 2-player zero-sum games, Nash equilibria can be found efficiently.
+• Recall: Question:
+    • Is there an efficient algorithm for computing a Nash equilibrium in general?
+
+
+• Finding a Nash equilibrium in general is computationally intractable:
+    • It is PPAD-complete1.
+    • No efficient algorithm is known for the general case.
+    • Computationally hard even for 2-player games.
+
+                                                         1
+                                                          https://en.wikipedia.org/wiki/PPAD_(complexity)
+Game Theory                                                                                            65
+Summary: Key Game Concepts
+• Key Game Concepts:
+    • Normal Form: Matrix showing players and payoffs.
+    • Extensive Form: Decision tree of sequential moves.
+    • Equilibrium: No player can improve their outcome by changing strategy.
+    • Pareto Optimality: No player can be better off without making another worse off.
+• Focus:
+    • Non-Cooperative & Single Move Games
+    • Zero-Sum Games (ZSGs)
+• Strategies:
+    • Pure Strategy: Consistent, deterministic action
+        In ZSGs, one player’s gain equals the other’s loss.
+    • Mixed Strategy: Randomized actions to remain unpredictable
+        In adversarial ZSGs, used to optimize payoffs
+Game Theory                                                                              66
+Why Study Game Theory?
+• Game theory assumes ideal rational players
+    • Real decisions often involve bounded rationality — emotion, bias, or uncertainty.
+• Still, these models reveal the strategic logic behind real behavior:
+    • Prisoner’s Dilemma: self-interest vs. cooperation
+    • Chicken: risk, commitment, and conflict
+    • Matching Pennies & Morra: unpredictability and staying unexploitable
+    • Zero-sum games: optimal responses in pure competition
+• Objective:
+    • Studying these games sharpens our ability to anticipate incentives, weigh risks
+      and trade-offs, and make better decisions — even in the real world.
+Game Theory                                                                             67
+Game Theory in Artificial Intelligence
+• Strategic Decision-Making:
+    • Models interactions among rational agents — AI, humans, or organizations.
+• Trustworthy AI Design:
+    • Guides design of transparent and fair multi-agent systems.
+• Optimizing Interactions:
+    • Achieves stable, efficient, and incentive-compatible outcomes.
+• Ethics & Alignment:
+    • Helps align AI objectives with human values and social welfare.
+
+Game Theory                                                                 68
+Future Directions in Game Theory
+• Game theory extends to richer forms of strategic decision making:
+    • Sequential & Repeated Games — decisions over time, cooperation, reputation, and long-term strategies
+    • Bayesian Games — reasoning with incomplete information about other agents
+    • Stochastic / Markov Games — multiple agents acting in evolving environments
+    • Mechanism Design — designing rules and incentives to encourage desirable outcomes
+    • Behavioral & Learning Games — modelling preferences, bounded rationality, and adaptation
+    • Multiagent Reinforcement Learning — learning strategies through interaction
+• Game-theoretic ideas are relevant to human–AI alignment:
+    • Preferences and incentives in learning from human feedback
+    • Strategic interaction between humans and AI systems
+    • Alignment mechanisms for shaping AI behaviour toward desired objectives
+• Next: AI Alignment and Foundation Models
+Game Theory                                                                                        69
+Homework
+• Readings:
+    • RN 5.1, 5.2.1
+    • RN 18.1.2, 18.2.1, 18.2.2
+• References:
+    • [Ras] Rasmussen, E. (2006) Games and Information, 4th ed., Wiley-Blackwell.
+      http://www.rasmusen.org/GI/download.htm
+    • [MSZ] Maschler, M., E. Solan and S. Zamir (2020). Game theory. 2 ed. Cambridge,
+      Cambridge University Press.
+    • SLB 3.2, 3.3.1-3.3.3, 3.4.1
+      [SLB] Shoham, Y & Leyton-Brown, K. (2009) Multiagent Systems: Algorithmic, Game-
+      Theoretic, and Logical Foundations. http://www.masfoundations.org/download.html
+
+
+Game Theory                                                                              70
+

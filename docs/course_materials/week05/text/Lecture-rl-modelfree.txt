@@ -1,0 +1,727 @@
+  Reinforcement Learning
+  Model-Free Techniques
+
+
+  CS4246/CS5446
+  Reinforcement Learning and Sequential Decision Making
+  V 4.1
+
+
+
+© C opyright N ational University of Singapore. All Rights Reserved.
+Topics
+• Value Function Approximation (22.4.1 - 22.4.3)
+     • Approximating direct utility estimation
+     • Approximating temporal difference learning
+     • Deep Reinforcement learning
+• Policy Search (22.5)
+     • REINFORCE
+     • Trust Region Policy Optimization (TRPO)
+     • Proximal Policy Optimization (PPO)
+• Actor-Critic Methods
+Model-Free Reinforcement Learning                   2
+Recall: Reinforcement Learning (RL)
+• Based on:
+     A Markov decision process (MDP) 𝑀 ≜ 𝑆, 𝐴, 𝑇, 𝑅 consisting of:
+     • A set 𝑆 of states
+     • A set 𝐴 of actions
+     • 𝑇 and 𝑅 are unknown
+• Prediction (policy evaluation) – Passive Learning:
+     • Assume policy 𝜋
+     • Solution is an (optimal) utility (value) function: 𝑈: 𝑆 → ℜ or 𝑉: 𝑆 → ℜ
+• Control (policy optimization) – Active Learning:
+     • Assume utility function or Q-function (action-utility function)
+     • Solution is an (optimal) policy: 𝜋 ∗ : 𝑆 → 𝐴
+
+Model-Free Reinforcement Learning                                                3
+Recall: Reinforcement Learning (RL)
+• Passive Learning — fixed policy (policy evaluation)
+     • [MB] Adaptive dynamic programming (ADP)
+     • [MF] Monte Carlo prediction (MC): direct value (utility) estimation
+     • [MF] Temporal-difference (TD) prediction
+• Active Learning — optimal policy (control)
+     • [MB] Active ADP (model-based control)
+     • [MF] Monte Carlo control
+     • [MF] Active TD methods (TD control): Q-learning, SARSA
+
+Model-Free Reinforcement Learning                                            4
+Scaling: The Problem
+• Number of states grow exponentially with no. of state variables (features)
+• Tabular representation (for utility function and 𝑄-function) scales to tens of
+  thousands of states
+    • Backgammon: ~1020
+    • Chess: ~1040
+    • Go: ~10172
+    • Still considered relatively small as compared to real-world problems!
+    • Cannot visit all the states infinitely often
+• Approaches to scaling up:
+    • Function approximation – approximating utility (value) functions
+    • Policy search – systematic search for good policies
+    • Mixed – combined value approximation and policy search methods
+Model-Free Reinforcement                                                      5
+Learning
+Function Approximation
+Linear:
+        Approximate Monte Carlo Learning
+        Approximate temporal difference (TD) learning
+Non-linear:
+        Deep neural networks
+
+Model-Free Reinforcement Learning                       6
+Function Approximation: The Idea
+Suppose that we want to build an agent that could estimate
+the value of a house based on its size.
+• Approach 1:
+     • Collect data, put in a table (e.g., Excel sheet)
+     • If asked, then look up the answer
+     • This is what we were doing before the Recess week!
+• Better approach?
+     • Collect data, learn a function that fits the data
+     • Benefits: compact representation, generalization
+Model-Free Reinforcement Learning                            7
+Function Approximation
+• Main Ideas:
+     • Represents value or Q-function compactly using few parameters.
+     • Generalizes from limited training states to the full state space.
+     • In general:
+             ෡𝜃 𝑠 = 𝑔(𝑠; 𝜃),
+             𝑈                      where 𝑔 is any differentiable function
+     • Linear case: as weighted features.
+                   ෡𝜃 𝑠 = 𝜃1 𝑓1 𝑠 + 𝜃2 𝑓2 𝑠 + ⋯ + 𝜃𝑛 𝑓𝑛 (𝑠) What are features?
+                   𝑈
+     • Agent learns 𝜽 to best approximate the true utility.
+• Caveat:
+     • Too few parameters (𝑛) can cause poor approximation.
+Model-Free Reinforcement Learning                                           8
+Function Approximation
+
+
+
+
+Model-Free Reinforcement Learning   9
+Linear Function Approximation
+Approximate Monte Carlo Learning
+Approximate temporal difference (TD) learning
+
+
+
+Model-Free Reinforcement Learning               10
+Linear Function Approximation
+• The idea:
+    • Use a linear function of features to approximate the utility function.
+• General form:
+              ෡𝜃 𝑠 = 𝜃0 𝑓0 𝑠 + 𝜃1 𝑓1 𝑠 + 𝜃2 𝑓2 𝑠 + ⋯ + 𝜃𝑛 𝑓𝑛 (𝑠)
+              𝑈
+    where 𝑓0 𝑠 = 1: bias feature; 𝑓𝑖 𝑠 : features derived from state 𝑠; 𝜃𝑖 : learned weights
+• Let:
+    • 𝑠 = [𝑠1 , 𝑠2 , … , 𝑠N ], where each 𝑠𝑖 is a component of the state.
+• Then:
+      ෡𝜃 𝑠 = 𝜃0 + 𝜃1 𝑠1 + 𝜃2 𝑠2 + ⋯ + 𝜃N 𝑠N
+    • 𝑈
+    • Equivalent to the general form: 𝑓0 = 1, 𝑓𝑖 = 𝑠𝑖
+Model-Free Reinforcement                                                               11
+Learning
+Example: Navigation in Grid World
+                                                                         Source: RN Figure 17.2
+• Use:
+                                                             Compact representation +
+                                  ෡𝜃 𝑥, 𝑦 = 𝜃0 + 𝜃1 𝑥 + 𝜃2 𝑦
+                                  𝑈                              generalization
+     • If 𝜃0 , 𝜃1 , 𝜃2   = (0.5, 0.2, 0.1), then:
+                           ෡ 1,1 = 0.5 + 0.2 1 + 0.1 1 = 0.8
+                           𝑈
+• How to learn θ?
+     • Collect sample data from trials: (x, y, target value)
+     • Target values estimate the true utility of each state, based on experience
+           • E.g., Monte Carlo returns, TD targets
+    • Fit 𝜃 using linear regression to minimize squared error between
+       predicted and target values.
+Model-Free Reinforcement                                                             12
+Learning
+Approximating Monte Carlo Learning
+• Goal:
+    • Learn parameters 𝜃 to approximate the utility function from experience.
+• Learning from Samples:
+    • Collect training data from trials: where 𝑢𝑗 is the return of state 𝑥𝑗 , 𝑦𝑗
+                               𝑥1 , 𝑦1 , 𝑢1 , 𝑥2 , 𝑦2 , 𝑢2 , … , 𝑥𝑛 , 𝑦𝑛 , 𝑢𝑛
+    • A supervised learning problem: Fit 𝑈   ෡𝜃 𝑠 to match target values 𝑢𝑗
+
+• Loss function: Per sample
+                1                  2
+    • ℰ𝑗 𝑠 =        ෡𝜃 𝑠 − 𝑢𝑗 𝑠
+                    𝑈
+                2
+
+• Update rule: Gradient descent
+                                        ෡𝜃 𝑠
+                                       𝜕𝑈
+                         ෡𝜃 𝑠
+    • 𝜃𝑖 ← 𝜃𝑖 + 𝛼 𝑢𝑗 𝑠 − 𝑈
+                                        𝜕𝜃𝑖
+    • This is the Widrow–Hoff Rule (Delta Rule) for online learning.
+Model-Free Reinforcement                                                           13
+Learning
+Approx MC Learning: Grid World
+                                                                         Source: RN Figure 17.2
+• Linear Approximation:
+      ෡𝜃 𝑥, 𝑦 = 𝜃0 + 𝜃1 𝑥 + 𝜃2 𝑦
+    • 𝑈
+                                            ෡ 1,1 = 0.5 + 0.2 1 + 0.1 1 = 0.8
+    • If 𝜃0 = 0.5, 𝜃1 = 0.2, 𝜃2 = 0.1, then 𝑈
+• Parameter updates:
+                              𝜕ℰ𝑗 𝑠                           ෡𝜃 𝑠
+                                                             𝜕𝑈
+                  𝜃𝑖 ← 𝜃𝑖 − 𝛼        = 𝜃𝑖 + 𝛼 𝑢𝑗 𝑠 − 𝑈෡𝜃 𝑠
+                                𝜕𝜃𝑖                           𝜕𝜃𝑖
+                             𝜃0 ← 𝜃0 + 𝛼 𝑢𝑗 𝑠 − 𝑈෡𝜃 𝑠
+                                               ෡𝜃 𝑠
+                            𝜃1 ← 𝜃1 + 𝛼 𝑢𝑗 𝑠 − 𝑈       𝑥
+                                               ෡𝜃 𝑠
+                            𝜃2 ← 𝜃2 + 𝛼 𝑢𝑗 𝑠 − 𝑈       𝑦
+Model-Free Reinforcement                                                             14
+Learning
+Approximating Temporal Difference Learning
+                                                                                             Update parameter to
+• Apply online learning to reduce the temporal difference (TD) error.                          reduce temporal
+                                                                                                  difference
+     • For utility (value) function (TD(0)):
+                                                                             ෡𝜃 𝑠
+                                                                            𝜕𝑈
+                                                  ෡𝜃 𝑠 ′ − 𝑈
+                        𝜃𝑖 ← 𝜃𝑖 + 𝛼 𝑅 𝑠, 𝑎, 𝑠′ + 𝛾𝑈        ෡𝜃 𝑠
+                                                                             𝜕𝜃𝑖
+     • For SARSA (on-policy)
+                                                                            𝜕𝑄෠𝜃 (𝑠, 𝑎)
+                   𝜃𝑖 ← 𝜃𝑖 + 𝛼 𝑅 𝑠, 𝑎, 𝑠′ + 𝛾 𝑄෠𝜃 (𝑠 ′ , 𝑎′) − 𝑄෠𝜃 (𝑠, 𝑎)
+                                                                               𝜕𝜃𝑖
+     • For 𝑄-learning (off-policy):        TD target
+                                                                               𝜕𝑄෠𝜃 (𝑠, 𝑎)
+                𝜃𝑖 ← 𝜃𝑖 + 𝛼 𝑅 𝑠, 𝑎, 𝑠′ + 𝛾 max 𝑄෠𝜃 (𝑠 ′ , 𝑎′) − 𝑄෠𝜃 (𝑠, 𝑎)
+                                                  𝑎                               𝜕𝜃𝑖
+• Notes:
+    • Semi-gradient TD: target depends on 𝜃; treat it as fixed when computing the gradient.
+    • On-policy
+Model-Free         TD(0) with linear approximation guaranteed to converge under standard conditions.
+           Reinforcement                                                                                15
+Learning
+Instabilities in Approximate Utility Learning
+• The Deadly Triad
+    • Function approximation
+         • Required in large state spaces (e.g., linear models, deep networks)
+         • Updates to one state/action change many others
+    • Bootstrapping
+         • Utility estimates updated using other learned estimates (e.g., TD) instead of full returns.
+         • Targets are moving because they depend on the same parameters you’re learning.
+    • Off-policy learning
+         • Learning from transitions not generated by the policy being evaluated
+         • The data distribution does not match the one your target policy will induce.
+•   Individually each item is fine, but when all three appear together learning can become
+    unstable or even diverge.
+•   Classic example: Baird’s counterexample (linear function approx + off-policy TD) diverges.
+Model-Free Reinforcement                                                                             16
+Learning
+Example: Baird’s Counterexample
+     • Off-policy TD with linear function approximation diverges
+     • Even with a simple setting, semi-gradient TD can fail
+                                                                w8 grows without bound → divergence
+
+
+
+
+                                    ෡𝜃 𝑠 =0
+                                    𝑈
+                                    𝜃0 =< 1,1,1,1,1,1,10,1 >𝑇
+          Source: SB Figure 11.1    𝑟(𝑠, 𝑎, 𝑠 ′ ) = 0
+Model-Free Reinforcement Learning                               Source: SB Figure 11.2    17
+Catastrophic Forgetting
+• What happens:
+    • Agent forgets earlier parts of state space
+    • Utility estimates degrade in rarely visited regions
+• When it happens:
+    • Over-training with function approximation
+    • Lack of coverage during exploration
+• Solution: Experience Replay
+    • Store and reuse past transitions
+    • Helps maintain accurate utility across all regions
+Model-Free Reinforcement                                    18
+Learning
+Non-Linear Functional Approximation
+Deep reinforcement learning
+
+
+
+
+Model-Free Reinforcement Learning     19
+Deep Reinforcement Learning
+• Deep neural network in function approximation
+    • Uses a deep neural network to approximate utility:
+                                    ෡𝜃 𝑠 = 𝑔(𝑠; 𝜃),
+                                    𝑈
+         where g is a nonlinear function defined by the network
+    • Learns useful features automatically from raw input
+    • Final layer often linear:
+                      ෡𝜃 𝑠 = 𝜃1 𝑓1 𝑠 + 𝜃2 𝑓2 𝑠 + ⋯ + 𝜃𝑛 𝑓𝑛 (𝑠)
+                      𝑈
+         where 𝑓𝑖 (𝑠) are outputs from the last hidden layer
+    • Parameters 𝜃: all weights in the network
+    • Gradients computed via backpropagation, as in supervised learning
+Model-Free Reinforcement                                                  20
+Learning
+Deep Reinforcement Learning
+• Learning the parameters:
+     • For utilities:
+                                                              ෡𝜃 𝑠
+                                                             𝜕𝑈
+                                           ෡𝜃 𝑠
+                𝜃𝑖 ← 𝜃𝑖 + 𝛼 𝑅 𝑠, 𝑎, 𝑠′ + 𝛾 𝑈       ′    ෡𝜃 𝑠
+                                                       −𝑈
+                                                              𝜕𝜃𝑖
+     • For 𝑄-learning:
+                                                                 𝜕 𝑄෠𝜃 (𝑠, 𝑎)
+       𝜃𝑖 ← 𝜃𝑖 + 𝛼 𝑅 𝑠, 𝑎, 𝑠′ + 𝛾 max  𝑄෠𝜃 (𝑠 , 𝑎′) − 𝑄෠𝜃 (𝑠, 𝑎)
+                                               ′
+                                   𝑎 ′                               𝜕𝜃𝑖
+• Note:
+     • SARSA is less common in deep RL because its on-policy nature makes it
+       harder to use experience replay effectively.
+Model-Free Reinforcement Learning                                               21
+Deep 𝑄-learning for Atari Games1
+
+
+
+
+     1Mnih, V., et al., Human-level control through deep reinforcement learning. Nature, 2015. 518(7540): p. 529-533.
+
+Model-Free Reinforcement Learning      Video: https://youtu.be/TmPfTpjtdgg                                              22
+Deep 𝑄-Learning (DQN) for Atari Games
+• Overview:
+     • Learns action-utility values 𝑄(𝑠, 𝑎) end-to-end from raw pixels
+     • Achieved human-level performance on many Atari games (Mnih et al., Nature, 2015)
+• Key Features:
+     • Input: stack of last 4 game frames
+     • Output: 𝑄(𝑠, 𝑎) for 18 joystick actions
+     • Reward = change in game score
+• Architecture (see diagram):
+     • Convolutional layers extract features from pixel input  Network architecture (fixed across all games
+
+     • Fully connected layers output Q-values
+     • Same architecture and hyperparameters used across all games
+                                                                  Source: Silver, D. Lecture 6 Notes on RL, 2015, p 36.
+Model-Free Reinforcement Learning                                                                                  23
+Deep 𝑄-Network (DQN) Algorithm
+• Why DQN?
+     • Standard Q-learning is unstable with deep nets
+     • DQN introduces two key tricks to stabilize learning:
+     1. Experience Replay: Breaks correlation in data
+     2. Fixed Q-Targets: Reduces moving target problem
+• Training Loop (see diagram):
+     1.    Take action using ε-greedy policy
+     2.    Store (s,a,r,s′) in replay buffer
+     3.    Sample minibatch from buffer
+                                                   ′ ′ −
+     4.    Compute target: 𝑦 = 𝑟 + 𝛾 max     ′
+                                               𝑄(𝑠  ,𝑎 ,𝜃 )
+                                         𝑎
+     5.    Minimize square loss: ℒ(𝜃) = (𝑦 − 𝑄(𝑠, 𝑎; 𝜃𝑖 ))2
+     6.    Periodically update target network: 𝜃 − ← 𝜃
+Model-Free Reinforcement Learning                             24
+Deep Q-Network (DQN)
+                                                                     Replay Buffer
+                 𝜋𝜖−𝑔𝑟𝑒𝑒𝑑𝑦 (𝑠, 𝜃)
+                  •    With probability 𝜖: choose a random action           𝑎1
+                       uniformly from all actions
+                  •    With probability 1 − 𝜖: choose a greedy              𝑟1
+                       action 𝑎 = argmax𝑎 𝑄(𝑠, 𝑎)                      𝑠1        𝑠1′
+                                                                            …
+                                                                            𝑎N
+                                                                            𝑟𝑁
+                                                       𝜕𝑄෠𝜃 (𝑠, 𝑎)     𝑠𝑁        𝑠𝑁′
+                               ෠    ′        ෠
+𝜃𝑖 ← 𝜃𝑖 + 𝛼 𝑅 𝑠, 𝑎, 𝑠′ + 𝛾 max 𝑄𝜃 (𝑠 , 𝑎′) − 𝑄𝜃 (𝑠, 𝑎)
+                                 −
+                            𝑎                             𝜕𝜃𝑖
+Model-Free Reinforcement Learning                                                      25
+Deep 𝑄-learning for Atari Games1
+
+
+
+
+              1
+                  Mnih, V., et al., Human-level control through deep reinforcement learning. Nature, 2015. 518(7540): p. 529-533.
+Model-Free Reinforcement                                                                                                            26
+                                                   Video: https://youtu.be/W2CAghUiofY
+Learning
+Lunar Lander
+
+
+Trained DQN with MLP as Q(s,a)
+            Episode #1              Episode #1500
+
+
+
+
+Model-Free Reinforcement Learning                   27
+Notes: Variants of Deep 𝑄-Learning
+• DQN (reference):
+     • Target: 𝑟 𝑠, 𝑎, 𝑠 ′ + 𝛾 max 𝑄 𝑠 ′ , 𝑎 ′ ; 𝜃𝑖 −
+                                   𝑎′
+     • Standard DQN uses the target network 𝜃 − to stabilize updates, but may overestimate values.
+• Double DQN
+     • Target: 𝑟 𝑠, 𝑎, 𝑠 ′ + 𝛾𝑄 𝑠 ′ , argmax Q(s ′ , a′ ; 𝜃𝑖 ); 𝜃𝑖 −
+                                             𝑎′
+     • Reduces overestimation by separating action selection and evaluation across networks.
+• Multi-step learning
+     • Target: 𝑟1 + 𝛾𝑟2 + ⋯ + 𝛾𝑁 max 𝑄 𝑠𝑁 , 𝑎𝑁 ; 𝜃𝑖 −
+                                        𝑎𝑁
+     • Uses multiple future rewards instead of a single step to improve learning signal.
+
+• Distributional RL
+                                                                          ෠ 𝑎)]
+     • Predicts a distribution of returns, not just the mean. 𝑄(𝑠, 𝑎) = 𝐸[𝑄(𝑠,
+• Prioritized replay
+     • Samples transitions with higher TD error more often, improving data efficiency.
+
+
+
+Model-Free Reinforcement Learning                                                                    28
+Where DQN struggles?
+• DQN needs 𝑚𝑎𝑥𝑎 𝑄 𝑠, 𝑎 . In continuous spaces that argmax is
+  intractable ⇒ vanilla DQN doesn’t apply.
+• DQN must score every action each step; cost and instability
+  grow with ∣ 𝐴 ∣
+• DQN’s greedy policy is deterministic. Many tasks benefit from
+  inherent randomness (multi-modal strategies, exploration)
+
+
+
+Model-Free Reinforcement Learning                               29
+Policy Search
+Policy gradient, TPRO, PPO, actor critic
+
+
+
+
+Model-Free Reinforcement Learning          30
+Policy Search
+• Definitions:
+     • Parameterized stochastic policy: 𝜋𝜃 𝑎|𝑠 = probability of choosing action 𝑎 in state 𝑠
+     • Policy value: 𝐽(𝜃) = 𝐸𝜏∼𝜋𝜃 [σ𝑇−1    𝑡
+                                      𝑡=0 𝛾 𝑟𝑡 ] – Expected discounted return when 𝜋𝜃 is
+       executed [1]
+     • Policy gradient: 𝛻𝜃 𝐽(𝜃) – gradient of policy value w.r.t. parameter vector 𝜃 (vector of
+       partial derivatives [𝜕𝐽/𝜕𝜃𝑖] with the same dimension as θ).
+• Goal:
+                                                                                              Policy gradient
+     • Maximize policy value J(𝜃) via gradient ascent:
+                                     𝜃 ← 𝜃 + 𝛼𝛻𝜃 𝐽(𝜃)
+     • Iteratively update 𝜃 to increase J(𝜃).
+• [1] Note: Other RL objectives exist, e.g., long-run average reward and risk-sensitive objectives. Here we continue
+  using the cumulative discounted-return objective from the previous lecture.
+
+Model-Free Reinforcement Learning                                                                                 31
+Policy Gradient
+• Policy Value:
+                                    𝐽 𝜃 = ෍ 𝑝0 (𝑠) ෍ 𝜋𝜃 (𝑎|𝑠)𝑄 𝜋𝜃 (𝑠, 𝑎)
+                                            𝑠          𝑎
+     where 𝑝0 (𝑠) is the initial-state distribution.
+• Policy Gradient Theorem:
+                                     𝛻𝜃 𝐽 𝜃 = 𝐸𝜋𝜃 [𝑄 𝜋𝜃 (𝑠, 𝑎)𝛻𝜃 log 𝜋𝜃 (𝑎|𝑠)]
+     • Gives direction to adjust 𝜃 to improve 𝐽 𝜃 : adjusts the policy toward actions with larger 𝑄 𝜋𝜃 (𝑠, 𝑎).
+     • 𝐸𝜋𝜃 [⋅]: expectation over state-action visits induced by executing 𝜋𝜃 , with the appropriate
+       discounted visitation weighting.
+• Key ideas:
+     • 𝐽 𝜃 : how good the policy is.
+     • 𝛻𝜃 𝐽 𝜃 : how to improve it.
+     • Foundation of REINFORCE and Actor–Critic methods.
+
+Model-Free Reinforcement Learning                                                                           32
+Differentiable Policy Parameterization
+• Deterministic form:
+                                     1, 𝑎 = arg max 𝑄෠𝜃 (𝑠, 𝑎)
+                        𝜋𝜃 𝑎|𝑠 = ൝                  𝑎
+                                      0,        otherwise
+     • Not differentiable for discrete actions → gradients not applicable
+• Stochastic (Softmax) Policy:
+                                            𝑒 𝛽ℎ𝜃 𝑠,𝑎
+                               𝜋𝜃 𝑎|𝑠 =
+                                          σ𝑎′ 𝑒𝛽ℎ𝜃 𝑠,𝑎′
+     • 𝛽 controls “softness” (higher → closer to argmax).
+     • Differentiable → enables gradient-based learning.
+Model-Free Reinforcement Learning                                           33
+REINFORCE
+• From Policy Gradient Theorem:
+                               ∇𝜃 𝐽(𝜃) = 𝔼𝜋𝜃 [𝑄 𝜋𝜃 𝑠, 𝑎 ∇𝜃 log 𝜋𝜃 (𝑎 ∣ 𝑠)].
+• Use 𝐺𝑡 as a Monte Carlo sample of 𝑄𝜋𝜃 𝑠, 𝑎 :
+                             ∇𝜃 𝐽 𝜃 = 𝔼𝜏∼𝜋𝜃 [෍ 𝛾 𝑡 𝐺𝑡 ∇𝜃 log 𝜋𝜃 (𝑎𝑡 ∣ 𝑠𝑡 )].
+                                                   𝑡
+
+• REINFORCE update rule (stochastic ascent):
+
+                                𝜃 ← 𝜃 + 𝛼 ෍ 𝛾 𝑡 𝐺𝑡 ∇𝜃 log 𝜋𝜃 (𝑎𝑡 ∣ 𝑠𝑡 )
+                                               𝑡
+     • Return from time t: 𝐺𝑡 = 𝑟𝑡 + 𝛾𝑟𝑡+1 + 𝛾 2 𝑟𝑡+2 + ⋯
+     • The episode gradient is a sum of contributions from each time step.
+                                            ∇ 𝜋
+     • Derived via the log-derivative trick: 𝜃 𝜃 = ∇𝜃 log 𝜋𝜃 .
+                                             𝜋𝜃
+Model-Free Reinforcement Learning                                              34
+High Variance Problem
+• Issue:
+     • Monte Carlo returns (𝐺𝑡 ) from episodes can vary widely → noisy gradient updates.
+   Episode      Return (𝐺𝑡 )   Adjusted (𝐺𝑡 − 𝟏𝟎𝟎)   𝐺𝑡 ∇𝜃 log 𝜋𝜃 (𝑎𝑡 ∣ 𝑠𝑡 )   (𝐺𝑡 −𝟏𝟎𝟎) ∇𝜃 log 𝜋𝜃 (𝑎𝑡 ∣ 𝑠𝑡 )
+
+   #1               110               +10                     132                           12
+   #2                90               –10                     -90                           10
+   #3               105                +5                    115.5                          5.5
+   #4               100                0                      -90                            0
+
+• Solution:                                            Var = 15,275                  Var = 28.4
+     • Subtracting a baseline 𝐵(𝑠) keeps the expected gradient unchanged:
+     • ෌𝑎 ∇𝜃 𝜋𝜃 (𝑎 ∣ 𝑠)𝐵(𝑠) = 𝐵 𝑠 ∇𝜃 σ𝑎 𝜋𝜃 𝑎 𝑠 = 0.
+• Effect: lower variance, same expected direction.
+Model-Free Reinforcement Learning                                                                           35
+Baseline and Advantage Function
+• Choose baseline 𝐵(𝑠) as the state-utility estimate:
+                                             ෡𝜙 𝑠 ≈ 𝑈
+                                        𝐵 𝑠 =𝑈      ෡𝜋 𝑠
+                                                      𝜃
+
+• Define advantage function:
+                                    𝐴𝜋𝜃 (𝑠, 𝑎) = 𝑄𝜋𝜃 𝑠, 𝑎 − 𝑈𝜋𝜃 𝑠 .
+• Policy gradient with baseline:
+                               ∇𝜃 𝐽(𝜃) = 𝔼𝜋𝜃 [𝐴𝜋𝜃 𝑠, 𝑎 ∇𝜃 log 𝜋𝜃 (𝑎 ∣ 𝑠)]
+• Update rule (variance-reduced REINFORCE):
+
+                           𝜃 ← 𝜃 + 𝛼 ෍ 𝐴𝜋𝜃 𝑠𝑡 , 𝑎𝑡 ∇𝜃 log 𝜋𝜃 (𝑎𝑡 ∣ 𝑠𝑡 )
+                                           𝑡
+• Bridge forward:
+             ෡𝜋 𝑠 as a learned baseline → Actor–Critic methods
+     • Using 𝑈 𝜃
+     • When the baseline is learned (a critic), the policy (actor) uses it to reduce variance.
+Model-Free Reinforcement Learning                                                                36
+Variance reduction using a Baseline
+• Using a baseline function 𝐵 𝑠 can reduce variance
+• Natural choice: estimated 𝑈෡𝜋 𝑠
+                                    𝜃
+• The function 𝐴𝜋𝜃 𝑠, 𝑎 = 𝑄෠𝜋𝜃 𝑠, 𝑎 − 𝑈
+                                      ෡𝜋 𝑠 is called the advantage function
+                                        𝜃
+
+
+
+
+                                                              Figure 13.1 Sutton & Barto
+Model-Free Reinforcement Learning                                                37
+Actor-Critic Methods
+Combined value-function approximation and policy search
+
+
+
+
+Model-Free Reinforcement Learning                         38
+Actor–Critic: The Idea
+• Actor–Critic combines policy search and function approximation.
+     • Actor: parameterized policy 𝜋𝜃 (𝑎 ∣ 𝑠) — selects actions to maximize return.
+                                            ෡𝑤 (𝑠) or 𝑄෠𝑤 (𝑠, 𝑎) — estimates expected return
+     • Critic: parameterized value function 𝑈
+       under 𝜋𝜃 .
+• They are trained together:
+                  ෡𝑤 learns to predict returns (function approximation).
+     • The critic 𝑈
+     • The actor 𝜋𝜃 improves the policy using the critic as a learned baseline (policy search).
+• Notes:
+     • Actor = policy with parameters 𝜃
+     • Critic = value estimator with parameters 𝑤
+     • Together, they form a function-approximation-based policy search method —
+       a stable, low-variance extension of REINFORCE.
+Model-Free Reinforcement Learning                                                                 39
+Actor-Critic (TD Version)
+• REINFORCE:
+     • Uses Monte Carlo estimate of advantage → high variance
+                             𝐴𝜋𝜃 𝑠, 𝑎 = 𝑄෠𝜋𝜃 𝑠, 𝑎 − 𝑈෡𝜋 𝑠 ≈ 𝐺𝑡 − 𝑈
+                                                       𝜃
+                                                                 ෡𝜙 (𝑠)
+
+• TD Advantage (Actor–Critic):
+     • Approximate 𝑄෠𝜋𝜃 (𝑠, 𝑎) with one-step return:
+                                                       ෡𝜋 (𝑠 ′ ) − 𝑈
+                                    𝐴𝜋𝜃 (𝑠, 𝑎) ≈ 𝑟 + 𝛾 𝑈           ෡𝜋 (𝑠)
+                                                         𝜃           𝜃
+
+• Actor Update:
+                                                                 ෡ 𝑡+1 , 𝑤) − 𝑈(𝑠
+                       𝜃𝑡+1 = 𝜃𝑡 + 𝛼 ∇𝜃 log 𝜋𝜃 (𝑎𝑡 ∣ 𝑠𝑡 )[𝑟𝑡 + 𝛾 𝑈(𝑠          ෡ 𝑡 , 𝑤)]
+                       ෡ 𝑤)):
+• Critic Update (learn 𝑈(𝑠,
+                                ෡ 𝑡+1 , 𝑤) − 𝑈(𝑠
+                    𝛿𝑡 = 𝑟𝑡 + 𝛾 𝑈(𝑠          ෡ 𝑡 , 𝑤) ⇒ 𝑤𝑡+1 = 𝑤𝑡 + 𝛽 𝛿𝑡 ∇𝑤 𝑈(𝑠
+                                                                            ෡ 𝑡 , 𝑤)
+
+• Notes:
+     • Actor updates the policy 𝜋𝜃 (𝑎 ∣ 𝑠);
+                                   ෡ 𝑤) from the TD error 𝛿𝑡 ≈ 𝐴𝑡 .
+     • Critic learns the baseline 𝑈(𝑠,
+     • In practice, 𝛿𝑡 serves as the estimated advantage 𝐴𝑡 in the actor update
+Model-Free Reinforcement Learning                                                         40
+Notes: Variants of Actor-Critic
+• A2C – synchronous version, batch actors update together.
+• A3C – asynchronous, multiple agents update global parameters.
+• ACER – adds experience replay, retrace, and trust-region ideas.
+• Many others build on the same actor–critic core
+  (e.g., DDPG, SAC)
+• Soft Actor–Critic (SAC) — a modern off-policy algorithm that
+  combines stochastic policy gradients with entropy regularization for
+  stable, sample-efficient, and exploration-driven learning in
+  continuous control tasks.
+Model-Free Reinforcement Learning                                  41
+Advanced Policy Search
+Trust Region Policy Optimization (TPRO)
+Proximal Policy Optimization (PPO)
+
+
+
+Model-Free Reinforcement Learning         42
+Improving Policy Gradients
+• Problem:
+     • Vanilla policy gradients can make unreliable, destructive updates.
+     • Unstable return → bad gradient → worse performance
+     • Need monotonic improvement: every update should improve or
+       maintain performance
+• Goal:
+     • Constrain each update so that
+                            𝐽(𝜃new ) ≥ 𝐽(𝜃old )
+• Intuition:
+     • Take only safe, trustable steps in policy space — not leaps.
+Model-Free Reinforcement Learning                                           43
+Policy Gradient: Avoiding Bad Updates
+     • Unstable return -> bad update -> unstable return -> … -> fail
+     • The Idea: restrict the update of 𝜋𝜃 to only “safe” regions
+         At 𝑖-th iteration, maximize a simpler surrogate objective
+         𝑀𝑖 (𝜃𝑖 ) that lower-bounds the true objective 𝜌 𝜃𝑖
+                            𝐽 𝜃
+                           𝑀(𝜃)
+
+
+
+
+Model-Free Reinforcement Learning                                          44
+                                                                       𝜃
+Trust Region Policy Optimization (TRPO)
+• Idea:
+     • Keep new policies close to the old one using a trust region constraint.
+             max ℒ 𝜋𝜃 s.t.    max 𝐾𝐿 [𝜋old (⋅∣ 𝑠) ∥ 𝜋𝜃 (⋅∣ 𝑠)] ≤ 𝛿
+                   𝜃                𝑠
+     • 𝐾𝐿[⋅] = Kullback–Leibler divergence measures “distance” between policies.
+     • Ensures updates do not drift too far, preserving expected improvement.
+• Intuition:
+     • TRPO acts like a speed limit — large steps (big KL-divergence) are unsafe
+       and can ruin performance.
+
+Model-Free Reinforcement Learning                                                  45
+Proximal Policy Optimization
+• Simplifies TRPO with a clipped surrogate loss:
+                                             𝜋𝜃 𝑎𝑡 𝑠𝑡
+                                    𝑟𝑡 𝜋 =                  ,
+                                            𝜋old 𝑎𝑡 𝑠𝑡
+                 ℒ 𝐶𝐿𝐼𝑃 (𝜃) = 𝔼𝑡 [min(𝑟𝑡 (𝜋)𝐴𝑡 , 𝑐𝑙𝑖𝑝(𝑟𝑡 (𝜋), 1 − 𝜖, 1 + 𝜖)𝐴𝑡 )].
+     • When 𝑟𝑡 (𝜋) moves outside [1 − 𝜖, 1 + 𝜖], the objective stops increasing
+        → prevents excessively large updates.
+• Intuition:
+     • 𝑟𝑡 𝜋 measures how much we changed the policy.
+     • ℒ 𝐶𝐿𝐼𝑃 ensures we only change it within safe, stable limits.
+     • PPO is TRPO made practical — clipping keeps updates gentle and stable
+       without solving a constrained optimization each time.
+Model-Free Reinforcement Learning                                                   46
+Proximal Policy Optimization (PPO)
+• PPO: an actor–critic algorithm with a clipped policy-gradient objective.
+     • The critic estimates advantages; the actor updates its policy via a safe, bounded step.
+• Actor:
+     • A parameterized policy 𝜋𝜃 (𝑎 ∣ 𝑠) — the actor — decides which action to take.
+       It’s trained via a policy-gradient objective (the clipped surrogate loss):
+                        ℒ 𝐶𝐿𝐼𝑃 (𝜃) = 𝔼𝑡 [min(𝑟𝑡 (𝜋)𝐴𝑡 , clip(𝑟𝑡 (𝜋), 1 − 𝜖, 1 + 𝜖)𝐴𝑡 )],
+     • where 𝐴𝑡 is the advantage estimate.
+• Critic:
+     • A value network 𝑈෡𝑤 (𝑠) (or 𝑉𝑤 (𝑠)) — the critic — estimates expected returns to compute 𝐴𝑡 :
+                                                ෡𝑤 (𝑠𝑡+1 ) − 𝑈
+                                    𝐴𝑡 = 𝑟𝑡 + 𝛾 𝑈             ෡𝑤 (𝑠𝑡 )
+     • or with multi-step returns for smoother estimation.
+• Note:
+     • The critic provides a baseline that reduces variance, and the actor uses this feedback to adjust the
+       policy —exactly the actor–critic loop.
+Model-Free Reinforcement Learning                                                                             47
+How PPO extends standard actor–critic
+• Main idea:
+     • PPO adds a trust-region–like constraint to stabilize the actor’s
+       updates:
+       it prevents large destructive policy shifts by clipping the ratio
+                                      𝜋𝜃 (𝑎𝑡 ∣ 𝑠𝑡 )
+                            𝑟𝑡 (𝜋) =                 .
+                                     𝜋old (𝑎𝑡 ∣ 𝑠𝑡 )
+     • This makes PPO a stable variant of actor–critic, just as TRPO is
+       a theoretical trust-region version.
+
+
+Model-Free Reinforcement Learning                                          48
+Proximal Policy Optimization
+
+
+
+
+• With the clipped surrogate objective, policy stops increasing the objective when:
+                                           𝜋𝜃 (𝑎𝑡 ∣ 𝑠𝑡 )
+                                 𝑟𝑡 (𝜋) =
+                                          𝜋old(𝑎𝑡 ∣ 𝑠𝑡 )
+          moves too far outside the range [1 − 𝜖, 1 + 𝜖]
+                                               Figure from: John Schulman et al. “Proximal policy optimization algorithms”.
+Model-Free Reinforcement Learning              In: arXiv preprint arXiv:1707.06347 (2017).                      49
+  Modern Model-Free Reinforcement Learning
+
+                                                                                      Key
+Concept                    Core Idea
+                                                                                      Algorithm
+Policy Gradient            Directly optimize the policy 𝜋𝜃 𝑎|𝑠 from sampled returns   REINFORCE
+Variance Reduction                                ෡ 𝑤) to stabilize updates
+                           Learn a value baseline 𝑈(𝑠,                                Actor–Critic
+Stable Improvement Constrain updates for monotonic policy performance                 TRPO
+Practical Stability        Simplify trust-region updates with clipping                PPO
+                                                                                      SAC,
+Exploration &
+                           Encourage entropy / better signals                         Reward
+Robustness
+                                                                                      Shaping
+
+
+
+  Model-Free Reinforcement Learning                                                             50
+Homework
+• Readings:
+     • RN: 22.4.1, 22.4.2, 22.4.3, 22.5
+• References:
+     • SB: Chapter 13
+          • [SB] Sutton, R. S. and A. G. Barto. Reinforcement Learning: An introduction.
+            2nd ed. MIT Press, 2018, 2020
+            [Book website: http://incompleteideas.net/book/the-book.html ]
+            [e-Book for personal use: http://incompleteideas.net/book/RLbook2020.pdf ]
+• Online resources on reinforcement learning:
+     • Silver, D. Lectures on Reinforcement Learning. 2015;
+       Available from: https://www.davidsilver.uk/teaching/.
+Model-Free Reinforcement Learning                                                      51
+   References
+    (Journal articles publicly available online or through NUS Library e-Resources)
+
+• Deep reinforcement learning (DeepMind series):
+    • DQN: Mnih, V., et al., Human-level control through deep reinforcement learning. Nature, 2015. 518(7540): p. 529-533.
+    • AlphaGo: Silver, D., et al., Mastering the game of Go with deep neural networks and tree search. Nature, 2016. 529: p. 484+.
+    • AlphaGo Zero: Silver, D., et al., Mastering the game of Go without human knowledge. Nature, 2017. 550: p. 354+.
+    • MuZero: Schrittwieser, J., et al., Mastering Atari, Go, chess and shogi by planning with a learned model. Nature, 2020.
+      588(7839): p. 604-609.
+
+• Policy optimization (search)
+    • Schulman, J., et al., Trust Region Policy Optimization, in Proceedings of the 32nd International Conference on Machine
+      Learning, B. Francis and B. David, Editors. 2015, PMLR: Proceedings of Machine Learning Research. p. 1889--1897.
+    • Schulman, J., et al., Proximal Policy Optimization Algorithms. CoRR, 2017. abs/1707.06347. Accessible from:
+      http://arxiv.org/abs/1707.06347
+
+
+   Model-Free Reinforcement Learning                                                                                            52
+

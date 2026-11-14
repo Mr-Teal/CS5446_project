@@ -1,0 +1,844 @@
+  Markov Decision Process
+
+  CS3263
+  Foundations of Artificial Intelligence
+  Version 5.0
+
+
+
+© Copyright National University of Singapore. All Rights Reserved.
+What we have learned so far…
+• Classical Planning
+     • Sequential, deterministic, fully observable
+• Decision Analysis
+     • Episodic or sequential, stochastic, fully observable
+• Up Next: Decision Making Under Uncertainty and Over Time
+     • Sequential, stochastic, fully or partially observable
+
+
+
+Markov Decision Process                                        2
+Topics
+• Markov Decision Process (17.1)
+     • Model formulation and solution
+     • Bellman Equation and Q-function
+• Basic Algorithms for solving MDPs
+     • Value iteration (17.2.1)
+     • Policy iteration (17.2.2)
+
+
+
+
+Markov Decision Process                  3
+Notes: Sequential Decision Problems
+• Sequential Decisions Under Uncertainty
+     • Decisions made over time under uncertainty
+     • Utility depends on the full action sequence
+     • Search and planning are special cases
+• Examples:
+     • Markov Decision Process (MDP):
+       Fully observable, stochastic, with long-term rewards
+       Solved efficiently in real-world domains: robotics, logistics, games
+     • Reinforcement Learning (RL):
+       Learns to act in unknown environments through feedback
+Markov Decision Process                                                       4
+Example: Persy the Mars Rover Adventures
+Percy is exploring Mars:
+• Starting at the base station with limited energy.
+• Percy can
+     • Move to explore,
+     • Collect a soil sample,
+     • Transmit data back to Earth, or
+     • Recharge using solar panels.
+• Moving and collecting are uncertain
+     • Rocky terrain may drain more energy, solar recharge may fail if it’s cloudy
+• Goal:
+     • Percy’s goal is to maximize useful science data sent back before energy runs out.
+Question:
+• How should Percy decide what to do at each step, given uncertainty and long-term goals?
+
+Markov Decision Process                                                                     5
+Example: Ride-Hailing Fleet Management
+Real-world scenario
+• A ride-hailing company (e.g., Grab, Uber, Lyft)
+  manages thousands of drivers across a city:
+• Each driver must decide whether to
+     • Wait for a nearby passenger,
+     • Relocate to a busier area, or
+     • Refuel/Recharge.
+• Passenger demand is uncertain, and traffic/weather affect travel times.
+• Goal:
+     • To maximize long-term efficiency: serve more rides, reduce idle driving, and keep drivers profitable.
+Question:
+• How should the system assign and guide drivers to balance supply, demand, and future opportunities?
+
+Markov Decision Process                                                                                        6
+Solving Sequential Decision Problems
+• Decision Problem or Model
+     • Representation of states, actions, uncertain effects, and preferences (via costs,
+       rewards, or values), time horizon + possibly observations through sensing
+• Decision Algorithm
+     • Input: a decision problem (explicit model or interactive environment)
+     • Output: an optimal or near-optimal solution over the time horizon
+• Decision Solution
+     • An optimal action sequence from an initial state, or
+     • An optimal policy that specifies the best action in each state or observation (with
+       respect to costs, values, or preferences)
+     • (Optional) A goal state satisfying desired properties in goal-based tasks
+Markov Decision Process                                                                      7
+Problem Formulation
+Define the problem elements
+
+
+
+
+Markov Decision Process       8
+  Example: Navigation in Grid World
+                                                      (vs 3 x 4 matrix)
+
+                            • Fully observable 4 x 3 environment
+                               • Begin in START state 𝑠0
+                               • One action 𝑎 per time step.
+                               • Terminate when reaching goal states 𝑠!
+                                                            States marked
+                            • Uncertain action effects:       +1 and -1
+                               • Example: Up, Down, Left, Right:
+                               • 0.8 - correct direction
+                               • 0.1 - perpendicular to the left
+                               • 0.1 - perpendicular to the right
+Source: RN Figure 17.1
+
+  Markov Decision Process                                            9
+  Example: Navigation
+                            • Transition model:
+                              • Define (stochastic) outcome of
+                                each action 𝑎
+                              • 𝑃(𝑠’|𝑠, 𝑎) or 𝑇 𝑠, 𝑎, 𝑠’ :
+                                probability of reaching state 𝑠’ if
+                                action 𝑎 is done in state 𝑠
+                            • Markovian assumption:
+                              • Probability depends only on state
+Source: RN Figure 17.1
+                                𝑠 and not history of earlier states.
+  Markov Decision Process                                       10
+  Example: Navigation
+                                                 • Reward model:
+                                                     • 𝑅(𝑠, 𝑎, 𝑠’) – For transition from 𝑠 to 𝑠’ via 𝑎;
+            -0.04        -0.04   -0.04                   AND/OR
+                                                     • 𝑅(𝑠, 𝑎) – For transition from 𝑠 via 𝑎; AND/OR
+                                                     • 𝑅(𝑠) – For any transition from/into 𝑠
+             -0.04               -0.04               • Positive or negative rewards, bound by ±𝑅!"#
+                                                 • Example:
+             -0.04       -0.04   -0.04   -0.04       • 𝑅(𝑠) is – 0.04 for all states, except +1 or −1
+                                                       for terminal states
+                                                 • Vs. Utility function or utility of state:
+                                                     • 𝑈 𝑠 – defined on the sequence of states and
+                                                       actions from state 𝑠 – environment history –
+Source: RN Figure 17.1
+                                                       sum of rewards of the states in the sequence
+  Markov Decision Process                                                                       11
+Example: Navigation
+                                                                   Uncertain action effects:
+                                                                         Up, Down, Left, Right:
+                                                                         0.8 - correct direction
+                                                                         0.1 - perpendicular to the left
+                                                                         0.1 - perpendicular to the right
+
+
+• If action effects are deterministic:
+     • What is the optimal policy or action sequence?
+• But agent’s actions is stochastic
+     • What is the chance of getting to the goal with:[U, U, R, R, R]?
+
+
+     • How to derive optimal policy from the transition function directly?
+Markov Decision Process                                                                                     12
+Markov Decision Process (MDP)
+• Formally:
+     • An MDP 𝑀 ≜ 𝑆, 𝐴, 𝑇, 𝑅, γ consists of:
+     • A set 𝑆 of states
+     • A set 𝐴 of actions
+     • A transition function 𝑇: 𝑆×𝐴×𝑆 → [0,1] that satisfies the Markov property such that:
+                          ∀𝑠 ∈ 𝑆, ∀𝑎 ∈ 𝐴: 7 𝑇 𝑠, 𝑎, 𝑠 # = 7 𝑃(𝑠 # |𝑠, 𝑎) = 1
+                                         "#∈%               "#∈%
+     • A reward function 𝑅: 𝑆 → ℜ or 𝑅: 𝑆×𝐴 → ℜ or 𝑅: 𝑆×𝐴×𝑆 → ℜ
+     • A discount factor 0 ≤ 𝛾 ≤ 1
+     • Solution is a policy – a function to recommend an action in each state: 𝜋: 𝑆 → 𝐴
+          • Solution involves careful balancing of risk and reward
+Markov Decision Process                                                               13
+Markov Property
+• Definition:
+     • Next state depends only on the current state and action — not on full history:
+                  𝑃(𝑠!"# |𝑠! , 𝑎! , 𝑠!$# , 𝑎!$# , … , 𝑠% , 𝑎% ) = 𝑃(𝑠!"# |𝑠! , 𝑎! )
+• Is this realistic in practice?
+     • It's a simplifying assumption
+     • Real-world processes may violate it (e.g., with hidden variables or memory effects)
+
+• Why still use it?
+     • It reduces complexity of algorithms
+     • Many problems can still be well-approximated as Markov processes
+Markov Decision Process                                                            14
+MDP as Dynamic Decision Network
+                                 P(St|St-1 , At-1)        P(St+1| St , At)    P(St+2| St+1 , At+1)
+
+
+
+At-2                      At-1                       At                      At+1                    At+2
+
+
+              St-1                      St                      St+1                   St+2                   St+3
+
+                             Rt-1                     Rt                     Rt+1                      Rt+1          Ut+3
+
+
+
+                          What is St? At? Rt? Ut?
+Markov Decision Process                                                                                              16
+Solution Techniques
+Deriving policies – actions to take at each state
+
+
+
+
+Markov Decision Process                             18
+Solving MDPs
+• What does a solution look like?
+     • A policy 𝜋: 𝑆 → 𝐴 maps each state 𝑠 to an action 𝑎.
+     • The quality of a policy is measured by its expected utility over the
+       state sequences it generates.
+     • The optimal policy 𝜋 ∗ maximizes expected utility. (MEU Principle)
+• An MDP agent uses 𝜋 ∗ :
+     • It observes the current state 𝑠
+     • Executes the action 𝑎∗ = 𝜋 ∗ 𝑠
+     • The policy defines how the agent behaves.
+
+Markov Decision Process                                                       19
+                             ∗
+Example: Illustration of 𝜋
+
+
+
+
+                                 Source: RN Figure 17.2
+Markov Decision Process                                   20
+Example: Balancing Risk and Reward
+
+
+
+
+                   𝑟 = −0.04
+       Changes depending on the value of 𝑟 = 𝑅(𝑠, 𝑎, 𝑠 $) for transitions between nonterminal states
+       There may be many optimal policies for various ranges of 𝑟.
+                                                                       Source: RN Figure 17.2
+Markov Decision Process                                                                                21
+     Utility of a State Sequence
+• Definition (Utility of a state sequence/trajectory)
+   For a state sequence:         𝑠& , 𝑠' , 𝑠( , …
+   the utility is the additive sum of rewards along the sequence
+• Finite horizon (N steps):
+   𝑈 𝑠& , … , 𝑠)      = ∑),'
+                         *+& 𝑅 𝑠* , 𝑎* , 𝑠*-' = 𝑅 𝑠& , 𝑎& , 𝑠' + 𝑅 𝑠' , 𝑎' , 𝑠( + ⋯ + 𝑅 𝑠),' , 𝑎),' , 𝑠)
+• Infinite horizon (discounted):
+                          .
+
+   𝑈 𝑠& , 𝑠' , …     = 7 𝛾 * 𝑅 𝑠* , 𝑎* , 𝑠*-' = 𝑅 𝑠& , 𝑎& , 𝑠' + 𝛾𝑅 𝑠' , 𝑎' , 𝑠( + ⋯ , 0 ≤ 𝛾 < 1
+                         *+&
+• Note:
+   • This quantity is often called the return and denoted 𝐺* in reinforcement learning (RL)
+
+     Markov Decision Process                                                                       22
+Finite and Infinite Horizon Problems
+• Recall:
+     • A solution to an MDP is an optimal policy 𝜋 ∗ : a mapping from states to actions that
+       maximizes expected utility.
+     • The quality of a policy is measured by its expected utility over the state sequences it
+       generates.
+• Finite horizon (N steps)       𝑈 𝑠%, … , 𝑠&   = 𝑅 𝑠%, 𝑎%, 𝑠' + 𝑅 𝑠', 𝑎', 𝑠( + ⋯ + 𝑅 𝑠&)', 𝑎&)', 𝑠&
+     • Utility of state sequences = sum of rewards up to time 𝑁
+     • Optimal action may depend on time step → optimal policy can be non-stationary (𝜋#∗ )
+• Infinite horizon (discounted) 𝑈 𝑠%, 𝑠', …          = 𝑅 𝑠%, 𝑎%, 𝑠' + 𝛾𝑅 𝑠', 𝑎', 𝑠( + ⋯ , 0 ≤ 𝛾 < 1
+     • Utility of state sequences = discounted sum of rewards
+     • No fixed deadline
+     • Optimal policies are typically stationary (𝜋 ∗ )
+Markov Decision Process                                                                           23
+Example: Finite Horizon Problem
+
+
+ N = 3?
+
+ N = 100?
+                          Start?
+
+
+
+
+                                   Source: RN Figurer 17.2
+Markov Decision Process                                      25
+Achieving Finite Rewards in Infinite Horizon Problems
+
+1.    Discounted rewards
+     • If 𝛾 < 1 and rewards are bounded by ±𝑅/01 , then for any infinite sequence:
+                                               𝑅/01
+                               𝑈 𝑠& , 𝑠' , … ≤
+                                               1−𝛾
+2.    Terminal states
+     • If the environment has terminal states and a proper policy (agent always reaches
+       a terminal state), then additive rewards with 𝛾 = 1 are valid.
+3.    Average reward per time step
+     • Evaluate policies by long-run average reward.
+     • More difficult to compute and analyze.
+Markov Decision Process                                                                   26
+Example: Proper and Improper Policies
+
+
+
+
+                   𝑟 = −0.04
+
+
+                               Source: RN Figure 17.2
+Markov Decision Process                                 28
+State Utility Under A Policy
+• Policy evaluation: Utility of a state 𝑠 under policy 𝜋:
+     • Expected sum of discounted rewards by starting in state 𝑠 and following 𝜋
+                                        .
+
+                          𝑈 2 𝑠 = 𝔼2 [7 𝛾 * 𝑅 𝑆* , 𝐴* , 𝑆*-' |𝑆& = 𝑠]
+                                        *+&
+• Bellman Expectation Equation:
+                    𝑈 2 𝑠 = 7 𝑃 (𝑠 # |𝑠, 𝜋(𝑠))[𝑅(𝑠, 𝜋(𝑠), 𝑠 # ) + 𝛾𝑈 2 𝑠 # ]
+                               "*
+• Interpretation:
+     • Utility of a state under policy 𝜋 is the expected immediate reward plus
+       discounted utility of successor states, following 𝜋.
+Markov Decision Process                                                            29
+State Utility and Optimal Policy
+• Utility of a state 𝑠 (Value of a state 𝑠):
+     • Best achievable expected utility starting from 𝑠:
+                                              ∗
+                                    𝑈 𝑠 = 𝑈+ 𝑠 = max 𝑈+ (𝑠) = 𝑉(𝑠)
+                                                         +
+
+• Bellman Optimality Equation:
+                           𝑈 𝑠 = max"∈-(/) : 𝑃 𝑠 $ 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 $ + 𝛾𝑈 𝑠 $
+                                               /$
+
+• Optimal policy (Maximum Expected Utility Principle):
+                          𝜋 ∗ 𝑠 = argmax"∈-(/) : 𝑃 𝑠 $ 𝑠, 𝑎 [𝑅 𝑠, 𝑎, 𝑠 $ + 𝛾𝑈 𝑠 $ ]
+                                                    /$
+
+• Interpretation:
+     • Utility of a state is the maximum expected immediate reward plus discounted utility of successor states.
+
+Markov Decision Process                                                                                  32
+Bellman Optimality Equation: Infinite Horizon
+• Bellman Optimality Equation (from Utility of state):
+
+                 𝑈 𝑠 = max?∈A(B) ∑BC 𝑃 𝑠 C 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 C + 𝛾𝑈 𝑠 C
+
+• Interpretation:
+     • Utility of a state is the maximum expected immediate reward plus discounted utility of
+       successor states
+     • Encodes the Maximum Expected Utility (MEU) principle for sequential decisions.
+• Notes:
+     • One Bellman equation per state → |𝑆|equations with |𝑆| unknowns
+     • Unique solution gives utilities of all states
+     • Basis of value iteration and related algorithms
+Markov Decision Process                                                                     34
+Q-Function
+• Q-Function (Action-Utility Function)
+     • State utility 𝑈 𝑠 is defined by the Bellman Optimality Equation.
+     • To select actions, it is useful to evaluate state–action pairs directly.
+• Definition (Bellman Optimality Equation for Q):
+     𝑄(𝑠, 𝑎) = . 𝑃 𝑠 % 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 % + 𝛾𝑈 𝑠 %       = . 𝑃 𝑠 % 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 % + 𝛾max&! 𝑄(𝑠′, 𝑎′)
+                   $%                                      $%
+     • State utility: 𝑈 𝑠 = max& 𝑄(𝑠, 𝑎)
+     • Optimal policy: 𝜋 ∗ 𝑠 = argmax& 𝑄(𝑠, 𝑎)
+• Interpretation:
+     • 𝑄(𝑠, 𝑎) = expected utility of taking action 𝑎 in state 𝑠, then following the optimal policy.
+
+
+Markov Decision Process                                                                         36
+Example: Utilities of States
+
+ 𝑅(𝑠) = −0.04                                                        Numbers are 𝑈(𝑠)
+                          -0.04   -0.04   -0.04
+
+
+                                                                    How to compute
+                          -0.04           -0.04
+                                                                    the 𝑈(𝑠) numbers?
+
+                          -0.04   -0.04   -0.04   -0.04
+
+
+
+
+                                                      Source: RN Figure 17.3
+Markov Decision Process                                                           37
+Value Iteration
+Solution Method
+
+
+
+
+Markov Decision Process   38
+Value Iteration
+• Iterative, repeated Bellman updates of state utilities:
+    1. Initialize utilities arbitrarily (e.g., 𝑈 𝑠 = 0) Bellman update
+     2.    Update utilities of all states using:
+                  𝑈'() 𝑠 ← max&∈+($) . 𝑃 𝑠 % 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 % + 𝛾𝑈' 𝑠 %
+                                          $%
+     3.    Repeat until values converge (changes < threshold 𝜖)
+     4.    Extract optimal policy from final utilities:
+                   𝜋 ∗ 𝑠 = argmax&∈+($) . 𝑃 𝑠 % 𝑠, 𝑎 [𝑅 𝑠, 𝑎, 𝑠 % + 𝛾𝑈 𝑠 % ]
+                                           $%
+• Key points:
+     • Convergence: Approximates utilities until convergence to the unique Bellman solution.
+     • Optimality: Extracted policy is guaranteed to be optimal.
+     • Complexity: Each iteration is 𝑂 ∣ 𝑆 ∣. ∣ 𝐴 ∣ ; total iterations depends on 𝜖 and 𝛾.
+Markov Decision Process                                                                    39
+ Example: Solving Bellman Equations
+Numbers are 𝑈(𝑠)
+Initialize: 𝑈 𝑠 = 0
+                                                 0   0   0
+How to compute
+the 𝑈(𝑠) numbers?
+                             Bellman update      0       0
+𝑈'() 𝑠
+← max&∈+($) . 𝑃 𝑠 % 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 % + 𝛾𝑈' 𝑠 %   0   0   0   0
+                 $%
+
+
+
+
+ Markov Decision Process                                         Source:
+                                                                    42 RN Figure 17
+  Example: Solving Bellman Equations
+  𝑅(𝑠) = −0.04
+
+Numbers are 𝑈(𝑠)
+
+How to compute the numbers?
+What is the optimal policy?
+
+For U(1,1):           𝑈'"# 𝑠 ← max(∈*(,) 5 𝑃 𝑠 . 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 . + 𝛾𝑈' 𝑠 .
+                                           ,.
+                                                                                     (U)
+                                                                                     (L)
+                                                                                     (D)
+                                                                                     (R)
+𝜋 ∗ 1,1       =
+                                                            Source: RN Figure 17.3
+  Markov Decision Process                                                                  43
+Demos: Value Iteration
+                                    IIIT Hyderabad Virtual Labs
+
+
+
+
+                   https://ai1-iiith.vlabs.ac.in/exp/value-iteration/simulation.html
+Markov Decision Process                                                                44
+Value Iteration: Why Does It Work?
+• Convergence
+     • Bellman updates converge to a fixed point: the solution to the
+       Bellman optimality equations.
+     • Utilities stabilize once future rewards are fully incorporated.
+• Optimal Policy
+     • Optimal policy 𝜋 ∗ is extracted from converged utilities.
+     • Often, a near-optimal policy emerges before full utility convergence.
+
+
+
+Markov Decision Process                                                        45
+   Notes: Example: Convergence
+                                                                                                  𝜖
+                                                                                            𝑐=
+                                                                                                 𝑅!"#
+
+
+
+
+                                                                       N
+
+
+
+
+                                                                           No. of value iterations required to guarantee an error of at
+Evolution of the utilities of selected states using value iteration.
+                                                                           most 𝜖 = 𝑐 7 𝑅!"# , for different values of 𝑐, as function of 𝛾.
+
+   Markov Decision Process                                                                            Source: RN Figure 17.7        46
+  Notes:
+  Example: Computing Optimal Policy
+                            𝑈+" 𝑠 is utility obtained if 𝜋2
+Max Norm:                   is executed starting in state 𝑠
+Largest difference
+between any two             Policy loss 𝑈+" − 𝑈 is the
+corresponding               max loss by following 𝜋2
+elements in two             instead of 𝜋 ∗
+vectors.
+It measures the “size”
+of a vector by the
+biggest value in it.
+
+
+
+
+                             Source: RN Figure 17.8
+  Markov Decision Process                                47
+Policy Iteration
+Solution Method
+
+
+
+
+Markov Decision Process   48
+   Policy Iteration
+• Iterative Steps:
+    1.    Initialize an arbitrary policy 𝜋%.                               Bellman expectation equation
+    2.    Policy Evaluation: Solve for utilities 𝑈+ 𝑠 under 𝜋2 :
+                             𝑈+" 𝑠 = 𝑈2 𝑠 = ∑/$ 𝑃 𝑠 $ 𝑠, 𝜋2 𝑠 [𝑅(𝑠, 𝜋2 𝑠 , 𝑠′) + 𝛾𝑈2 𝑠′ ]
+    • For large state spaces, use iterative approximation:
+                             𝑈23' 𝑠   ← : 𝑃 𝑠 $ 𝑠, 𝜋2 𝑠 [𝑅(𝑠, 𝜋2 𝑠 , 𝑠′) + 𝛾𝑈2 𝑠′ ]
+                                          /$
+    3.     Policy Improvement: Update policy 𝜋23' based on current utilities:
+                             𝜋23' 𝑠 = arg max : 𝑃 (𝑠 $|𝑠, 𝑎) 𝑅 𝑠, 𝑎, 𝑠 $ + 𝛾𝑈2 𝑠 $
+                                               "
+                                                   /#
+    4.     Repeat until the policy stabilizes (no change between iterations).
+• Key Points:
+    • Convergence: Terminates in a finite number of iterations.
+    • Optimality: Final policy is guaranteed to be optimal.
+    • Complexity: Policy evaluation solves |𝑆| linear equations (𝑂 𝑛" for |𝑆| = 𝑛); iterative evaluation used for large
+      state spaces
+   Markov Decision Process                                                                                          49
+Example: Implementing Policy Evaluation
+                                NO max operator
+• Policy evaluation (Bellman expectation equation):
+     𝑈9 𝑠 = ∑"# 𝑃 𝑠 # 𝑠, 𝜋9 𝑠 [𝑅(𝑠, 𝜋9 𝑠 , 𝑠′) + 𝛾𝑈9 𝑠′ ]
+          = 𝑅 s + 𝛾 ∑"* 𝑃 𝑠 # 𝑠, 𝜋9 (𝑠) 𝑈9 𝑠 #
+                                                                    Assume: 𝜋2 𝑠
+
+• Start with a “fixed” policy:
+     𝑈9 1,1 = 0.8 −0.04 + 𝑈9 1,2 + 0.1 −0.04 + 𝑈9 2,1 ] + 0.1[−0.04 + 𝑈9 1,1
+     𝑈9 1,2 = 0.8 −0.04 + 𝑈9 1,3 + 0.2 −0.04 + 𝑈9 1,2
+                                        ⋮
+
+                                                                 Source: RN 17.2.2
+
+Markov Decision Process                                                              52
+Example: Implementing Policy Improvement
+• Policy improvement:
+     • For all the states, to find best policy:
+                𝜋 ∗ 𝑠 = argmax 1 𝑃 𝑠 C 𝑠, 𝑎 [𝑅 𝑠, 𝑎, 𝑠 C + 𝛾𝑈 𝑠 C ]
+                          ?∈A(B)                                                 Assume: 𝜋2 𝑠
+                                     BC
+     • In state (1, 1):
+          • Check if any action 𝑎 when applied to 𝑠 is better than current policy 𝜋9 𝑠 ;
+          • Update if necessary
+            𝜋KLM 1,1 = argmax ∑BC 𝑃 𝑠 C (1,1), 𝑎 [𝑅 (1,1), 𝑎, 𝑠 C + 𝛾𝑈 𝑠 C ]
+                            ?∈A(B)
+                                                                           (U)
+                                                                           (L)
+                                                                           (D)
+                                                                           (R)
+Markov Decision Process                                                                     53
+Demos: Policy Iteration
+                                    IIIT Hyderabad Virtual Labs
+
+
+
+
+                   https://ai1-iiith.vlabs.ac.in/exp/policy-iteration/simulation.html
+Markov Decision Process                                                                 54
+Policy Iteration: Why Does It Work?
+• Convergence
+     • Policy evaluation and improvement converge to a fixed point.
+     • Final utilities solve the Bellman equations; final policy is optimal.
+     • With finite policies, termination is guaranteed.
+• Optimal Policy
+     • Follows the Policy Improvement Theorem [SB 4.2]:
+       Each new policy is at least as good as the last.
+     • Guarantees convergence to the optimal policy.
+
+Markov Decision Process                                                        55
+         Value Iteration vs Policy Iteration
+Aspect               Value Iteration                                                      Policy Iteration
+
+Initialization       Arbitrary utility values (e.g., 𝑈 𝑠 = 0)                             Arbitrary initial policy 𝜋!
+                                                                                          1. Policy Evaluation:
+                                                                                                     𝑈" 𝑠 = ∑( ! 𝑃 𝑠 ) 𝑠, 𝜋" (𝑠) 𝑅(𝑠, 𝜋" 𝑠 , 𝑠 ) ) + 𝛾𝑈" 𝑠 )
+                     Bellman optimality update:
+                                                                                                                  ( or use iterative updates)
+Main Update
+                       𝑈"#$ 𝑠 ← max %∈' ( * 𝑃 (𝑠 ) |𝑠, 𝑎) 𝑅(𝑠, 𝑎, 𝑠 ) ) + 𝛾𝑈" 𝑠 )         2. Policy Improvement:
+                                                  (!
+                                                                                                 𝜋"#$ 𝑠 = arg max % * 𝑃 (𝑠 ) |𝑠, 𝑎) 𝑅(𝑠, 𝑎, s ) ) + 𝛾𝑈" 𝑠 )
+                                                                                                                           (!
+                     Utility updates stop when:                                           Policy improvement stops when:
+Termination                              max 𝑈"#$ 𝑠 − 𝑈" 𝑠       <𝜖
+                                          (
+                                                                                                                 𝜋"#$ 𝑠 = 𝜋" 𝑠 ∀𝑠 ∈ 𝑆
+                     Utilities converge to a fixed point                                  Policy converges to a stable policy
+Convergence
+                     (Solution to Bellman optimality equation)                            (Utilities satisfy Bellman expectation equation for the current policy)
+Optimality           Final policy extracted from stable utilities is guaranteed optimal   Final stable policy 𝜋 ∗ is guaranteed optimal
+                                                                                          Policy Evaluation (exact):
+                                                                                                                            𝑂 ∣ 𝑆 ∣,
+Per-Iteration Cost                             𝑂 ∣ 𝑆 ∣+ ⋅∣ 𝐴 ∣                            Policy Improvement:
+                                                                                                                        𝑂 ∣ 𝑆 ∣+ ⋅∣ 𝐴 ∣
+                                                                                          → For each state, evaluate all actions over successor states
+Remarks              Simpler update, but more iterations needed                           Fewer iterations, but each iteration is more computationally intensive
+         Markov Decision Process                                                                                                                               56
+Example: Persy the Mars Rover Adventures
+Percy is exploring Mars:
+• Starting at the base station with limited energy.
+• Percy can
+     • Move to explore,
+     • Collect a soil sample,
+     • Transmit data back to Earth, or
+     • Recharge using solar panels.
+• Moving and collecting are uncertain                                                      Graphics: Generated by Dalle-3 Beta
+     • Rocky terrain may drain more energy, solar recharge may fail if it’s cloudy
+• Goal:
+     • Percy’s goal is to maximize useful science data sent back before energy runs out.
+Question:
+• How should Percy decide what to do at each step, given uncertainty and long-term goals?
+
+Markov Decision Process                                                                                                  57
+Example: Ride-Hailing Fleet Management
+Real-world scenario
+• A ride-hailing company (e.g., Grab, Uber, Lyft)
+  manages thousands of drivers across a city:
+• Each driver must decide whether to
+     • Wait for a nearby passenger,
+     • Relocate to a busier area, or
+     • Refuel/Recharge.
+                                                                                               Graphics generated by Dalle-3 Beta
+• Passenger demand is uncertain, and traffic/weather affect travel times.
+• Goal:
+     • To maximize long-term efficiency: serve more rides, reduce idle driving, and keep drivers profitable.
+Question:
+• How should the system assign and guide drivers to balance supply, demand, and future opportunities?
+
+Markov Decision Process                                                                                                    58
+Fun Exercise: Can Tetris be solved using
+value iteration or policy iteration?
+• Value Iteration:
+     • Not feasible with basic algorithm
+     • State space too large: 2& for 𝑁 cells
+     • Iterating through all states is impractical
+• Policy Iteration:
+     • Similar limitations as value iteration
+     • High computational cost for large state spaces
+• Approximate Methods:                                                               Source: RN Figure 17.5
+     • Modified Policy Iteration (MPI): Limited iterations of simplified value iteration
+     • Approximate Dynamic Programming (ADP): Uses function approximation for tractability
+     • Fitted Value Iteration: Samples states to reduce computation
+     • …
+• Find out more about recent research!
+Markov Decision Process                                                                                 60
+Handling Curse of Dimensionality
+When full planning or full MDP training is Infeasible
+• Alternative: Reinforcement Learning (RL)
+     • Learn good behavior from interaction without solving the full MDP explicitly
+     • Learning without a known model
+     • Approximate solutions in large-scale problems
+Beyond this course:
+• Decision-time planning:
+     • Online search at runtime
+• Demonstration-based learning:
+     • Learn from expert data
+• Model-free RL:
+     • Function approximation, policy search
+• Model-based RL:
+     • Learn or use world models (may include human priors)
+• Large Foundation Models (LFMs)-assisted/Human-Guided Planning :
+     • Model creation, task decomposition, heuristics, plan generation
+
+Markov Decision Process                                                               61
+Homework
+• Readings
+• Main topics:
+     • [RN] 17.1, 17.2.1, 17.2.2
+     • [SB] Chapters 3, 4 (4.2 - Policy improvement)
+• Online algorithms, MCTS: (Optional)
+     • [RN] 17.2.4, 5.4
+     • [SB] 8.10, 8.11
+• References
+     • [RN] Russell, S. and P. Norvig, Artificial intelligence: A modern approach. 4th ed. 2021: Pearson.
+       [Kindle Edition]
+     • [SB] Sutton, R. S. and A. G. Barto. Reinforcement Learning: An introduction. 2nd ed. MIT Press,
+       2018, 2020
+       [Book website: http://incompleteideas.net/book/the-book.html ]
+       [e-Book for personal use: http://incompleteideas.net/book/RLbook2020.pdf ]
+
+Markov Decision Process                                                                                     63
+    Demos: Value Iteration and Policy Iteration
+    Stanford REINFORCEjs Gridworld                                         IIIT Hyderabad Virtual Labs
+
+
+
+
+https://cs.stanford.edu/people/karpathy/reinforcejs/gridworld_dp.html   https://ai1-iiith.vlabs.ac.in/List%20of%20experiments.html
+
+
+
+
+    Markov Decision Process                                                                                                    64
+Appendix
+Convergence and Computing Optimal Policy of Value Iteration
+Policy Improvement Theorem
+
+
+
+Markov Decision Process                                       65
+Recall: Some Terminology
+• Definitions:
+     • A fixed point is any input unchanged by a function
+     • A contraction is a function, when applied to two inputs, produces two outputs
+       that are closer together
+          • E.g., “divide by two” is a contraction
+          • A contraction has only one fixed point
+          • When contraction is applied to any argument, the value must get closer to the fixed
+            point; repeated application reaches fixed point in the limit
+     • Max norm or distance between two vectors is the maximum difference between
+       any two corresponding elements
+          • It measures “length” of a vector by the absolute value of its biggest component
+
+Markov Decision Process                                                                           66
+Notes: Preference Independence Assumption
+(for Infinite Rewards)
+• Definition
+                            &B
+     • Each transition 𝑠# → 𝑠#() is part of the history [𝑠0 , 𝑎0 ,𝑠) , 𝑎) ,𝑠. ,𝑠1 … ]
+     • Preferences between state sequences are stationary
+     • If two histories [𝑠0 , 𝑎0 ,𝑠) , 𝑎) ,𝑠. ,… ]and [𝑠′0 , 𝑎′0 ,𝑠′) , 𝑎′) ,𝑠′. ,… ] begin with the same
+       transition (𝑠0 = 𝑠′0 , 𝑎0 = 𝑎′0 , and 𝑠) = 𝑠′) )
+     • Then their preference ordering depends only on the remaining parts:
+       [𝑠) , 𝑎) ,𝑠. ,… ]and [𝑠′) , 𝑎′) ,𝑠′. ,… ]
+• Intuition
+     • Only the future matters, not the path taken to get there.
+     • If two histories start the same way, their preference depends only on what happens next.
+
+Markov Decision Process                                                                                     67
+Convergence of Value Iteration
+• Value iteration:
+     • Converges to the (unique) utility function for discounted problems with 𝛾 < 1
+• The Bellman update 𝑈KLM ← 𝐵𝑈K , is a contraction by a factor of 𝛾 on the
+  space of utility vectors:                                  Bellman update
+                           𝐵𝑈' − 𝐵𝑈' ′ ≤ 𝛾 𝑈' − 𝑈' ′                   operator
+
+     • where max norm 𝑈 = max, 𝑈(𝑠) ; 𝑈 − 𝑈′ = max, 𝑈 𝑠 − 𝑈′(𝑠)
+• For Bellman equations, the utility or value function 𝑈 is a fixed point
+                                     𝑈 = 𝐵𝑈
+
+Markov Decision Process                                                           68
+Convergence
+• Repeated application of a contraction reaches a unique fixed point U
+       𝑈KLM − 𝑈 = 𝐵𝑈K − 𝐵𝑈 ≤ 𝛾 𝑈K − 𝑈 ≤ 𝛾 K 𝑈P − 𝑈 for any initial 𝑈P
+• Reaching fixed point:
+     • 𝑈 = 𝐵𝑈 is the fixed point utility function
+     • Error 𝑈K − 𝑈 reduced by a factor of at least 𝛾 on each iteration; converges
+       exponentially fast
+     • Utilities of all states bounded by ±𝑅Q?R /(1 − 𝛾):
+                                  𝑈P − 𝑈 ≤ 2𝑅Q?R /(1 − 𝛾)
+                                                                                             %"#$
+                                                  If 𝑈$ is initialized to 0, then 𝑈$ − 𝑈 ≤
+                                                                                              &'(
+
+Markov Decision Process                                                                             69
+Convergence
+• Factors influencing convergence:
+     • 𝑁 iterations to reach error of at most 𝜖:
+                            𝑈2 − 𝑈 ≤ 𝛾 2 N 2𝑅3&4 /(1 − 𝛾) ≤ 𝜖
+
+                                                 2𝑅3&4
+                                         log
+                                                𝜖(1 − 𝛾)
+                                   𝑁=
+                                                   1
+                                               log
+                                                   𝛾
+
+• Termination condition:
+     • If the update is small (i.e., no state utility changes by much), then the error, compared
+       with the true utility function, also is small
+                                          𝜖 1−𝛾
+                    if 𝑈'() − 𝑈' <                     then 𝑈'() − 𝑈 < 𝜖
+                                              𝛾
+Markov Decision Process                                                                            70
+                                                           Values at each state
+
+   Convergence: Calculations
+                                                                          C
+                                                           bounded by ± )*+
+                                                                          DEF
+                                                           The 2 in the numerator
+                                                           reflects the bounds
+
+   • If we run 𝑁 iterations, we get:    • Take log:
+Error                    T5 UV                    1          2𝑅Q?R
+                                678
+                    𝑈S − 𝑈 ≤               𝑁 log      ≥ log
+                               MWT                𝛾         𝜖 1−𝛾
+   • To get error at most 𝜖, we have:                  2𝑅Q?R
+                                                 log
+                                                      𝜖 1−𝛾
+        𝛾 S 2𝑅Q?R                          𝑁=
+                  ≤𝜖                                      1
+          1−𝛾                                        log
+                                                          𝛾
+        𝛾 S 2𝑅Q?R ≤ 𝜖(1 − 𝛾)
+         2𝑅Q?R      1     1 S
+                                        • Terminating condition:
+                 ≤ S=                      • 𝑈XLM − 𝑈X ≤ 𝜖 1 − 𝛾 /𝛾
+        𝜖 1−𝛾      𝛾      𝛾
+                                           • ⇒ 𝑈XLM − 𝑈 ≤ 𝜖
+
+   Markov Decision Process                                                        71
+Computing Optimal Policy
+• Question:
+     • Does an MEU policy based on estimated utilities behave optimally?
+• Definition:
+     • Let 𝜋' be the MEU policy wrt current estimate 𝑈'
+     • Actual utility under this policy: 𝑈 9G 𝑠
+     • Policy loss:
+                          𝑈 9G − 𝑈 = max loss by following 𝜋' instead of 𝜋 ∗ .
+• Error Bound:
+     • If   𝑈' − 𝑈 < 𝜖     then 𝑈 9G − 𝑈 < 2𝜖
+• In practice:
+     • Policies 𝜋' often become optimal long before utilities 𝑈' converge
+Markov Decision Process                                                          72
+Policy Improvement Theorem
+• Let:
+     • 𝑄 9 𝑠, 𝑎 = ∑$H 𝑃 𝑠 % 𝑠, 𝑎 [𝑅 𝑠, 𝑎, 𝑠 % + 𝛾𝑈 9 (𝑠 % ) be the action-utility function of 𝜋 (one-
+       step look-ahead using action 𝑎)
+• Theorem: [Proof in SB 4.2]
+     • For two deterministic policies 𝜋 and 𝜋 % ,if for all 𝑠 ∈ 𝑆:
+                                         𝑄 9 𝑠, 𝜋’(𝑠) ≥ 𝑈 9 𝑠
+     • Then                                                        𝑈 𝑠 = max( 𝑄(𝑠, 𝑎)
+                                     𝑈 9’ 𝑠 ≥ 𝑈 9 𝑠 for all 𝑠 ∈ 𝑆
+
+     • If the inequality is strict for any state 𝑠, then the improvement is also strict for that state.
+
+                                                            Source: Sutton and Barto, 2020 Section 4.2
+Markov Decision Process                                                                                  73
+Policy Improvement theorem – Proof
+• Start with 𝑄I 𝑠, 𝜋 J 𝑠   ≥ 𝑈I (𝑠) and keep expanding the policy
+• 𝑈I 𝑠 ≤ 𝑄I 𝑠, 𝜋 J 𝑠
+• = 𝑅 𝑠 + 𝛾 ∑K# 𝑃 𝑠 J 𝑠, 𝜋 J 𝑠 𝑈I (𝑠)
+• = 𝐸I# 𝑅 𝑆 L + 𝛾𝑈I 𝑆 LMD 𝑆 L = 𝑠
+• ≤ 𝐸I# 𝑅 𝑆 L + 𝛾𝐸I# [𝑅 𝑆 LMD + 𝛾𝑈I 𝑆 LMN 𝑆 LMD]|𝑆 L = 𝑠
+• = 𝐸I# 𝑅 𝑆 L + 𝛾𝑅 𝑆 LMD + 𝛾 N 𝑈I 𝑆 LMN 𝑆 L = 𝑠
+• ≤ 𝐸I# 𝑅 𝑆 L + 𝛾𝑅 𝑆 LMD + 𝛾 N 𝑅 𝑆 LMN + 𝛾 O 𝑈I 𝑆 LMO 𝑆 L = 𝑠
+• ⋮
+• ≤ 𝐸I# 𝑅 𝑆 L + 𝛾𝑅 𝑆 LMD + 𝛾 N 𝑅 𝑆 LMN + 𝛾 O 𝑅 𝑆 LMO + ⋯ 𝑆 L = 𝑠
+        #
+• = 𝑈I (𝑠)
+                                                     #
+• If the first inequality is strict, we have 𝑈I 𝑠 < 𝑈I (𝑠)                                            □
+                                                                    Source: Sutton and Barto, 2018/2020 Section 4.2
+Markov Decision Process                                                                                          74
+

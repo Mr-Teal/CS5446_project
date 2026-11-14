@@ -1,0 +1,798 @@
+  Guided Sequential Decision Making
+  Decision-Time and Demonstration-Based Planning
+
+
+  CS4246/CS5446
+  Reinforcement Learning and Sequential Decision Making
+  Version 1.0
+
+
+
+© Copyright National University of Singapore. All Rights Reserved.
+Topics
+• Decision-Time (Online) Planning
+    • Rollout Online Search
+    • Monte Carlo Tree Search
+         • Upper Confidence Bounds applied to Trees
+• Demonstration-Based (Offline) Planning
+    • Imitation Learning
+
+
+
+
+Decision-Time and Demo-Based Planning                 2
+Handling Curse of Dimensionality
+When full planning or full reinforcement learning (RL) training is Infeasible
+• Decision-time planning:
+    • Online search at runtime
+• Demonstration-based:
+    • Learn from expert data
+• Model-free RL:
+    • Function approximation, policy search
+• Model-based RL:
+    • Learn or use world models (may include human priors)
+• Large Foundation Models (LFMs)-assisted and Human-Guided Planning :
+    • Model creation, task decomposition, heuristics, plan generation
+Decision-Time and Demo-Based Planning                                           3
+ Motivation
+• When Full Planning or Full RL Training is Infeasible:
+Decision-Time Planning                      Demonstration-Based Planning
+When: At runtime                            When: Before runtime
+
+                                            How: Learn from expert demonstrations
+How: Simulate ahead via online search
+                                            (e.g., Imitation Learning,
+(e.g., Rollout, Monte Carlo Tree Search)
+                                            Inverse Reinforcement Learning)
+
+Goal:                                      Goal:
+Choose next best action from current state Pre-learn safe and effective policies
+
+ Decision-Time and Demo-Based Planning                                             4
+Recall: Markov Decision Process (MDP)
+• Formally:
+    • An MDP 𝑀 ≜ 𝑆, 𝐴, 𝑇, 𝑅, γ consists of:
+    • A set 𝑆 of states
+    • A set 𝐴 of actions
+    • A transition function 𝑇: 𝑆×𝐴×𝑆 → [0,1] that satisfies the Markov property such that:
+                       ∀𝑠 ∈ 𝑆, ∀𝑎 ∈ 𝐴: 4 𝑇 𝑠, 𝑎, 𝑠 " = 4 𝑃(𝑠 " |𝑠, 𝑎) = 1
+                                        !"∈$               !"∈$
+
+    • A reward function 𝑅: 𝑆 → ℜ or 𝑅: 𝑆×𝐴 → ℜ or 𝑅: 𝑆×𝐴×𝑆 → ℜ
+    • A discount factor 0 ≤ 𝛾 ≤ 1
+    • Solution is a policy – a function to recommend an action in each state: 𝜋: 𝑆 → 𝐴
+         • Solution involves careful balancing of risk and reward
+Decision-Time and Demo-Based Planning                                                    5
+Decision-Time Planning
+Online Search at Runtime
+
+
+
+
+Decision-Time and Demo-Based Planning   6
+Main Approach
+• Large Markov decision process (MDP):
+    • State space grows exponentially
+    • Offline methods (Value Iteration, Policy Iteration) are infeasible
+• Solution:
+    • Search forward (build search tree) only from current state
+    • Plan just enough to pick the next good action
+    • Avoid full offline policy computation
+
+
+Decision-Time and Demo-Based Planning                                      7
+Recall: Q-Function
+• Q-Function (Action-Utility Function)
+    • State utility 𝑈 𝑠 is defined by the Bellman Optimality Equation.
+    • To select actions, it is useful to evaluate state–action pairs directly.
+• Definition (Bellman Optimality Equation for Q):
+    𝑄(𝑠, 𝑎) = ) 𝑃 𝑠 " 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 " + 𝛾𝑈 𝑠 "       = ) 𝑃 𝑠 " 𝑠, 𝑎 𝑅 𝑠, 𝑎, 𝑠 " + 𝛾max#! 𝑄(𝑠′, 𝑎′)
+                  !"                                      !"
+    • State utility: 𝑈 𝑠 = max# 𝑄(𝑠, 𝑎)
+    • Optimal policy: 𝜋 ∗ 𝑠 = argmax# 𝑄(𝑠, 𝑎)
+• Interpretation:
+    • 𝑄(𝑠, 𝑎) = expected utility of taking action 𝑎 in state 𝑠, then following the optimal policy.
+
+Decision-Time and Demo-                                                                         9
+Based Planning
+      Notes: Utility of States and State Sequences
+Quantity                                      Meaning                                    Over what
+
+𝑈 𝑠! , 𝑠!"#, …   = 𝐺!                         Actual discounted reward sum (return)      One realised state sequence
+
+                                              Expected utility from state 𝑠! under
+𝑈$ 𝑠! = 𝔼 𝐺! ∣ 𝑆! = 𝑠!                                                                   All sequences from 𝑠!
+                                              policy 𝜋
+            ∗
+𝑈 𝑠! = 𝑈$ 𝑠!                                  Optimal expected utility from state 𝑠!     All sequences from 𝑠! following 𝜋 ∗
+
+
+𝑄$ (𝑠! , 𝑎! ) = 𝔼 𝐺! ∣ 𝑆! = 𝑠! , 𝐴! = 𝑎!      Expected utility from (𝑠! , 𝑎! ) under 𝜋   All sequences from (𝑠! , 𝑎! )
+
+
+                  𝑈 𝑠! 𝑠!"# …       = 𝐺!       ⟹     𝑈$ 𝑠! = 𝔼 𝐺! ∣ 𝑆! = 𝑠!          ⟹   𝑈 𝑠! = max𝑈$ 𝑠!
+                                                                                                    $
+                                                𝑄$ 𝑠! 𝑎! = 𝔼 𝐺! ∣ 𝑆! = 𝑠! , 𝐴! = 𝑎!
+
+      Decision-Time and Demo-Based Planning                                                                              10
+Rollout Algorithms
+• For a given state 𝑠:
+    • For each action 𝑎, simulate many trajectories using rollout policy 𝜋
+    • Estimate:
+                            𝑄 4 (𝑠, 𝑎) ≈ average return
+• Decision:
+                                        𝑎∗ = arg max 𝑄 4 (𝑠, 𝑎)
+                                                   6
+• Insight:
+    • One-step policy improvement at decision time
+    • No need to compute full utility (value) function
+
+Decision-Time and Demo-Based Planning                                        11
+    Rollout Online Search
+                                                        • Build search tree from current state
+State node                    Max
+                                                          (depth 𝐷):
+           Average                            Average
+                                                           • State nodes (circles):
+                                                             Agent actions → take max
+     Max                            Max                    • Observation nodes (squares):
+D
+Average                                                      Environment outcomes → take average
+                                                           • Leaves: Utility from sampled rollouts
+                                                        • Backup:
+                                                           • Average → Max → Root → pick best action
+                                Observation node
+    Decision-Time and Demo-                                                                      12
+    Based Planning
+Persy the Mars Rover Adventures …
+• Persy is at a junction (𝑠!) must choose to go Left or Right.
+    • For each action, the rollout algorithm simulates several random
+      future trajectories using a simple policy 𝜋 and records their returns.
+    • It averages these returns to estimate 𝑄 4 (𝑠7 , 𝑎) for each action, then
+      picks the action with the highest estimated return.
+• This gives:
+    • One-step lookahead decision-making without computing the full
+      value function.
+
+
+Decision-Time and Demo-Based Planning                                        13
+   Scenario
+One-step decision at 𝑠&:
+• Actions:
+    • 𝑎" = go Left,      𝑎# = go Right.
+• Rollout policy 𝜋: random thereafter; horizon 𝐻 = 2.
+                                 )
+                               1
+                  𝑄: $ 𝑠&, 𝑎 = = 𝐺'
+                              𝑁
+                                       '(#
+• Sampled returns (3 trajectories per action):
+    • 𝑎" : 𝐺$ = 4, 𝐺% = 6, 𝐺& = 5
+                                4+6+5
+            ⇒ 𝑄/ ' (𝑠( , 𝑎" ) =       = 5.0
+                                  3
+    • 𝑎# : 𝐺$ = 3, 𝐺% = 8, 𝐺& = 2                       First action fixed (why?) à Random rollout actions
+                                3+8+2
+           ⇒ 𝑄/ ' (𝑠( , 𝑎# ) =        = 4.33
+                                  3
+• Choose
+    • 𝑎∗ = arg max) 𝑄/ ' (𝑠( , 𝑎) = 𝑎" .
+
+   Decision-Time and Demo-Based Planning                                                                     14
+Rollout: Strengths and Limitations
+• Strengths
+    • Simple: simulate and average returns
+    • Effective: improves over rollout policy
+    • Flexible: works even with random policy
+    • Parallelizable: independent simulations
+• Limitations
+    • High computation per decision
+    • Accuracy depends on rollout policy quality
+    • Limited by decision-time constraints
+
+Decision-Time and Demo-Based Planning              15
+From Rollout to Monte Carlo Tree Search
+• Rollout:
+    • Simulate many trajectories from current state
+    • Average returns for each action
+    • Choose best action (one-step policy improvement)
+• Monte Carlo Tree Search (MCTS):
+    • Extends rollout with tree expansion and guided sampling
+    • Balances exploration vs exploitation (e.g., Upper Confidence Bound)
+    • Reuses rollout statistics across decisions
+    • Enabled breakthroughs (e.g., AlphaGo)
+• Key Insight:
+    • MCTS = Rollouts + Smart Tree Search → scalable decision-time planning
+
+Decision-Time and Demo-Based Planning                                         16
+Monte Carlo Tree Search
+Online search with simulation
+
+
+
+
+Decision-Time and Demo-Based Planning   17
+Monte Carlo Tree Search
+• Combines tree search with Monte Carlo rollouts
+• Repeatedly simulate trials from the root state 𝑠7:
+     • Selection: follow tree policy (explore vs exploit)
+     • Expansion & Simulation: add new state 𝑠, rollout → sampled return 𝐺%
+     • Backup: propagate results back up the tree
+• Return:
+     • 𝐺% = 𝑅(𝑆% , 𝐴% , 𝑆%&' ) + 𝛾𝐺%&'   : additive discounted rewards from time 𝑡
+• Anytime policy:
+     • Stop when time is up, choose best root action
+• Example (tic-tac-toe):
+     • simulate games from each move, expand promising ones, average returns
+         → estimate utility of each move.
+Decision-Time and Demo-                                                              18
+Based Planning
+MCTS as Online Search in MDPs
+                                                                                     𝑆
+
+
+                                                                                     𝑆′
+
+• Nodes: correspond to states 𝑠
+• Actions: chosen by selection (tree policy) (exploration vs exploitation)
+• Transitions: sample next state 𝑠 > via 𝑃(𝑠 > |𝑠, 𝑎)
+• Estimates: MCTS approximates utility by averaging sampled returns:
+      ? 𝑎): average sampled returns 𝐺? for action 𝑎 at state 𝑠
+    • 𝑄(𝑠,
+      B 𝑠 : average sampled returns 𝐺? for state 𝑠
+    • 𝑈
+• Backup: returns propagate upward along trajectory
+    • 𝐺? 𝑠 = 𝑅 𝑠, 𝑎, 𝑠′ + 𝛾𝐺?@A 𝑠 "          𝐺% : additive discounted rewards from time 𝑡
+• At the root 𝑠7 : choose the best action
+                                              ? D , 𝑎)
+                                 𝑎∗ = arg max 𝑄(𝑠
+Decision-Time and Demo-                     C
+                                                                                         19
+Based Planning
+    Monte Carlo Tree Search
+                              state
+                     action           action
+
+               state                  state
+
+
+
+
+Repeatedly run trials!
+Anytime algorithm!
+
+       (S) Selection (tree) policy                               (Sim) Complete one   (B) Result of the run back
+                                               (E) One or more                        propagated to root in tree
+       applied until reaching leaf node        nodes created     simulation run
+                                                                                      Source: SB Figure 8.10
+    Decision-Time and Demo-Based Planning                                                                      20
+  Upper Confidence Bounds applied to Trees (UCT)
+                 Explores less-visited actions, converges with enough samples
+  • UCT Formula: Selection (tree) policy of UCT1 [2] algorithm at node 𝑛:
+                                                                                           ln(𝑁(𝑠)                             Exploration
+                                           𝜋*+, 𝑛 = argmax(𝑄: s, 𝑎 + 𝑐                              )
+                                                                -                           𝑁(𝑠, 𝑎)
+
+  • Where:                          Exploitation
+          : 𝑎) : estimated utility from averaged returns
+        • 𝑄(s,
+        • 𝑁 𝑠 : number of times state 𝑠 has been visited
+        • 𝑁(𝑠, 𝑎): number of times action 𝑎 was chosen at 𝑠
+        • 𝑐: constant to balance exploration vs exploitation
+                         : 𝑎) —average utility of 𝑠 that starts with action 𝑎
+        • Exploitation: 𝑄(𝑠,
+        • Exploration: Term with 𝑁(𝑠, 𝑎) in denominator —encourages exploring less-visited actions.
+  • Properties
+        • With enough simulations, MCTS+UCT estimates converge: 𝑄(𝑠,: 𝑎) → 𝑄∗(𝑠, 𝑎), 𝑈   I 𝑠 →𝑈 𝑠
+        • In practice: strong performance in games & planning though worst-case efficiency can be poor
+1Levente Kocsis and Csaba Szepesvari. “Bandit based monte-carlo planning". In: European conference on machine learning. Springer. 2006, pp. 282-293.
+  Decision-Time and Demo-
+1Coquelin, P.-A. and R. Munos, Bandit algorithms for tree search, in UAI. 2007, AUAI Press: Vancouver, BC, Canada. p. 67–74.                     21
+  Based Planning
+Notes: Monte Carlo Tree Search
+Algorithm
+
+
+                                        Highest utility or win percentage
+
+
+
+
+                                          Source: RN Figure 5.11
+Decision-Time and Demo-Based Planning                                       22
+Example: Tic-Tac-Toe
+• Scenario
+    • State: X to move, partial board (3 empty cells: TR, ML, BR)
+    • Goal: choose best move by planning ahead using Monte Carlo Tree Search (MCTS)
+• MCTS Steps
+    • Selection — pick a leaf using UCB scores
+    • Expansion — add the node to the tree
+    • Simulation (rollout) — play random to terminal
+    • Backpropagation — update 𝑁, 𝑊, 𝑄 values up the tree
+• UCT formula
+                          () *parent
+    • UCB = 𝑄 + 𝑐                       ,𝑐 = 2
+                            *
+                                child
+
+Decision-Time and Demo-Based Planning                                                 23
+Rollout Progress (Iteration Snapshots)
+• Iteration 1
+    • Expand TR → rollout result: X win (1.0)
+    • Root: 𝑁 = 1, 𝑊 = 1, 𝑄 = 1.00
+• Iteration 2
+    • Expand ML → rollout result: draw (0.5)
+    • Root: 𝑁 = 2, 𝑊 = 1.5, 𝑄 = 0.75
+    • UCB bonus 𝑐 ln 2 ≈ 1.177
+    • UCBTR = 2.177, UCBML = 1.677
+• Iteration 3
+    • Expand BR → rollout result: loss (0.0)
+    • Root: 𝑁 = 3, 𝑊 = 1.5, 𝑄 = 0.50
+    • UCB bonus 𝑐 ln 3 ≈ 1.482
+    • UCBTR = 2.482, UCBML = 1.982, UCBBR = 1.482
+
+Decision-Time and Demo-Based Planning               24
+Example Calculations
+                                                                    Child
+                                                                                    UCBs for next selection
+   Iteration   Action expanded    Rollout result Root 𝑁 𝑊 𝑄 after   updates
+                                                                                    (parent 𝑁)
+                                                                     𝑁𝑊𝑄
+                                                                                    Unvisited: +∞; TR: 1.00
+   0→1         TR (top-right)     Win (1.0)          1 1 1.00       TR 1 1 1.00     + 2 ln 1 /1
+                                                                                    = 1.00) parent 𝑁 = 1)
+                                                                                    TR: 1 + 1.177 = 2.177;
+                                                                                    ML: 0.5 + 1.177 =
+   1→2         ML (middle-left)   Draw (0.5)        2 1.5 0.75      ML 1 0.5 0.50   1.677;
+                                                                                    Unvisited: +∞ (parent
+                                                                                    𝑁 = 2)
+
+                                                                                    TR: 1 + 1.482 = 2.482;
+                                                                                    ML: 0.5 + 1.482 =
+   2→3         BR (bottom-right) Loss (0.0)         3 1.5 0.50      BR 1 0 0.00
+                                                                                    1.982; BR: 0 + 1.482 =
+                                                                                    1.482 (parent 𝑁 = 3)
+
+Decision-Time and Demo-Based Planning                                                                         25
+Example: Persy the Rover Adventures
+                                                                                                                                    !
+                                                                                                                                        ln N (s)
+                                                                                               Selection via UCT:max Q̂(s, a) + c
+                                                                                                                                        N (s, a)
+• Persy is at base 𝑠" with two choices:
+                                                                                                                     a
+
+
+
+
+     • Explore (𝑎$ ) → reward 5, then terminal reward 10                      (UCT balances exploration vs exploitation).
+     • Stay (𝑎% ) → reward 2, then terminal reward 3
+     • Discount factor: 𝛾 = 0.9
+• Selection: At root 𝑠" ,choose action using tree policy                                                             s0
+                                                                                                                    Base
+• Expansion: Add child node if action not fully explored.
+     • Example: Expand “Explore” → new node 𝑠$ .                                           a1 / R=5                                  a2 / R=2
+
+• Simulation: Rollout (sample trajectory) from new node.
+     • Explore: 𝐺( = 5 + 0.9×10 = 14                                                   s1                                                           s2
+                                                                                                                                                   Stay
+     • Stay: 𝐺( = 2 + 0.9×3 = 4.7
+                                                                                     Explore
+
+
+                                                                                                                  a→ = arg maxa Q̂(s0 , a) = a1
+• Backup: Propagate values back to root.
+                                                                                               Decision at s0 :
+                                                                                                                                                          G0 = 2 + 0.9 → 3 = 4.7
+                                                            G0 = 5 + 0.9 → 10 = 14
+                     / ( , 𝑎$ ) = 14, 𝑄(𝑠
+     • Root updates: 𝑄(𝑠              / ( , 𝑎% ) = 4.7
+• Decision: Best root action: Explore (𝑎# )                                                                                              TerminalReward 3
+                                                                             TerminalReward 10
+
+
+
+Decision-Time and Demo-Based Planning                                                                                                                                     26
+Exercise
+• So far, we have left action selection at a node undefined.
+• Q: How should we select an action at a node 𝑛?
+    • Assume a deterministic Markov decision process (MDP):
+    • 𝑃(𝑠 $ |𝑠, 𝑎) is deterministic.
+    • Each node 𝑛 corresponds to a state 𝑠.
+• What if we use a deterministic function 𝑓 𝑠 to pick the action at each node (except the root)?
+    • Then 𝐴 𝑠 = 𝑓 𝑠 is just a fixed policy.
+    • If we also use 𝑓 𝑠 as the rollout policy at the leaves, this becomes plain rollout, offering no improvement
+      over rollout.
+• Better approach:
+    • At each node, explore actions first, then gradually shift to more greedy (exploit) choices , e.g., using:
+         • Upper Confidence Bound (UCB1)
+         • 𝜖-greedy or softmax selection.
+
+
+Decision-Time and Demo-Based Planning                                                                             27
+    Example: Monte Carlo Tree Search in Game
+         Using upper confidence bounds applied to trees (UCT) selection metric
+
+
+B                                                                                                 B
+
+W                                                                                                 W
+
+B                                                                                                 B
+
+                                         (b) Expansion
+               (a) Selection                                               (d) Backup
+                                         (c) Simulation
+
+    Decision-Time and Demo-                                   Adapted from: RN Figure 5.10
+                                                                                             28
+    Based Planning
+AlphaGo Zero
+• Go complexity:                                               • MCTS with UCT variant:
+     • ~10#%" states, branching factor 361
+                                                                                                                 ∑* 𝑁 (𝑠, 𝑏)
+• Solution: Deep neural net with two heads                                            4 𝑎 + 𝑐𝑃(𝑠, 𝑎)
+                                                                    𝜋&'( 𝑠 = arg max (𝑄(𝑠,                                   )
+                                                                                      )                          1 + 𝑁(𝑠, 𝑎)
+     • Value: state value estimate
+                                                                    • Uses policy head priors
+     • Policy: move probabilities
+                                                                    • Value head evaluates leaves (no rollout)
+• Training:
+                                                               • Approximate policy iteration:
+     • AlphaGo Lee: expert games + self-play
+                                                                    • MCTS = policy improvement
+     • AlphaGo Zero: only self-play, defeated AlphaGo
+       Lee 100–0                                                    • Self-play + supervised learning = policy evaluation
+
+• Game setting:
+     • Zero-sum, turn-taking; terminal reward +1 / –1
+
+
+    David Silverand
+Decision-Time    et al. Mastering the game of Go without human knowledge". In: Nature 550.7676 (2017), p. 354.
+                    Demo-                                                                                               29
+Based Planning
+Notes: MCTS in MDPs vs in Games
+Aspect           MCTS in MDPs                              MCTS in Games
+Setting          Single-agent planning under uncertainty   Two-player, zero-sum, turn-taking
+Return 𝐺%        Additive discounted rewards               Win/loss outcome (+1 / –1)
+Utility                 ; 𝑠 = avg of sampled returns
+                        𝑈                                  Expected win rate for current player
+Estimate
+                 Guides exploration–exploitation in MDP    Guides move search with policy priors
+UCT / PUCT
+                 tree                                      (PUCT in AlphaGo Zero)
+Leaf
+                 Rollouts or heuristic estimates           Value network (no rollouts)
+Evaluation
+                                                           Propagate win probabilities
+Backup           Propagate discounted rewards
+                                                           (alternate turns)
+Decision-Time and Demo-Based Planning                                                       30
+Summary: Decision-Time Planning
+• Core Idea:
+    • Plan at runtime by simulating possible futures from the current state,
+      instead of solving the full MDP offline.
+• When Effective:
+    • Large branching factors
+    • Deep search trees
+    • Simulator/model available
+    • Limited real-time budget
+• Key Techniques:
+    • Online search: build shallow trees each step
+    • Monte Carlo Tree Search (MCTS): combine tree search + rollouts
+    • Upper Confidence Bound (UCT): balances exploration vs exploitation
+Decision-Time and Demo-Based Planning                                          31
+Homework
+• Readings
+• Online algorithms, MCTS:
+    • [RN] 17.2.4, 5.4
+    • [SB] 8.10, 8.11
+• MCTS and the UCT algorithm:
+    • Guillaume Chaslot et al. “Monte-Carlo Tree Search: A New Framework for Game AI”. In: AIIDE. 2008
+    • Kocsis, L. and C. Szepesvári, Bandit based Monte-Carlo planning, in Proceedings of the 17th European
+      conference on Machine Learning. 2006, Springer-Verlag: Berlin, Germany. p. 282–293.
+    • Coquelin, P.-A. and R. Munos, Bandit algorithms for tree search, in Proceedings of the Twenty-Third
+      Conference on Uncertainty in Artificial Intelligence. 2007, AUAI Press: Vancouver, BC, Canada. p. 67–74
+    • Levinson, R. (2024). Monte Carlo Tree Search for Integrated Planning, Learning, and Execution in
+      Nondeterministic Python. In Proceedings of the International Conference on Automated Planning and
+      Scheduling (ICAPS). https://icaps24.icaps-conference.org/program/workshops/prl-papers/13.pdf
+• AlphaGo Zero:
+    • David Silver et al. Mastering the game of Go without human knowledge". In: Nature 550.7676 (2017), p. 354.
+Decision-Time and Demo-Based Planning                                                                           32
+Short Videos to Learn MCTS
+• Visualizing MCTS
+    • Clear step-by-step view of selection → expansion → simulation → backprop
+    • Watch on YouTube (by Dave Dyer)
+• Monte Carlo Tree Search Explained Visually
+    • Concise visual animation of how MCTS builds and updates the search tree
+    • Watch on YouTube (by Arxiv Insights)
+• How AlphaZero Uses MCTS
+    • Shows how neural networks + MCTS work together in modern planning
+    • Watch on YouTube (by DeepMind)
+    • David Silver et al. Mastering Chess and Shogi by Self-Play with a General Reinforcement Learning
+      Algorithm, Science, 362(6419), 2018 Read the paper
+• (Optional) AlphaGo Zero (precursor to AlphaZero)
+    • Intro video
+    • David Silver et al. Mastering the game of Go without human knowledge. Nature 550.7676 (2017), p. 354.
+      Read the paper
+
+Decision-Time and Demo-Based Planning                                 Source: ChatGPT 5.0 accessed 14 Sep 2025   33
+Demonstration-Based Planning
+Offline Learning from (Expert) Demonstrations
+
+
+
+
+Decision-Time and Demo-Based Planning           34
+Demonstration-Based Planning
+• Why demonstrations?
+    • Rewards unknown or hard to specify
+    • Exploration unsafe or costly
+    • Experts available to demonstrate good behavior
+• Apprenticeship Learning:
+    • Learn from expert demonstrations
+• Two approaches:
+    • Imitation Learning (IL): learn policy directly
+    • Inverse Reinforcement Learning (IRL): infer reward, then derive policy
+
+Decision-Time and Demo-Based Planning                                          35
+Apprenticeship Learning
+• Assuming observable environment, learning from examples of expert behavior                       Typically, in imitation
+                                                                                                 learning, loss function ℓ is
+•   Imitation Learning (IL)                                                                     chosen  as the negative log-
+                                                                                              likelihood (NLL) of the expert
+      • Direct policy learning: Learns 𝜋(𝑠) directly from 𝐷 − a set of expert demonstrations.  action given the state under
+      • Supervised learning paradigm: No explicit modeling of environment or reward function.           the policy π:
+                                                                                              ℓ(𝜋(𝑠𝑖), 𝑎𝑖) = −log 𝜋(𝑎𝑖 ∣ 𝑠𝑖)
+
+                                          𝜋(𝑠) = argmin @ ℓ(𝜋( 𝑠, ), 𝑎, )
+                                                     +
+                                                             ,
+           where ℓ is the loss function between predicted actions 𝜋 (𝑠, ), and expert actions 𝑎, .
+• Inverse Reinforcement Learning (IRL):
+      • Reward function recovery: Attempts to infer the expert's reward function 𝑅(𝑠, 𝑎).
+      • Policy derivation: Once 𝑅(𝑠, 𝑎) is known, derive the optimal policy 𝜋 ∗ by solving:
+                                               𝜋 ∗ = argmax 𝐸+ ∑. 𝛾 . 𝑅(𝑠, 𝑎)
+                                                         +
+           where 𝛾 is the discount factor.
+Decision-Time and Demo-Based                                                                                       36
+Planning
+Imitation Learning
+
+
+Decision-Time and Demo-Based Planning   37
+Imitation Learning (IL)
+• What is Imitation Learning (IL)?
+    • Learn a policy 𝜋 𝑎|𝑠 by mimicking expert behavior
+    • Use expert state–action pairs (𝑠U , 𝑎U ) as training data
+    • Treat actions as labels → a supervised learning problem
+• Objective:
+       𝜋 ∗ = arg min           3          ℓ 𝜋(𝑠U , 𝑎U )= arg min 3 ℓ 𝜋(𝑠U , 𝑎U )
+                        4                                    4
+                            (VR ,6R )∈X                          U
+
+
+
+
+Decision-Time and Demo-Based Planning                                              38
+Behavioral Cloning (BC)
+• Main idea:
+    • Train a stochastic policy 𝜋Y 𝑎|𝑠 to maximize expert action likelihood
+• Pros: Simple, fast
+• Cons: Covariate shift → compounding errors
+    • Training on expert states only
+    • During execution, agent drifts to unseen states → more mistakes
+
+
+
+Decision-Time and Demo-Based Planning                                     39
+Notes: Behavioral Cloning
+• Objective
+    • Train a stochastic policy 𝜋. (𝑎|𝑠) parameterized by 𝜃 to imitate expert behavior.
+    • Learn from a dataset 𝐷 = {(𝑠' , 𝑎' )} of expert state-action pairs.
+• Optimization Problem
+    • Maximize the likelihood of expert actions under the policy:
+
+                                                   or
+    • Define the loss as the negative log-likelihood:
+
+
+
+    • Equivalent minimization problem
+
+
+
+Decision-Time and Demo-Based Planning                                                     40
+Pitfalls: Why Supervised Learning Fails
+• Supervised Learning Assumption:
+    • Training and test data come from the same distribution (i.i.d.)
+    • Imitation Learning Reality:
+    • Learner's actions change future states → breaks i.i.d. assumption
+Key Challenges:
+• Distribution Mismatch:
+    • States visited during execution differ from expert demonstrations
+                                                                                                                     Figure from DAGGER Thesis1
+• Compounding Errors:
+    • Early mistakes lead to drift into unfamiliar states → more errors
+• Limited Generalization:
+    • Learner may fail to recover in unseen or rare states
+      1Stephane Ross. “Interactive learning for sequential decisions and predictions”. PhDThesis. Carnegie Mellon Univerisity, 2013.
+
+Decision-Time and Demo-Based Planning                                                                                                  41
+DAgger (Dataset Aggregation)
+• Iterative improvement over BC:
+    1.     Train policy on expert demos
+    2.     Execute current policy → collect visited states
+    3.     Ask expert to label those states
+    4.     Aggregate new data and retrain
+• Key ideas:
+    • Trains on states the learner actually visits
+    • Reduces distribution mismatch and improves robustness
+• Variants:
+    • SafeDAgger (safety), DART/SHIV (less expert input)
+    • HG-DAgger (generalization), Agnostic IIL (handles imperfect experts)
+Decision-Time and Demo-Based Planning                                        42
+Notes: Key Equations
+• Dataset update rule
+                                               𝐷,/# = 𝐷, ∪ (𝑠, 𝑎0∗ )
+     • 𝑠: states visited by the current learner policy 𝜋, during rollout
+     • 𝑎0∗ = 𝜋0 𝑠 : expert’s action for state 𝑠, queried from the expert policy 𝜋0
+     • 𝐷, : aggregated dataset up to iteration 𝑖
+• Policy training objective                                                                        Expert action
+                                              𝜋,/# = argmin        @           ℓ(𝜋( 𝑠, ), 𝑎, )
+                                                           +
+                                                                (2" ,)" )∈6"
+     • ℓ: loss funcqon between learner and expert acqons. (e.g. cross-entropy between predicted and expert actions)
+• Key benefits
+     • Incorporates states the learner actually visits
+     • Reduces distribution mismatch
+     • Improves robustness to compounding errors
+  Reference:
+         Ross, S., Gordon, G., & Bagnell, D. (2011). "A Reduction of Imitation Learning and Structured Prediction to No-Regret Online
+         Learning." Proceedings of the 14th International Conference on Artificial Intelligence and Statistics (AISTATS), pp. 627–635.
+Decision-Time and
+         Videos   Demo-Based
+                source:         Planning
+                        https://www.youtube.com/watch?v=V00npNnWzSU (released by the authors)                                        43
+Dagger – Experiment
+• Task:
+     • Train a kart to steer from image input at fixed speed
+     • Goal: complete laps without falling off
+• Performance Metric:
+     • Average number of falls per lap (lower is better)
+• Method:
+     • Expert controls kart via joystick to give
+       demonstrations
+• Results:
+     • DAgger quickly reduces falls to near zero
+     • Supervised degrades due to state distribution drift
+     • SMILe improves moderately but slower than DAgger
+ Source: Ross, S., Gordon, G., & Bagnell, D. (2011). "A Reduction of Imitation Learning and Structured Prediction to No-Regret Online
+ Learning." Proceedings of the 14th International Conference on Artificial Intelligence and Statistics (AISTATS), pp. 627–635.
+         Videos source: https://www.youtube.com/watch?v=V00npNnWzSU (released by the authors)
+Decision-Time and Demo-Based Planning                                                                                                   44
+    Notes: DAgger – Exploit the expert
+                                                            • Use expert policy with some
+                                                              probability 𝛽 to obtain the dataset
+   Expert policy                                            • Decaying 𝛽
+
+
+
+Exploit the
+  expert
+
+
+
+
+                                                                  Select best of the 𝑁 policies
+
+   This method reduces distribution mismatch and improves robustness to errors during execution.
+    Decision-Time and Demo-Based Planning                                                         45
+Summary: Imitation Learning
+• Goal:
+    • Learn behavior from expert actions (no rewards or optimality)
+• Pros:
+    • Simple, effective for automated tasks
+• Cons:
+    • Prone to compounding errors; limited to expert performance – no notion of
+      reward or optimality
+• Main techniques:
+    • Behavioral cloning: supervised policy learning
+    • DAgger: iterative expert corrections
+    • GAIL: adversarial approach (policy vs discriminator)
+
+Decision-Time and Demo-Based Planning                                             46
+Summary: Beyond Full Offline Planning
+and Reinforcement Learning
+• Decision-time planning
+    • Simulate forward at runtime from the current state
+    • Build shallow search trees on demand
+    • Avoid solving the full MDP or training a full RL policy offline
+• Demonstration-based planning
+    • Learn from expert behavior before runtime
+    • Derive policies from demonstrations (e.g. Imitation Learning)
+    • Reduces data and compute cost compared to full RL training
+• Shared Advantage
+    • More sample- and compute-efficient than full offline planning or fully trained RL
+    • Practical for real-time and resource-limited settings
+Decision-Time and Demo-Based Planning                                                     48
+Human Factors and Human-Guided Planning
+• Human input can improve planning efficiency
+• But human decisions are affected by:
+    • Cognitive biases
+    • Judgmental heuristics
+    • Risk-sensitive behavior (→ Prospect theory)
+• Challenge:
+    • Understanding how human factors shape decision-making
+• Future lectures on human-guided decision making:
+    • Game theory – multi-agent decision modeling
+    • Model-based RL – integrating human priors
+    • LFM-assisted planning – with human guidance
+
+Decision-Time and Demo-Based Planning                         49
+Homework
+• Readings:
+    • RN 22.6 (Optional - Apprenticeship Learning)
+• References on Imitation Learning
+    • Agnostic Interactive Imitation Learning: Li, Y., & Zhang, C. (2024). "Agnostic Interactive Imitation Learning: New Theory and
+      Practical Algorithms." Proceedings of the Forty-First International Conference on Machine Learning (ICML)
+    • Gavenski, N., O. Rodrigues and M. Luck (2024). Imitation learning: A survey of learning methods, environments and metrics.
+      arXiv preprint arXiv:2404.19456 http://arxiv.org/abs/2404.19456
+    • Duan, Y., Andrychowicz, M., Stadie, B., Ho, J., Schneider, J., Sutskever, I., Abbeel, P., & Zaremba, W. (2017). "One-Shot
+      Imitation Learning." NeurIPS, 30, 1087–1098.
+    • Hussein, A., M. M. Gaber, E. Elyan and C. Jayne (2017). Imitation learning: A survey of learning methods. ACM Comput. Surv.
+      50(2): Article 21. 10.1145/3054912 https://doi.org/10.1145/3054912 NUS: https://dl-acm-
+      org.libproxy1.nus.edu.sg/doi/pdf/10.1145%2F3054912
+    • Ross, S. (2013). "Interactive Learning for Sequential Decisions and Predictions." Proceedings of the 16th International
+      Conference on Artificial Intelligence and Statistics (AISTATS), pp. 689–697.
+    • Ross, S., Gordon, G., & Bagnell, D. (2011). "A Reduction of Imitation Learning and Structured Prediction to No-Regret Online
+      Learning." AISTATS, 627–635.
+    • Ho, J. and S. Ermon (2016). Generative adversarial imitation learning. Advances in Neural Information Processing Systems.
+      4572–4580. https://proceedings.neurips.cc/paper_files/paper/2016/file/cc7e2b878868cbae992d1fb743995d8f-Paper.pdf
+
+Decision-Time and Demo-Based Planning                                                                                                 50
+Additional References
+References on Imitation Learning based on Dagger: (Chronological)
+    1. DAgger: Ross, S., Gordon, G., & Bagnell, D. (2011). "A Reduction of Imitation Learning and Structured Prediction to
+    No-Regret Online Learning." Proceedings of the 14th International Conference on Artificial Intelligence and Statistics
+    (AISTATS), 627–635.
+    2. Interactive Learning for Sequential Decisions and Predictions: Ross, S. (2013). Interactive learning for sequential
+    decisions and predictions. PhD Thesis, Carnegie Mellon University.
+    3. SafeDAgger: Zhang, J., & Cho, K. (2016). "Query-Efficient Imitation Learning for End-to-End Autonomous Driving."
+    arXiv preprint arXiv:1605.06450.
+    4. SHIV: Laskey, M., Lee, J., Fox, R., Dragan, A. D., & Goldberg, K. (2016). "SHIV: Reducing Supervisor Burden in DAgger
+    Using Support Vectors for Efficient Learning from Demonstrations in High Dimensional State Spaces." IEEE ICRA, 462–
+    469.
+    5. DART: Laskey, M., Staszak, S., Hsieh, W. Y., Mahler, J., Pokorny, F. T., & Goldberg, K. (2017). "DART: Noise Injection for
+    Robust Imitation Learning." CoRL, 143–156.
+    6. Deeply AggreVaTeD: Sun, W., Venkatraman, A., Gordon, G. J., Boots, B., & Bagnell, J. A. (2017). "Deeply AggreVaTeD:
+    Differentiable Imitation Learning for Sequential Prediction." ICML, 3309–3318.
+    7. End-to-End Imitation Learning: Codevilla, F., Müller, M., López, A., Koltun, V., & Dosovitskiy, A. (2018). "End-to-End
+    Driving Via Conditional Imitation Learning." IEEE ICRA, 4693–4700.
+    8. HG-DAgger: Kelly, A., Sidrane, C., Dragan, A. D., & Goldberg, K. (2019). "HG-DAgger: Interactive Imitation Learning
+    with Human Experts." IEEE ICRA, 8077–8083.
+Decision-Time and Demo-Based Planning                                                                                           51
+Some Imitation Learning Software
+Framework             Maintainers         Key Algorithms       Focus                 GitHub
+                                                               Robotics, multi-
+                      NVIDIA / Stanford   BC, BC-RNN,
+robomimic                                                      modal IL & offline    🔗 robomimic
+                      (ARISE)             DAgger-style, GAIL
+                                                               RL
+                                          BC, AIRL, GAIL,      Core IL + IRL on
+imitation             CHAI                                                           🔗 imitation
+                                          DAgger               Gym tasks
+                                                               Large-scale, multi-
+                      Research            BC, DAgger, GAIL-
+X-IL                                                           modal IL              🔗 X-IL
+                      consortium          style
+                                                               (RoboCasa, LIBERO)
+                                          Backend for BC,      General RL
+Stable Baselines3     DLR / Community     DAgger, GAIL         framework             🔗 SB3
+                                          via imitation        supporting IL
+
+
+Decision-Time and Demo-Based Planning                                                              52
+

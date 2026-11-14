@@ -1,0 +1,156 @@
+CS4246 / CS5446 — Tutorial 1 Solutions
+Real World Planning and Acting
+
+ Tutorial Group 28
+ LIN, Tzu-Chun (A0360409H) · Quek Hongqiang Colin (A0182651E)
+
+
+
+Problem 1 — Blocks World
+
+PDDL domain
+
+ (define (domain middle-pop)
+   (:requirements :strips :typing :negative-preconditions)
+
+     (:types
+       thing
+       block - thing)
+
+     (:constants
+       table - thing)
+
+     (:predicates
+       (on ?x - block ?y - thing)
+       (clear ?x - thing))
+
+     (:action move-to-block
+       :parameters (?x - block ?from - thing ?to - block)
+       :precondition (and (on ?x ?from) (clear ?x) (clear ?to))
+       :effect (and (not (on ?x ?from)) (on ?x ?to)
+                    (clear ?from) (not (clear ?to))))
+
+     (:action move-to-table
+       :parameters (?x - block ?from - block)
+       :precondition (and (on ?x ?from) (clear ?x))
+       :effect (and (not (on ?x ?from)) (on ?x table) (clear ?from)))
+ )
+
+
+PDDL problem
+
+ (define (problem middle-pop-instance)
+   (:domain middle-pop)
+
+     (:objects
+       a b c - block)
+
+     (:init
+       (on a b) (on b c) (on c table)
+       (clear a) (clear table))
+
+     (:goal
+       (and (on a c) (on b table) (on c table)))
+ )
+Forward search — search tree
+Progression (forward) search grows a tree of successor states from the initial state S0: nodes are
+states (the stacks), each edge is a grounded action. The goal is reached at depth 3 (green path).
+          depth 0                              depth 1                                           depth 2                                            depth 3
+
+
+                                                                                                                                                    A/C | B
+
+                                                                                                                                                     GOAL
+
+                                                                                                                         move-to-block(A,table,C)
+
+
+                                                                                                                                                    A/B | C
+                                                                                                                         move-to-block(A,table,B)
+
+                                                                                              A | B | C
+                                                                                                                         move-to-block(C,table,A)
+
+                                                                                                                                                    C/A | B
+                                                                                                                         move-to-block(C,table,B)
+                                                                   move-to-table(B,C)
+
+
+
+
+       initial state S0                                                                                                                             C/B | A
+                          move-to-table(A,B)
+           A/B/C                               A | B/C
+
+
+
+
+                                                                  move-to-block(B,C,A)
+
+
+
+
+                                                                                                                       move-to-block(C,table,B)
+                                                                                               B/A | C                                              C/B/A
+
+
+            initial       state         goal     solution edge                move to an already-seen state (pruned)
+
+
+
+
+Plan
+
+ 1. move-to-table(A, B)
+ 2. move-to-table(B, C)
+ 3. move-to-block(A, table, C)
+
+
+
+Problem 2 — Delete-Relaxation Heuristic
+Removing all delete effects is a relaxation: facts only accumulate, so every plan of the original
+problem is still valid, and the relaxed optimal cost is a lower bound on the true optimal cost
+(admissible when solved optimally).
+This fails with negative preconditions or goals. Counterexample:
+
+ Initial state: p
+ Action remove-p:                 precondition: p                effect: not p
+ Goal: not p
+
+ Original: solved by remove-p.
+ Delete-relaxed: the effect "not p" is removed, so p stays true
+                 and "not p" can never be achieved -> unsolvable.
+
+
+
+Problem 3 — Hierarchical Task Planning
+
+A(i) — HLA H1
+ Action(H1,
+   Precond: not A,
+   Effect: A and ~±B)
+
+
+A(ii) — HLA H2
+
+ Action(H2,
+   Precond: not B,
+   Effect: ~+A and ~±C)
+
+
+A(iii) — HLA H3
+
+ Action(H3,
+   Precond: not B and not C,
+   Effect: D and E)
+
+
+B — HLA sequences achieving E (initial: not A and B)
+
+ (i)   H1[P1,P3], H2[P6], H3[P8,P9]     valid
+ (ii) H1[P1,P3], H2[P7], H3[P8,P10]     valid
+ (iii) H1[P1,P2], H2[P4]                invalid   (P4 needs not B)
+ (iv) H1[P1,P2], H2[P5]                 invalid   (P5 needs not B)
+
+ Answer: (i) and (ii) only
+

@@ -1,0 +1,221 @@
+                   CS5446 Tutorial 8 - Group 21
+                 Rajasi Bhushan Barapatre (rajasi.barapatre)
+                  Mukta Ghanashyam Wagle (muktawagle)
+                 Ketaki Kedar Paranjape (ketaki.paranjape)
+                         Thejasree P N (thejasree.pn)
+                                 November 4, 2026
+
+
+Problem 1: Which situations are games?
+A game requires multiple decision-makers whose payoffs depend on one another’s actions.
+   • OPEC members choosing output: Yes. Each country’s output affects prices and the
+     payoffs of other countries.
+
+   • Apple purchasing displays from Samsung: Yes. Since they are competitors, Apple’s
+     purchasing decision and Samsung’s pricing, quantity, or supply decision will be
+     strategic.
+
+   • Nut and bolt manufacturers choosing standards: Yes. Their payoffs depend on
+     whether their standards match.
+
+   • Board setting the CEO’s stock-option plan: No. It becomes a game if there is
+     negotiation from both sides.
+
+   • SIA hiring cabin crew: No. It has only one decision-maker that is SIA.
+
+   • Government deciding whether to build a nuclear plant under demand uncertainty:
+     No. Demand uncertainty is caused by nature, not another strategic decision-maker.
+
+
+Problem 2: Nash equilibria and Pareto optimal
+(a) Prisoner’s Dilemma
+Pure Nash equilibrium: Both players have Testify as a dominant strategy. Therefore the
+only pure Nash equilibrium is:
+
+                              (T, T ) with payoff (−5, −5)
+
+Pareto-optimal outcomes: (T, T ) is Pareto-dominated by (R, R), since both players im-
+prove from −5 to −1. But for (T, R) and (R, T ), none of the players can have a better
+payoff without hurting the other. So, the Pareto-optimal outcomes are:
+
+                                (T, R), (R, T ), (R, R)
+
+                                           1
+(b) Astro versus Bolt
+Pure Nash equilibria: Each player wants to match the other player. Therefore the pure
+Nash equilibria are:
+                                  (B, B) and (D, D)
+Pareto-optimal outcome: (B, B) = (9, 9) gives both players more than every other out-
+come. Therefore the only Pareto-optimal outcome is:
+
+                                            (B, B).
+
+The equilibrium (D, D) = (5, 5) is Pareto-dominated by (B, B).
+
+(c) Matching Pennies
+The row player wants to match; the column player wants to mismatch.
+
+Pure Nash equilibria: None. At every cell, one player can improve by switching.
+
+                                   No pure-strategy NE
+
+    Pareto-optimal outcomes: Because the game is zero-sum, improving one player neces-
+sarily hurts the other. Thus all four pure outcomes are Pareto-optimal:
+
+                              (H, H), (H, T ), (T, H), (T, T ).
+
+Mixed-strategy Nash equilibrium:
+Let:
+                 p = P (Row plays H),             q = P (Column plays H).
+For the row player:
+                           UR (H) = q(1) + (1 − q)(−1) = 2q − 1,
+                           UR (T ) = q(−1) + (1 − q)(1) = 1 − 2q.
+Indifference requires:
+                                                           1
+                               2q − 1 = 1 − 2q      ⇒    q= .
+                                                           2
+By symmetry:
+                                              1
+                                            p= .
+                                              2
+Therefore the mixed strategy is:
+
+                                           1                       1
+                      PR (H) = PR (T ) =     and PC (H) = PC (T ) = .
+                                           2                       2
+
+The expected payoff is:
+                                            (0, 0) .
+
+
+
+
+                                              2
+Problem 3: Battle of the Sexes
+The matrix is:
+                                              Wife: F-1 Wife: Concert
+                          Husband: F-1         (1, 2)       (0, 0)
+                         Husband: Concert      (0, 0)       (2, 1)
+(a) At (F -1, F -1):
+
+   • the husband gets 1, but deviating gives 0
+
+   • the wife gets 2, but deviating gives 0
+
+So neither deviates. At (Concert, Concert):
+
+   • the husband gets 2, but deviating gives 0
+
+   • the wife gets 1, but deviating gives 0
+
+Therefore both are Nash equilibria.
+
+(b) Mixed-strategy Nash equilibrium:
+Let:
+                            p = P (Husband chooses F-1),
+                                  q = P (Wife chooses F-1).
+The husband’s expected utilities are:
+
+                                         UH (F -1) = q,
+
+                                  UH (Concert) = 2(1 − q).
+Indifference requires:
+                                                            2
+                                 q = 2(1 − q)       ⇒     q= .
+                                                            3
+The wife’s expected utilities are:
+
+                                        UW (F -1) = 2p,
+
+                                     UW (Concert) = 1 − p.
+Indifference requires:
+                                                          1
+                                  2p = 1 − p        ⇒   p= .
+                                                          3
+Thus the mixed equilibrium is:
+
+                                         1                       2
+                              PH (F -1) = ,     PH (Concert) =
+                                         3                       3
+
+and
+                                        2                        1
+                             PW (F -1) = ,      PW (Concert) =     .
+                                        3                        3
+(c) Expected utilities at the three equilibria:
+
+                                                3
+                       Equilibrium     Husband utility Wife utility
+                        (F -1, F -1)         1              2
+                    (Concert, Concert)       2              1
+                                             2              2
+                          Mixed              3              3
+
+(d) Mismatch and uniform randomization:
+If each chooses their preferred activity, they mismatch, so the payoff is:
+
+                                            (0, 0) .
+
+If both randomize uniformly, each action profile has probability 1/4.
+Husband’s expected utility:
+                                  1       1        3
+                                    (1) + (2) =      .
+                                  4       4        4
+Wife’s expected utility:
+                                    1      1      3
+                                      (2) + (1) =   .
+                                    4      4      4
+So, uniform randomization gives (3/4, 3/4), but it is not a Nash equilibrium because each
+player could improve by adjusting their probability.
+
+
+Problem 4: Three-Finger Morra
+The payoff matrix for this game:
+
+                                    O:1     O:2     O:3
+                             E : 1 (2, −2) (−3, 3) (4, −4)
+                             E : 2 (−3, 3) (4, −4) (−5, 5)
+                             E : 3 (4, −4) (−5, 5) (6, −6)
+
+There is no pure Nash equilibrium because the players’ best responses cycle. For mixed-
+strategy solution, let:
+                                 pi = P (E chooses i).
+If O chooses 1, E’s expected payoff is:
+
+                                     2p1 − 3p2 + 4p3 .
+
+If O chooses 2:
+                                    −3p1 + 4p2 − 5p3 .
+If O chooses 3:
+                                     4p1 − 5p2 + 6p3 .
+For O to be indifferent, set these equal:
+
+                  2p1 − 3p2 + 4p3 = −3p1 + 4p2 − 5p3 = 4p1 − 5p2 + 6p3 .
+
+Together with:
+                                     p1 + p2 + p3 = 1,
+
+                                              4
+the solution is:
+                                     1             1               1
+                                 p1 = ,        p2 = ,       p3 =     .
+                                     4             2               4
+By symmetry, O uses the same strategy:
+
+                                   1                  1                  1
+                           PO (1) = ,         PO (2) = ,    PO (3) =       .
+                                   4                  2                  4
+
+The value of the game is:
+                                         UE = 0,       UO = 0 .
+So the equilibrium is fair in expectation:
+                   (︃           )︃
+                        1 1 1
+                         , ,         for both players, with expected payoff 0.
+                        4 2 4
+
+
+
+
+                                                   5
+

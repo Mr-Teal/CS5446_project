@@ -1,0 +1,259 @@
+  Course Overview
+  CS4246/CS5446
+  Reinforcement Learning and Sequential Decision Making
+  (AI Planning and Decision Making)
+  Sem 1, AY2026-27
+
+
+
+© Copyright National University of Singapore. All Rights Reserved.
+AI: Building A Rational Agent
+                                                                         Perception
+                                                                          Learning
+                                                                          Modeling
+                                                                         Reasoning
+                                                                     Planning and Acting
+                                                                       Decision Making
+                          Sensing
+
+
+
+
+           Environment   Communicating
+
+
+
+
+                            Acting
+
+
+                                         Agent graphics source: ChatGPT4o, accessed 8 Aug 2024
+
+Overview                                                                                     2
+       New Syllabus
+Week     Topics                                                  Week      Topics
+
+1        Responsible AI Planning and Decision Making             7         Guided Sequential Decision Making (Online)
+         - Agentic AI as Sequential Decision Making                        - Monte Carlo Tree Search and UCT
+         - Foundations of Symbolic AI Planning (Review)                    - Imitation Learning
+
+2        Planning and Acting in Complex Environments             8         Mid-Term Test [7 October 2026]
+         - Heuristics and Hierarchical Planning
+
+3Q       Foundations of Rational Decision Making                 9         Reinforcement Learning – Model-Based
+         - Introduction to Utility Theory and Game Theory                  - Model Learning, Simulated Experience, and World Models
+
+4        Sequential Decision Making under Uncertainty            10        Strategic and Multi-Agent Decision Making
+         - Markov Decision Processes                                       - Noncooperative Game Theory
+         - Reinforcement Learning – Introduction                           - Sequential Games
+5        Reinforcement Learning – Model-Free                     11        Human–AI Alignment
+         - Value Function Approximation and Policy Search                  - Foundation-Model Agents
+         - Actor-Critic Methods                                            - Human, AI, and Verifiable Feedback and Preference Optimization
+6Q       Reinforcement Learning – Model-Free (Guest Lecture)     12 Q*     Current and Future Directions
+         - Advanced Topics
+
+R                                                                13        Project Presentations
+       Overview                                                                                                                       3
+                                                   Q: Quiz week, Q*: Quiz in-class
+       CS3263 Syllabus (for information)
+Week    Topics                                                     Week      Topics
+
+1       Overview and Introduction                                  7         Introduction to Generative Models
+        - Responsible AI, Generative AI, Agentic AI                          - Generative Models, Foundation Models
+        - Human Factors in AI                                                - Planning with Foundation Models
+2       Knowledge Representation                                   8         Mid-Term Test
+        - Logic, Production Systems, Semantic Networks.                      [12 March 2026]
+3Q      Planning                                                   9         Decision Making over Time
+        - Classical Planning, Planning as Search and Inference               - Markov Decision Processes
+4       Representing Uncertainty                                   10        Decision Making with Learning
+        - Bayesian Networks, Conditional Independence                        - Reinforcement Learning
+5       Reasoning under Uncertainty                                11        Decision Making with Limited Resources (Online: NUS WB Day)
+        - Probabilistic Inference, Causal Modeling                           - Constraint Satisfaction Problems, Online Algorithms
+6 Q     Rational Decision Making                                   12 Q*     State of the Art
+        - Decision Analysis, Value of Information                            - Human-AI Alignment, Future of AI and AI for Future
+R                                                                  13        Project Presentations
+       Overview                                     Q: Quiz week        Q*: In-class Quiz                                           4
+Required Background for Enrollment
+• Discrete Structures
+    • Logic, Proofs, Functions, Relations, Recursion, Induction, Combinatorics, Graph Theory
+• Probability and Statistics
+    • Basic probability theory, random variables, Bayes’ Theorem, probability models,
+      information theory, experiment design, hypothesis testing, statistical inference
+• Artificial Intelligence
+    • Knowledge Representation, Reasoning, Learning, Search
+• Linear Algebra and Calculus
+    • Matrices, basic matrix operations, eigenvalues and eigenvectors, derivatives,
+      maximization and minimization
+
+Overview                                                                                       5
+     Teaching Team (Tentative)
+                    Name                               Role
+
+                    LEONG Tze Yun                      Lecturer
+                    VO Thanh Vinh                      Co-Lecturer
+                    CHEN Haoyang                       Tutor
+                    LIM Jingyu                         Tutor
+
+                    NGUYEN Quang Duc                   Tutor
+                    TU Teng                            Tutor
+                    ZENG Yuwei                         Tutor
+
+
+
+Note: Please ask technical and course organization questions through Discussions on CANVAS!
+     Overview                                                                       6
+    Teaching Team – In the New AI Era
+    • Effective and responsible use of:
+        • Generative AI Foundational Models
+        • Search EnginesBe Strategic When you Learn from Them!
+                        Be Aware of the Limitations and Dangers!
+    • Examples:
+        • LLAMA
+        • ChatGPT                 Strictly Adhere to
+        • PaLM    NUS Policy for Use of AI in Teaching and Learning
+        • Gemini             (Released on 7 Aug 2024)!
+        • Claude
+                                                 …
+        •…
+Note: Please attribute References or Sources from Generative AI Models or Search Engines!
+    Overview                                                                        7
+Course Logistics
+• Classes (weekly)
+    • Wednesday                  1830 - 2030         LT16 Lecture
+    • Wednesday, Thursday                            TBA Tutorial
+• Grading policy
+    • Homework, participation                                 10 + 10%
+    • Quizzes                                                 20% (5+5+10)
+    • Test     [1830 to 2030 Wed 7 Oct 2026 in-person]               30%
+    • Project [presentation in week 13; report due Sun 15 Nov 2026] 30%
+    • No final exam for this module!
+Overview                                                                     8
+Registration and Tutorial Appeals
+• Please note that our teaching staff
+    • do not have access to course or tutorial registration systems
+    • do not have the authority to make decisions regarding course or tutorial
+      enrolments.
+• Course registration:
+    • Please submit your appeal through the Undergraduate Office or
+      Postgraduate Office, as appropriate.
+• Tutorial registration:
+    • Kindly refer to the NUS tutorial registration schedule. Appeals should be
+      made through the Tutorial Registration System.
+Overview                                                                          9
+Planned Tutorial Sessions
+• Classes (weekly)
+    • Wednesday      1830 - 2030   LT16        Lecture
+
+    • Wednesday      2030          Tutorials
+
+    • Thursday       1000, 1100    Tutorials
+
+    • Thursday       1400, 1500    Tutorials
+
+
+
+
+Overview                                                 10
+Course Logistics
+• Core Contents
+    • All course materials, videos, and announcements available on Canvas.
+    • In-person lectures may or may not be recorded. If recorded, videos will be on Canvas.
+    • Active participation in Canvas Discussion Forum encouraged (monitored by teaching team).
+• Tutorials and Assignments
+    • Attempt tutorial questions before class; discuss solutions in class.
+    • Tutorial answers submitted in teams of 2–4 students.
+    • Assignments include written questions and Python programming tasks.
+• Project
+    • Guidelines provided in Week 3.
+    • Choose a suggested theme or propose your own topic (teams of 4–6 students).
+    • One-page proposal due after Recess Week.
+Overview                                                                                11
+Tutorials
+• Objective:
+    • Actively participate, understand tutorial solutions deeply, and share helpful examples.
+• Team Submission:
+    • Form teams of 2–4 students to submit one write-up per tutorial.
+    • Clearly include all members' names and student IDs.
+• Deadline:
+    • Submit via Canvas by Wednesday, 6:00 pm, before the next lecture.
+• Grading:
+    • Participation-based—marks given for submission, not for correctness.
+• Sharing:
+    • Selected good submissions will be shared for reference (but are not official model answers).
+Overview                                                                                        12
+Reference Books
+• Main reference book:
+    • (RN) Russell, S. and P. Norvig, Artificial intelligence: A modern approach. 4th ed. (Global ed.) 2021: Pearson. [Kindle Edition]
+      (Alternate: 3rd ed.)
+      [Table of contents for 4th ed.: http://aima.cs.berkeley.edu/contents.html ]
+
+• Reference books:
+    • (GNT) Ghallab, M., Nau, D. and Traverso, P. Automated Planning and Acting. Cambridge University Press, Cambridge, 2016.
+      [Book website: http://projects.laas.fr/planning/ ]
+      [e-Book for personal use: http://projects.laas.fr/planning/book.pdf ]
+
+    • (M) Murphy, K. P. (2023). Probabilistic machine learning: Advanced topics, MIT Press.[Book website: http://probml.github.io/book2]
+
+    • (KWW) Kochenderfer, M. J., Wheeler, T. A. and WRAY, K. H. Algorithms for Decision Making. MIT Press, 2022.
+      [Book website: https://algorithmsbook.com ]
+      [e-Book for personal use: https://algorithmsbook.com/#download ]
+
+    • (SB) Sutton, R. S. and A. G. Barto. Reinforcement Learning: An introduction. 2nd ed. MIT Press, 2018, 2020
+      [Book website: http://incompleteideas.net/book/the-book.html ]
+      [e-Book for personal use: http://incompleteideas.net/book/RLbook2020.pdf ]
+
+Overview                                                                                                                                 13
+Additional Resources
+• You will also find good tutorials, tools, publications at:
+      •   Conference in Uncertainty in Artificial Intelligence (UAI)
+              •   https://www.auai.org
+      •   American Association for Artificial Intelligence Conference (AAAI)
+              •   https://www.aaai.org
+      •   International Joint Conference on Artificial Intelligence (IJCAI)
+              •   https://www.ijcai.org
+      •   Neural Information Processing Systems Conference (NeurIPS)
+              •   https://nips.cc
+      •   International Conference on Learning Representations (ICLR)
+              •   https://iclr.cc
+      •   International Conference on Automated Planning and Scheduling (ICAPS)
+              •   https://www.icaps-conference.org
+      •   International Conference on Autonomous Agents and Multiagent Systems (AAMAS)
+              •   https://www.ifaamas.org
+      •   International Conference on Artificial Intelligence and Statistics (AISTATS)
+              •   https://aistats.org
+      •   …
+
+
+
+Overview                                                                                 14
+Honour Code
+• NUS Code of Student Conduct:
+    (A) Academic, Professional and Personal Integrity
+    (B) Respect for People
+    (C) Respect for and Compliance with the Law and with Campus Policies and
+    Regulations
+    (D) Responsibility towards Maintaining the Campus as a Place Conducive
+    for Learning and Living
+• This module will teach you how to apply and develop powerful
+  Responsible AI technologies for the betterment of humankind
+• If you are unable or unwilling to respect and abide by the Honour
+  code, please DO NOT take this module!
+Overview                                                                  15
+                                            NUS Course Materials:
+                                 Ethical Behaviour and Respecting Copyright
+  All course participants (including permitted guest students) who have
+  access to the course materials on LumiNUS or any approved platforms by
+  NUS for delivery of NUS modules are not allowed to re-distribute the
+  contents in any forms to third parties without the explicit consent from
+  the module instructors or authorized NUS officials
+
+© Copyright National University of Singapore. All Rights Reserved.
+                                                            Examples of Disallowed Actions
+
+                   • No Posting on any websites (except for the materials explicitly
+                     allowed by your lecturer in the respective module)
+                   • No selling of material
+                   • No sharing of questions/answers which could lead to
+                     cheating/plagiarism
+© Copyright National University of Singapore. All Rights Reserved.
+

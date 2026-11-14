@@ -1,0 +1,727 @@
+  Classical Planning
+
+  CS4246/CS5446
+  AI Planning and Decision Making
+  V 4.0
+
+
+
+© Copyright National University of Singapore. All Rights Reserved.
+Types of AI Agents
+
+
+
+
+Classical Planning   2
+Symbolic Agent: Logical Inference
+                        Symbolic AI and Logical Reasoning
+
+
+
+
+                     Source: https://youtu.be/WHCo4m2VOws?si=aXyXVkKwUrHQzRvX
+Classical Planning                                                              3
+Topics
+                                             Planning model and definition language
+         Classical planning model            Factored plan representation
+
+                                             Forward state-space search
+         Planning as search                  Backward search
+
+
+         Planning as logical inference       SATPlan and satisfiability
+
+
+
+         Characteristics of planning         Soundness and completeness
+
+
+                                             Planning frameworks
+         From Classical to Modern Planning   Large foundation model (LFM)-assisted planning
+
+Classical Planning                                                                            4
+                                                                     Example:                    a
+
+
+Classical Planning
+                                                                                             I           b
+                                                                     Plan from I to G:
+                                                                     bàcàe
+                                                                                         d           c       X
+                                                                                             Y
+                                                                                e                    f
+
+• Definition:                                                                    G                       Z
+
+
+     • Find a sequence of actions to achieve a goal in an environment that is:
+           • Discrete
+           • Deterministic             Planning Domain
+           • Static                    Definition Language             Stanford Research
+           • Fully observable                                       Institute Problem Solver
+• Main challenges:
+     •     How to represent the planning problem? – PDDL from STRIPS
+     •     How to search for a solution (plan)? – search and satisfiability
+     •     How to use heuristics to solve for a solution (plan) more efficiently?
+     •     How to use abstraction (hierarchy) to manage complex plans?
+
+Classical Planning                                                                                       5
+     A Bit of History
+• Classical planning – still very useful today!
+    • Also called STRIPS planning
+• What is STRIPS?
+    • STanford Research Institute Problem Solver
+    • R. Fikes and N. Nilsson (1971). STRIPS: a new
+      approach to the application of theorem proving
+      to problem solving. Art. Intell, 2:189-208
+    • Included planning domain definition
+      language(PDDL) for automated planning problems
+• Video:
+    • AI Planning – A*Star and STRIPS by Nils Nelson
+    • https://media.ed.ac.uk/media/1_uhxvxo4a
+
+
+     Classical Planning                                6
+Some Current Challenges
+
+
+
+
+                     https://deepmind-pushworld.github.io/play/
+Classical Planning                                                7
+Planning Model
+STRIPS Planning and PDDL
+
+
+
+
+Classical Planning         8
+Example: Planning Problem Representation
+                                                                              Partial
+                                                                           specifications
+• A classical planning problem
+                     Examples
+
+        State        𝐴𝑡(𝑃1, 𝑆𝐹𝑂) Ù 𝐴𝑡(𝑃2, 𝑆𝐼𝑁)
+
+        Action       𝐴𝑐𝑡𝑖𝑜𝑛(𝐹𝑙𝑦(𝑃1, 𝑆𝐹𝑂, 𝑆𝐼𝑁)
+                     PRECOND: 𝐴𝑡(𝑃1, 𝑆𝐹𝑂) ∧ 𝑃𝑙𝑎𝑛𝑒(𝑃1) ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡(𝑆𝐹𝑂) ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡 (𝑆𝐼𝑁)
+                     EFFECT: ¬𝐴𝑡(𝑃1, 𝑆𝐹𝑂) ∧ 𝐴𝑡(𝑃1, 𝑆𝐼𝑁)
+
+        Goal         ¬𝐴𝑡 𝑃1, 𝑆𝐹𝑂 ∧ 𝐴𝑡 𝑃1, 𝑆𝐼𝑁 ∧ 𝐴𝑡(𝑝 , 𝑆𝐹𝑂) ∧ 𝑃𝑙𝑎𝑛𝑒(𝑝)
+
+
+Classical Planning                                                                          9
+Planning Domain Definition Language (PDDL)
+• Planning Domain Definition                             • Planning Problem Definition
+(define (domain flight_domain)                           (define (problem flight_problem)
+  (:requirements :strips :typing)                          (:domain flight_domain)
+
+  (:types                                                    (:objects
+    plane                                                      P1 P2 - plane
+    airport)                                                   SFO SIN - airport)
+
+  (:predicates                                               (:init
+    (At ?p - plane ?a - airport)                               (At P1 SFO)
+    (Plane ?p - plane)                                         (At P2 SIN)
+    (Airport ?a - airport))                                    (Plane P1)
+                                                               (Plane P2)
+  (:action Fly                                                 (Airport SFO)
+    :parameters (?p - plane ?from - airport ?to - airport)     (Airport SIN))
+    :precondition (and (At ?p ?from)
+                       (Plane ?p)                            (:goal
+                       (Airport ?from) (Airport ?to))          (and (At P1 SIN) (not (At P1 SFP))
+    :effect (and (not (At ?p ?from)) (At ?p ?to))))                 (At ?p SFO) (Plane ?p))))
+
+
+Classical Planning                                                                                  10
+Main Characteristics
+• PDDL:
+     • Standard language for planning, derived from STRIPS; many extensions
+• Logic-based representation:
+     • Compact, lifted form of propositional logic (restricted FOL)
+• Factored state representation:
+     • World described as state variables or fluents
+     • Fluents = properties that change over time
+• Implicit transitions:
+     • Actions define how states change
+     • Other states generated as needed
+• Domain-independent heuristics:
+     • General methods to guide search across different domains
+Classical Planning                                                            11
+State Representation
+• State
+     • A state is a conjunction of ground atomic fluents or a set of fluents that are true.
+     • Ground atomic: a predicate with only constant arguments; function-free.
+     • Examples:
+                     Logical Statement                   Set of Fluents
+
+                     𝐻𝑢𝑛𝑔𝑟𝑦 ∧ 𝑆𝑙𝑒𝑒𝑝𝑦                     𝑆 = {𝐻𝑢𝑛𝑔𝑟𝑦, 𝑆𝑙𝑒𝑒𝑝𝑦}
+                     𝑁𝑒𝑤(𝑃𝑙𝑎𝑛𝑒1) ∧ 𝑆𝑎𝑓𝑒(𝑃𝑙𝑎𝑛𝑒1)          𝑆 = {𝑁𝑒𝑤(𝑃𝑙𝑎𝑛𝑒1), 𝑆𝑎𝑓𝑒(𝑃𝑙𝑎𝑛𝑒1)}
+                     𝐴𝑡(𝑃𝑙𝑎𝑛𝑒1, 𝑆𝐼𝑁) ∧ 𝐴𝑡(𝑃𝑙𝑎𝑛𝑒2, 𝑆𝐹𝑂)   𝑆 = {𝐴𝑡(𝑃𝑙𝑎𝑛𝑒1, 𝑆𝐼𝑁), 𝐴𝑡(𝑃𝑙𝑎𝑛𝑒2, 𝑆𝐹𝑂)}
+
+
+• Database Semantics
+     • Closed-world assumption (CWA): Any fluent not in the set is false.
+           • Example: 𝐹𝑖𝑒𝑟𝑐𝑒(𝐶𝑆3263_𝐿𝑒𝑐𝑡𝑢𝑟𝑒𝑟) is false.
+     • Unique names assumption (UNA): Different constants denote different objects.
+           • Example: 𝑃𝑙𝑎𝑛𝑒1 ≠ 𝑃𝑙𝑎𝑛𝑒2.
+Classical Planning                                                                                12
+                                                                        𝛼 entails 𝛽
+Goal Representation                                                     𝛼 ⊨ 𝛽 iff in every model in
+                                                                        which 𝛼 is true, 𝛽 is also true
+                                                                          𝛼 ⊨ 𝛽 iﬀ 𝑀(𝛼) ⊆ 𝑀(𝛽)
+• Definition:
+     • A goal 𝑔 is a partially specified state, written as a conjunction of literals.
+     • A state 𝑠 satisfies 𝑔 if 𝑠 entails (contains all literals in) 𝑔:
+                                           𝑠⊨𝑔
+• Variables:
+     • Variables in goals are treated as existentially quantified.
+     • Example: 𝐴𝑡 𝑃) , 𝑆𝐼𝑁 ∧ 𝐴𝑡 𝑝, 𝑆𝐹𝑂 ∧ 𝑃𝑙𝑎𝑛𝑒 𝑝
+• Examples:
+     • 𝐻𝑢𝑛𝑔𝑟𝑦 ∧ 𝑆𝑙𝑒𝑒𝑝𝑦 ∧ 𝐵𝑜𝑟𝑒𝑑 ⊨ 𝐻𝑢𝑛𝑔𝑟𝑦 ∧ 𝐵𝑜𝑟𝑒𝑑
+     • 𝐴𝑡 𝐶𝑎𝑟𝑔𝑜) , 𝑆𝐹𝑂 ⊨ 𝐴𝑡 𝑐, 𝑆𝐹𝑂 with substitution {𝑐/𝐶𝑎𝑟𝑔𝑜) }
+• Note: For STRIPS, goals are limited to positive, ground literals (no variables).
+Classical Planning                                                                               14
+Action Schemas and Grounded Actions
+• Action schema
+    • Defines a family of actions with variables (universally quantified).
+• Grounded action
+    • Schema instantiated with concrete objects.
+• Schema Example:
+         𝐴𝑐𝑡𝑖𝑜𝑛(𝐹𝑙𝑦(𝑝, 𝑓𝑟𝑜𝑚, 𝑡𝑜)
+                     Precond: 𝐴𝑡(𝑝, 𝑓𝑟𝑜𝑚) ∧ 𝑃𝑙𝑎𝑛𝑒(𝑝) ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡(𝑓𝑟𝑜𝑚) ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡 (𝑡𝑜)
+                     Effect: ¬𝐴𝑡(𝑝, 𝑓𝑟𝑜𝑚) ∧ 𝐴𝑡(𝑝, 𝑡𝑜))
+• Grounded Examples:
+            𝐴𝑐𝑡𝑖𝑜𝑛(𝐹𝑙𝑦(𝑃1, 𝑆𝐹𝑂, 𝑆𝐼𝑁)
+                     Precond: 𝐴𝑡 𝑃1, 𝑆𝐹𝑂 Ù 𝑃𝑙𝑎𝑛𝑒(𝑃1) ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡(𝑆𝐹𝑂) Ù 𝐴𝑖𝑟𝑝𝑜𝑟𝑡 (𝑆𝐼𝑁)
+                     Effect: ¬𝐴𝑡 𝑃1, 𝑆𝐹𝑂 Ù 𝐴𝑡(𝑃1, 𝑆𝐼𝑁))
+            𝐴𝑐𝑡𝑖𝑜𝑛(𝐹𝑙𝑦(𝑃2, 𝑆𝐼𝑁, 𝑆𝐹𝑂)
+                      Precond: 𝐴𝑡 𝑃2, 𝑆𝐼𝑁 Ù 𝑃𝑙𝑎𝑛𝑒(𝑃2) ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡(𝑆𝐼𝑁) Ù 𝐴𝑖𝑟𝑝𝑜𝑟𝑡 (𝑆𝐹𝑂)
+                      Effect: ¬𝐴𝑡(𝑃2, 𝑆𝐼𝑁) ∧ 𝐴𝑡(𝑃2, 𝑆𝐹𝑂))
+Classical Planning                                                                     15
+Action Effects                                                  𝛼 entails 𝛽
+                                                                𝛼 ⊨ 𝛽 iff in every model in
+                                                                which 𝛼 is true, 𝛽 is also true
+                                                                  𝛼 ⊨ 𝛽 iﬀ 𝑀(𝛼) ⊆ 𝑀(𝛽)
+• Applicability:
+     • Action 𝑎 is applicable in state 𝑠 if:
+                                            𝑠 ⊨ Precond 𝑎
+     • (i.e., 𝑠 entails the precondition of 𝑎 )
+• Execution Result
+     • Executing action 𝑎 in state 𝑠 produces a new state 𝑠 D :
+                              𝑠 D = (𝑠 − 𝐷𝐸𝐿 𝑎 ) ∪ 𝐴𝐷𝐷(𝑎)
+     • DEL(a): fluents made false (negative effects)
+     • ADD(a): fluents made true (positive effects)
+     • New states are generated on demand by applying add and delete lists of an action.
+
+Classical Planning                                                                      17
+Action Execution
+• Current state and available action:
+     𝐴𝑡(𝑃1, 𝑆𝐹𝑂) ∧ 𝑃𝑙𝑎𝑛𝑒(𝑃1) ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡(𝑆𝐹𝑂) ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡 (𝑆𝐼𝑁)
+
+     𝐴𝑐𝑡𝑖𝑜𝑛(𝐹𝑙𝑦(𝑃1, 𝑆𝐹𝑂, 𝑆𝐼𝑁)
+          PRECOND: 𝐴𝑡(𝑃1, 𝑆𝐹𝑂) ∧ 𝑃𝑙𝑎𝑛𝑒(𝑃1) ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡(𝑆𝐹𝑂) ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡 (𝑆𝐼𝑁)
+          EFFECT: ¬𝐴𝑡(𝑃1, 𝑆𝐹𝑂) ∧ 𝐴𝑡(𝑃1, 𝑆𝐼𝑁))
+• Apply action
+           𝐹𝑙𝑦(𝑃1, 𝑆𝐹𝑂, 𝑆𝐼𝑁)
+                                                           𝑠 ! = (𝑠 − 𝐷𝐸𝐿 𝑎 ) ∪ 𝐴𝐷𝐷(𝑎)
+• Remove:
+           𝐴𝑡(𝑃1, 𝑆𝐹𝑂)
+• Add:
+           𝐴𝑡(𝑃1, 𝑆𝐼𝑁)
+• Updated state:
+      𝐴𝑡(𝑃1, 𝑆𝐼𝑁) ∧ 𝑃𝑙𝑎𝑛𝑒(𝑃1) ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡(𝑆𝐹𝑂) ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡 (𝑆𝐼𝑁)
+Classical Planning                                                                       18
+The Frame Problem
+• Challenge:
+     • Specify what changes after an action without restating everything unchanged.
+• In PDDL:
+     • Closed-world assumption: unmentioned facts are false
+     • Fluents have no explicit time reference
+     • Preconditions hold at time 𝑡; effects apply at time 𝑡 + 1
+• Key idea:
+     • Only list changes; all other facts are assumed unchanged.
+Classical Planning                                                           20
+Example: Air Cargo Transport Planning
+                                   SIN)           SIN)
+
+
+                       (SIN)
+                     SIN)
+
+
+
+
+        Planning Domain        Planning Problem   Adapted from source: RN Figure 11.1
+Classical Planning                                                                 21
+Example: Planning Domain in PDDL
+(define (domain air-cargo)
+  (:requirements :strips :typing)
+  (:types plane airport cargo)
+  (:predicates
+    (At ?x - (either plane cargo) ?a - airport)
+    (In ?c - cargo ?p - plane)
+    (Cargo ?c - cargo)
+    (Plane ?p - plane)
+    (Airport ?a - airport))
+ (:action Load
+    :parameters (?c - cargo ?p - plane ?a - airport)
+    :precondition (and (At ?c ?a) (At ?p ?a) (Cargo ?c) (Plane ?p) (Airport ?a))
+    :effect (and (not (At ?c ?a)) (In ?c ?p)))
+  (:action Unload
+    :parameters (?c - cargo ?p - plane ?a - airport)
+    :precondition (and (In ?c ?p) (At ?p ?a) (Cargo ?c) (Plane ?p) (Airport ?a))
+    :effect (and (At ?c ?a) (not (In ?c ?p))))
+  (:action Fly
+    :parameters (?p - plane ?from - airport ?to - airport)
+    :precondition (and (At ?p ?from) (Plane ?p) (Airport ?from) (Airport ?to))
+    :effect (and (not (At ?p ?from)) (At ?p ?to))))
+Classical Planning                                                                 22
+Example: Planning Problem in PDDL
+(define (problem air-cargo-problem)
+  (:domain air-cargo)
+
+   (:objects
+     C1 C2 - cargo
+     P1 P2 - plane
+     SFO SIN - airport)
+
+   (:init
+     (At C1 SFO)
+     (At C2 SIN)
+     (At P1 SFO)
+     (At P2 SIN)
+     (Cargo C1)
+     (Cargo C2)
+     (Plane P1)
+     (Plane P2)
+     (Airport SFO)
+     (Airport SIN))
+
+   (:goal
+     (and (At C1 SIN) (At C2 SFO))))
+
+Classical Planning                     23
+A Possible Plan
+• A solution – How to find it?
+        𝐿𝑜𝑎𝑑(𝐶1, 𝑃x1, 𝑆𝐹𝑂)
+        𝐹𝑙𝑦(𝑃1, 𝑆𝐹𝑂, 𝑆𝐼𝑁)
+        𝑈𝑛𝑙𝑜𝑎𝑑(𝐶1, 𝑃1, 𝑆𝐼𝑁)
+        𝐿𝑜𝑎𝑑(𝐶2, 𝑃2, 𝑆𝐼𝑁)
+        𝐹𝑙𝑦(𝑃2, 𝑆𝐼𝑁, 𝑆𝐹𝑂)
+        𝑈𝑛𝑙𝑜𝑎𝑑(𝐶2, 𝑃2, 𝑆𝐹𝑂)
+• Some caveats
+     • What to do with spurious actions like 𝐹𝑙𝑦(𝑃1, 𝑆𝐼𝑁, 𝑆𝐼𝑁)?
+
+Classical Planning                                                25
+Planning as State-Space Search
+Forward (progression) search
+Backward (regression) search
+
+
+Classical Planning               26
+Planning as State-Space Search
+• Planning as Search:
+     • Mapping: Planning problem → search problem over states.
+     • States: Ground states with binary fluents.
+     • Goal: State that includes all positive goal fluents.
+     • Actions: Ground actions applicable in each state.
+                                                          Initial state
+• Search Tree:
+     • Nodes = states (initial, goal, intermediates)
+     • Edges = actions (state transitions)
+     • Plan = path from initial state to goal state
+• Algorithms:
+     • Forward search (progression)
+     • Backward search (regression)                                Source: RN Figure 11.5
+                                                                                            Goal
+Classical Planning                                                                                 27
+Planning by Forward Search
+• From Start → Goal using Actions
+• Begin at Initial State
+     • If 𝑆𝑡𝑎𝑡𝑒 ⊨ 𝐺𝑜𝑎𝑙 (or 𝐺𝑜𝑎𝑙 ⊆ 𝑆𝑡𝑎𝑡𝑒), you’re done.
+• Find Applicable Actions
+     • Action is applicable if 𝑆𝑡𝑎𝑡𝑒 ⊨ 𝑃𝑟𝑒𝑐𝑜𝑛𝑑(𝑎) (or 𝑃𝑟𝑒𝑐𝑜𝑛𝑑(𝑎) ⊆ 𝑆𝑡𝑎𝑡𝑒).
+• Generate Successor States
+     • Apply effects:
+     • 𝑠′ = (𝑠 − 𝐷𝐸𝐿(𝑎)) ∪ 𝐴𝐷𝐷(𝑎)
+• Move Forward
+     • Pick a successor as the new current state.
+• Key Idea:
+     • March forward by adding what actions give and removing what they take away.
+Classical Planning                                                                   28
+Example                        Forward search:
+                                     Start at 𝑠0 → choose applicable action → update with ADD/DEL
+                                     → reach goal in s1
+• Initial State:
+      • 𝑠0 = 𝐼𝑛(𝐶2, 𝑃1) ∧ 𝐴𝑡(𝑃1, 𝑆𝐹𝑂) ∧ 𝐶𝑎𝑟𝑔𝑜(𝐶2) ∧ 𝑃𝑙𝑎𝑛𝑒(𝑃1) ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡(𝑆𝐹𝑂)
+• Goal:
+      • 𝐴𝑡(𝐶2, 𝑆𝐹𝑂)
+• Relevant Action Schema:
+      Action(𝑈𝑛𝑙𝑜𝑎𝑑 𝑐, 𝑝, 𝑎
+       Precond: 𝐼𝑛 𝑐, 𝑝 ∧ 𝐴𝑡 𝑝, 𝑎 ∧ 𝐶𝑎𝑟𝑔𝑜 𝑐 ∧ 𝑃𝑙𝑎𝑛𝑒 𝑝 ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡 𝑎
+       Effects: 𝐴𝑡(𝑐, 𝑎) ∧ ¬𝐼𝑛(𝑐, 𝑝) )
+                                                                               Substitution
+• Grounded Action:                                                          𝜃 = {𝑐⁄𝐶2 , 𝑎⁄𝑆𝐹𝑂}
+      Action(𝑈𝑛𝑙𝑜𝑎𝑑 𝐶2, 𝑃1, 𝑆𝐹𝑂
+       Precond: 𝐼𝑛 𝐶2, 𝑃1 ∧ 𝐴𝑡 𝑃1, 𝑆𝐹𝑂 ∧ 𝐶𝑎𝑟𝑔𝑜 𝐶2 ∧ 𝑃𝑙𝑎𝑛𝑒 𝑃1 ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡 𝑆𝐹𝑂
+       Effects: 𝐴𝑡(𝐶2, 𝑆𝐹𝑂) ∧ ¬𝐼𝑛(𝐶2, 𝑃1))
+                                                                        𝑠′ = (𝑠 − 𝐷𝐸𝐿(𝑎)) ∪ 𝐴𝐷𝐷(𝑎)
+• New State:
+      • 𝑠1 = 𝐴𝑡(𝐶2, 𝑆𝐹𝑂) ∧ 𝐴𝑡(𝑃1, 𝑆𝐹𝑂) ∧ 𝐶𝑎𝑟𝑔𝑜(𝐶2) ∧ 𝑃𝑙𝑎𝑛𝑒(𝑃1) ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡(𝑆𝐹𝑂)
+
+Classical Planning                                                                               29
+Planning by Backward Search
+• From Goal ← Start by Regressing Goals
+• Begin at Goal Description
+     • If 𝐺𝑜𝑎𝑙 ⊨ 𝐼𝑛𝑖𝑡𝑖𝑎𝑙 𝑆𝑡𝑎𝑡𝑒 (or 𝐼𝑛𝑖𝑡𝑖𝑎𝑙 𝑆𝑡𝑎𝑡𝑒 ⊆ 𝐺𝑜𝑎𝑙), you’re done.
+• Find Relevant Actions
+     • At least one effect matches the goal.
+     • No effect contradicts the goal.
+• Regress the Goal
+     • Replace achieved effects with preconditions:
+     • 𝑃𝑂𝑆 𝑔’ = 𝑃𝑂𝑆 𝑔 – 𝐴𝐷𝐷 𝑎            ∪ 𝑃𝑂𝑆 𝑃𝑟𝑒𝑐𝑜𝑛𝑑 𝑎
+     • 𝑁𝐸𝐺(𝑔’) = (𝑁𝐸𝐺(𝑔) – 𝐷𝐸𝐿(𝑎)) ∪ 𝑁𝐸𝐺(𝑃𝑟𝑒𝑐𝑜𝑛𝑑(𝑎))
+• Move Backward
+     • Pick a predecessor as the new current goal.
+• Key Idea:
+     • Step back in time—replace parts of the goal with what you need to make it true.
+Classical Planning                                                                       30
+                                                Backward search:
+Example                                         Start at goal g → choose relevant action → regress goal
+                                                using ADD/DEL and preconditions → reach initial state s0.
+
+• Initial state:
+     • 𝑠0 = 𝐼𝑛(𝐶2, 𝑃1) ∧ 𝐴𝑡(𝑃1, 𝑆𝐹𝑂) ∧ 𝐶𝑎𝑟𝑔𝑜(𝐶2) ∧ 𝑃𝑙𝑎𝑛𝑒(𝑃1) ∧ 𝐴𝑖𝑟𝑝𝑜𝑟𝑡(𝑆𝐹𝑂)
+• Goal
+     • 𝐴𝑡(𝐶2, 𝑆𝐹𝑂)
+• Relevant action schema
+     • 𝐴𝑐𝑡𝑖𝑜𝑛(𝑈𝑛𝑙𝑜𝑎𝑑(𝑐, 𝑝, 𝑎)                                                          Substitution
+     •   Precond: 𝐼𝑛 𝑐, 𝑝 Ù 𝐴𝑡 𝑝, 𝑎 Ù 𝐶𝑎𝑟𝑔𝑜 𝑐 Ù 𝑃𝑙𝑎𝑛𝑒 𝑝 Ù 𝐴𝑖𝑟𝑝𝑜𝑟𝑡(𝑎)                𝜃 = {𝑐 ⁄𝐶2 , 𝑎⁄𝑆𝐹𝑂}
+     •   Effect: 𝐴𝑡 𝑐, 𝑎 Ù ¬𝐼𝑛(𝑐, 𝑝)
+• New action schema after substitution
+     • 𝐴𝑐𝑡𝑖𝑜𝑛(𝑈𝑛𝑙𝑜𝑎𝑑(𝐶2, 𝑝’, 𝑆𝐹𝑂)
+     •   Precond: 𝐼𝑛 𝐶2, 𝑝’ Ù 𝐴𝑡 𝑝’, 𝑆𝐹𝑂 Ù 𝐶𝑎𝑟𝑔𝑜 𝐶2 Ù 𝑃𝑙𝑎𝑛𝑒 𝑝’ Ù. 𝐴𝑖𝑟𝑝𝑜𝑟𝑡(𝑆𝐹𝑂)
+     •   Effect: 𝐴𝑡 𝐶2, 𝑆𝐹𝑂 Ù¬𝐼𝑛(𝐶2, 𝑝’)                    POS(g’) = (POS(g) – ADD(a)) U POS(Precond(a))
+• Regressed state (new goal)                                NEG(g’) = (NEG(g) – DEL(a)) U NEG(Precond(a))
+     • 𝑔’ = 𝐼𝑛 𝐶2, 𝑝’ Ù 𝐴𝑡 𝑝’, 𝑆𝐹𝑂 Ù 𝐶𝑎𝑟𝑔𝑜 𝐶2 Ù 𝑃𝑙𝑎𝑛𝑒(𝑝’) Ù 𝐴𝑖𝑟𝑝𝑜𝑟𝑡(𝑆𝐹𝑂)
+Classical Planning                                                                                    31
+Notes: Relevant States in Regression
+• Relevant states:
+     • In regression, work with sets of states described by conditions (not single states).
+• State vs. Description:
+     • State: Every fluent has a truth value.
+     • Description: Specifies only some fluents; unmentioned ones can vary.
+• Counts:
+     • 𝑛 fluents → 2R ground states.
+     • 𝑛 fluents → 3R descriptions (positive, negative, or unmentioned).
+• Example:
+     • ¬𝐻𝑢𝑛𝑔𝑟𝑦 ∧ 𝑆𝑙𝑒𝑒𝑝𝑦 = all states where Hungry = False and Sleepy = True;
+       other fluents may be any value.
+Classical Planning                                                                        32
+Notes: Relevant Actions in Regression
+• When is an action relevant?
+     • Can be the last step before achieving the goal.
+     • At least one effect matches (unifies with) a goal literal.
+     • No effect contradicts any goal literal.
+     • Use the most general unifier (MGU) to reduce branching without losing solutions.
+• Regression step: Given goal 𝑔 and action 𝑎:
+     • Remove literals achieved by 𝑎.
+     • Add 𝑎’s preconditions.
+     • Result is a new subgoal 𝑔D .
+                    𝑃𝑜𝑠 𝑔D = 𝑃𝑜𝑠 𝑔 − 𝐴𝑑𝑑 𝑎        ∪ 𝑃𝑜𝑠 𝑃𝑟𝑒 𝑎
+                    𝑁𝑒𝑔 𝑔D = 𝑁𝑒𝑔 𝑔 − 𝐷𝑒𝑙 𝑎        ∪ 𝑁𝑒𝑔 𝑃𝑟𝑒 𝑎
+Classical Planning                                                                    33
+Notes: Another Regression Example
+• Example:
+     • Goal: 𝑔 = 𝐴𝑡 𝐶) , 𝑆𝐹𝑂
+     • Action: 𝑈𝑛𝑙𝑜𝑎𝑑(𝑐, 𝑝, 𝑎)                                              Substitution
+        Precondition: 𝐼𝑛(𝑐, 𝑝) ∧ 𝐴𝑡(𝑝, 𝑎)                                𝜃 = {𝑐 ⁄𝐶1 , 𝑎⁄𝑆𝐹𝑂}
+        Effects: 𝐴𝑡(𝑐, 𝑎)
+• Unify:
+     • 𝐴𝑡(𝐶) , 𝑆𝐹𝑂) with 𝐴𝑡(𝑐, 𝑎) → 𝜃 = {𝑐 ⁄𝐶) , 𝑎 ⁄𝑆𝐹𝑂}
+     • Substituted action: 𝑈𝑛𝑙𝑜𝑎𝑑(𝐶) , 𝑃) , 𝑆𝐹𝑂)
+• Regression:                                     POS(g’) = (POS(g) – ADD(a)) U POS(Precond(a))
+     • Remove 𝐴𝑡(𝐶) , 𝑆𝐹𝑂) (achieved by action).
+     • Add preconditions: {𝐼𝑛(𝐶1, 𝑃1), 𝐴𝑡(𝑃1, 𝑆𝐹𝑂)}.
+     • 𝑔′ = {𝐼𝑛(𝐶1, 𝑃1), 𝐴𝑡(𝑃1, 𝑆𝐹𝑂)}.
+Classical Planning                                                                          34
+Planning as Logical Inference
+Boolean satisfiability and SAT-based planners
+
+
+
+
+Classical Planning                              36
+Planning as Boolean Satisfiability                           If a sentence 𝛼 is true in model m:
+                                                                      m satisfies 𝛼
+                                                                      m is a model of 𝛼
+
+• Main Ideas:                                                Let 𝑀 𝛼 be the set of all models of 𝛼
+
+
+
+     • Convert a planning problem into a propositional formula in
+       Conjunctive Normal Form (CNF).
+           • Example CNF: 𝑃 ∨ 𝑄 ∧ ¬𝑄 ∨ 𝑅 ∨ 𝑆 ∧ ¬𝑅 ∨ ¬𝑃
+     • Check if the formula is satisfiable (truth assignment exists) that
+       corresponds to a valid plan
+                                                               Main idea:
+• Note:                                            Reduced planning to the SAT problem
+
+     • SAT is NP-complete, but modern solvers handle millions of variables.
+     • Uses domain-independent heuristics for efficient search.
+Classical Planning                                                                            37
+The SATPlan Algorithm
+
+
+
+                                 Assignment
+                                 of values to
+                                  variables
+
+
+
+
+                        Source: RN Fig 7.22
+Classical Planning                              38
+Example: Eat a Cake!
+        𝐼𝑛𝑖𝑡          ; % ¬𝐻𝑎𝑣𝑒 𝐶𝑎𝑘𝑒 by Closed world assumption
+                     NotHave(Cake)
+        𝐺𝑜𝑎𝑙(¬𝐻𝑎𝑣𝑒(𝐶𝑎𝑘𝑒) ∧ 𝐸𝑎𝑡𝑒𝑛(𝐶𝑎𝑘𝑒))
+
+        𝐴𝑐𝑡𝑖𝑜𝑛(𝐸𝑎𝑡(𝐶𝑎𝑘𝑒)
+           Precond: 𝐻𝑎𝑣𝑒(𝐶𝑎𝑘𝑒)
+           Effect: ¬𝐻𝑎𝑣𝑒(𝐶𝑎𝑘𝑒) ∧ 𝐸𝑎𝑡𝑒𝑛(𝐶𝑎𝑘𝑒))
+
+        𝐴𝑐𝑡𝑖𝑜𝑛(𝐵𝑎𝑘𝑒(𝐶𝑎𝑘𝑒)
+           Precond: ¬𝐻𝑎𝑣𝑒(𝐶𝑎𝑘𝑒)
+           Effect: 𝐻𝑎𝑣𝑒(𝐶𝑎𝑘𝑒))
+
+Classical Planning                                                39
+Example: Eat a Cake!
+Bounded planning problem with possible solution at n = 2
+• Initial and goal states:
+  (Init)             {}                                 % ¬Have(Cake, 0)
+  (Goal)             ¬Have (Cake, 2) Ù Eaten(Cake, 2)
+• The actions:
+  (Eat)              Eat(cake, 0)   è Have(Cake, 0) Ù¬Have(Cake, 1) Ù Eaten(Cake, 1)
+                     Eat(cake, 1)   è Have(Cake, 1) Ù¬Have(Cake, 2) Ù Eaten(Cake, 2)
+
+  (Bake)             Bake(cake, 0) è ¬Have(Cake, 0) ÙHave(Cake, 1)
+                     Bake(cake, 1) è ¬Have(Cake, 1) ÙHave(Cake, 2)
+
+Classical Planning                                                                     40
+Example: Eat a Cake! (cont.)
+• Successor state axioms : (How fluents can change)
+     Have(Cake, 1) ⇔ (Have(Cake, 0) Ù ¬Eat(Cake, 0)) Ú Bake(Cake, 0)
+     Have(Cake, 2) ⇔ (Have(Cake, 1) Ù ¬Eat(Cake, 1)) Ú Bake(Cake, 1)
+     Eaten(Cake, 1) ⇔ (Eaten(Cake, 0)) Ú Eat(Cake, 0)
+     Eaten(Cake, 2) ⇔ (Eaten(Cake, 1)) Ú Eat(Cake, 1)
+
+• Action exclusion axioms: (Assume not eat and bake at same time!)
+           ¬Eat (Cake, 0) Ú ¬Bake(Cake, 0)
+           ¬Eat (Cake, 1) Ú ¬Bake(Cake, 1)
+
+
+
+
+Classical Planning                                                     41
+SATPlan Summary
+• Frame Problem:
+     • Most actions do not change most fluents.
+     • For 𝑚 actions and 𝑛 fluents:
+     • Naive: one axiom per fluent unaffected by each action → 𝑂(𝑚𝑛) axioms.
+     • Successor-State Axioms:
+     • A clever encoding that handles the frame problem well.
+     • Encode only actions affecting a fluent → 𝑂(𝑛) axioms (longer but fewer)
+• SATPlan
+     • Finds reachable action sequences; returns shortest plan if exists.
+     • Works in fully observable or sensorless settings.
+     • Limits: may include impossible actions; high memory usage.
+Classical Planning                                                           42
+Real-World Applications
+    Domain                     Key Use Case
+
+    Logistics/Manufacturing    Task scheduling. resource management and production planning
+
+    Enterprise                 Business process and work flow planning
+
+    Robotics                   Path planning, autonomous task execution
+
+    Healthcare                 Operating room scheduling, clinical guidelines execution
+
+    Gaming                     NPC behavior and action planning
+
+    Space Missions             Autonomous mission planning
+
+    Real-Time Decision Making Constraints-aware decision support
+
+
+
+Classical Planning                                                                            43
+Notes: Real World Applications
+• Logistics and Manufacturing: scheduling, resource management, production planning
+     • https://www.scitepress.org/Papers/2022/115980/115980.pdf
+     • https://www.sciencedirect.com/science/article/abs/pii/S0169023X25000102
+• Enterprise: AI Planning for Enterprise [IJCAI 2019]
+     • https://www.ijcai.org/proceedings/2019/897
+• Robotics: navigation, manipulation [Nature 2025]
+     •   https://www.nature.com/articles/s41598-025-96614-2
+• Healthcare: operating room scheduling, clinical guidelines execution
+     • https://arxiv.org/abs/2105.02283
+     • https://ceur-ws.org/Vol-3883/paper3_RCRA8.pdf
+• Games: NPC behavior planning
+     • https://ojs.aaai.org/index.php/AIIDE/article/view/18724
+• Space: Mars 2020 scheduler
+     • https://ai.jpl.nasa.gov/public/projects/m2020-scheduler/
+
+
+
+Classical Planning                                                                    44
+                                                                   Making planning
+AIPlanning4EU Project                                           applicable for everyone
+
+
+
+
+        Source: https://www.aiplan4eu-project.eu
+
+
+
+
+                                                         https://github.com/aiplan4eu/unified-planning
+      https://youtu.be/nhO_F9SHEdM?si=-k3_1_bb7P6ZbNmx
+Classical Planning                                                                               45
+Classical Planning   https://www.icaps-conference.org/competitions/   46
+                     Source: https://ipc2023-classical.github.io
+Classical Planning                                                 47
+Classical Planning Summary
+• Goal-directed planning             • Other approaches
+     • STRIPS, PDDL                    • Planning graph – encodes
+                                         constraints, derives heuristics
+• Search-based approaches:
+                                       • Situation calculus – FOL
+     • Forward (progression)             representation of actions
+     • Backward (regression)           • CSP formulation – bounded
+• SAT-based approaches:                  planning problems
+     • Encode as SAT (CNF)             • Partial-order planning – plans
+     • Solved by SATPlan and other       as graphs; supports
+       SAT planners                      parallelism and explainability
+
+Classical Planning                                                         48
+Characteristics of Planning
+• Algorithm Properties
+     • Soundness: All generated plans are valid solutions.
+     • Completeness: If a solution exists, it will be found.
+     • Optimality: Best plan found if admissible heuristics are used.
+• Complexity
+     • PlanSAT: Is there any solution?
+     • Bounded PlanSAT: Is there a solution of length ≤ 𝑘?
+     • Both decidable (finite states); in general, in PSPACE.
+     • Bounded PlanSAT often NP-complete; PlanSAT is in P.
+     • Optimal planning is hard; sub-optimal planning often easier.
+     • In practice: effective heuristics and alternative planning models help
+
+Classical Planning                                                              49
+Modern “Classical” Planning
+
+
+Classical Planning            50
+LLM-Guided PDDL Creation and Refinement
+• Goal
+     • Automate PDDL domain/problem generation and refine models with feedback.
+• Approach
+     • LLM drafts initial PDDL from natural language goals domain and task descriptions
+     • Evaluate generated PDDL in environment.
+     • Iterative refinement via environment testing.
+     • Planner executes final PDDL models.
+• Example
+     • Mahdavi et al., NeurIPS 2024 NeurIPS | GitHub
+     • LLM + feedback loop solves 66% tasks vs GPT-4’s 29% intrinsic planning with CoT
+     • Environment feedback greatly boosts planning success over LLM-only approaches
+     • Planner: Fast Downward (with TextWorld modifications); plans validated with VAL.
+
+Classical Planning                                                                        51
+Task Decomposition & Subgoal Planning
+• Goal
+     • Combine LLM commonsense reasoning with symbolic planners for complex tasks.
+• Approach
+     • LLM decomposes high-level goals into subgoals.
+     • Subgoals encoded in PDDL and solved by planners.
+     • Complex subgoals handled by Monte Carlo Tree Search (MCTS) with LLM policy.
+• Example
+     • Kwon et al., ICRA 2025 ArXiv | Github
+     • Hybrid symbolic + MCTS planning reduces time and boosts scalability (reduces planning
+       time while maintaining competitive success rates vs. baseline).
+     • Planner: PDDL-based symbolic planner (Fast Downward as baseline) + MCTS-based LLM
+       planner for complex subgoals.
+Classical Planning                                                                        53
+Heuristic Generation via LLMs
+• Goal
+     • Leverage LLMs to create domain-specific heuristics for classical planners.
+• Approach
+     • LLM synthesizes Python-coded heuristics from domain specs.
+     • Heuristics plugged into classical planners to guide search.
+• Example
+     • Corrêa et al., 2025 ArXiv
+     • LLM-generated heuristics reduce explored states significantly
+     • Approach outperforms standard domain-independent heuristics.
+     • Planner: Pyperplan using Greedy Best-First Search (GBFS)
+
+
+Classical Planning                                                                  54
+Example: Generalized Planning in PDDL Domains with
+Pretrained Large Language Models (LLMs)
+
+
+
+
+        Source: Silver, T., S. Dan, K. Srinivas, J. B. Tenenbaum, L. Kaelbling and M. Katz (2024). Generalized planning in PDDL domains with
+        pretrained large language models. Proceedings of the AAAI Conference on Artificial Intelligence.
+        https://ojs.aaai.org/index.php/AAAI/article/view/30006
+
+Classical Planning                                                                                                                             55
+Generalized Planning in PDDL Domains with LLMs
+• Goal
+     • Leverage LLMs as generalized planners to learn reusable strategies across PDDL domains.
+• Approach
+     • LLM (GPT-4) prompted with PDDL domain descriptions and two training tasks.
+     • LLM + Chain-of-Thought extracts domain rules and strategies.
+     • LLM generates domain-specific Python programs for new tasks.
+     • Automated debugging refines outputs via re-prompting.
+• Example
+     • Silver et al., AAAI 2024 AAAI
+     • No classical planner used — LLM generated programs directly, compared against classical baselines.
+     • LLM (GPT-4) generalized across 7 PDDL domains with only 2 training tasks; often rivaling or
+       surpassing classical baselines when automated debugging was applied.
+
+Classical Planning                                                                               56
+From Classical to Modern Planning
+• Classical planning remains highly relevant
+     • Crucial in robotics, logistics, space mission planning, game AI, and multi-agent
+       coordination, etc.
+• Scaled via:
+     • Heuristics from relaxed models and abstractions
+     • Hierarchical decomposition (HTNs, HLAs)
+     • Emerging LLM-assisted methods for PDDL model generation, subgoal planning, and
+       heuristic learning
+• Yet real world environments involve uncertainty
+     • Noisy sensors, incomplete information, and stochastic dynamics
+     • Goals often involve trade-offs among preferences, risk, and utility
+• Next topics:
+     • Representation, reasoning, decision making under uncertainty!
+Classical Planning                                                                        57
+Homework
+• Readings:
+     • Classical planning: RN: 11.1, 11.2
+     • SATPlan: RN 7.7.4, 11.2.3
+     • Complexity: RN Chapter 11, Bibliographical and Historical Notes (last page)
+• Reviews:
+     • Search (review): RN 3.3, 3.4, 3.5
+     • Proposition logic and inference (review): RN: 7.3, 7.4, 7.5
+
+
+Classical Planning                                                         58
+

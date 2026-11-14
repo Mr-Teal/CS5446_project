@@ -1,0 +1,109 @@
+Q1 — Ease of Recall
+• Which caused more deaths in Singapore in 2024?
+
+
+• a) Pneumonia ✅
+• b) Road traffic accidents
+
+
+• Answer: Pneumonia ≈ 6081 vs accidents 142 (in 2024)
+
+
+Human Factors                                           18
+Q2 — Representativeness
+• 🤒 You have cough, fever, sore throat.
+• What do you think you most likely have?
+
+    a) COVID-19
+    b) Influenza
+    c) Dengue fever
+    d) Not sure ✅
+
+• Answer:
+    • d) Not sure from these symptoms alone. A familiar symptom pattern may suggest
+      a diagnosis, but prevalence and additional information matter
+
+Human Factors                                                                     19
+Q3 — Recallability Trap
+• 🦈 Scenario A: Shark sighted at Palawan Beach, Sentosa
+• Would you swim there next weekend?
+     a) No
+     b) Yes
+
+
+• 🍜 Scenario B: Mild food poisoning from a well-known restaurant
+• Would you order from there again?
+     a) No
+     b) Yes
+
+
+• Discussion: Vivid recent events may influence perceived risk. Consider current evidence
+  before deciding.
+
+Human Factors                                                                               20
+Q4
+• On your birthday, a generous genie offers you a choice of two gifts:
+    • Gift A: $100,000 in cash.
+    • Gift B: A magical piggy bank that gives you 1 cent on the first day, doubling the amount it gives you
+      each subsequent day for 30 days.
+
+• Which gift would you choose?
+    a) Gift A
+    b) Gift B
+
+
+• Answer: Gift B. After 30 days, the total amount received from the piggy bank is:
+                                  0.01 2!" − 1 = $10,737,418.23
+    • And on the 30th day alone, the piggy bank gives you $5,368,709.12!
+
+Human Factors                                                                                             22
+Q5: Framing Effects
+• Plan A:
+    • This plan will save one of the three camps and continue to care for 2000 patients
+• Plan B: Expected no. of patients saved =2000
+    • This plan has a 1/3 probability of saving all three camps and providing care to all 6000 patients, but
+      has a 2/3 probability of saving no camps and providing no care for any patients
+• Plan C:
+    • This plan will result in the loss of two of the three camps and cutting care for 4000 patients
+• Plan D: Expected no. of patients saved =2000
+    • This plan has a 2/3 probability of resulting in the loss of all three camps and leaving all 6000
+      patients without care, but has a 1/3 probability of losing no camps and leaving no patients without
+      care
+• Now which plan will you choose?
+  (Observation: Majority would choose plan A and Plan D)
+
+Human Factors                                                                                             23
+Q5: Empirical Results and Implications
+• Note that:
+    • The two sets of alternatives are objectively …   Equivalent (A ≈ C, B ≈ D)!
+    • Changing outcome descriptions from entities saved to those lost shift prototypical
+      choice from risk-averse to risk-seeking behavior
+    • Risks concerning perceived gains different from risks concerning perceived losses
+    • Outcomes evaluated relative to neutral reference point in different frames
+    • Prospect Theory – Kahneman and Tversky, 1979 (Nobel prize for Kahneman 2002)
+
+
+
+
+Human Factors                                                                         24
+References
+• Recent Developments in Prospect Theory: (2020-2026)
+    • Ruggeri, K., Alí, S., Berge, M. L., et al. (2020). Replicating patterns of prospect theory for decision under risk. Nature Human
+      Behaviour, 4, 622–633. https://doi.org/10.1038/s41562-020-0886-x.
+    • Brown, A. L., Imai, T., Vieider, F. M., & Camerer, C. F. (2024). Meta-analysis of empirical estimates of loss aversion. Journal of
+      Economic Literature, 62(2), 485–516. https://doi.org/10.1257/jel.20221698.
+    • Yechiam, E., & Zeif, D. (2025). Loss aversion is not robust: A re-meta-analysis. Journal of Economic Psychology, 107,
+      102801. https://doi.org/10.1016/j.joep.2025.102801.
+    • Lampe, I., & Weber, M. (2026). Prospect theory for intertemporal choice. Journal of the European Economic Association, 24(2),
+      701–735. https://doi.org/10.1093/jeea/jvaf037.
+    • Ferguson, L. A., Soukupova, M., Bouret, S., Palminteri, S., & Parkes, S. L. (2026). Reference-point dependent reinforcement
+      learning in humans and rats. Nature Communications, 17, 6934. https://doi.org/10.1038/s41467-026-73623-x.
+    • Smith, M. O., & Zhang, W. (2025). Risk-sensitive theory of mind: Coordinating with agents of unknown bias using cumulative
+      prospect theory. In Proceedings of the 42nd International Conference on Machine Learning (PMLR, Vol. 267, pp. 55999–
+      56017). https://proceedings.mlr.press/v267/smith25b.html.
+
+
+
+
+Human Factors                                                                                                                              41
+
