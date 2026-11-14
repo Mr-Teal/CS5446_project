@@ -32,19 +32,8 @@
     "number": 3,
     "display_url": "https://arxiv.org/abs/2506.01242v2"
   },
-  "course-sdm": {
-    "title": "Sequential decision making under uncertainty",
-    "author": "National University of Singapore School of Computing",
-    "year": "2026",
-    "details": "CS4246/CS5446 course slides. Version 1.0. Semester 1, AY2026/27.",
-    "url": "",
-    "label": "Source",
-    "kind": "Report",
-    "number": 4,
-    "display_url": ""
-  },
   "pomdp": {
-    "number": 5,
+    "number": 4,
     "author": "Kaelbling LP, Littman ML, Cassandra AR",
     "title": "Planning and acting in partially observable stochastic domains",
     "year": "1998",
@@ -53,6 +42,17 @@
     "display_url": "https://www.cassandra.org/arc/papers/aij98.pdf",
     "label": "Planning and acting in partially observable stochastic domains",
     "kind": "JournalArticle"
+  },
+  "rn4": {
+    "number": 5,
+    "author": "Russell S, Norvig P",
+    "title": "Artificial intelligence: a modern approach",
+    "year": "2021",
+    "details": "4th ed., global ed. Harlow (UK): Pearson; 2021. Chapter 17, Making complex decisions.",
+    "url": "",
+    "display_url": "",
+    "label": "Artificial intelligence: a modern approach",
+    "kind": "Book"
   },
   "qmdp": {
     "number": 6,
@@ -153,6 +153,28 @@
     "number": 14,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/blob/7c292af5881b8c81e4ffccb7300de21650c9c0ad/pair_b/docs/evaluation-methods-draft.md"
   },
+  "course-sdm": {
+    "title": "Sequential decision making under uncertainty",
+    "author": "National University of Singapore School of Computing",
+    "year": "2026",
+    "details": "CS4246/CS5446 course slides. Version 1.0. Semester 1, AY2026/27.",
+    "url": "",
+    "label": "Source",
+    "kind": "Report",
+    "number": 15,
+    "display_url": ""
+  },
+  "cutility": {
+    "number": 16,
+    "author": "National University of Singapore School of Computing",
+    "title": "Rational decision making: decision theory, utility theory, and game theory",
+    "year": "2026",
+    "details": "CS4246/CS5446 course slides. Version 3.0. Semester 1, AY2026/27.",
+    "url": "",
+    "display_url": "",
+    "label": "Rational decision making: decision theory, utility theory, and game theory",
+    "kind": "Misc"
+  },
   "course-game": {
     "title": "Game theory",
     "author": "National University of Singapore School of Computing",
@@ -161,11 +183,11 @@
     "url": "",
     "label": "Source",
     "kind": "Report",
-    "number": 15,
+    "number": 17,
     "display_url": ""
   },
   "posg": {
-    "number": 16,
+    "number": 18,
     "author": "Hansen EA, Bernstein DS, Zilberstein S",
     "title": "Dynamic programming for partially observable stochastic games",
     "year": "2004",
@@ -173,6 +195,39 @@
     "url": "https://cdn.aaai.org/AAAI/2004/AAAI04-112.pdf",
     "display_url": "https://cdn.aaai.org/AAAI/2004/AAAI04-112.pdf",
     "label": "Dynamic programming for partially observable stochastic games",
+    "kind": "ConferenceProceedings"
+  },
+  "sarsop": {
+    "number": 19,
+    "author": "Kurniawati H, Hsu D, Lee WS",
+    "title": "SARSOP: efficient point-based POMDP planning by approximating optimally reachable belief spaces",
+    "year": "2008",
+    "details": "In: Robotics: Science and Systems IV; 2008.",
+    "url": "",
+    "display_url": "",
+    "label": "SARSOP: efficient point-based POMDP planning by approximating optimally reachable belief spaces",
+    "kind": "ConferenceProceedings"
+  },
+  "pomcp": {
+    "number": 20,
+    "author": "Silver D, Veness J",
+    "title": "Monte-Carlo planning in large POMDPs",
+    "year": "2010",
+    "details": "In: Advances in Neural Information Processing Systems 23; 2010. p. 2164-72.",
+    "url": "",
+    "display_url": "",
+    "label": "Monte-Carlo planning in large POMDPs",
+    "kind": "ConferenceProceedings"
+  },
+  "despot": {
+    "number": 21,
+    "author": "Somani A, Ye N, Hsu D, Lee WS",
+    "title": "DESPOT: online POMDP planning with regularization",
+    "year": "2013",
+    "details": "In: Advances in Neural Information Processing Systems 26; 2013. p. 1772-80.",
+    "url": "",
+    "display_url": "",
+    "label": "DESPOT: online POMDP planning with regularization",
     "kind": "ConferenceProceedings"
   },
   "course-mf": {
@@ -183,11 +238,11 @@
     "url": "",
     "label": "Source",
     "kind": "Report",
-    "number": 17,
+    "number": 22,
     "display_url": ""
   },
   "bounded-history": {
-    "number": 18,
+    "number": 23,
     "author": "CS5446_project contributors",
     "title": "Bounded history inference with private-stream replay recovery",
     "year": "2026",
@@ -205,7 +260,7 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/blob/92af3ce1ee3a9fb52c6ec9db5d7a88a92b4c0531/docs/drafts/report-evidence-notes.md",
     "label": "Report evidence notes and linked original records",
     "kind": "Report",
-    "number": 19,
+    "number": 24,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/blob/92af3ce1ee3a9fb52c6ec9db5d7a88a92b4c0531/docs/drafts/report-evidence-notes.md"
   },
   "mc-td": {
@@ -216,7 +271,7 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md",
     "label": "Pinned setup results and exclusions",
     "kind": "Report",
-    "number": 20,
+    "number": 25,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/blob/1db35d68638d52353381d13de20addfea58a4d99/pair_b/experiments/mc_td/RESULTS.md"
   },
   "batch": {
@@ -227,11 +282,11 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27",
     "label": "Pinned records manifests and aggregate tables",
     "kind": "Report",
-    "number": 21,
+    "number": 26,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/tree/5e9393ab8537088e8ea6542ce21e11f42218ee15/pair_b/experiments/matches/batch-2026-10-27"
   },
   "later-search": {
-    "number": 22,
+    "number": 27,
     "author": "CS5446_project contributors",
     "title": "Network 1 vs Stockfish D1 evaluation",
     "year": "2026",
@@ -241,6 +296,28 @@
     "label": "Network 1 vs Stockfish D1 evaluation",
     "kind": "Report"
   },
+  "handover1112": {
+    "number": 28,
+    "author": "CS5446_project contributors",
+    "title": "Pair A handover: results and status up to generation-0 self-play",
+    "year": "2026",
+    "details": "2026 Nov 12 [cited 2026 Nov 14]. Branch pair-a/handover-20261112, commit db28b6a; not yet reviewed.",
+    "url": "https://github.com/Mr-Teal/CS5446_project/blob/db28b6a6d3ce0a7314c0dafabf290c1eb666b92f/pair_a_prep/docs/handover_2026-11-12.md",
+    "display_url": "https://github.com/Mr-Teal/CS5446_project/blob/db28b6a6d3ce0a7314c0dafabf290c1eb666b92f/pair_a_prep/docs/handover_2026-11-12.md",
+    "label": "Pair A handover: results and status up to generation-0 self-play",
+    "kind": "InternetSite"
+  },
+  "cmbrl": {
+    "number": 29,
+    "author": "National University of Singapore School of Computing",
+    "title": "Reinforcement learning model-based techniques",
+    "year": "2026",
+    "details": "CS4246/CS5446 course slides. Semester 1, AY2026/27.",
+    "url": "",
+    "display_url": "",
+    "label": "Reinforcement learning model-based techniques",
+    "kind": "Misc"
+  },
   "contributions": {
     "title": "Project contribution records",
     "author": "CS5446_project team",
@@ -249,7 +326,7 @@
     "url": "https://github.com/Mr-Teal/CS5446_project/pull/33",
     "label": "Report discussion and contribution statements",
     "kind": "Report",
-    "number": 23,
+    "number": 30,
     "display_url": "https://github.com/Mr-Teal/CS5446_project/pull/33"
   }
 }
