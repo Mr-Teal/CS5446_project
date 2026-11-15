@@ -1,0 +1,37 @@
+{
+  "name": "long",
+  "hours": 12.2,
+  "start_epoch": 1794670380.420544,
+  "end_epoch": 1794714300.420544,
+  "start": "2026-11-14 23:33:00",
+  "end": "2026-11-15 11:45:00",
+  "waited_minutes": 19.6,
+  "settings": [
+    "--envs",
+    "512",
+    "--steps",
+    "64",
+    "--workers",
+    "8",
+    "--epochs",
+    "2",
+    "--rivals",
+    "self=0.70,past=0.15,greedy=0.10,random=0.05",
+    "--opening",
+    "0",
+    "8",
+    "--eval-opening",
+    "2",
+    "8",
+    "--eval-minutes",
+    "20",
+    "--eval-games",
+    "200",
+    "--snapshot-minutes",
+    "30"
+  ],
+  "learning_rate": [
+    0.0003,
+    3e-05
+  ]
+}

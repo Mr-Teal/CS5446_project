@@ -1,0 +1,67 @@
+{
+  "what": "PPO self-play network for fog-of-war chess: final network of the 12.2-hour run",
+  "file": "final.pt",
+  "sha256": "919e757970be0b51b007d7d8eff746110501026a56fa451099c873e4e8477344",
+  "sha256_of_the_file_named_in_the_match_records": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4",
+  "why_two_hashes": "the original file stored one local folder path (the argument 'resume'); this file is the original saved again with that path made relative. The weights are identical.",
+  "weights_sha256": "5886d1191193e2318138db3c9c3bb62fdfbd440169242335f98d1a771af4d3ab",
+  "weights_sha256_how": "one sha256 over all weights: for each key of the state dict in sorted order, the key's text and then the raw bytes of its tensor",
+  "network": {
+    "blocks": 4,
+    "channels": 64
+  },
+  "parameters": 380386,
+  "updates": 13488,
+  "training_moves": 389487117,
+  "training_arguments_of_the_last_attempt": {
+    "name": "long-3",
+    "minutes": 567.26,
+    "envs": 512,
+    "steps": 64,
+    "workers": 8,
+    "worker_timeout": 300.0,
+    "rivals": {
+      "self": 0.7,
+      "past": 0.15,
+      "greedy": 0.1,
+      "random": 0.05
+    },
+    "opening": [
+      0,
+      8
+    ],
+    "eval_opening": [
+      2,
+      8
+    ],
+    "pool_updates": 50,
+    "pool_size": 24,
+    "epochs": 2,
+    "minibatch": 2048,
+    "lr": 0.000239234,
+    "lr_end": 3e-05,
+    "gamma": 0.995,
+    "lam": 0.95,
+    "clip": 0.2,
+    "entropy": 0.01,
+    "value_coef": 0.5,
+    "shaping": 0.02,
+    "blocks": 4,
+    "channels": 64,
+    "eval_minutes": 20.0,
+    "eval_games": 200,
+    "snapshot_minutes": 30.0,
+    "save_minutes": 5.0,
+    "resume": "runs/long-2/latest.pt",
+    "seed": 2,
+    "device": "mps"
+  },
+  "keys_in_the_file": [
+    "args",
+    "config",
+    "model",
+    "optimizer",
+    "plies",
+    "updates"
+  ]
+}
