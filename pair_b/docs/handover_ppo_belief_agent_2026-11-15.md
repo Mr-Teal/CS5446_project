@@ -61,12 +61,12 @@ The last column is the first PPO agent on the same protocol and seeds (its hando
 | # | Opponent | Scored games | PPO-belief wins-draws-losses | Score [95 %] | Not scored | PPO, for comparison |
 |---|---|---|---|---|---|---|
 | 1 | Material OnePlyBot (one-ply greedy) | 100 | 99-0-1 | 0.990 [0.946, 0.998] | 0 | 0.955 (95-1-4) |
-| 2 | misty v1.6, 5 s a move | | | being played, see the next commit | | 0.100 (1-2-17) |
+| 2 | misty v1.6, 5 s a move | 20 | 3-2-15 | 0.200 [0.081, 0.416] | 0 | 0.100 (1-2-17) |
 | 3a | Policy network, fuzzy board (`policy-conv-fuzzy-r2-s2`) | 97 | 82-0-15 | 0.845 [0.760, 0.904] | 2 failed, 1 at the ply cap | 0.626 (62-0-37) |
 | 3b | Policy network, every board (`policy-conv-gen0r2-s2`) | 100 | 77-2-21 | 0.780 [0.689, 0.850] | 0 | 0.473 (42-5-47) |
 | 4 | PPO, the first agent (`ppo-selfplay-12h`) | 100 | 63-3-34 | 0.645 [0.547, 0.732] | 0 | |
 
-By colour (White / Black): row 1: 49-0-1 / 50-0-0; row 3a: 44-0-3 / 38-0-12;
+By colour (White / Black): row 1: 49-0-1 / 50-0-0; row 2: 1-2-7 / 2-0-8; row 3a: 44-0-3 / 38-0-12;
 row 3b: 46-0-4 / 31-2-17; row 4: 31-1-18 / 32-2-16.
 
 **Protocol.** The first agent's, unchanged. Rows 1, 3 and 4: `pair_c.run_evaluation`, standard start,
@@ -81,8 +81,18 @@ network is the final network of the 5-hour run.
 
 1. **OnePlyBot.** 99 of 100. On the same seeds PPO-belief is +0.035 [-0.010, +0.080] against PPO: no
    difference shown. This opponent is too weak to separate the two.
-2. **misty.** The 20 games were still being played when this file was committed; the result follows in
-   the next commit.
+2. **misty.** PPO-belief loses 15 of 20. It wins games 2, 11, 18 and draws games 3, 9.
+   PPO scored 1-2-17 on the same seeds and settings. The intervals overlap ([0.081, 0.416] and
+   [0.028, 0.301]; Fisher's exact test on games not lost: p = 0.69), so this match does not show that
+   PPO-belief does better against misty than PPO. Neither is close to misty.
+   Misty searched a median of 10,420 iterations a move (15,710 in PPO's match). It was not held back: its own belief
+   was larger in these games (more than 1,000 positions on 44 % of its moves, 28 % in PPO's match), and at
+   equal belief size it searched as much as in PPO's match (median 11,709 against 7,118 iterations for 201 to
+   1,000 positions, 6,817 against 6,955 for 1,001 to 10,000). In game 14 misty's belief reached its cap of
+   16,000,000 positions.
+   Games 14, 19, 20 were moved to processes of their own to end the match sooner, so up to five games ran at a
+   time for a few minutes, where the protocol has three. In those games misty's medians at the two belief sizes above
+   were 11,451 and 5,605 iterations: about the same for the first, somewhat lower for the second (few moves).
 3. **Policy network.** PPO-belief is ahead of it with both checkpoints. **Both rows contain repeated
    games, row 3a most of all**, as the first agent's row 3a did:
    - Row 3a. The fuzzy-board network always plays its most likely move. PPO-belief won one short
@@ -163,7 +173,8 @@ about 0.1.
 | After pruning and repair every kept position fits the player's view | Checked with `matches` on every turn of 120 games with caps of 4 and 64 |
 | The agent sees under Teal's rules what it saw in training (`tests/test_teal_parity.py`) | 6,000 plies of random games, 6,000 more with a cap of 8 (1,176 repairs), and three fixed lines with en passant and castling: the 32 planes, the legal moves and the game end agree with the training environment, under `teal` and `standin` rules |
 | Code state of rows 1, 3 and 4 | Every chunk's `provenance.json`: commit `ca3993c`, clean status, the checkpoint hashes |
-| Recount | Every arm recounts from `games.jsonl` with the first agent's `scripts/recount.py` |
+| Recount | Every arm recounts from `games.jsonl` with the first agent's `scripts/recount.py`. The 20 misty games were replayed move by move with python-chess (the first agent's `scripts/recount_misty.py`): 3-2-15 |
+| Misty's rules against Teal's rules | 1,942 positions compared in the 20 games: no difference |
 | This folder | In a checkout of this branch, with the sampler built from the repository's own `inference.cpp`, the 39 tests pass and the three example matches replay the recorded games 1 and 2 move for move |
 
 ## 5. How to run the PPO-belief agent
@@ -274,7 +285,7 @@ on PYTHONPATH; `training/scripts-as-run/run_long.py` has the recipe of the 5-hou
 | Network | `checkpoints/ppo-belief-5h/final.pt`, facts and hashes in `summary.json` beside it |
 | Example configurations | `configs/` |
 | Records of every game of section 2 | `results/*.tar.gz`: one folder per arm, the runner's files per chunk (`evaluate_config.ini`, `games.jsonl`, `provenance.json`, `summary.json`). `tracker_updates.jsonl` is left out; the same rows are inside `games.jsonl` |
-| One row per game, all arms | `results/all_games.csv` (400 games); arm totals in `results/results.json` |
+| One row per game, all arms | `results/all_games.csv` (420 games); arm totals in `results/results.json` |
 | Scripts | `scripts/make_configs.py`, `run_arm.py`, `different_games.py`; the recount scripts are the first agent's |
 | Tests | `tests/test_teal_parity.py` (12), `tests/training/` (27) |
 | Training results | `training/half_hourly_matches.jsonl`, `other_matches.json` (every other match of section 3), `final-summary.txt` (the numbers of section 3), `final-network-matches.tar.gz` (the games of the final network's direct matches and 400-game matches), `training-logs.tar.gz`, `belief-plan.json`, `belief-attempts.jsonl` |

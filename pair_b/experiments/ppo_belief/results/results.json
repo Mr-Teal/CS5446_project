@@ -137,5 +137,38 @@
     "team_commit": "ca3993c6667fba254921d9347f566a88f74909f7",
     "failed_games": [],
     "failed_side": null
+  },
+  "belief-vs-misty-v1.6": {
+    "player_a": "PPO self-play network with belief input (the harness calls it 'ours')",
+    "player_b": "misty v1.6, 5 s a move",
+    "game_rows": 20,
+    "scored": 20,
+    "wins": 3,
+    "draws": 2,
+    "losses": 15,
+    "score": 0.2,
+    "wilson95": [
+      0.0806563532712,
+      0.41602172202575993
+    ],
+    "as_white": [
+      1,
+      2,
+      7
+    ],
+    "as_black": [
+      2,
+      0,
+      8
+    ],
+    "failed_games": [],
+    "terminations": {
+      "king_capture": 18,
+      "threefold_repetition": 2
+    },
+    "plies_median": 96.5,
+    "misty_search_iterations_median": 10420.0,
+    "misty_move_call_ms_median": 5466.116958006751,
+    "rule_positions_compared": 1942
   }
 }
