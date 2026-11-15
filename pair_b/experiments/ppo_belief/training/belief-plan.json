@@ -1,0 +1,38 @@
+{
+  "name": "belief",
+  "hours": 5.0,
+  "start_epoch": 1794725009.972096,
+  "end_epoch": 1794743009.972096,
+  "start": "2026-11-15 14:43:29",
+  "end": "2026-11-15 19:43:29",
+  "waited_minutes": 0.0,
+  "settings": [
+    "--envs",
+    "512",
+    "--steps",
+    "64",
+    "--workers",
+    "10",
+    "--epochs",
+    "2",
+    "--rivals",
+    "self=0.70,past=0.15,greedy=0.10,random=0.05",
+    "--opening",
+    "0",
+    "8",
+    "--eval-opening",
+    "2",
+    "8",
+    "--eval-minutes",
+    "20",
+    "--eval-games",
+    "200",
+    "--snapshot-minutes",
+    "30"
+  ],
+  "learning_rate": [
+    0.0003,
+    0.00018934426229508196
+  ],
+  "learning_rate_schedule_hours": 12.2
+}

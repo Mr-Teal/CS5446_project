@@ -1,0 +1,174 @@
+{
+  "belief-vs-oneply-material": {
+    "player_a": "PPO self-play network with belief input (final network of the 5-hour run; own belief sampler, no search; move choice: sample)",
+    "player_b": "Material OnePlyBot (particle tracker)",
+    "game_rows": 100,
+    "scored": 100,
+    "wins": 99,
+    "draws": 0,
+    "losses": 1,
+    "score": 0.99,
+    "wilson95": [
+      0.9455124752390653,
+      0.9982326134344526
+    ],
+    "as_white": [
+      49,
+      0,
+      1
+    ],
+    "as_black": [
+      50,
+      0,
+      0
+    ],
+    "capped": [],
+    "terminations": {
+      "king_capture": 100
+    },
+    "plies_median": 47.0,
+    "score_if_failed_games_count_against_the_failing_side": "99-0-1 of 100, score 0.990 [0.946, 0.998]",
+    "team_commit": "ca3993c6667fba254921d9347f566a88f74909f7",
+    "failed_games": [],
+    "failed_side": null
+  },
+  "belief-vs-policy-fuzzy": {
+    "player_a": "PPO self-play network with belief input (final network of the 5-hour run; own belief sampler, no search; move choice: sample)",
+    "player_b": "Policy network, no search (fuzzy board, 56,437 positions, seed 2)",
+    "game_rows": 100,
+    "scored": 97,
+    "wins": 82,
+    "draws": 0,
+    "losses": 15,
+    "score": 0.845360824742268,
+    "wilson95": [
+      0.7604187140830996,
+      0.9039896253323798
+    ],
+    "as_white": [
+      44,
+      0,
+      3
+    ],
+    "as_black": [
+      38,
+      0,
+      12
+    ],
+    "capped": [
+      35
+    ],
+    "terminations": {
+      "king_capture": 97
+    },
+    "plies_median": 10,
+    "score_if_failed_games_count_against_the_failing_side": "84-0-15 of 99, score 0.848 [0.765, 0.906]",
+    "team_commit": "ca3993c6667fba254921d9347f566a88f74909f7",
+    "failed_games": [
+      19,
+      63
+    ],
+    "failed_side": "player_b's tracker"
+  },
+  "belief-vs-policy-every-board": {
+    "player_a": "PPO self-play network with belief input (final network of the 5-hour run; own belief sampler, no search; move choice: sample)",
+    "player_b": "Policy network, no search (every board, 56,437 positions, seed 2)",
+    "game_rows": 100,
+    "scored": 100,
+    "wins": 77,
+    "draws": 2,
+    "losses": 21,
+    "score": 0.78,
+    "wilson95": [
+      0.6892946528499969,
+      0.849988254963442
+    ],
+    "as_white": [
+      46,
+      0,
+      4
+    ],
+    "as_black": [
+      31,
+      2,
+      17
+    ],
+    "capped": [],
+    "terminations": {
+      "king_capture": 98,
+      "threefold_repetition": 2
+    },
+    "plies_median": 44.5,
+    "score_if_failed_games_count_against_the_failing_side": "77-2-21 of 100, score 0.780 [0.689, 0.850]",
+    "team_commit": "ca3993c6667fba254921d9347f566a88f74909f7",
+    "failed_games": [],
+    "failed_side": null
+  },
+  "belief-vs-ppo": {
+    "player_a": "PPO self-play network with belief input (final network of the 5-hour run; own belief sampler, no search; move choice: sample)",
+    "player_b": "PPO self-play network (final network of the 12.2-hour run; no belief, no search; move choice: sample)",
+    "game_rows": 100,
+    "scored": 100,
+    "wins": 63,
+    "draws": 3,
+    "losses": 34,
+    "score": 0.645,
+    "wilson95": [
+      0.5474421458241865,
+      0.731829360007773
+    ],
+    "as_white": [
+      31,
+      1,
+      18
+    ],
+    "as_black": [
+      32,
+      2,
+      16
+    ],
+    "capped": [],
+    "terminations": {
+      "king_capture": 97,
+      "threefold_repetition": 3
+    },
+    "plies_median": 75.0,
+    "score_if_failed_games_count_against_the_failing_side": "63-3-34 of 100, score 0.645 [0.547, 0.732]",
+    "team_commit": "ca3993c6667fba254921d9347f566a88f74909f7",
+    "failed_games": [],
+    "failed_side": null
+  },
+  "belief-vs-misty-v1.6": {
+    "player_a": "PPO self-play network with belief input (the harness calls it 'ours')",
+    "player_b": "misty v1.6, 5 s a move",
+    "game_rows": 20,
+    "scored": 20,
+    "wins": 3,
+    "draws": 2,
+    "losses": 15,
+    "score": 0.2,
+    "wilson95": [
+      0.0806563532712,
+      0.41602172202575993
+    ],
+    "as_white": [
+      1,
+      2,
+      7
+    ],
+    "as_black": [
+      2,
+      0,
+      8
+    ],
+    "failed_games": [],
+    "terminations": {
+      "king_capture": 18,
+      "threefold_repetition": 2
+    },
+    "plies_median": 96.5,
+    "misty_search_iterations_median": 10420.0,
+    "misty_move_call_ms_median": 5466.116958006751,
+    "rule_positions_compared": 1942
+  }
+}
