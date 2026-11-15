@@ -1,0 +1,1698 @@
+{
+  "matches-against-the-team-bots": {
+    "final-vs-stockfish-d1-400-seed1": {
+      "a": "ppo",
+      "b": "stockfish-d1",
+      "mode": "sample",
+      "games": 399,
+      "errors": 1,
+      "ppo_wins": 194,
+      "draws": 10,
+      "ppo_losses": 195,
+      "score_a": {
+        "mean": 0.5,
+        "ci95": [
+          0.44472361809045224,
+          0.5527638190954773
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.4311918730277055,
+          0.5688081269722945
+        ],
+        "complete_pairs": 199,
+        "incomplete_pairs": 1,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "end_reasons": {
+        "king_capture": 389,
+        "threefold_repetition": 10
+      },
+      "plies_mean": 62.99749373433584,
+      "seconds_per_game_mean": 13.58421052631579,
+      "checkpoint": "runs/belief-1/final.pt",
+      "checkpoint_sha256": "dd48fc11d1305b3b04f4c75dbab5c12424b992dc6bc05b8c6ddfc598d2c52c5d",
+      "settings": {
+        "games": 400,
+        "seed": 1,
+        "max_plies": 200,
+        "particles": 256,
+        "guesses": 8,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 6
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 20:00:01",
+      "seconds": 915.4
+    },
+    "hour-04-vs-stockfish-d1-400-seed1": {
+      "a": "ppo",
+      "b": "stockfish-d1",
+      "mode": "sample",
+      "games": 400,
+      "errors": 0,
+      "ppo_wins": 198,
+      "draws": 11,
+      "ppo_losses": 191,
+      "score_a": {
+        "mean": 0.50875,
+        "ci95": [
+          0.45746875000000004,
+          0.56
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.43995627553622507,
+          0.5772139312470682
+        ],
+        "complete_pairs": 200,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "end_reasons": {
+        "king_capture": 389,
+        "threefold_repetition": 11
+      },
+      "plies_mean": 62.7,
+      "seconds_per_game_mean": 21.690749999999998,
+      "checkpoint": "runs/belief-hourly/hour-04.pt",
+      "checkpoint_sha256": "f855cc37c9f42641f8d1d000cdb0bca0bd0ce3804d47cae9b75ead0c56019d87",
+      "settings": {
+        "games": 400,
+        "seed": 1,
+        "max_plies": 200,
+        "particles": 256,
+        "guesses": 8,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 6
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 19:45:00",
+      "seconds": 1495.5
+    },
+    "final-vs-material": {
+      "a": "ppo",
+      "b": "material",
+      "mode": "sample",
+      "games": 100,
+      "errors": 0,
+      "ppo_wins": 96,
+      "draws": 2,
+      "ppo_losses": 2,
+      "score_a": {
+        "mean": 0.97,
+        "ci95": [
+          0.94,
+          0.995
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.8798918790565271,
+          0.9930413767755752
+        ],
+        "complete_pairs": 50,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "end_reasons": {
+        "king_capture": 98,
+        "threefold_repetition": 2
+      },
+      "plies_mean": 56.66,
+      "seconds_per_game_mean": 15.497,
+      "checkpoint": "runs/belief-hourly/final.pt",
+      "checkpoint_sha256": "dd48fc11d1305b3b04f4c75dbab5c12424b992dc6bc05b8c6ddfc598d2c52c5d",
+      "settings": {
+        "games": 100,
+        "seed": 0,
+        "max_plies": 200,
+        "particles": 256,
+        "guesses": 8,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 19:51:12",
+      "seconds": 418.1
+    },
+    "final-vs-random": {
+      "a": "ppo",
+      "b": "random",
+      "mode": "sample",
+      "games": 100,
+      "errors": 0,
+      "ppo_wins": 100,
+      "draws": 0,
+      "ppo_losses": 0,
+      "score_a": {
+        "mean": 1.0,
+        "ci95": null,
+        "degenerate": true,
+        "note": "every pair scored the same, so the bootstrap would collapse to a point",
+        "wilson95": [
+          0.9286523998213857,
+          1.0
+        ],
+        "complete_pairs": 50,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "end_reasons": {
+        "king_capture": 100
+      },
+      "plies_mean": 31.78,
+      "seconds_per_game_mean": 0.007000000000000001,
+      "checkpoint": "runs/belief-hourly/final.pt",
+      "checkpoint_sha256": "dd48fc11d1305b3b04f4c75dbab5c12424b992dc6bc05b8c6ddfc598d2c52c5d",
+      "settings": {
+        "games": 100,
+        "seed": 0,
+        "max_plies": 200,
+        "particles": 256,
+        "guesses": 8,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 19:44:14",
+      "seconds": 6.0
+    },
+    "final-vs-stockfish-d1": {
+      "a": "ppo",
+      "b": "stockfish-d1",
+      "mode": "sample",
+      "games": 100,
+      "errors": 0,
+      "ppo_wins": 40,
+      "draws": 2,
+      "ppo_losses": 58,
+      "score_a": {
+        "mean": 0.41,
+        "ci95": [
+          0.315,
+          0.51
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.2848909933160929,
+          0.5479515747160576
+        ],
+        "complete_pairs": 50,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "end_reasons": {
+        "king_capture": 98,
+        "threefold_repetition": 2
+      },
+      "plies_mean": 69.07,
+      "seconds_per_game_mean": 15.06,
+      "checkpoint": "runs/belief-hourly/final.pt",
+      "checkpoint_sha256": "dd48fc11d1305b3b04f4c75dbab5c12424b992dc6bc05b8c6ddfc598d2c52c5d",
+      "settings": {
+        "games": 100,
+        "seed": 0,
+        "max_plies": 200,
+        "particles": 256,
+        "guesses": 8,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 19:57:35",
+      "seconds": 382.9
+    }
+  },
+  "first-agent-networks-against-the-team-bots": {
+    "plain-30min-12.6M-vs-material": {
+      "a": "ppo",
+      "b": "material",
+      "mode": "sample",
+      "games": 100,
+      "errors": 0,
+      "ppo_wins": 71,
+      "draws": 2,
+      "ppo_losses": 27,
+      "score_a": {
+        "mean": 0.72,
+        "ci95": [
+          0.625,
+          0.81
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.5833487619095525,
+          0.8252582940118571
+        ],
+        "complete_pairs": 50,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "end_reasons": {
+        "king_capture": 98,
+        "ply_limit": 1,
+        "threefold_repetition": 1
+      },
+      "plies_mean": 63.96,
+      "seconds_per_game_mean": 16.035,
+      "checkpoint": "runs/long-1/snapshot-0030min.pt",
+      "checkpoint_sha256": "50cb29c6d541734d64d08c3694ecc2baae8a1691d32ca09ace1bcf1339ffdb30",
+      "settings": {
+        "games": 100,
+        "seed": 0,
+        "max_plies": 200,
+        "particles": 256,
+        "guesses": 8,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 15:44:05",
+      "seconds": 409.1
+    },
+    "plain-30min-12.6M-vs-stockfish-d1": {
+      "a": "ppo",
+      "b": "stockfish-d1",
+      "mode": "sample",
+      "games": 100,
+      "errors": 0,
+      "ppo_wins": 7,
+      "draws": 0,
+      "ppo_losses": 93,
+      "score_a": {
+        "mean": 0.07,
+        "ci95": [
+          0.03,
+          0.12
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.025940197722435346,
+          0.17541873843117284
+        ],
+        "complete_pairs": 50,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "end_reasons": {
+        "king_capture": 100
+      },
+      "plies_mean": 60.55,
+      "seconds_per_game_mean": 14.637,
+      "checkpoint": "runs/long-1/snapshot-0030min.pt",
+      "checkpoint_sha256": "50cb29c6d541734d64d08c3694ecc2baae8a1691d32ca09ace1bcf1339ffdb30",
+      "settings": {
+        "games": 100,
+        "seed": 0,
+        "max_plies": 200,
+        "particles": 256,
+        "guesses": 8,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 15:37:15",
+      "seconds": 378.9
+    },
+    "plain-32.6M-vs-material": {
+      "a": "ppo",
+      "b": "material",
+      "mode": "sample",
+      "games": 100,
+      "errors": 0,
+      "ppo_wins": 81,
+      "draws": 0,
+      "ppo_losses": 19,
+      "score_a": {
+        "mean": 0.81,
+        "ci95": [
+          0.72,
+          0.89
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.6807860684741042,
+          0.8949784194151552
+        ],
+        "complete_pairs": 50,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "end_reasons": {
+        "king_capture": 100
+      },
+      "plies_mean": 63.37,
+      "seconds_per_game_mean": 28.747,
+      "checkpoint": "runs/long-2/snapshot-0030min.pt",
+      "checkpoint_sha256": "6a5a3057c3f193bc6b9a72738c086eb576579c149c223391d4ae5129f68020bb",
+      "settings": {
+        "games": 100,
+        "seed": 0,
+        "max_plies": 200,
+        "particles": 256,
+        "guesses": 8,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 16:56:28",
+      "seconds": 739.9
+    },
+    "plain-32.6M-vs-stockfish-d1": {
+      "a": "ppo",
+      "b": "stockfish-d1",
+      "mode": "sample",
+      "games": 100,
+      "errors": 0,
+      "ppo_wins": 13,
+      "draws": 3,
+      "ppo_losses": 84,
+      "score_a": {
+        "mean": 0.145,
+        "ci95": [
+          0.07987500000000002,
+          0.225
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.07292795411882357,
+          0.26772884200799246
+        ],
+        "complete_pairs": 50,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "end_reasons": {
+        "king_capture": 97,
+        "threefold_repetition": 3
+      },
+      "plies_mean": 63.38,
+      "seconds_per_game_mean": 17.91,
+      "checkpoint": "runs/long-2/snapshot-0030min.pt",
+      "checkpoint_sha256": "6a5a3057c3f193bc6b9a72738c086eb576579c149c223391d4ae5129f68020bb",
+      "settings": {
+        "games": 100,
+        "seed": 0,
+        "max_plies": 200,
+        "particles": 256,
+        "guesses": 8,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 16:44:07",
+      "seconds": 458.2
+    }
+  },
+  "direct-matches-against-the-first-agent": {
+    "belief-1h-vs-first-run-final": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 200,
+      "errors": 0,
+      "a_wins": 60,
+      "draws": 3,
+      "a_losses": 137,
+      "score_a": {
+        "mean": 0.3075,
+        "ci95": [
+          0.2525,
+          0.3725
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.22558054695540253,
+          0.4036619500706611
+        ],
+        "complete_pairs": 100,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        35,
+        3,
+        62
+      ],
+      "end_reasons": {
+        "king_capture": 197,
+        "threefold_repetition": 3
+      },
+      "plies_mean": 69.355,
+      "belief_blank_turn_share": 0.0,
+      "belief_repairs_per_game": 1.525,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/belief-hourly/hour-01.pt",
+          "sha256": "ef9a2521b0b6ec41a8f793953b968e15893b67b841a97b36d0a2bade57444580"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 200,
+        "seed": 0,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 15:55:58",
+      "seconds": 19.2
+    },
+    "belief-final-vs-first-run-final": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 400,
+      "errors": 0,
+      "a_wins": 233,
+      "draws": 6,
+      "a_losses": 161,
+      "score_a": {
+        "mean": 0.59,
+        "ci95": [
+          0.54,
+          0.6375
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.5207645897876366,
+          0.65584325141195
+        ],
+        "complete_pairs": 200,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        116,
+        3,
+        81
+      ],
+      "end_reasons": {
+        "king_capture": 394,
+        "threefold_repetition": 6
+      },
+      "plies_mean": 71.2625,
+      "belief_blank_turn_share": 0.0,
+      "belief_repairs_per_game": 1.8575,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/belief-1/final.pt",
+          "sha256": "dd48fc11d1305b3b04f4c75dbab5c12424b992dc6bc05b8c6ddfc598d2c52c5d"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 400,
+        "seed": 0,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 6
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 19:58:41",
+      "seconds": 15.0
+    },
+    "belief-final-vs-first-run-final-1000-seed1": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 1000,
+      "errors": 0,
+      "a_wins": 563,
+      "draws": 37,
+      "a_losses": 400,
+      "score_a": {
+        "mean": 0.5815,
+        "ci95": [
+          0.551,
+          0.6115
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.5377992884069172,
+          0.6239579440783938
+        ],
+        "complete_pairs": 500,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        291,
+        21,
+        188
+      ],
+      "end_reasons": {
+        "king_capture": 963,
+        "threefold_repetition": 36,
+        "ply_limit": 1
+      },
+      "plies_mean": 73.088,
+      "belief_blank_turn_share": 2.926972047416947e-05,
+      "belief_repairs_per_game": 1.874,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/belief-1/final.pt",
+          "sha256": "dd48fc11d1305b3b04f4c75dbab5c12424b992dc6bc05b8c6ddfc598d2c52c5d"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 1000,
+        "seed": 1,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 19:44:46",
+      "seconds": 36.1
+    },
+    "belief-final-vs-first-run-final-1000-seed2": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 1000,
+      "errors": 0,
+      "a_wins": 529,
+      "draws": 38,
+      "a_losses": 433,
+      "score_a": {
+        "mean": 0.548,
+        "ci95": [
+          0.518,
+          0.5785
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.504175400779044,
+          0.5910926625251882
+        ],
+        "complete_pairs": 500,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        264,
+        20,
+        216
+      ],
+      "end_reasons": {
+        "king_capture": 962,
+        "threefold_repetition": 38
+      },
+      "plies_mean": 73.507,
+      "belief_blank_turn_share": 2.915026963999417e-05,
+      "belief_repairs_per_game": 1.85,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/belief-1/final.pt",
+          "sha256": "dd48fc11d1305b3b04f4c75dbab5c12424b992dc6bc05b8c6ddfc598d2c52c5d"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 1000,
+        "seed": 2,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 6
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 19:59:09",
+      "seconds": 27.4
+    },
+    "belief-hour-0.50-vs-first-run-final": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 200,
+      "errors": 0,
+      "a_wins": 38,
+      "draws": 7,
+      "a_losses": 155,
+      "score_a": {
+        "mean": 0.2075,
+        "ci95": [
+          0.1525,
+          0.265
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.1395777573647924,
+          0.29706343941507046
+        ],
+        "complete_pairs": 100,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        24,
+        1,
+        75
+      ],
+      "end_reasons": {
+        "king_capture": 193,
+        "threefold_repetition": 7
+      },
+      "plies_mean": 66.24,
+      "belief_blank_turn_share": 0.0,
+      "belief_repairs_per_game": 1.305,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/belief-hourly/hour-0.50.pt",
+          "sha256": "6f41b005b48afef7ae427fea567af59a33aa4769b7faec387c3527d0a1c9337e"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 200,
+        "seed": 0,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 17:05:22",
+      "seconds": 8.2
+    },
+    "belief-hour-02-vs-first-run-final": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 200,
+      "errors": 0,
+      "a_wins": 83,
+      "draws": 6,
+      "a_losses": 111,
+      "score_a": {
+        "mean": 0.43,
+        "ci95": [
+          0.365,
+          0.4925624999999996
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.33733298455633143,
+          0.5278461052713281
+        ],
+        "complete_pairs": 100,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        45,
+        4,
+        51
+      ],
+      "end_reasons": {
+        "king_capture": 194,
+        "threefold_repetition": 6
+      },
+      "plies_mean": 72.125,
+      "belief_blank_turn_share": 0.0,
+      "belief_repairs_per_game": 1.805,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/belief-hourly/hour-02.pt",
+          "sha256": "49975efbb72c4d42cda36dafe1e46c03e2a5d1d51a613792b94267f6d12fdc46"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 200,
+        "seed": 0,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 17:05:31",
+      "seconds": 8.5
+    },
+    "belief-hour-02-vs-first-run-final-1000-seed1": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 1000,
+      "errors": 0,
+      "a_wins": 395,
+      "draws": 41,
+      "a_losses": 564,
+      "score_a": {
+        "mean": 0.4155,
+        "ci95": [
+          0.3845,
+          0.4450124999999999
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.3731086841188655,
+          0.4591798294393092
+        ],
+        "complete_pairs": 500,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        194,
+        18,
+        288
+      ],
+      "end_reasons": {
+        "king_capture": 959,
+        "threefold_repetition": 41
+      },
+      "plies_mean": 70.124,
+      "belief_blank_turn_share": 0.0,
+      "belief_repairs_per_game": 1.78,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/belief-hourly/hour-02.pt",
+          "sha256": "49975efbb72c4d42cda36dafe1e46c03e2a5d1d51a613792b94267f6d12fdc46"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 1000,
+        "seed": 1,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 6
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 20:00:21",
+      "seconds": 19.3
+    },
+    "belief-hour-03-vs-first-run-final": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 400,
+      "errors": 0,
+      "a_wins": 169,
+      "draws": 11,
+      "a_losses": 220,
+      "score_a": {
+        "mean": 0.43625,
+        "ci95": [
+          0.38875,
+          0.48375
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.3693618425158772,
+          0.5055409366344155
+        ],
+        "complete_pairs": 200,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        88,
+        4,
+        108
+      ],
+      "end_reasons": {
+        "king_capture": 389,
+        "threefold_repetition": 11
+      },
+      "plies_mean": 70.6775,
+      "belief_blank_turn_share": 0.0,
+      "belief_repairs_per_game": 1.645,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/belief-hourly/hour-03.pt",
+          "sha256": "b068eeadc00cef3010413805d8e563c14afd2b9cbb88f45f632310b6f0e81820"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 400,
+        "seed": 0,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 17:59:15",
+      "seconds": 20.7
+    },
+    "belief-hour-03-vs-first-run-final-1000-seed1": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 1000,
+      "errors": 0,
+      "a_wins": 470,
+      "draws": 35,
+      "a_losses": 495,
+      "score_a": {
+        "mean": 0.4875,
+        "ci95": [
+          0.4585,
+          0.518
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.4439501106511564,
+          0.5312404978633666
+        ],
+        "complete_pairs": 500,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        255,
+        25,
+        220
+      ],
+      "end_reasons": {
+        "king_capture": 965,
+        "threefold_repetition": 35
+      },
+      "plies_mean": 72.251,
+      "belief_blank_turn_share": 2.9672710008605084e-05,
+      "belief_repairs_per_game": 1.902,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/belief-hourly/hour-03.pt",
+          "sha256": "b068eeadc00cef3010413805d8e563c14afd2b9cbb88f45f632310b6f0e81820"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 1000,
+        "seed": 1,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 6
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 20:00:01",
+      "seconds": 24.6
+    },
+    "belief-hour-04-vs-first-run-final": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 400,
+      "errors": 0,
+      "a_wins": 203,
+      "draws": 8,
+      "a_losses": 189,
+      "score_a": {
+        "mean": 0.5175,
+        "ci95": [
+          0.46875,
+          0.56625
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.44857232744643494,
+          0.5857680861201512
+        ],
+        "complete_pairs": 200,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        101,
+        4,
+        95
+      ],
+      "end_reasons": {
+        "king_capture": 392,
+        "threefold_repetition": 8
+      },
+      "plies_mean": 72.39,
+      "belief_blank_turn_share": 0.0,
+      "belief_repairs_per_game": 2.05,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/belief-hourly/hour-04.pt",
+          "sha256": "f855cc37c9f42641f8d1d000cdb0bca0bd0ce3804d47cae9b75ead0c56019d87"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 400,
+        "seed": 0,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 18:59:49",
+      "seconds": 23.1
+    },
+    "belief-hour-04-vs-first-run-final-1000-seed1": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 1000,
+      "errors": 0,
+      "a_wins": 514,
+      "draws": 23,
+      "a_losses": 463,
+      "score_a": {
+        "mean": 0.5255,
+        "ci95": [
+          0.4955,
+          0.5565
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.48170322597080106,
+          0.5689079326595722
+        ],
+        "complete_pairs": 500,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        273,
+        11,
+        216
+      ],
+      "end_reasons": {
+        "king_capture": 977,
+        "threefold_repetition": 23
+      },
+      "plies_mean": 71.788,
+      "belief_blank_turn_share": 0.0,
+      "belief_repairs_per_game": 2.031,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/belief-hourly/hour-04.pt",
+          "sha256": "f855cc37c9f42641f8d1d000cdb0bca0bd0ce3804d47cae9b75ead0c56019d87"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 1000,
+        "seed": 1,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 19:21:13",
+      "seconds": 67.4
+    },
+    "belief-hour-1.50-vs-first-run-final": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 200,
+      "errors": 0,
+      "a_wins": 71,
+      "draws": 9,
+      "a_losses": 120,
+      "score_a": {
+        "mean": 0.3775,
+        "ci95": [
+          0.315,
+          0.4425
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.2886840879957072,
+          0.47537931920269694
+        ],
+        "complete_pairs": 100,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        39,
+        7,
+        54
+      ],
+      "end_reasons": {
+        "king_capture": 191,
+        "threefold_repetition": 9
+      },
+      "plies_mean": 70.92,
+      "belief_blank_turn_share": 0.00015135462388375965,
+      "belief_repairs_per_game": 1.83,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/belief-hourly/hour-1.50.pt",
+          "sha256": "6358e94c20e60e05ccaeba3ab0dbe338e34a410fefdb850421099715360c1d20"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 200,
+        "seed": 0,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 16:35:51",
+      "seconds": 17.1
+    },
+    "belief-hour-2.50-vs-first-run-final": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 400,
+      "errors": 0,
+      "a_wins": 175,
+      "draws": 16,
+      "a_losses": 209,
+      "score_a": {
+        "mean": 0.4575,
+        "ci95": [
+          0.405,
+          0.505
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.38990550417538694,
+          0.5266963485914748
+        ],
+        "complete_pairs": 200,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        91,
+        6,
+        103
+      ],
+      "end_reasons": {
+        "king_capture": 384,
+        "threefold_repetition": 16
+      },
+      "plies_mean": 71.47,
+      "belief_blank_turn_share": 0.0,
+      "belief_repairs_per_game": 1.805,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/belief-hourly/hour-2.50.pt",
+          "sha256": "672b7e19b43061c9cf9405fe79c79753acb8e12f8243d9a12c9d38cb295b00c5"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 400,
+        "seed": 0,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 17:28:03",
+      "seconds": 21.9
+    },
+    "belief-hour-3.50-vs-first-run-final": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 400,
+      "errors": 0,
+      "a_wins": 187,
+      "draws": 19,
+      "a_losses": 194,
+      "score_a": {
+        "mean": 0.49125,
+        "ci95": [
+          0.4475,
+          0.5375
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.42278606875293184,
+          0.560043724463775
+        ],
+        "complete_pairs": 200,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        97,
+        8,
+        95
+      ],
+      "end_reasons": {
+        "king_capture": 381,
+        "threefold_repetition": 19
+      },
+      "plies_mean": 75.415,
+      "belief_blank_turn_share": 0.0,
+      "belief_repairs_per_game": 2.065,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/belief-hourly/hour-3.50.pt",
+          "sha256": "392ac8875df097724c792e79d9174ebe02579ddc334688bf1088eb0b89f174cf"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 400,
+        "seed": 0,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 18:34:17",
+      "seconds": 27.1
+    },
+    "belief-hour-4.50-vs-first-run-final": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 400,
+      "errors": 0,
+      "a_wins": 189,
+      "draws": 13,
+      "a_losses": 198,
+      "score_a": {
+        "mean": 0.48875,
+        "ci95": [
+          0.44,
+          0.53625
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.4203399179735813,
+          0.5575841018764703
+        ],
+        "complete_pairs": 200,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        98,
+        7,
+        95
+      ],
+      "end_reasons": {
+        "king_capture": 387,
+        "threefold_repetition": 13
+      },
+      "plies_mean": 74.2425,
+      "belief_blank_turn_share": 0.0,
+      "belief_repairs_per_game": 2.11,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/belief-hourly/hour-4.50.pt",
+          "sha256": "266033472cf52f7bbfd330108a8df1400be37526926a140c59a40c23d2f7c001"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 400,
+        "seed": 0,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 19:37:56",
+      "seconds": 43.9
+    },
+    "belief-hour-4.50-vs-first-run-final-1000-seed1": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 1000,
+      "errors": 0,
+      "a_wins": 500,
+      "draws": 35,
+      "a_losses": 465,
+      "score_a": {
+        "mean": 0.5175,
+        "ci95": [
+          0.4875,
+          0.5505
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.4737343841634062,
+          0.5609987639162618
+        ],
+        "complete_pairs": 500,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        263,
+        15,
+        222
+      ],
+      "end_reasons": {
+        "king_capture": 965,
+        "threefold_repetition": 34,
+        "ply_limit": 1
+      },
+      "plies_mean": 72.992,
+      "belief_blank_turn_share": 0.0,
+      "belief_repairs_per_game": 2.201,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/belief-hourly/hour-4.50.pt",
+          "sha256": "266033472cf52f7bbfd330108a8df1400be37526926a140c59a40c23d2f7c001"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 1000,
+        "seed": 1,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 6
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 19:59:36",
+      "seconds": 27.4
+    },
+    "belief-latest-1709-vs-first-run-final-400": {
+      "a": "ppo with belief input",
+      "b": "ppo of the first run (no belief input)",
+      "games": 400,
+      "errors": 0,
+      "a_wins": 166,
+      "draws": 22,
+      "a_losses": 212,
+      "score_a": {
+        "mean": 0.4425,
+        "ci95": [
+          0.39625,
+          0.4875
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.3753912422789887,
+          0.511775970287942
+        ],
+        "complete_pairs": 200,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        77,
+        11,
+        112
+      ],
+      "end_reasons": {
+        "king_capture": 378,
+        "threefold_repetition": 22
+      },
+      "plies_mean": 73.56,
+      "belief_blank_turn_share": 0.0,
+      "belief_repairs_per_game": 2.0025,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-belief>/runs/head-to-head/networks/belief-latest-1709.pt",
+          "sha256": "5cfa739ad11374c829cbad4c8a00a40a922bccdee151651f4ef6760fad1dc3c1"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 400,
+        "seed": 0,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 17:10:17",
+      "seconds": 16.2
+    },
+    "reference-first-run-1h-vs-first-run-final": {
+      "a": "ppo of the first run (no belief input)",
+      "b": "ppo of the first run (no belief input)",
+      "games": 200,
+      "errors": 0,
+      "a_wins": 23,
+      "draws": 1,
+      "a_losses": 176,
+      "score_a": {
+        "mean": 0.1175,
+        "ci95": [
+          0.075,
+          0.1625
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.06811878089083087,
+          0.1951812456674513
+        ],
+        "complete_pairs": 100,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        14,
+        0,
+        86
+      ],
+      "end_reasons": {
+        "king_capture": 199,
+        "threefold_repetition": 1
+      },
+      "plies_mean": 55.84,
+      "belief_blank_turn_share": 0.0,
+      "belief_repairs_per_game": 0.0,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-pilot>/runs/long-hourly/hour-01.pt",
+          "sha256": "f58ade9d0214c30fbc7bf25b9ac1de44751d5a1781e6316809dff34c7801190e"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 200,
+        "seed": 0,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 15:56:52",
+      "seconds": 12.3
+    },
+    "reference-first-run-2h-vs-first-run-final": {
+      "a": "ppo of the first run (no belief input)",
+      "b": "ppo of the first run (no belief input)",
+      "games": 200,
+      "errors": 0,
+      "a_wins": 44,
+      "draws": 4,
+      "a_losses": 152,
+      "score_a": {
+        "mean": 0.23,
+        "ci95": [
+          0.17,
+          0.2925
+        ],
+        "degenerate": false,
+        "note": null,
+        "wilson95": [
+          0.15843265832598313,
+          0.3215438310092749
+        ],
+        "complete_pairs": 100,
+        "incomplete_pairs": 0,
+        "resamples": 2000,
+        "seed": 0,
+        "min_pairs": 20,
+        "unit": "complete colour pairs (both games of an opening)"
+      },
+      "a_as_white": [
+        23,
+        3,
+        74
+      ],
+      "end_reasons": {
+        "king_capture": 196,
+        "threefold_repetition": 4
+      },
+      "plies_mean": 66.97,
+      "belief_blank_turn_share": 0.0,
+      "belief_repairs_per_game": 0.0,
+      "checkpoints": {
+        "belief": {
+          "path": "<ppo-pilot>/runs/long-hourly/hour-02.pt",
+          "sha256": "262a5ab8a192d79d775a70bbb1a74fd5a623ae7a9537373ac75aa39d58d8c20d"
+        },
+        "plain": {
+          "path": "<ppo-pilot>/runs/long-hourly/final.pt",
+          "sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4"
+        }
+      },
+      "settings": {
+        "games": 200,
+        "seed": 0,
+        "max_plies": 200,
+        "opening_plies": [
+          2,
+          8
+        ],
+        "jobs": 4
+      },
+      "rules": "pairb-standin",
+      "team_code": "main 355e5e3 (copied, unchanged)",
+      "created": "2026-11-15 15:57:04",
+      "seconds": 11.6
+    }
+  }
+}

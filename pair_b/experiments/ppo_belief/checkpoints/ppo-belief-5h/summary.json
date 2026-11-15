@@ -1,0 +1,68 @@
+{
+  "what": "PPO self-play network with the 32-plane belief input: final network of the 5-hour run",
+  "file": "final.pt",
+  "sha256": "dd48fc11d1305b3b04f4c75dbab5c12424b992dc6bc05b8c6ddfc598d2c52c5d",
+  "note": "this is the file that played; the match records name this hash",
+  "weights_sha256": "e5fe200bfbf57120cefc97b1247563f6b116e4e90954191c7ea9a5f8910cf868",
+  "weights_sha256_how": "one sha256 over all weights: for each key of the state dict in sorted order, the key's text and then the raw bytes of its tensor",
+  "network": {
+    "blocks": 4,
+    "channels": 64
+  },
+  "input_planes": 32,
+  "parameters": 384425,
+  "belief_sampler_cap": 1024,
+  "updates": 2106,
+  "training_moves": 61947659,
+  "training_arguments": {
+    "name": "belief-1",
+    "minutes": 300.0,
+    "envs": 512,
+    "steps": 64,
+    "workers": 10,
+    "worker_timeout": 300.0,
+    "rivals": {
+      "self": 0.7,
+      "past": 0.15,
+      "greedy": 0.1,
+      "random": 0.05
+    },
+    "opening": [
+      0,
+      8
+    ],
+    "eval_opening": [
+      2,
+      8
+    ],
+    "pool_updates": 50,
+    "pool_size": 24,
+    "epochs": 2,
+    "minibatch": 2048,
+    "lr": 0.0003,
+    "lr_end": 0.000189344,
+    "gamma": 0.995,
+    "lam": 0.95,
+    "clip": 0.2,
+    "entropy": 0.01,
+    "value_coef": 0.5,
+    "shaping": 0.02,
+    "blocks": 4,
+    "channels": 64,
+    "eval_minutes": 20.0,
+    "eval_games": 200,
+    "snapshot_minutes": 30.0,
+    "save_minutes": 5.0,
+    "resume": null,
+    "seed": 0,
+    "device": "mps"
+  },
+  "keys_in_the_file": [
+    "args",
+    "config",
+    "model",
+    "optimizer",
+    "plies",
+    "updates"
+  ]
+}

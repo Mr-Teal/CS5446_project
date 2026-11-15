@@ -1,0 +1,53 @@
+Final networks against the team's players (wins-draws-losses, score, 95% range over openings)
+  belief input, 5 h, random, 100 games                       100-0-0      1.000  [1.000, 1.000]
+  first run, 12.2 h, random, 100 games                       100-0-0      1.000  [1.000, 1.000]
+  belief input, 5 h, material, 100 games                     96-2-2       0.970  [0.935, 0.995]
+  first run, 12.2 h, material, 100 games                     86-0-14      0.860  [0.800, 0.920]
+  belief input, 5 h, stockfish-d1, 100 games                 40-2-58      0.410  [0.320, 0.510]
+  first run, 12.2 h, stockfish-d1, 100 games                 39-4-56      0.418  [0.311, 0.526]
+  belief input, 5 h, stockfish-d1, 400 games (seed 1)        194-10-195   0.500  [0.448, 0.550]
+  belief input, 4 h, stockfish-d1, 400 games (seed 1)        198-11-191   0.509  [0.459, 0.560]
+  first run, 12.2 h, stockfish-d1, 400 games (seed 1)        166-20-213   0.442  [0.394, 0.490]
+
+Belief input minus first run, opening by opening (same openings, same opponent)
+  5 h minus 12.2 h, material, 100 games                        50 openings  +0.110  [+0.035, +0.185]
+  5 h minus 12.2 h, stockfish-d1, 100 games                    49 openings  -0.005  [-0.153, +0.148]
+  5 h minus 12.2 h, stockfish-d1, 400 games (seed 1)          198 openings  +0.056  [-0.019, +0.133]
+  4 h minus 12.2 h, stockfish-d1, 400 games (seed 1)          199 openings  +0.064  [-0.006, +0.132]
+  30 min minus 30 min, material, 100 games                     50 openings  +0.145  [+0.045, +0.250]
+  30 min minus 30 min, stockfish-d1, 100 games                 50 openings  +0.240  [+0.140, +0.340]
+  1 h minus 1 h, material, 100 games                           50 openings  +0.285  [+0.170, +0.400]
+  1 h minus 1 h, stockfish-d1, 100 games                       50 openings  +0.230  [+0.130, +0.325]
+  2 h minus 2 h, material, 100 games                           50 openings  +0.010  [-0.070, +0.100]
+  2 h minus 2 h, stockfish-d1, 100 games                       50 openings  -0.040  [-0.175, +0.095]
+  3 h minus 3 h, material, 100 games                           50 openings  +0.120  [+0.030, +0.200]
+  3 h minus 3 h, stockfish-d1, 100 games                       50 openings  +0.055  [-0.065, +0.175]
+  4 h minus 4 h, material, 100 games                           49 openings  +0.112  [+0.056, +0.173]
+  4 h minus 4 h, stockfish-d1, 100 games                       49 openings  +0.204  [+0.051, +0.352]
+
+Direct matches: belief-input network against the first run's final network (side a = belief input)
+  30 min, 200 games (seed 0)                                 38-7-155     0.207  [0.155, 0.265]
+  1 h, 200 games (seed 0)                                    60-3-137     0.307  [0.247, 0.367]
+  1.5 h, 200 games (seed 0)                                  71-9-120     0.378  [0.315, 0.443]
+  2 h, 1,000 games (seed 1)                                  395-41-564   0.415  [0.384, 0.447]
+  2.5 h, 400 games (seed 0)                                  175-16-209   0.458  [0.410, 0.506]
+  3 h, 1,000 games (seed 1)                                  470-35-495   0.487  [0.457, 0.518]
+  3.5 h, 400 games (seed 0)                                  187-19-194   0.491  [0.444, 0.537]
+  4 h, 1,000 games (seed 1)                                  514-23-463   0.525  [0.494, 0.557]
+  4.5 h, 1,000 games (seed 1)                                500-35-465   0.517  [0.487, 0.548]
+  5 h, 400 games (seed 0)                                    233-6-161    0.590  [0.541, 0.637]
+  5 h, 1,000 games (seed 1)                                  563-37-400   0.582  [0.551, 0.611]
+  5 h, 1,000 games (seed 2)                                  529-38-433   0.548  [0.518, 0.578]
+  5 h, the three matches together, 2,400 games               1325-81-994  0.569  [0.550, 0.588]
+  first run 1 h against its final network, 200 games         23-1-176     0.117  [0.075, 0.163]
+  first run 2 h against its final network, 200 games         44-4-152     0.230  [0.168, 0.292]
+
+Belief-input run, all ten match rounds together (100 games each)
+  material      rounds 0.5 h to 2 h    362-2-36  0.907
+  material      rounds 2.5 h to 5 h    572-4-24  0.957
+  stockfish-d1  rounds 0.5 h to 2 h    124-16-260  0.330
+  stockfish-d1  rounds 2.5 h to 5 h    246-15-339  0.422
+  material      first run, hours 2 to 8            604-1-93  0.866
+  stockfish-d1  first run, hours 2 to 8            204-14-480  0.302
+  material      first run, hours 9 to 12 and final 446-1-53  0.893
+  stockfish-d1  first run, hours 9 to 12 and final 187-22-289  0.398
