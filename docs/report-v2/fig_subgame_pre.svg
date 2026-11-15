@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 236" role="img" aria-label="The teacher's subgame: two of the sixteen sampled boards as roots inside one information set of ours, so our move must be the same on both; after each of our moves the opponent replies, often without seeing which move we made; each leaf is valued on its concrete board; PCFR+ solves the small game and its root strategy is the label.">
+  <defs><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/></marker></defs>
+  <g font-family="Times New Roman, Times, serif" fill="#1a1a1a" font-size="11">
+    <!-- our information set around the roots -->
+    <rect x="96" y="14" width="398" height="52" rx="8" fill="#e3e8ee" stroke="#1a1a1a" stroke-dasharray="4 3"/>
+    <text x="295" y="28" text-anchor="middle" font-size="10" font-style="italic">our information set: 16 sampled boards (2 shown); our move must be the same on all</text>
+    <!-- roots: boards -->
+    <rect x="152" y="36" width="56" height="22" fill="#ffffff" stroke="#1a1a1a"/>
+    <text x="180" y="51" text-anchor="middle">board 1</text>
+    <rect x="382" y="36" width="56" height="22" fill="#ffffff" stroke="#1a1a1a"/>
+    <text x="410" y="51" text-anchor="middle">board 2</text>
+    <!-- our moves -->
+    <line x1="172" y1="58" x2="128" y2="104" stroke="#1a1a1a" stroke-width="1.6"/>
+    <line x1="188" y1="58" x2="232" y2="104" stroke="#1a1a1a" stroke-width="1.6"/>
+    <line x1="402" y1="58" x2="358" y2="104" stroke="#1a1a1a" stroke-width="1.6"/>
+    <line x1="418" y1="58" x2="462" y2="104" stroke="#1a1a1a" stroke-width="1.6"/>
+    <text x="141" y="82" text-anchor="end" font-size="11" font-weight="bold">a</text>
+    <text x="219" y="82" font-size="11" font-weight="bold">b</text>
+    <text x="371" y="82" text-anchor="end" font-size="11" font-weight="bold">a</text>
+    <text x="449" y="82" font-size="11" font-weight="bold">b</text>
+    <!-- opponent information sets (cannot see our move) -->
+    <rect x="110" y="100" width="140" height="22" rx="10" fill="none" stroke="#1a1a1a" stroke-dasharray="3 3"/>
+    <rect x="340" y="100" width="140" height="22" rx="10" fill="none" stroke="#1a1a1a" stroke-dasharray="3 3"/>
+    <circle cx="128" cy="111" r="6" fill="#ffffff" stroke="#1a1a1a"/>
+    <circle cx="232" cy="111" r="6" fill="#ffffff" stroke="#1a1a1a"/>
+    <circle cx="358" cy="111" r="6" fill="#ffffff" stroke="#1a1a1a"/>
+    <circle cx="462" cy="111" r="6" fill="#ffffff" stroke="#1a1a1a"/>
+    <text x="180" y="138" text-anchor="middle" font-size="9.5" font-style="italic" stroke="#ffffff" stroke-width="3" paint-order="stroke">opponent may not see a or b</text>
+    <text x="410" y="138" text-anchor="middle" font-size="9.5" font-style="italic" stroke="#ffffff" stroke-width="3" paint-order="stroke">opponent may not see a or b</text>
+    <!-- opponent replies to leaves -->
+    <g stroke="#1a1a1a">
+      <line x1="125" y1="117" x2="108" y2="176"/><line x1="131" y1="117" x2="148" y2="176"/>
+      <line x1="229" y1="117" x2="212" y2="176"/><line x1="235" y1="117" x2="252" y2="176"/>
+      <line x1="355" y1="117" x2="338" y2="176"/><line x1="361" y1="117" x2="378" y2="176"/>
+      <line x1="459" y1="117" x2="442" y2="176"/><line x1="465" y1="117" x2="482" y2="176"/>
+    </g>
+    <g fill="#ffffff" stroke="#1a1a1a">
+      <rect x="101" y="176" width="14" height="14"/><rect x="141" y="176" width="14" height="14"/>
+      <rect x="205" y="176" width="14" height="14"/><rect x="245" y="176" width="14" height="14"/>
+      <rect x="331" y="176" width="14" height="14"/><rect x="371" y="176" width="14" height="14"/>
+      <rect x="435" y="176" width="14" height="14"/><rect x="475" y="176" width="14" height="14"/>
+    </g>
+    <g font-size="9" font-style="italic" text-anchor="middle">
+      <text x="108" y="186">v</text><text x="148" y="186">v</text><text x="212" y="186">v</text><text x="252" y="186">v</text>
+      <text x="338" y="186">v</text><text x="378" y="186">v</text><text x="442" y="186">v</text><text x="482" y="186">v</text>
+    </g>
+    <!-- level labels on the left -->
+    <g font-size="10" text-anchor="end">
+      <text x="88" y="51">roots</text>
+      <text x="88" y="84">our move</text>
+      <text x="88" y="114">opponent</text>
+      <text x="88" y="160">opponent's reply</text>
+      <text x="88" y="187">leaf value v</text>
+    </g>
+    <text x="295" y="210" text-anchor="middle" font-size="10">v = value of the concrete board after both moves (Stockfish depth 8 when labelling)</text>
+    <!-- right column: what is done with the tree -->
+    <g font-size="10">
+      <text x="512" y="44" font-weight="bold">Solve</text>
+      <text x="512" y="57">PCFR+ on this small game:</text>
+      <text x="512" y="69">2 s in a game (about 3,400</text>
+      <text x="512" y="81">nodes); 30 s when labelling</text>
+      <text x="512" y="104" font-weight="bold">Output</text>
+      <text x="512" y="117">root strategy σ(a), σ(b)</text>
+      <text x="512" y="129">— the label (Section 6.2)</text>
+      <text x="512" y="152" font-weight="bold">Play</text>
+      <text x="512" y="165">the most probable move</text>
+      <text x="512" y="177">(purification)</text>
+    </g>
+    <text x="295" y="228" text-anchor="middle" font-size="10" font-style="italic">The real tree is grown further where the solver needs it; only two boards, two moves and two replies are drawn.</text>
+  </g>
+</svg>

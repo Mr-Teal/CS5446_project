@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 150" role="img" aria-label="Data pipeline: our search agent plays both colours in 961 games; every turn becomes a position seen from the mover's side, 58,693 in all; each position is re-solved by the teacher at 30 seconds with a Stockfish depth-8 leaf; the policy network is trained on the re-solve's strategies; at play time the tracker, probability board and network choose the move.">
+  <defs><marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/></marker></defs>
+  <g font-family="Times New Roman, Times, serif" fill="#1a1a1a" font-size="10">
+    <g fill="none" stroke="#1a1a1a">
+      <rect x="2" y="20" width="122" height="70"/>
+      <rect x="141" y="20" width="122" height="70"/>
+      <rect x="280" y="20" width="122" height="70" fill="#e3e8ee"/>
+      <rect x="419" y="20" width="122" height="70"/>
+      <rect x="558" y="20" width="120" height="70"/>
+    </g>
+    <g stroke="#1a1a1a">
+      <line x1="124" y1="55" x2="139" y2="55" marker-end="url(#a4)"/>
+      <line x1="263" y1="55" x2="278" y2="55" marker-end="url(#a4)"/>
+      <line x1="402" y1="55" x2="417" y2="55" marker-end="url(#a4)"/>
+      <line x1="541" y1="55" x2="556" y2="55" marker-end="url(#a4)"/>
+    </g>
+    <text x="2" y="12" font-size="11" font-style="italic">Offline: collect, label, train</text>
+    <text x="558" y="12" font-size="11" font-style="italic">At play time</text>
+    <g text-anchor="middle">
+      <text x="63" y="36" font-size="11" font-weight="bold">1 Games</text>
+      <text x="63" y="51">our search agent plays</text>
+      <text x="63" y="63">both White and Black</text>
+      <text x="63" y="80" font-style="italic">961 games</text>
+      <text x="202" y="36" font-size="11" font-weight="bold">2 Positions</text>
+      <text x="202" y="51">every turn, seen from</text>
+      <text x="202" y="63">the mover's side only</text>
+      <text x="202" y="80" font-style="italic">58,693 positions</text>
+      <text x="341" y="36" font-size="11" font-weight="bold">3 Re-solve (teacher)</text>
+      <text x="341" y="51">30 s per position,</text>
+      <text x="341" y="63">Stockfish depth-8 leaf</text>
+      <text x="341" y="80" font-style="italic">strategy + move values</text>
+      <text x="480" y="36" font-size="11" font-weight="bold">4 Train</text>
+      <text x="480" y="51">policy network,</text>
+      <text x="480" y="63">cross-entropy loss</text>
+      <text x="480" y="80" font-style="italic">56,437 train / 2,256 val</text>
+      <text x="618" y="36" font-size="11" font-weight="bold">5 Play</text>
+      <text x="618" y="51">tracker → probability</text>
+      <text x="618" y="63">board → network</text>
+      <text x="618" y="80" font-style="italic">most probable move</text>
+    </g>
+    <text x="2" y="108">Games: 438 of the 480-game set (search agent, 30 s per move, Stockfish depth-8 leaf) and 523 generation-0 self-play games</text>
+    <text x="2" y="121">(search agent, value network v2 leaf). Split by game into training, validation and test; the test games were never read.</text>
+    <text x="2" y="138">The label is the re-solve's strategy at the position, not the move that was played in the game.</text>
+  </g>
+</svg>

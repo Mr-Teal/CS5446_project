@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fog of War Chess: Learning a Belief-State Policy</title>
+<style>
+  @page { size: A4; margin: 25.4mm; }
+  :root { --ink: #1a1a1a; --muted: #555; --rule: #bbb; --pending-bg: #fff3c4; --pending-ink: #6b4e00; }
+  body { font-family: "Times New Roman", Times, serif; font-size: 12pt; line-height: 1.2; color: var(--ink); margin: 0; }
+  h1 { font-size: 18pt; margin: 60mm 0 6pt; text-align: center; }
+  .subtitle { text-align: center; font-size: 12pt; margin: 0 0 8pt; }
+  .meta { text-align: center; font-size: 12pt; color: var(--muted); margin: 0 0 3pt; }
+  .draft { text-align: center; font-size: 9pt; color: var(--pending-ink); background: var(--pending-bg); padding: 3pt; margin: 8pt 0 10pt; }
+  h2 { font-size: 14pt; margin: 13pt 0 4pt; break-after: avoid; }
+  h3 { font-size: 12pt; margin: 9pt 0 3pt; break-after: avoid; font-style: italic; }
+  p { margin: 0 0 5pt; text-align: justify; hyphens: auto; }
+  .abstract { margin: 14mm 0 0; font-size: 12pt; }
+  .abstract p { margin-bottom: 0; }
+  table { border-collapse: collapse; margin: 5pt auto 3pt; font-size: 12pt; break-inside: avoid; }
+  th, td { border-top: 0.6pt solid var(--rule); border-bottom: 0.6pt solid var(--rule); padding: 2.2pt 6pt; text-align: left; vertical-align: top; }
+  thead th { border-top: 1.1pt solid var(--ink); border-bottom: 0.8pt solid var(--ink); }
+  tbody tr:last-child td { border-bottom: 1.1pt solid var(--ink); }
+  td.n, th.n { text-align: right; white-space: nowrap; }
+  .caption { font-size: 12pt; color: var(--ink); margin: 2pt 4mm 9pt; text-align: center; }
+  .caption b { font-weight: bold; }
+  .eq { text-align: center; margin: 4pt 0 6pt; font-style: italic; }
+  .eq .no { float: right; font-style: normal; }
+  .pending { background: var(--pending-bg); color: var(--pending-ink); padding: 0 2pt; font-style: normal; }
+  .placeholder { background: var(--pending-bg); color: var(--pending-ink); padding: 4pt 6pt; margin: 4pt 0; font-style: italic; }
+  ul { margin: 0 0 5pt 0; padding-left: 15pt; } li { margin: 0 0 2pt; text-align: justify; }
+  .tbl { break-inside: avoid; page-break-inside: avoid; }
+  figure { margin: 6pt 0 4pt; break-inside: avoid; } figure svg, figure img.fig { display: block; margin: 0 auto; max-width: 100%; height: auto; } figure img.fig { width: 100%; }
+  .refs p { text-indent: -14pt; padding-left: 14pt; font-size: 12pt; margin-bottom: 3pt; text-align: left; }
+  i.v { font-style: italic; }
+</style>
+</head>
+<body>
+
+<h1>Fog of War Chess: Learning a Belief-State Policy from an Obscuro-Style Solver</h1>
+<p class="subtitle">CS4246/CS5446 Reinforcement Learning and Sequential Decision Making — Project Report</p>
+<p class="meta">National University of Singapore, School of Computing · Semester 1 AY2026/27</p>
+<p class="meta">DING Chiyu; PEI Shengxin; QUEK Hongqiang Colin; Kuah Jun Hong Bryan; WANG Zhijian; LIN Tzu-Chun</p>
+
+<div class="abstract"><p><b>Abstract.</b> Obscuro plays Fog of War chess at a superhuman level without learning anything: each move is a new search, seeded only by the previous move's strategy, with a full-information engine valuing concrete boards. Its authors name learned evaluation as the next step, but learning cannot simply replace this search, because in imperfect-information games a value depends on both players' beliefs — ReBeL conditions it on the public belief state, which here spans about 10<sup>18</sup> states. A strategy, by contrast, is a function of the player's own information set alone. We therefore encode that set as a <i>probability board</i> — what the player sees, plus on every unseen square the probability of each enemy piece — and train a policy network on 58,693 positions labelled by an Obscuro-style solver. The probabilities matter (validation regret 0.091, against 0.121 without them). The policy plays in a few milliseconds per move and improves with data, but loses 1–19 to a third-party Obscuro reimplementation.</p></div>
+
+<h2 style="break-before: page; margin-top: 0">1 Introduction</h2>
+<p>Fog of War chess is chess in which each player sees only the squares their own pieces could move to; there is no check, and a game ends when a king is captured. It is a two-player zero-sum game with imperfect information, and a large one: a player's set of indistinguishable positions often exceeds 10<sup>6</sup> [3]. Obscuro [3], the first superhuman agent for it, scored 85.1% against the previous best agent (ZS21 [2], 1,000 games), 97% against 100 human players and 16–4 against the top-ranked player on chess.com, without any learning: every move is a new search of about a million nodes, with Stockfish valuing each concrete board at the leaves.</p>
+<p>We ask whether the knowledge Obscuro recomputes at every move can be learned once and reused. Our contributions are: (i) the probability board, a one-picture encoding of the player's own information set (Section 4); (ii) a policy network trained on 58,693 positions labelled by an Obscuro-style solver (Sections 5–6); and (iii) comparisons with a greedy bot, a reinforcement-learning (PPO) baseline and a third-party Obscuro reimplementation (Sections 8.1–8.3).</p>
+
+<h2>2 Problem formulation</h2>
+<p><b>The game.</b> Players <i>i</i> ∈ {White, Black} alternate moves; a history <i>h</i> is the move sequence so far. After every ply each player receives an observation <i>o<sub>i</sub></i> = <i>O<sub>i</sub></i>(<i>h</i>): the squares their pieces could move to, the pieces on them, and whether one of their pieces was just captured. Payoffs are zero-sum, <i>u</i><sub>White</sub> = −<i>u</i><sub>Black</sub> ∈ {−1, 0, +1}. Player <i>i</i>'s information set is every history consistent with what <i>i</i> has observed and done:</p>
+<p class="eq">I<sub>i</sub>(h) = { h′ : O<sub>i</sub>(h′<sub>≤t</sub>) = O<sub>i</sub>(h<sub>≤t</sub>) for every ply t, and i's own moves in h′ equal those in h } <span class="no">(1)</span></p>
+<p>A behavioural strategy <i>σ<sub>i</sub></i> maps each information set to a distribution over its legal moves <i>A</i>(<i>I</i>); a belief <i>b<sub>i</sub></i>(<i>h</i> | <i>I</i>) is a distribution over the set.</p>
+<figure>
+<img class="fig" src="fig_problem_12.svg" alt="Three problem types: MDP, POMDP, and a two-player zero-sum game with hidden information.">
+<p class="caption"><b>Figure 1.</b> Three problem types. (a) MDP: the agent sees the full state and maximises expected return; any opponent is fixed. (b) POMDP: the agent sees an observation and keeps a belief; the opponent is still fixed. (c) Fog of War chess: each player gets its own observation, only the referee knows the board, the payoffs are zero-sum, and the opponent plays to beat us, so we seek strategies with the best worst-case result.</p>
+</figure>
+<p><b>Why not a POMDP.</b> If the opponent's strategy were fixed and known, it would be part of the environment and the problem a POMDP (Figure 1b); the QMDP approximation [9] would then value a move by averaging full-information values over the belief, <i>Q</i>(<i>b</i>, <i>a</i>) ≈ Σ<sub><i>h</i></sub> <i>b</i>(<i>h</i>) <i>Q</i><sub>full</sub>(<i>h</i>, <i>a</i>). Here the opponent is neither fixed nor known, and a strategy optimal against one opponent can be exploited by another, so we treat the problem as a game (Figure 1c).</p>
+<p><b>Why learning is hard.</b> In imperfect-information games a position's value depends on both players' beliefs, so ReBeL [4] learns values over <i>public belief states</i>, distributions over the common-knowledge set of histories. In Fog of War chess that set reaches about 10<sup>18</sup> states [3, App. E.1], which is why Obscuro values its leaves on concrete boards with a full-information engine.</p>
+<p><b>The opening.</b> A strategy, unlike a value, depends only on the player's own information set, so it can be learned without public beliefs:</p>
+<p class="eq">π<sub>θ</sub>(a | enc(I<sub>i</sub>)) ≈ σ<sub>i</sub><sup>teacher</sup>(a | I<sub>i</sub>) <span class="no">(2)</span></p>
+<p>where enc encodes the information set (Section 4) and the teacher is a solver (Section 6). The best action still depends on what the opponent believes about us; the policy learns that only implicitly, through its labels.</p>
+
+<h2>3 Obscuro and its limits</h2>
+<p>Obscuro keeps every position consistent with its observations, samples a few hundred, and builds a knowledge-limited subgame around them [2, 3]. It grows the subgame one-sidedly, solves it with PCFR+ [6] inside a gadget blending Resolve [10] and Maxmargin [11], plays the purified last iterate [7], and values the frontier with Stockfish at depth 1: about 1.07 million nodes and 10.7 plies in a 5-second move, on CPUs.</p>
+<p>In its ablations, replacing the knowledge-limited unfrozen subgame with the earlier variant costs 27 points and removing purification 15. Its guarantees are partial (convergence only within the expanded tree, last-iterate convergence conjectured, subgame solving not safe in the worst case), so its case is empirical.</p>
+<p>Its authors list four limitations [3, Sec. 5]:</p>
+<ul>
+<li>it does not model the opponent (deliberately);</li>
+<li>it stores the entire set of possible states;</li>
+<li>it borrows a perfect-information evaluator;</li>
+<li>it samples information sets uniformly.</li>
+</ul>
+<p>Within a game it reuses only the previous move's strategy; nothing carries across games. We take its design as our teacher.</p>
+
+<h2>4 Belief-state representation</h2>
+<p><b>Tracking.</b> Each player's tracker keeps the exact set of histories consistent with its observations (equation 1; Figure 2), as a graph in which a board reached by several histories is stored once, with their number as its count. A guard prunes it above 96,000 distinct states, bounding the memory Obscuro spends on the whole set. Each turn the tracker samples up to 16 boards in proportion to their counts, each then weighted equally: the counting weight Obscuro also uses.</p>
+<figure>
+<img class="fig" src="fig_tracking_12.svg" alt="Black's first tracker update: one stored start board expands into 20 boards, one per White first move; all 20 match what Black sees and are kept; 16 are sampled into the belief.">
+<p class="caption"><b>Figure 2.</b> Black's first tracker update (White plays 1.Nh3). (a) One stored board, count 1. (b) Expand: one board per White first move (ranks 1–4 drawn; moved piece outlined; true board in bold). (c) Filter: Black sees ranks 5–8 and no White piece, as it would on all 20 boards, so all are kept; none are equal, so nothing merges, and the guard is far off. Sample: 16 of the 20 form the belief, 1/16 each; faded boards are not sampled. Counts exceed 1 later, when move orders transpose: at ply 21 of a recorded game Black stored 8,667 boards for 86,286 histories.</p>
+</figure>
+<p><b>Encoding: the probability board.</b> The network sees one 32 × 8 × 8 picture (Figure 3), built from four kinds of planes:</p>
+<ul>
+<li><b>From the observation, exact (18):</b> our pieces (6), the enemy pieces we see (6), the squares we see and the enemy pieces on them (2), our castling rights (2), en passant (1) and the ply (1).</li>
+<li><b>From the sampled boards (7):</b> for each enemy piece type, the share of boards with that piece on each square, which is a probability on every unseen square (6), and the log size of the belief (1).</li>
+<li><b>Averaged over the boards (5):</b> the squares the opponent would see (1), our pieces they would see (1), the enemy's castling rights (2) and the fifty-move clock (1).</li>
+<li><b>Always zero (2):</b> capture recency and search depth.</li>
+</ul>
+<figure>
+<img class="fig" src="state_figure_12.svg" alt="State representation at 1.Nh3 d5 2.c4 Qd6 3.Qa4+, Black to move: what Black sees, four of the ten boards Black cannot tell apart, the probability board that averages them, four planes and the 32 plane groups.">
+<p class="caption"><b>Figure 3.</b> The probability board at 1.Nh3 d5 2.c4 Qd6 3.Qa4+, Black to move. (a) Black's view; the queen on a4 is in the fog. (b) The 10 boards that match it, one per White third move, 0.1 each; on the true board the queen attacks the king. (c) Their square-by-square average: unmoved White pieces are certain; the queen is on d1 with 0.7 and on a4, b3 or c2 with 0.1. (d) Four planes as the network reads them (for Black, flipped top to bottom). The others look alike: the own-piece planes hold knights b8, g8 and queen d6; the seen-enemy knight plane only h3; the pawn probability plane e2 .9, e3 .1; of our pieces the opponent sees d5 (1) and our king e8 (0.1, the true board). Constant planes: belief size .22, ply .025, castling 1 (ours) and .9 (the enemy's). (e) The plane groups; shaded groups come from the sampled boards.</p>
+</figure>
+<p><b>Does it matter?</b> For a value network trained on the same labels, held-out board error is 0.400 from the observation alone and 0.249 from the probability board; the policy network shows the same (Section 8.2).</p>
+
+<h2>5 The policy network</h2>
+<p><b>Architecture.</b> A convolutional encoder (a stem and six residual blocks, 64 channels; Figure 4) reads the probability board once per move. A convolutional head scores 64 move types on every square, 56 queen-like moves and 8 knight jumps, and a fixed table places them in the 4,096 from–to slots (Figure 5), so the same weights serve every square. Illegal moves are masked before the softmax. The network has 503,552 parameters and plays its most probable legal move.</p>
+<figure>
+<img class="fig" src="fig_architecture_12.svg" alt="Policy network architecture: stem, six residual blocks, move head, fixed table, legal mask and softmax.">
+<p class="caption"><b>Figure 4.</b> The policy network and the parameters of each part (BN: batch normalisation). The fixed table has no parameters; the mask and the softmax give the move probabilities.</p>
+</figure>
+<figure>
+<img class="fig" src="fig_actions_12.svg" alt="The 4,096 actions: 64 move types per square, the 64 by 64 grid of from-to pairs, and the legal moves at the example position.">
+<p class="caption"><b>Figure 5.</b> The 4,096 actions. (a) The 64 move types from one square; from d4, 35 stay on the board. (b) The actions as a 64 × 64 grid, from-square by to-square: only 1,792 pairs are a queen line or knight jump and get a score; at the position of Figure 3 the mask leaves Black's 44 legal moves. (c) Those moves, with arrows for the network's five most probable. Promotions share their pawn move's slot and are played as a queen.</p>
+</figure>
+<p><b>Training.</b> Cross-entropy to the teacher's root strategy (Section 6), AdamW (learning rate 10<sup>−3</sup>, weight decay 10<sup>−4</sup>), 64 positions per batch, early stopping on validation cross-entropy, three seeds per setting.</p>
+
+<h2>6 The teacher and data collection</h2>
+<h3>6.1 The teacher: an Obscuro-style solver</h3>
+<p><b>The solver.</b> Our search agent follows Obscuro's design at small scale: each move it builds a subgame over the 16 sampled boards (our move, then the reply), grows it one-sidedly, and solves it with PCFR+ (Figure 6). The strategy PCFR+ finds for our move is the label the network is trained on.</p>
+<p><b>What it solves.</b> A sampled, depth-two, one-sided subgame, to near-equilibrium. It models our uncertainty about the opponent's pieces (one move for all 16 boards) and the opponent's uncertainty about our move (55% of opponent nodes in a full two-ply tree share an information set with another of our moves), but not the opponent's uncertainty about our position, and its leaves are full-information values.</p>
+<figure>
+<img class="fig" src="fig_subgame_12.svg" alt="The teacher's subgame at one move.">
+<p class="caption"><b>Figure 6.</b> The teacher's small game at one move, drawn for two of the 16 sampled boards, two of our moves and two replies; each leaf <i>v</i> is the value of its concrete board (Stockfish depth 8 when labelling). PCFR+ solves the game, and its root strategy is the label.</p>
+</figure>
+<h3>6.2 Games and labels</h3>
+<p><b>Games.</b> Our search agent played both colours, so every game gives positions from White's side and from Black's, each seen only through that player's own observations and tracker (Figure 7).</p>
+<p><b>Labels.</b> We re-solved the stored positions this way: 58,693 positions, 56,437 for training and 2,256 for validation. The label is the re-solve's strategy, not the move played in the game.</p>
+<p><b>What the labels look like.</b> Each label is a probability distribution over our legal moves.</p>
+<figure>
+<img class="fig" src="fig_pipeline_12.svg" alt="How the training data is made: games, positions, re-solve, training, play.">
+<p class="caption"><b>Figure 7.</b> How the training data is made: the games choose which positions are labelled, and the re-solve labels them.</p>
+</figure>
+
+<h2>7 Evaluation method</h2>
+<p><b>Offline.</b> A move's <i>regret</i> is how much less the teacher values it than its best move (value units on [−1, 1], from the re-solve's belief-weighted per-board values); top-1 is how often the network picks the teacher's best move.</p>
+<p><b>Matches.</b> The team's runner [12]: 5 s per move, at most 200 plies, alternating colours and the same seeds for every player. Score is (wins + draws/2) / games, with 95% Wilson intervals; failed games are not scored. Opponents:</p>
+<ul>
+<li><b>Greedy bot:</b> a one-move material search over an 8-board belief.</li>
+<li><b>misty v1.6</b> [13]: an unofficial reimplementation of Obscuro, run with Stockfish 14.1 in an isolated container.</li>
+<li><b>PPO agent</b> (reinforcement-learning baseline): trained by self-play from random weights (12.2 hours, 389.5 million moves; reward ±1 for the king plus a small material bonus); it sees only its own view and a memory of where it last saw each enemy piece, uses no belief or teacher, and samples its moves.</li>
+<li><b>Belief-state PPO agent</b> (reinforcement-learning baseline on our input): <span class="pending">[Colin: the same PPO set-up with the 32-plane probability board as input; training time, moves, reward.]</span></li>
+</ul>
+
+<h2>8 Results</h2>
+<h3>8.1 Offline comparison</h3>
+<p>Table 1 reports regret, the value the chosen move gives up against the teacher's best move (lower is better), and top-1, how often the chosen move is the teacher's best (higher is better).</p>
+<div class="tbl"><table>
+<thead><tr><th>Training positions</th><th class="n">Regret</th><th class="n">Top-1</th></tr></thead>
+<tbody>
+<tr><td>18,391</td><td class="n">0.107</td><td class="n">0.417</td></tr>
+<tr><td>27,713</td><td class="n">0.093</td><td class="n">0.430</td></tr>
+<tr><td>41,013</td><td class="n">0.096</td><td class="n">0.434</td></tr>
+<tr><td>56,437</td><td class="n">0.091</td><td class="n">0.446</td></tr>
+<tr><td>56,437, observation only</td><td class="n">0.121</td><td class="n">0.406</td></tr>
+</tbody></table>
+<p class="caption"><b>Table 1.</b> Policy network on 2,256 validation positions, mean of 3 seeds. Regret falls from 0.107 to 0.091 as the data triples.</p></div>
+<h3>8.2 Representation</h3>
+<p>Trained on the same positions without the sampled boards, keeping what the player sees and knows but losing the probabilities, the belief size and the opponent's view (Figure 3e), the network's regret rises from 0.091 to 0.121 (+0.030 [+0.021, +0.040]) and its top-1 falls by 0.040 [0.028, 0.053]. The policy learns from the belief, and one probability board carries it.</p>
+<h3>8.3 Policy network against other players</h3>
+<div class="tbl"><table>
+<thead><tr><th>Policy network vs</th><th class="n">Games</th><th class="n">W–D–L</th><th class="n">Score [95%]</th></tr></thead>
+<tbody>
+<tr><td>Greedy bot</td><td class="n">100</td><td class="n">93–0–7</td><td class="n">0.930 [0.863, 0.966]</td></tr>
+<tr><td>PPO agent (reinforcement-learning baseline)</td><td class="n">99</td><td class="n">37–0–62</td><td class="n">0.374 [0.285, 0.472]</td></tr>
+<tr><td>Belief-state PPO agent</td><td class="n" colspan="3"><span class="pending">[pending]</span></td></tr>
+<tr><td>misty v1.6 (Obscuro reimplementation)</td><td class="n">20</td><td class="n">1–0–19</td><td class="n">0.050 [0.009, 0.236]</td></tr>
+<tr><td colspan="4"><i>For reference, other players on the same seeds:</i></td></tr>
+<tr><td>PPO agent vs greedy bot</td><td class="n">100</td><td class="n">95–1–4</td><td class="n">0.955 [0.895, 0.981]</td></tr>
+<tr><td>PPO agent vs misty v1.6 (misty with Stockfish 19)</td><td class="n">20</td><td class="n">1–2–17</td><td class="n">0.100 [0.028, 0.301]</td></tr>
+<tr><td>Belief-state PPO agent vs greedy bot</td><td class="n" colspan="3"><span class="pending">[pending]</span></td></tr>
+<tr><td>Belief-state PPO agent vs misty v1.6</td><td class="n" colspan="3"><span class="pending">[pending]</span></td></tr>
+</tbody></table>
+<p class="caption"><b>Table 2.</b> Scores from the policy network's side, 5 s per move (misty 4.5 s), shared seeds. The policy network uses a few milliseconds per move (6–8 ms). PPO found two opening lines that beat the policy network every time, so its 99 games hold only 77 distinct ones (37–0–40 for the policy network, each counted once) and that interval is too narrow.</p></div>
+<p>The PPO baseline, trained by self-play without belief or teacher, reaches the policy network's level (0.955 against 0.930 versus the greedy bot) and is about even with the policy network once repeated games count once; its repeatable winning lines show that a policy which always plays its most probable move can be exploited. <span class="pending">[Belief-state PPO: one sentence comparing it with the PPO agent and the policy network.]</span> Every misty game ended by king capture (median 37 plies): a searchless policy is far from an Obscuro-style searcher.</p>
+<h2>9 Discussion and limitations</h2>
+<p><b>What learning buys.</b> From an Obscuro-style teacher, a policy over the player's own information set learns to choose moves at a few milliseconds per move from one probability board, and it improves with data. It learns neither depth nor the teacher's mixing at deeper limits, and alone it is no match for a searcher; our results suggest it is most useful inside search, as a prior to order or prune moves, which we did not build. It also inherits the teacher's blind spots: it imitates a one-sided, depth-two solver with full-information leaves, so it never sees the opponent's uncertainty about our position, and its labels are nearly pure.</p>
+<p><b>Limitations.</b> Our search uses about 1/300 of Obscuro's nodes per move (3,400 against 1.07 million). The tracker loses every consistent history in about 1 game in 10 in self-play, which fails the game. Misty is unofficial and ran with a different Stockfish from the one its author uses. All labels come from our own solver, so regret measures agreement with our teacher, not true game value.</p>
+
+<h2>10 Responsible practice and team contributions</h2>
+<p>Compute: self-play and labelling ran in part on NUS HPC Atlas (NUSREC-HPC-00001). Misty, a GPL-licensed third-party program, was reviewed before use, built from a pinned commit, and run offline in an isolated container; none of its code is in our repository.</p>
+
+<h2>11 Conclusion</h2>
+<p>Obscuro reaches superhuman play by search alone, recomputing its knowledge every move. A learned value cannot take over that work without public belief states, which this game rules out, but a learned strategy can, because it needs only the player's own information set. Our policy network over a probability board, trained on an Obscuro-style solver, plays cheaply and improves with data, but falls far short of deep search. The next step is to use the policy inside the search.</p>
+
+<h2>References</h2>
+<div class="refs">
+<p>[1] Fog of War chess rules as implemented by the team (rules adapter), and chess.com's Fog of War variant.</p>
+<p>[2] B. H. Zhang and T. Sandholm. Subgame solving without common knowledge. NeurIPS 34, 2021.</p>
+<p>[3] B. H. Zhang and T. Sandholm. General search techniques without common knowledge for imperfect-information games, and application to superhuman Fog of War chess. arXiv:2506.01242v2, 2026.</p>
+<p>[4] N. Brown, A. Bakhtin, A. Lerer and Q. Gong. Combining deep reinforcement learning and search for imperfect-information games (ReBeL). NeurIPS 2020.</p>
+<p>[5] D. Silver et al. A general reinforcement learning algorithm that masters chess, shogi, and Go through self-play (AlphaZero). Science, 2018.</p>
+<p>[6] G. Farina, C. Kroer and T. Sandholm. Faster game solving via predictive Blackwell approachability: connecting regret matching and mirror descent. AAAI 2021.</p>
+<p>[7] S. Ganzfried, T. Sandholm and K. Waugh. Strategy purification and thresholding: effective non-equilibrium approaches for playing large games. AAMAS 2012.</p>
+<p>[8] M. Moravčík et al. DeepStack: expert-level artificial intelligence in heads-up no-limit poker. Science, 2017.</p>
+<p>[9] M. L. Littman, A. R. Cassandra and L. P. Kaelbling. Learning policies for partially observable environments: scaling up. ICML 1995.</p>
+<p>[10] N. Burch, M. Johanson and M. Bowling. Solving imperfect information games using decomposition. AAAI 2014.</p>
+<p>[11] M. Moravčík, M. Schmid, K. Ha, M. Hladík and S. J. Gaukrodger. Refining subgames in large imperfect information games. AAAI 2016.</p>
+<p>[12] Team repository: rules, trackers, evaluator study, match runner and records. github.com/Mr-Teal/CS5446_project.</p>
+<p>[13] B. Liou. misty: a Fog of War chess engine. github.com/brianhliou/misty, commit 5ba2c31 (unofficial; not by Obscuro's authors).</p>
+<p>[14] Stockfish (versions 14.1 and 19). stockfishchess.org.</p>
+</div>
+
+</body>
+</html>
