@@ -45,7 +45,7 @@
 
 <h2 style="break-before: page; margin-top: 0">1 Introduction</h2>
 <p>Fog of War chess is chess in which each player sees only the squares their own pieces could move to; there is no check, and a game ends when a king is captured. It is a two-player zero-sum game with imperfect information, and a large one: a player's set of indistinguishable positions often exceeds 10<sup>6</sup> [3]. Obscuro [3], the first superhuman agent for it, scored 85.1% against the previous best agent (ZS21 [2], 1,000 games), 97% against 100 human players and 16–4 against the top-ranked player on chess.com, without any learning: every move is a new search of about a million nodes, with Stockfish valuing each concrete board at the leaves.</p>
-<p>We ask whether the knowledge Obscuro recomputes at every move can be learned once and reused. Our contributions are: (i) the probability board, a one-picture encoding of the player's own information set (Section 4); (ii) a policy network trained on 58,693 positions labelled by an Obscuro-style solver (Sections 5–6); and (iii) comparisons with a greedy bot, a reinforcement-learning (PPO) baseline and a third-party Obscuro reimplementation (Sections 8.1–8.3).</p>
+<p>We ask whether the knowledge Obscuro recomputes at every move can be learned once and reused. Our contributions are: (i) the probability board, a one-picture encoding of the player's own information set (Section 4); (ii) a policy network trained on 58,693 positions labelled by an Obscuro-style solver (Sections 5–6); and (iii) comparisons with a greedy bot, reinforcement-learning (PPO) baselines with and without the belief, and a third-party Obscuro reimplementation (Sections 8.1–8.3).</p>
 
 <h2>2 Problem formulation</h2>
 <p><b>The game.</b> Players <i>i</i> ∈ {White, Black} alternate moves; a history <i>h</i> is the move sequence so far. After every ply each player receives an observation <i>o<sub>i</sub></i> = <i>O<sub>i</sub></i>(<i>h</i>): the squares their pieces could move to, the pieces on them, and whether one of their pieces was just captured. Payoffs are zero-sum, <i>u</i><sub>White</sub> = −<i>u</i><sub>Black</sub> ∈ {−1, 0, +1}. Player <i>i</i>'s information set is every history consistent with what <i>i</i> has observed and done:</p>
@@ -128,7 +128,7 @@
 <li><b>Greedy bot:</b> a one-move material search over an 8-board belief.</li>
 <li><b>misty v1.6</b> [13]: an unofficial reimplementation of Obscuro, run with Stockfish 14.1 in an isolated container.</li>
 <li><b>PPO agent</b> (reinforcement-learning baseline): trained by self-play from random weights (12.2 hours, 389.5 million moves; reward ±1 for the king plus a small material bonus); it sees only its own view and a memory of where it last saw each enemy piece, uses no belief or teacher, and samples its moves.</li>
-<li><b>Belief-state PPO agent</b> (reinforcement-learning baseline on our input): <span class="pending">[Colin: the same PPO set-up with the 32-plane probability board as input; training time, moves, reward.]</span></li>
+<li><b>Belief-state PPO agent</b> (reinforcement-learning baseline on our input): the same PPO set-up with the 32-plane probability board as input, built from its own sample of at most 1,024 positions that fit its observations; trained by self-play for 5 hours (61.9 million moves).</li>
 </ul>
 
 <h2>8 Results</h2>
@@ -152,16 +152,17 @@
 <tbody>
 <tr><td>Greedy bot</td><td class="n">100</td><td class="n">93–0–7</td><td class="n">0.930 [0.863, 0.966]</td></tr>
 <tr><td>PPO agent (reinforcement-learning baseline)</td><td class="n">99</td><td class="n">37–0–62</td><td class="n">0.374 [0.285, 0.472]</td></tr>
-<tr><td>Belief-state PPO agent</td><td class="n" colspan="3"><span class="pending">[pending]</span></td></tr>
+<tr><td>Belief-state PPO agent</td><td class="n">97</td><td class="n">15–0–82</td><td class="n">0.155 [0.096, 0.240]</td></tr>
 <tr><td>misty v1.6 (Obscuro reimplementation)</td><td class="n">20</td><td class="n">1–0–19</td><td class="n">0.050 [0.009, 0.236]</td></tr>
 <tr><td colspan="4"><i>For reference, other players on the same seeds:</i></td></tr>
 <tr><td>PPO agent vs greedy bot</td><td class="n">100</td><td class="n">95–1–4</td><td class="n">0.955 [0.895, 0.981]</td></tr>
 <tr><td>PPO agent vs misty v1.6 (misty with Stockfish 19)</td><td class="n">20</td><td class="n">1–2–17</td><td class="n">0.100 [0.028, 0.301]</td></tr>
-<tr><td>Belief-state PPO agent vs greedy bot</td><td class="n" colspan="3"><span class="pending">[pending]</span></td></tr>
-<tr><td>Belief-state PPO agent vs misty v1.6</td><td class="n" colspan="3"><span class="pending">[pending]</span></td></tr>
+<tr><td>Belief-state PPO agent vs greedy bot</td><td class="n">100</td><td class="n">99–0–1</td><td class="n">0.990 [0.946, 0.998]</td></tr>
+<tr><td>Belief-state PPO agent vs PPO agent</td><td class="n">100</td><td class="n">63–3–34</td><td class="n">0.645 [0.547, 0.732]</td></tr>
+<tr><td>Belief-state PPO agent vs misty v1.6 (misty with Stockfish 19)</td><td class="n">20</td><td class="n">3–2–15</td><td class="n">0.200 [0.081, 0.416]</td></tr>
 </tbody></table>
-<p class="caption"><b>Table 2.</b> Scores from the policy network's side, 5 s per move (misty 4.5 s), shared seeds. The policy network uses a few milliseconds per move (6–8 ms). PPO found two opening lines that beat the policy network every time, so its 99 games hold only 77 distinct ones (37–0–40 for the policy network, each counted once) and that interval is too narrow.</p></div>
-<p>The PPO baseline, trained by self-play without belief or teacher, reaches the policy network's level (0.955 against 0.930 versus the greedy bot) and is about even with the policy network once repeated games count once; its repeatable winning lines show that a policy which always plays its most probable move can be exploited. <span class="pending">[Belief-state PPO: one sentence comparing it with the PPO agent and the policy network.]</span> Every misty game ended by king capture (median 37 plies): a searchless policy is far from an Obscuro-style searcher.</p>
+<p class="caption"><b>Table 2.</b> Scores from the policy network's side, 5 s per move (misty 4.5 s), shared seeds. The policy network uses a few milliseconds per move (6–8 ms). Both PPO agents found short lines that beat the policy network every time, so their games hold only 77 and 50 distinct ones (37–0–40 and 15–0–35 for the policy network, each counted once) and those intervals are too narrow.</p></div>
+<p>The PPO baseline, trained by self-play without belief or teacher, reaches the policy network's level (0.955 against 0.930 versus the greedy bot) and is about even with the policy network once repeated games count once; its repeatable winning lines show that a policy which always plays its most probable move can be exploited. With the belief as input, PPO is stronger still after 5 hours of training against 12.2: it beats the PPO agent 0.645 and the policy network 35–0–15 counting distinct games, its most repeated win being 1.Nf3 d5 2.c4 dxc4 3.Qa4+ Nf6 4.Qxe8, the unseen check of Figure 3. Every misty game ended by king capture (median 37 plies): a searchless policy is far from an Obscuro-style searcher.</p>
 <h2>9 Discussion and limitations</h2>
 <p><b>What learning buys.</b> From an Obscuro-style teacher, a policy over the player's own information set learns to choose moves at a few milliseconds per move from one probability board, and it improves with data. It learns neither depth nor the teacher's mixing at deeper limits, and alone it is no match for a searcher; our results suggest it is most useful inside search, as a prior to order or prune moves, which we did not build. It also inherits the teacher's blind spots: it imitates a one-sided, depth-two solver with full-information leaves, so it never sees the opponent's uncertainty about our position, and its labels are nearly pure.</p>
 <p><b>Limitations.</b> Our search uses about 1/300 of Obscuro's nodes per move (3,400 against 1.07 million). The tracker loses every consistent history in about 1 game in 10 in self-play, which fails the game. Misty is unofficial and ran with a different Stockfish from the one its author uses. All labels come from our own solver, so regret measures agreement with our teacher, not true game value.</p>
@@ -170,7 +171,7 @@
 <p>Compute: self-play and labelling ran in part on NUS HPC Atlas (NUSREC-HPC-00001). Misty, a GPL-licensed third-party program, was reviewed before use, built from a pinned commit, and run offline in an isolated container; none of its code is in our repository.</p>
 
 <h2>11 Conclusion</h2>
-<p>Obscuro reaches superhuman play by search alone, recomputing its knowledge every move. A learned value cannot take over that work without public belief states, which this game rules out, but a learned strategy can, because it needs only the player's own information set. Our policy network over a probability board, trained on an Obscuro-style solver, plays cheaply and improves with data, but falls far short of deep search. The next step is to use the policy inside the search.</p>
+<p>Obscuro reaches superhuman play by search alone. A learned value cannot replace that search without public belief states, but a policy needs only the player's own information set, which the probability board compresses into one picture. That picture is what makes learning work: it lowers the imitation policy's regret from 0.121 to 0.091, and with it PPO beats PPO without it (0.645) after less than half the training. Imitating our small solver gives a cheap policy that improves with data but is matched by PPO and beaten by belief-state PPO, and no searchless policy comes close to an Obscuro-style searcher. Because the imitation policy always plays its most probable move, both PPO agents found lines that beat it every time; a learned policy should mix its moves, or serve inside a search.</p>
 
 <h2>References</h2>
 <div class="refs">
