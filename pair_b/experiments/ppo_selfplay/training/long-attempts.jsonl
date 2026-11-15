@@ -1,0 +1,3 @@
+{"attempt": 1, "name": "long-1", "exit_code": 1, "finished": false, "stalled": false, "started": "2026-11-14 23:33:00", "minutes": 57.69, "resumed_from": null, "learning_rate": 0.00029999999535230336}
+{"attempt": 2, "name": "long-2", "exit_code": 1, "finished": false, "stalled": false, "started": "2026-11-15 00:30:47", "minutes": 106.88, "resumed_from": "runs/long-1/latest.pt", "learning_rate": 0.0002786890416814655}
+{"attempt": 3, "name": "long-3", "exit_code": 0, "finished": true, "stalled": false, "started": "2026-11-15 02:17:45", "minutes": 567.73, "resumed_from": "runs/long-2/latest.pt", "learning_rate": 0.00023923357159290156}

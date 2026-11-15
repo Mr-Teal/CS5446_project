@@ -1,0 +1,414 @@
+{
+  "final-vs-stockfish-d1-400-seed1": {
+    "a": "ppo",
+    "b": "stockfish-d1",
+    "mode": "sample",
+    "games": 399,
+    "errors": 1,
+    "ppo_wins": 166,
+    "draws": 20,
+    "ppo_losses": 213,
+    "score_a": {
+      "mean": 0.44221105527638194,
+      "ci95": [
+        0.3944409547738693,
+        0.49120603015075376
+      ],
+      "degenerate": false,
+      "note": null,
+      "wilson95": [
+        0.3749497102258413,
+        0.5116612413673449
+      ],
+      "complete_pairs": 199,
+      "incomplete_pairs": 1,
+      "resamples": 2000,
+      "seed": 0,
+      "min_pairs": 20,
+      "unit": "complete colour pairs (both games of an opening)"
+    },
+    "end_reasons": {
+      "king_capture": 379,
+      "threefold_repetition": 20
+    },
+    "plies_mean": 65.15789473684211,
+    "seconds_per_game_mean": 12.931077694235588,
+    "checkpoint": "runs/long-hourly/final.pt",
+    "checkpoint_sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4",
+    "settings": {
+      "games": 400,
+      "seed": 1,
+      "max_plies": 200,
+      "particles": 256,
+      "guesses": 8,
+      "opening_plies": [
+        2,
+        8
+      ],
+      "jobs": 12
+    },
+    "rules": "pairb-standin",
+    "team_code": "main 355e5e3 (copied, unchanged)",
+    "created": "2026-11-15 12:17:43",
+    "seconds": 449.3
+  },
+  "pilot18min-vs-material": {
+    "a": "ppo",
+    "b": "material",
+    "mode": "sample",
+    "games": 100,
+    "errors": 0,
+    "ppo_wins": 38,
+    "draws": 0,
+    "ppo_losses": 62,
+    "score_a": {
+      "mean": 0.38,
+      "ci95": [
+        0.28,
+        0.4702499999999986
+      ],
+      "degenerate": false,
+      "note": null,
+      "wilson95": [
+        0.2586278922714569,
+        0.5184955317714105
+      ],
+      "complete_pairs": 50,
+      "incomplete_pairs": 0,
+      "resamples": 2000,
+      "seed": 0,
+      "min_pairs": 20,
+      "unit": "complete colour pairs (both games of an opening)"
+    },
+    "end_reasons": {
+      "king_capture": 100
+    },
+    "plies_mean": 50.44,
+    "seconds_per_game_mean": 13.048,
+    "checkpoint": "runs/pilot-30min/latest.pt",
+    "checkpoint_sha256": "c0ecd01b50243f6adac9d58b3769a2f97bfd6b9d9c28e5a91b953cf3fc15752f",
+    "settings": {
+      "games": 100,
+      "seed": 0,
+      "max_plies": 200,
+      "particles": 256,
+      "guesses": 8,
+      "opening_plies": [
+        2,
+        8
+      ],
+      "jobs": 6
+    },
+    "rules": "pairb-standin",
+    "team_code": "main 355e5e3 (copied, unchanged)",
+    "created": "2026-11-14 22:42:09",
+    "seconds": 234.3
+  },
+  "pilot18min-vs-random": {
+    "a": "ppo",
+    "b": "random",
+    "mode": "sample",
+    "games": 100,
+    "errors": 0,
+    "ppo_wins": 99,
+    "draws": 0,
+    "ppo_losses": 1,
+    "score_a": {
+      "mean": 0.99,
+      "ci95": [
+        0.97,
+        1.0
+      ],
+      "degenerate": false,
+      "note": null,
+      "wilson95": [
+        0.9111242401060022,
+        0.9989551117189557
+      ],
+      "complete_pairs": 50,
+      "incomplete_pairs": 0,
+      "resamples": 2000,
+      "seed": 0,
+      "min_pairs": 20,
+      "unit": "complete colour pairs (both games of an opening)"
+    },
+    "end_reasons": {
+      "king_capture": 100
+    },
+    "plies_mean": 25.21,
+    "seconds_per_game_mean": 0.006000000000000001,
+    "checkpoint": "runs/pilot-30min/latest.pt",
+    "checkpoint_sha256": "c0ecd01b50243f6adac9d58b3769a2f97bfd6b9d9c28e5a91b953cf3fc15752f",
+    "settings": {
+      "games": 100,
+      "seed": 0,
+      "max_plies": 200,
+      "particles": 256,
+      "guesses": 8,
+      "opening_plies": [
+        2,
+        8
+      ],
+      "jobs": 6
+    },
+    "rules": "pairb-standin",
+    "team_code": "main 355e5e3 (copied, unchanged)",
+    "created": "2026-11-14 22:38:15",
+    "seconds": 2.2
+  },
+  "pilot18min-vs-stockfish-d1": {
+    "a": "ppo",
+    "b": "stockfish-d1",
+    "mode": "sample",
+    "games": 100,
+    "errors": 0,
+    "ppo_wins": 6,
+    "draws": 0,
+    "ppo_losses": 94,
+    "score_a": {
+      "mean": 0.06,
+      "ci95": [
+        0.02,
+        0.11
+      ],
+      "degenerate": false,
+      "note": null,
+      "wilson95": [
+        0.020614970188436152,
+        0.16217091796874428
+      ],
+      "complete_pairs": 50,
+      "incomplete_pairs": 0,
+      "resamples": 2000,
+      "seed": 0,
+      "min_pairs": 20,
+      "unit": "complete colour pairs (both games of an opening)"
+    },
+    "end_reasons": {
+      "king_capture": 100
+    },
+    "plies_mean": 39.5,
+    "seconds_per_game_mean": 11.799000000000001,
+    "checkpoint": "runs/pilot-30min/latest.pt",
+    "checkpoint_sha256": "c0ecd01b50243f6adac9d58b3769a2f97bfd6b9d9c28e5a91b953cf3fc15752f",
+    "settings": {
+      "games": 100,
+      "seed": 0,
+      "max_plies": 200,
+      "particles": 256,
+      "guesses": 8,
+      "opening_plies": [
+        2,
+        8
+      ],
+      "jobs": 6
+    },
+    "rules": "pairb-standin",
+    "team_code": "main 355e5e3 (copied, unchanged)",
+    "created": "2026-11-14 22:45:44",
+    "seconds": 214.1
+  },
+  "ref-material-vs-stockfish-d1": {
+    "a": "material",
+    "b": "stockfish-d1",
+    "games": 100,
+    "errors": 0,
+    "ppo_wins": 5,
+    "draws": 0,
+    "ppo_losses": 95,
+    "score_a": {
+      "mean": 0.05,
+      "ci95": [
+        0.01,
+        0.09
+      ],
+      "degenerate": false,
+      "note": null,
+      "wilson95": [
+        0.015624593850482787,
+        0.14858824631026993
+      ],
+      "complete_pairs": 50,
+      "incomplete_pairs": 0,
+      "resamples": 2000,
+      "seed": 0,
+      "min_pairs": 20,
+      "unit": "complete colour pairs (both games of an opening)"
+    },
+    "end_reasons": {
+      "king_capture": 100
+    },
+    "plies_mean": 41.53,
+    "seconds_per_game_mean": 25.474,
+    "settings": {
+      "games": 100,
+      "seed": 0,
+      "max_plies": 200,
+      "particles": 256,
+      "guesses": 8,
+      "opening_plies": [
+        2,
+        8
+      ],
+      "jobs": 5
+    },
+    "rules": "pairb-standin",
+    "team_code": "main 355e5e3 (copied, unchanged)",
+    "created": "2026-11-15 03:08:36",
+    "seconds": 549.5
+  },
+  "final-vs-material": {
+    "a": "ppo",
+    "b": "material",
+    "mode": "sample",
+    "games": 100,
+    "errors": 0,
+    "ppo_wins": 86,
+    "draws": 0,
+    "ppo_losses": 14,
+    "score_a": {
+      "mean": 0.86,
+      "ci95": [
+        0.8,
+        0.92
+      ],
+      "degenerate": false,
+      "note": null,
+      "wilson95": [
+        0.7381380617631021,
+        0.9304916661082956
+      ],
+      "complete_pairs": 50,
+      "incomplete_pairs": 0,
+      "resamples": 2000,
+      "seed": 0,
+      "min_pairs": 20,
+      "unit": "complete colour pairs (both games of an opening)"
+    },
+    "end_reasons": {
+      "king_capture": 100
+    },
+    "plies_mean": 59.64,
+    "seconds_per_game_mean": 10.620999999999999,
+    "checkpoint": "runs/long-hourly/final.pt",
+    "checkpoint_sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4",
+    "settings": {
+      "games": 100,
+      "seed": 0,
+      "max_plies": 200,
+      "particles": 256,
+      "guesses": 8,
+      "opening_plies": [
+        2,
+        8
+      ],
+      "jobs": 5
+    },
+    "rules": "pairb-standin",
+    "team_code": "main 355e5e3 (copied, unchanged)",
+    "created": "2026-11-15 11:50:15",
+    "seconds": 219.2
+  },
+  "final-vs-random": {
+    "a": "ppo",
+    "b": "random",
+    "mode": "sample",
+    "games": 100,
+    "errors": 0,
+    "ppo_wins": 100,
+    "draws": 0,
+    "ppo_losses": 0,
+    "score_a": {
+      "mean": 1.0,
+      "ci95": null,
+      "degenerate": true,
+      "note": "every pair scored the same, so the bootstrap would collapse to a point",
+      "wilson95": [
+        0.9286523998213857,
+        1.0
+      ],
+      "complete_pairs": 50,
+      "incomplete_pairs": 0,
+      "resamples": 2000,
+      "seed": 0,
+      "min_pairs": 20,
+      "unit": "complete colour pairs (both games of an opening)"
+    },
+    "end_reasons": {
+      "king_capture": 100
+    },
+    "plies_mean": 31.56,
+    "seconds_per_game_mean": 0.0,
+    "checkpoint": "runs/long-hourly/final.pt",
+    "checkpoint_sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4",
+    "settings": {
+      "games": 100,
+      "seed": 0,
+      "max_plies": 200,
+      "particles": 256,
+      "guesses": 8,
+      "opening_plies": [
+        2,
+        8
+      ],
+      "jobs": 5
+    },
+    "rules": "pairb-standin",
+    "team_code": "main 355e5e3 (copied, unchanged)",
+    "created": "2026-11-15 11:46:35",
+    "seconds": 1.5
+  },
+  "final-vs-stockfish-d1": {
+    "a": "ppo",
+    "b": "stockfish-d1",
+    "mode": "sample",
+    "games": 99,
+    "errors": 1,
+    "ppo_wins": 39,
+    "draws": 4,
+    "ppo_losses": 56,
+    "score_a": {
+      "mean": 0.41836734693877553,
+      "ci95": [
+        0.3163265306122449,
+        0.5255102040816326
+      ],
+      "degenerate": false,
+      "note": null,
+      "wilson95": [
+        0.2911657548197629,
+        0.5574379709408875
+      ],
+      "complete_pairs": 49,
+      "incomplete_pairs": 1,
+      "resamples": 2000,
+      "seed": 0,
+      "min_pairs": 20,
+      "unit": "complete colour pairs (both games of an opening)"
+    },
+    "end_reasons": {
+      "king_capture": 95,
+      "threefold_repetition": 4
+    },
+    "plies_mean": 68.12121212121212,
+    "seconds_per_game_mean": 9.972727272727273,
+    "checkpoint": "runs/long-hourly/final.pt",
+    "checkpoint_sha256": "835c75e7a78abd8f066d7596e17a9b18d720512769bc2b25083d6e19e8ff9ee4",
+    "settings": {
+      "games": 100,
+      "seed": 0,
+      "max_plies": 200,
+      "particles": 256,
+      "guesses": 8,
+      "opening_plies": [
+        2,
+        8
+      ],
+      "jobs": 5
+    },
+    "rules": "pairb-standin",
+    "team_code": "main 355e5e3 (copied, unchanged)",
+    "created": "2026-11-15 11:53:43",
+    "seconds": 208.4
+  }
+}
